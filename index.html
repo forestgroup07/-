@@ -264,9 +264,9 @@
       display: block;
       border-radius: 50%;
       pointer-events: none;
-      opacity: 0; /* 第一屏看原图；翻页/选中才盖贴图 */
+      opacity: 1; /* 始终盖住底图，避免 50 残留光柱 */
       transform: translateY(0) scale(1);
-      transition: opacity .12s ease, transform .16s cubic-bezier(.2,.8,.2,1), filter .14s ease;
+      transition: transform .16s cubic-bezier(.2,.8,.2,1), filter .14s ease;
       filter: none;
     }
     .chip-btn.on::before {
@@ -278,16 +278,10 @@
       transform: translateX(-50%) scale(1);
     }
     .chip-btn.on img {
-      opacity: 1;
       transform: translateY(-26%) scale(1.1);
       filter:
         drop-shadow(0 10px 8px rgba(0,0,0,.5))
         drop-shadow(0 0 5px rgba(255,255,255,.65));
-    }
-    /* 翻页后底图对不上，四格都显示贴图 */
-    .chip-btn.shifted img { opacity: 1; }
-    .chip-btn.shifted.on img {
-      transform: translateY(-26%) scale(1.1);
     }
     #chip-a  { left: 69.104%; top: 81.549%; width: 3.931%; }
     #chip-b  { left: 74.543%; top: 81.479%; width: 4.022%; }
