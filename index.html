@@ -4,28 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>Forest Group · 骰宝 v1.0.0</title>
-  <link rel="preload" as="image" href="pc-full.webp?v=v102" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="chips/chip-10.webp?v=v102" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-20.webp?v=v102" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-50.webp?v=v102" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-100.webp?v=v102" type="image/webp" />
+  <title>Forest Group · 骰宝</title>
+  <link rel="preload" as="image" href="pc-full.webp?v=v1.0.1" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="chips/chip-10.webp?v=v1.0.1" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-20.webp?v=v1.0.1" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-50.webp?v=v1.0.1" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-100.webp?v=v1.0.1" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
-      --stage-h: 1420;
+      --stage-h: 1393;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%; height: 100%;
       background: #000;
       overflow: hidden;
-      font-family: "PingFang SC", "Noto Sans TC", "Microsoft YaHei", sans-serif;
       user-select: none;
       -webkit-user-select: none;
       touch-action: manipulation;
     }
-    /* 资源齐了再整屏亮起，避免从上往下一点点露 */
     .frame {
       width: 100vw; height: 100vh;
       display: flex; align-items: center; justify-content: center;
@@ -36,8 +34,8 @@
     html.is-ready .frame { opacity: 1; }
     .stage {
       position: relative;
-      width: min(100vw, calc(100vh * 2188 / 1420));
-      height: min(100vh, calc(100vw * 1420 / 2188));
+      width: min(100vw, calc(100vh * 2188 / 1393));
+      height: min(100vh, calc(100vw * 1393 / 2188));
       overflow: hidden;
       background: #000;
     }
@@ -48,146 +46,26 @@
       display: block;
       pointer-events: none;
     }
-    .stage .bg {
-      object-fit: fill;
-    }
+    .stage .bg { object-fit: fill; }
 
-    /* 左上角：汇率 + 积分 */
-    .hud-tl {
+    /* 仅余额数字，无汇率条、无倒计时 */
+    .bal {
       position: absolute;
-      left: 1.2%; top: 1.4%;
-      z-index: 20;
-      display: flex; flex-direction: column; gap: 6px;
-      pointer-events: none;
-    }
-    .hud-tl .rate {
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(0,0,0,.65);
-      border: 1px solid rgba(212,175,55,.4);
-      color: #e8d48a;
-      font-size: clamp(9px, 0.85vw, 12px);
-      letter-spacing: .02em;
-      white-space: nowrap;
-    }
-    .hud-tl .points {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 9px;
-      border-radius: 999px;
-      background: rgba(8,40,32,.82);
-      border: 1px solid rgba(212,175,55,.35);
-      color: #ffd56a;
-      font-size: clamp(10px, 0.95vw, 13px);
-      font-weight: 700;
-      width: fit-content;
-    }
-    .hud-tl .points .chip-ico {
-      width: 1.1em; height: 1.1em; border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #eee, #888 45%, #444);
-      box-shadow: inset 0 0 0 2px #bbb;
-      flex-shrink: 0;
-    }
-
-    /* 盖住原余额数字区，动态显示积分 */
-    .balance-patch {
-      position: absolute;
-      left: 50.229%;
-      top: 79.014%;
-      width: 3.931%;
-      height: 1.479%;
-      z-index: 20;
-      border: 0; border-radius: 0; box-shadow: none;
-      background: #122720;
-      display: flex; align-items: center; justify-content: flex-start;
-      padding-left: 1px;
-      color: #ecd282;
-      font-size: clamp(11px, 0.85vw, 18px);
-      font-weight: 700;
-      font-family: Arial, Helvetica, sans-serif;
-      line-height: 1;
-      pointer-events: none;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    /* 倒计时圆圈：外围弧线随时间一点点消失 */
-    .timer {
-      position: absolute;
-      left: 45.5%; top: 15%;
-      width: 9.5%;
-      aspect-ratio: 1;
-      z-index: 25;
-      pointer-events: none;
-    }
-    .timer svg {
-      width: 100%; height: 100%;
-      display: block;
-      transform: rotate(-90deg);
-      filter: drop-shadow(0 0 10px rgba(46,204,113,.45));
-      transition: filter .25s;
-    }
-    .timer.red svg {
-      filter: drop-shadow(0 0 12px rgba(231,76,60,.6));
-    }
-    .timer .track {
-      fill: none;
-      stroke: rgba(255,255,255,.18);
-      stroke-width: 7;
-    }
-    .timer .progress {
-      fill: none;
-      stroke: #2ecc71;
-      stroke-width: 7;
-      stroke-linecap: round;
-      stroke-dasharray: 283;
-      stroke-dashoffset: 0;
-      transition: stroke .2s;
-    }
-    .timer.red .progress { stroke: #e74c3c; }
-    .timer .face {
-      position: absolute; inset: 12%;
-      border-radius: 50%;
-      background: rgba(0,0,0,.48);
+      left: 50.091%; top: 80.043%;
+      width: 4.068%; height: 3.015%;
       display: flex; align-items: center; justify-content: center;
-      color: #fff;
-      font-weight: 800;
-      font-size: clamp(20px, 2.8vw, 42px);
-      line-height: 1;
-      box-shadow: inset 0 0 16px rgba(0,0,0,.35);
-      transition: color .2s, transform .12s;
-    }
-    .timer.red .face { color: #ff6b5a; }
-    .timer.pulse .face { transform: scale(1.08); }
-
-    /* 热区 */
-    .hot {
-      position: absolute;
-      z-index: 30;
-      cursor: pointer;
-      border-radius: 10px;
-      background: transparent;
-      border: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .hot:disabled { cursor: not-allowed; }
-    .hot.flash {
-      animation: flashBet .35s ease;
-    }
-    @keyframes flashBet {
-      0% { box-shadow: inset 0 0 0 0 rgba(255,255,255,0); background: rgba(255,255,255,0); }
-      35% { box-shadow: inset 0 0 0 3px rgba(255,255,255,.95); background: rgba(255,255,255,.28); }
-      100% { box-shadow: inset 0 0 0 0 rgba(255,255,255,0); background: rgba(255,255,255,0); }
-    }
-    .hot.selected-side {
-      box-shadow: inset 0 0 0 3px rgba(255,215,80,.95);
-      background: rgba(255,215,80,.12);
+      pointer-events: none;
+      color: #c8d09b;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 19 / 2188);
+      line-height: 1; white-space: nowrap;
+      text-shadow:
+        -1px 0 0 rgba(6,18,12,.85), 1px 0 0 rgba(6,18,12,.85),
+        0 -1px 0 rgba(6,18,12,.85), 0 1px 0 rgba(6,18,12,.85);
+      z-index: 20;
     }
 
-    /* 大小 */
-    #hot-small { left: 39.5%; top: 47.5%; width: 10.5%; height: 10.5%; }
-    #hot-big   { left: 50.0%; top: 47.5%; width: 10.5%; height: 10.5%; }
-
-    /* 原图筹码：未选中看背景；选中抬起 + 地面光圈 + 光柱（仿原版 50） */
+    /* 筹码贴图始终盖住底图，平贴干净；点选才抬起 */
     .chip-btn {
       position: absolute;
       z-index: 32;
@@ -197,9 +75,11 @@
       border-radius: 50%;
       line-height: 0;
       overflow: visible;
+      outline: none;
       -webkit-tap-highlight-color: transparent;
     }
-    /* 地面光圈（椭圆） */
+    .chip-btn:focus,
+    .chip-btn:focus-visible { outline: none !important; }
     .chip-btn::after {
       content: "";
       position: absolute;
@@ -223,7 +103,6 @@
       z-index: 0;
       transition: opacity .14s ease, transform .16s ease;
     }
-    /* 向上光柱 / 光丝 */
     .chip-btn::before {
       content: "";
       position: absolute;
@@ -257,6 +136,7 @@
       filter: blur(0.4px);
       transition: opacity .14s ease, transform .16s ease;
     }
+    /* 筹码不盖贴图：露出最早底图原筹码，只留点击热区 */
     .chip-btn img {
       position: relative;
       z-index: 1;
@@ -264,11 +144,12 @@
       display: block;
       border-radius: 50%;
       pointer-events: none;
-      opacity: 0; /* 第一屏看原图；翻页/选中才盖贴图 */
+      opacity: 0;
       transform: translateY(0) scale(1);
-      transition: opacity .12s ease, transform .16s cubic-bezier(.2,.8,.2,1), filter .14s ease;
+      transition: transform .16s cubic-bezier(.2,.8,.2,1), filter .14s ease, opacity .14s ease;
       filter: none;
     }
+    .chip-btn.on { z-index: 99; }
     .chip-btn.on::before {
       opacity: 1;
       transform: translateX(-50%) scaleY(1);
@@ -284,584 +165,52 @@
         drop-shadow(0 10px 8px rgba(0,0,0,.5))
         drop-shadow(0 0 5px rgba(255,255,255,.65));
     }
-    /* 翻页后底图对不上，四格都显示贴图 */
-    .chip-btn.shifted img { opacity: 1; }
-    .chip-btn.shifted.on img {
-      transform: translateY(-26%) scale(1.1);
-    }
-    /* 仅盖住底图自带光的 50：用从 20 克隆换色的真筹码，无黄圈、不涂底图 */
-    .chip-btn.flat-50:not(.on) img {
-      opacity: 1;
-      transform: none;
-      filter: none;
-    }
-    .chip-btn.sliding {
-      transition: transform .28s cubic-bezier(.22,.7,.25,1);
-    }
-    #chip-a  { left: 69.104%; top: 81.549%; width: 3.931%; }
-    #chip-b  { left: 74.543%; top: 81.479%; width: 4.022%; }
-    #chip-c  { left: 79.159%; top: 81.761%; width: 4.479%; }
-    #chip-d  { left: 85.283%; top: 81.620%; width: 4.205%; }
 
-    /* 筹码翻页：左侧 < 、Max 旁 > */
-    #hot-chip-prev { left: 66.2%; top: 82.2%; width: 2.4%; height: 4.2%; border-radius: 6px; }
-    #hot-chip-next { left: 94.0%; top: 82.0%; width: 2.6%; height: 4.4%; border-radius: 6px; }
-    #hot-chip-max  { left: 89.7%; top: 81.4%; width: 4.2%; height: 5.0%; border-radius: 50%; }
-
-/* 确定 / 取消 */
-    #hot-confirm { left: 68.8%; top: 88.6%; width: 8.2%; height: 5.8%; border-radius: 12px; }
-    #hot-cancel  { left: 77.4%; top: 88.6%; width: 8.2%; height: 5.8%; border-radius: 12px; }
-
-    /* 状态条 */
-    .toast {
-      position: absolute;
-      left: 50%; top: 40%;
-      transform: translate(-50%, -50%);
-      z-index: 40;
-      min-width: 220px;
-      padding: 14px 22px;
-      border-radius: 12px;
-      background: rgba(0,0,0,.78);
-      border: 1px solid rgba(255,255,255,.2);
-      color: #fff;
-      text-align: center;
-      font-size: clamp(14px, 1.8vw, 22px);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s;
-    }
-    .toast.show { opacity: 1; }
-    .toast .sub {
-      margin-top: 6px;
-      font-size: .75em;
-      color: #ffd56a;
-    }
-
-    .bet-marker {
-      position: absolute;
-      z-index: 27;
-      width: 3.2%;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      display: none;
-      align-items: center; justify-content: center;
-      background: radial-gradient(circle at 35% 30%, #fff, #d4af37 40%, #7a5a10);
-      border: 2px solid #fff;
-      color: #1a1200;
-      font-weight: 800;
-      font-size: clamp(9px, 1vw, 13px);
-      box-shadow: 0 4px 10px rgba(0,0,0,.5);
-      pointer-events: none;
-    }
-    .bet-marker.on { display: flex; }
-    #marker-small { left: 43.2%; top: 51%; }
-    #marker-big   { left: 53.6%; top: 51%; }
-
-    .sound-tip {
-      position: absolute;
-      right: 1.2%; top: 1.4%;
-      z-index: 20;
-      padding: 6px 10px;
-      border-radius: 8px;
-      background: rgba(0,0,0,.65);
-      color: #ddd;
-      font-size: clamp(10px, 1.1vw, 14px);
-      cursor: pointer;
-      border: 1px solid rgba(255,255,255,.2);
-    }
+    /* 最早热区位置，不动筹码底图 */
+    #chip-a  { left: 69.104%; top: 84.35%; width: 3.931%; aspect-ratio: 1; }
+    #chip-b  { left: 74.543%; top: 84.28%; width: 4.022%; aspect-ratio: 1; }
+    #chip-c  { left: 79.159%; top: 84.35%; width: 4.479%; aspect-ratio: 1; }
+    #chip-d  { left: 85.283%; top: 84.40%; width: 4.205%; aspect-ratio: 1; }
   </style>
 </head>
 <body>
   <div class="frame">
-    <div class="stage" id="stage">
+    <div class="stage">
       <picture>
-        <source srcset="pc-full.webp?v=v102" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full.jpg?v=v102" alt="骰宝" width="1100" height="713" decoding="sync" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full.webp?v=v1.0.1" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full.jpg?v=v1.0.1" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
-      <div class="hud-tl">
-        <div class="rate">1000印尼盾 = 1积分</div>
-      </div>
+      <div class="bal">2,000</div>
 
-      <div class="balance-patch" id="balanceText">2000</div>
-
-      <button class="sound-tip" id="btnSound" type="button">点击开启声音</button>
-
-      <div class="timer" id="timer">
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <circle class="track" cx="50" cy="50" r="45"></circle>
-          <circle class="progress" id="timerRing" cx="50" cy="50" r="45"></circle>
-        </svg>
-        <div class="face" id="timerNum">22</div>
-      </div>
-
-      <div class="bet-marker" id="marker-small"></div>
-      <div class="bet-marker" id="marker-big"></div>
-
-      <button class="hot" id="hot-small" type="button" aria-label="小"></button>
-      <button class="hot" id="hot-big" type="button" aria-label="大"></button>
-      
-      <button class="hot" id="hot-chip-prev" type="button" aria-label="上一组筹码"></button>
-      <button class="chip-btn" id="chip-a" data-slot="0" type="button" aria-label="筹码"><img decoding="async" alt=""></button>
-      <button class="chip-btn" id="chip-b" data-slot="1" type="button" aria-label="筹码"><img decoding="async" alt=""></button>
-      <button class="chip-btn" id="chip-c" data-slot="2" type="button" aria-label="筹码"><img decoding="async" alt=""></button>
-      <button class="chip-btn" id="chip-d" data-slot="3" type="button" aria-label="筹码"><img decoding="async" alt=""></button>
-      <button class="hot" id="hot-chip-max" type="button" aria-label="MAX"></button>
-      <button class="hot" id="hot-chip-next" type="button" aria-label="下一组筹码"></button>
-
-      <button class="hot" id="hot-confirm" type="button" aria-label="确定"></button>
-      <button class="hot" id="hot-cancel" type="button" aria-label="取消"></button>
-
-      <div class="toast" id="toast"><div id="toastMain"></div><div class="sub" id="toastSub"></div></div>
+      <button class="chip-btn" id="chip-a" data-slot="0" type="button" aria-label="筹码10">
+        <img src="chips/chip-10.webp?v=v1.0.1" alt="" decoding="async" draggable="false" />
+      </button>
+      <button class="chip-btn" id="chip-b" data-slot="1" type="button" aria-label="筹码20">
+        <img src="chips/chip-20.webp?v=v1.0.1" alt="" decoding="async" draggable="false" />
+      </button>
+      <button class="chip-btn" id="chip-c" data-slot="2" type="button" aria-label="筹码50">
+        <img src="chips/chip-50.webp?v=v1.0.1" alt="" decoding="async" draggable="false" />
+      </button>
+      <button class="chip-btn" id="chip-d" data-slot="3" type="button" aria-label="筹码100">
+        <img src="chips/chip-100.webp?v=v1.0.1" alt="" decoding="async" draggable="false" />
+      </button>
     </div>
   </div>
-
   <script>
-    const IDR_PER_POINT = 1000;
-    const PAYOUT = 1; // 大小 1x1
-
-    // 原版：4 格滑动窗口，右箭头逐档升高
-    const CHIP_ALL = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
-    const CHIP_WINDOW = 4;
-    const CHIP_VER = 'v102';
-
-    const state = {
-      balance: 2000,
-      chip: 20,       // 默认选中 20；50 与 10/20 一样平贴无自带光
-      chipOffset: 0,
-      sliding: false,  // 窗口起点
-      side: null,       // 'small' | 'big'
-      confirmed: null,  // { side, amount } once 确定
-      locked: false,
-      seconds: 22,
-      phase: 'betting', // betting | reveal | settle
-      soundOn: false,
-      timerId: null,
-    };
-
-    const el = {
-      balance: document.getElementById('balanceText'),
-      timer: document.getElementById('timer'),
-      timerNum: document.getElementById('timerNum'),
-      timerRing: document.getElementById('timerRing'),
-      toast: document.getElementById('toast'),
-      toastMain: document.getElementById('toastMain'),
-      toastSub: document.getElementById('toastSub'),
-      btnSound: document.getElementById('btnSound'),
-      chipBtns: [...document.querySelectorAll('.chip-btn')],
-      markers: {
-        small: document.getElementById('marker-small'),
-        big: document.getElementById('marker-big'),
-      },
-      hotSmall: document.getElementById('hot-small'),
-      hotBig: document.getElementById('hot-big'),
-    };
-
-    function fmt(n) {
-      return String(Math.round(n));
-    }
-
-    function updateBalance() {
-      el.balance.textContent = fmt(state.balance);
-    }
-
-    function showToast(main, sub = '', ms = 1800) {
-      el.toastMain.textContent = main;
-      el.toastSub.textContent = sub;
-      el.toast.classList.add('show');
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => el.toast.classList.remove('show'), ms);
-    }
-
-    function pickVoice() {
-      const voices = speechSynthesis.getVoices() || [];
-      const score = (v) => {
-        const s = (v.name + ' ' + v.lang).toLowerCase();
-        let n = 0;
-        if (/zh|chinese|中文|國語|国语|普通话/.test(s)) n += 10;
-        if (/female|woman|girl|tingting|ting-ting|meijia|mei-jia|sinji|google 普通话|xiaoxiao|xiaoyi|xiaochen|xiaohan|yaoyao|huihui|hanhan|丽|女/.test(s)) n += 50;
-        if (/male|man|boy|kangkang|yunyang|yunjian|男/.test(s)) n -= 40;
-        if (/zh-cn|zh_cn|zh-hk|zh-tw/.test(s)) n += 5;
-        return n;
-      };
-      const ranked = [...voices].sort((a,b) => score(b) - score(a));
-      return ranked[0] || null;
-    }
-
-    function speak(text) {
-      if (!state.soundOn) return;
-      try {
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'zh-CN';
-        u.rate = 0.72;  // 说话慢一点
-        u.pitch = 1.35; // 偏女声甜一点
-        const v = pickVoice();
-        if (v) {
-          u.voice = v;
-          if (v.lang) u.lang = v.lang;
-        }
-        speechSynthesis.speak(u);
-      } catch (_) {}
-    }
-
-
-    // —— 滴滴倒计时音效 ——
-    let audioCtx = null;
-    const ROUND_SECS = 22;
-    const TICK_MS = 1300; // 走的速度慢一点（每格约1.3秒）
-    const RING_LEN = 2 * Math.PI * 45; // r=45
-
-    function ensureAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      return audioCtx;
-    }
-
-    function beep(urgent) {
-      if (!state.soundOn) return;
-      try {
-        const ctx = ensureAudio();
-        const now = ctx.currentTime;
-        const beepOnce = (start, freq, dur, gain) => {
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.type = 'square';
-          o.frequency.value = freq;
-          g.gain.setValueAtTime(0.0001, start);
-          g.gain.exponentialRampToValueAtTime(gain, start + 0.01);
-          g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-          o.connect(g); g.connect(ctx.destination);
-          o.start(start); o.stop(start + dur + 0.02);
-        };
-        if (urgent) {
-          // 最后10秒：双滴、更高更急
-          beepOnce(now, 980, 0.07, 0.09);
-          beepOnce(now + 0.11, 1240, 0.08, 0.11);
-        } else {
-          beepOnce(now, 760, 0.06, 0.06);
-        }
-      } catch (_) {}
-    }
-
-    function updateTimerVisual(sec) {
-      const left = Math.max(0, sec);
-      el.timerNum.textContent = String(left);
-      el.timer.classList.toggle('red', left <= 10 && left > 0);
-      // 外围圈随剩余时间缩短（22→满，0→空）
-      const ratio = left / ROUND_SECS;
-      el.timerRing.style.strokeDasharray = String(RING_LEN);
-      el.timerRing.style.strokeDashoffset = String(RING_LEN * (1 - ratio));
-      el.timer.classList.add('pulse');
-      setTimeout(() => el.timer.classList.remove('pulse'), 140);
-    }
-
-    function chipWindow() {
-      const maxOff = Math.max(0, CHIP_ALL.length - CHIP_WINDOW);
-      state.chipOffset = Math.max(0, Math.min(maxOff, state.chipOffset));
-      return CHIP_ALL.slice(state.chipOffset, state.chipOffset + CHIP_WINDOW);
-    }
-
-    function renderChipPage() {
-      const page = chipWindow();
-      const shifted = state.chipOffset !== 0;
-      el.chipBtns.forEach((btn, i) => {
-        const v = page[i];
-        btn.dataset.v = String(v);
-        btn.setAttribute('aria-label', String(v));
-        const img = btn.querySelector('img');
-        img.src = `chips/chip-${v}.webp?v=${CHIP_VER}`;
-        img.alt = String(v);
-        btn.style.transform = '';
-        btn.classList.remove('sliding');
-        btn.classList.toggle('shifted', shifted);
-        btn.classList.toggle('flat-50', !shifted && Number(v) === 50 && state.chip !== 50);
-        btn.classList.toggle('on', Number(v) === state.chip);
-      });
-    }
-
-    function shiftChips(dir) {
-      if (state.locked || state.phase !== 'betting' || state.sliding) return;
-      const maxOff = Math.max(0, CHIP_ALL.length - CHIP_WINDOW);
-      const next = Math.max(0, Math.min(maxOff, state.chipOffset + dir));
-      if (next === state.chipOffset) return;
-
-      state.sliding = true;
-      // 先全部显示贴图，整排平移，再换面额（右箭头：左边出去，右边进 200/500…）
-      const a = document.getElementById('chip-a');
-      const b = document.getElementById('chip-b');
-      const stepPx = b.getBoundingClientRect().left - a.getBoundingClientRect().left;
-      const dx = dir > 0 ? -stepPx : stepPx;
-
-      el.chipBtns.forEach((btn) => {
-        btn.classList.add('shifted', 'sliding');
-        btn.classList.remove('flat-50');
-        btn.style.transform = `translateX(${dx}px)`;
-      });
-
-      const finish = () => {
-        state.chipOffset = next;
-        const page = chipWindow();
-        if (dir > 0) state.chip = page[page.length - 1];
-        else if (!page.includes(state.chip)) state.chip = page[0];
-        renderChipPage();
-        state.sliding = false;
-      };
-      setTimeout(finish, 300);
-    }
-
-    function setChip(n) {
-      if (state.locked || state.phase !== 'betting') return;
-      state.chip = n;
-      const idx = CHIP_ALL.indexOf(n);
-      if (idx >= 0) {
-        // 保证选中项落在当前 4 格窗口内
-        if (idx < state.chipOffset) state.chipOffset = idx;
-        if (idx >= state.chipOffset + CHIP_WINDOW) {
-          state.chipOffset = idx - CHIP_WINDOW + 1;
-        }
-      }
-      renderChipPage();
-    }
-
-    function flash(node) {
-      node.classList.remove('flash');
-      void node.offsetWidth;
-      node.classList.add('flash');
-    }
-
-    function chooseSide(side) {
-      if (state.locked || state.phase !== 'betting') return;
-      if (state.confirmed) {
-        showToast('本局已确定', '等待开奖');
-        return;
-      }
-      state.side = side;
-      el.hotSmall.classList.toggle('selected-side', side === 'small');
-      el.hotBig.classList.toggle('selected-side', side === 'big');
-      flash(side === 'small' ? el.hotSmall : el.hotBig);
-      // 临时标记额（未确定）
-      el.markers.small.classList.toggle('on', side === 'small');
-      el.markers.big.classList.toggle('on', side === 'big');
-      el.markers.small.textContent = side === 'small' ? state.chip : '';
-      el.markers.big.textContent = side === 'big' ? state.chip : '';
-    }
-
-    function confirmBet() {
-      if (state.locked || state.phase !== 'betting') return;
-      if (state.confirmed) {
-        showToast('本局已下注', `${state.confirmed.side === 'big' ? '大' : '小'} ${state.confirmed.amount}积分`);
-        return;
-      }
-      if (!state.side) {
-        showToast('请先选择 大 或 小');
-        return;
-      }
-      const amount = state.chip;
-      if (amount > state.balance) {
-        showToast('积分不足');
-        speak('积分不足');
-        return;
-      }
-      state.balance -= amount;
-      updateBalance();
-      state.confirmed = { side: state.side, amount };
-      el.markers[state.side].classList.add('on');
-      el.markers[state.side].textContent = amount;
-      flash(document.getElementById('hot-confirm'));
-      showToast('下注成功', `${state.side === 'big' ? '大' : '小'} ${amount}积分（≈${amount * IDR_PER_POINT}印尼盾）`);
-      speak('下注成功');
-    }
-
-    function cancelBet() {
-      if (state.locked || state.phase !== 'betting') return;
-      if (state.confirmed) {
-        // 已确定：退回本局注码
-        state.balance += state.confirmed.amount;
-        updateBalance();
-        state.confirmed = null;
-      }
-      state.side = null;
-      el.hotSmall.classList.remove('selected-side');
-      el.hotBig.classList.remove('selected-side');
-      el.markers.small.classList.remove('on');
-      el.markers.big.classList.remove('on');
-      flash(document.getElementById('hot-cancel'));
-      showToast('已取消');
-    }
-
-    function rollDice() {
-      return [
-        1 + Math.floor(Math.random() * 6),
-        1 + Math.floor(Math.random() * 6),
-        1 + Math.floor(Math.random() * 6),
-      ];
-    }
-
-    function isTriple(dice) {
-      return dice[0] === dice[1] && dice[1] === dice[2];
-    }
-
-    function settle(dice) {
-      const sum = dice[0] + dice[1] + dice[2];
-      const triple = isTriple(dice);
-      let outcome = null; // 'big' | 'small' | 'triple'
-      if (triple) outcome = 'triple';
-      else if (sum >= 11) outcome = 'big';
-      else outcome = 'small';
-
-      const diceText = `${dice[0]}、${dice[1]}、${dice[2]}，合计${sum}`;
-      let resultLine = '';
-      let win = false;
-
-      if (!state.confirmed) {
-        resultLine = triple ? '围骰' : (outcome === 'big' ? '开大' : '开小');
-        showToast(diceText, resultLine, 2600);
-        speak(`点数${dice[0]}，${dice[1]}，${dice[2]}，${resultLine}`);
-      } else {
-        const bet = state.confirmed;
-        if (triple) {
-          // 大小遇围骰：通杀
-          win = false;
-          resultLine = `围骰，${bet.side === 'big' ? '大' : '小'}输`;
-        } else if (bet.side === outcome) {
-          win = true;
-          const payout = bet.amount + bet.amount * PAYOUT;
-          state.balance += payout;
-          updateBalance();
-          resultLine = `赢 +${bet.amount * PAYOUT}积分`;
-        } else {
-          win = false;
-          resultLine = `输 -${bet.amount}积分`;
-        }
-        showToast(diceText, resultLine, 2800);
-        speak(`点数${dice[0]}，${dice[1]}，${dice[2]}，${win ? '恭喜你赢了' : '很可惜输了'}`);
-      }
-
-      state.confirmed = null;
-      state.side = null;
-      el.hotSmall.classList.remove('selected-side');
-      el.hotBig.classList.remove('selected-side');
-      el.markers.small.classList.remove('on');
-      el.markers.big.classList.remove('on');
-    }
-
-    function lockBetting() {
-      state.locked = true;
-      showToast('停止下注', '准备开奖');
-      speak('停止下注');
-    }
-
-    function tick() {
-      updateTimerVisual(state.seconds);
-      beep(state.seconds <= 10);
-
-      if (state.seconds === 1 && !state.locked) {
-        lockBetting();
-      }
-
-      if (state.seconds <= 0) {
-        clearInterval(state.timerId);
-        state.timerId = null;
-        state.phase = 'reveal';
-        updateTimerVisual(0);
-        // 视频由其他 agent 做；这里直接掷骰结算
-        setTimeout(() => {
-          const dice = rollDice();
-          state.phase = 'settle';
-          settle(dice);
-          setTimeout(startRound, 4200);
-        }, 1200);
-        return;
-      }
-
-      state.seconds -= 1;
-    }
-
-    function startRound() {
-      clearInterval(state.timerId);
-      state.phase = 'betting';
-      state.locked = false;
-      state.seconds = 22;
-      state.confirmed = null;
-      state.side = null;
-      el.hotSmall.classList.remove('selected-side');
-      el.hotBig.classList.remove('selected-side');
-      el.markers.small.classList.remove('on');
-      el.markers.big.classList.remove('on');
-      el.timer.classList.remove('red');
-      state.seconds = ROUND_SECS;
-      updateTimerVisual(ROUND_SECS);
-      setChip(state.chip || 20);
-      speak('开始下注');
-      showToast('开始下注', '请选择积分并点击 大 / 小，再按确定');
-      // 先响一下再走
-      beep(false);
-      state.timerId = setInterval(tick, TICK_MS);
-    }
-
-    // events
-    el.chipBtns.forEach((btn) => {
-      btn.addEventListener('click', () => setChip(Number(btn.dataset.v)));
-    });
-    document.getElementById('hot-chip-prev').addEventListener('click', () => shiftChips(-1));
-    document.getElementById('hot-chip-next').addEventListener('click', () => shiftChips(1));
-    document.getElementById('hot-chip-max').addEventListener('click', () => {
-      if (state.locked || state.phase !== 'betting') return;
-      setChip(CHIP_ALL[CHIP_ALL.length - 1]);
-      state.chipOffset = Math.max(0, CHIP_ALL.length - CHIP_WINDOW);
-      renderChipPage();
-    });
-    el.hotSmall.addEventListener('click', () => chooseSide('small'));
-    el.hotBig.addEventListener('click', () => chooseSide('big'));
-    document.getElementById('hot-confirm').addEventListener('click', confirmBet);
-    document.getElementById('hot-cancel').addEventListener('click', cancelBet);
-
-    el.btnSound.addEventListener('click', () => {
-      state.soundOn = true;
-      el.btnSound.textContent = '声音已开';
-      ensureAudio();
-      speechSynthesis.getVoices();
-      speak('开始下注');
-      beep(false);
-      setTimeout(() => { el.btnSound.style.opacity = '0.35'; }, 800);
-    });
-
-    speechSynthesis.onvoiceschanged = () => pickVoice();
-    updateBalance();
-    renderChipPage();
-    setChip(20);
-
-    function loadImg(src) {
-      return new Promise((resolve) => {
-        const im = new Image();
-        im.decoding = 'async';
-        im.onload = () => {
-          if (im.decode) im.decode().then(resolve).catch(resolve);
-          else resolve();
-        };
-        im.onerror = resolve;
-        im.src = src;
-      });
-    }
-
-    // 主图 + 首页四枚筹码齐了 → 整屏一次亮起（不从上往下露）
-    (async function bootSnap() {
+    (async function () {
       const bg = document.getElementById('bgImg');
-      const tasks = [
-        (bg && bg.decode)
-          ? bg.decode().catch(() => {})
-          : loadImg(bg ? bg.currentSrc || bg.src : 'pc-full.webp?v=v102'),
-        loadImg(`chips/chip-10.webp?v=${CHIP_VER}`),
-        loadImg(`chips/chip-20.webp?v=${CHIP_VER}`),
-        loadImg(`chips/chip-50.webp?v=${CHIP_VER}`),
-        loadImg(`chips/chip-100.webp?v=${CHIP_VER}`),
-      ];
-      await Promise.allSettled(tasks);
+      try { if (bg.decode) await bg.decode(); } catch (_) {}
       document.documentElement.classList.add('is-ready');
-      startRound();
+
+      const chips = [...document.querySelectorAll('.chip-btn')];
+      chips.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const on = !btn.classList.contains('on');
+          chips.forEach((b) => b.classList.remove('on'));
+          if (on) btn.classList.add('on');
+        });
+      });
     })();
   </script>
 </body>
