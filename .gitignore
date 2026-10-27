@@ -1,0 +1,25 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+
+# scratch / debug crops
+assets/_*
+assets/_edge/
+
+# heavy intermediate upscales (keep hq.jpg + source.png)
+assets/pc-full-hq.png
+assets/pc-full-clear.png
+assets/pc-full-complete.png
+assets/pc-full.png
+assets/pc-left*.jpg
+assets/pc-right.jpg
+assets/pc-stitch-offset.txt
+assets/lqip.txt
+assets/dealer-static.jpg
+assets/ref-*.jpg
+
+# local toolchains
+tools/
+refs/
