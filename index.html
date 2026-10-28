@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
-  <link rel="preload" as="image" href="pc-full.webp?v=v1.0.3" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="chips/chip-10.webp?v=v1.0.3" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-20.webp?v=v1.0.3" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-50.webp?v=v1.0.3" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-100.webp?v=v1.0.3" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full.webp?v=v1.0.5" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="chips/chip-10.webp?v=v1.0.5" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-20.webp?v=v1.0.5" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-50.webp?v=v1.0.5" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-100.webp?v=v1.0.5" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -168,9 +168,6 @@
       transform: translateY(-22%);
     }
 
-    /* 第一步：50 叠层先关掉，只留涂抹干净的空座位；下一步再贴筹码 */
-    #chip-c { visibility: hidden; pointer-events: none; }
-
     /* 10/20/50/100 同尺寸；50 在 20 与 100 正中 */
     #chip-a  { left: 69.104%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
     #chip-b  { left: 74.543%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
@@ -182,23 +179,23 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full.webp?v=v1.0.3" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full.jpg?v=v1.0.3" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full.webp?v=v1.0.5" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full.jpg?v=v1.0.5" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <div class="bal">2,000</div>
 
       <button class="chip-btn" id="chip-a" data-slot="0" type="button" aria-label="筹码10">
-        <img src="chips/chip-10.webp?v=v1.0.3" alt="" decoding="async" draggable="false" />
+        <img src="chips/chip-10.webp?v=v1.0.5" alt="" decoding="async" draggable="false" />
       </button>
       <button class="chip-btn" id="chip-b" data-slot="1" type="button" aria-label="筹码20">
-        <img src="chips/chip-20.webp?v=v1.0.3" alt="" decoding="async" draggable="false" />
+        <img src="chips/chip-20.webp?v=v1.0.5" alt="" decoding="async" draggable="false" />
       </button>
       <button class="chip-btn" id="chip-c" data-slot="2" type="button" aria-label="筹码50">
-        <img src="chips/chip-50.webp?v=v1.0.3" alt="" decoding="async" draggable="false" />
+        <img src="chips/chip-50.webp?v=v1.0.5" alt="" decoding="async" draggable="false" />
       </button>
       <button class="chip-btn" id="chip-d" data-slot="3" type="button" aria-label="筹码100">
-        <img src="chips/chip-100.webp?v=v1.0.3" alt="" decoding="async" draggable="false" />
+        <img src="chips/chip-100.webp?v=v1.0.5" alt="" decoding="async" draggable="false" />
       </button>
     </div>
   </div>
