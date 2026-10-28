@@ -6,8 +6,9 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v107.webp?v=v1.0.11g" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.11g" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full-v107.webp?v=v1.10" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.10" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.10" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -307,7 +308,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/atlas.webp?v=v1.0.11g");
+      background-image: url("assets/pair-dice/atlas.webp?v=v1.10");
       background-repeat: no-repeat;
       background-size: 2100% 100%;
     }
@@ -346,6 +347,32 @@
       font-size: calc(min(100vw, 100vh * 2188 / 1393) * 12 / 2188);
       padding: 0.05em 0.25em;
     }
+    /* 左栏单骰/围骰：同闲置透底、点选黄整框 */
+    .bet-zone.bet-left .bet-pair-art { display: none; }
+    .bet-zone.bet-left .bet-left-art {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0;
+      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.10");
+      background-repeat: no-repeat;
+      background-size: 1200% 100%;
+    }
+    .bet-zone.bet-left.is-key-on .bet-left-art,
+    .bet-zone.bet-left.has-bet .bet-left-art { opacity: 1; }
+    .bet-zone.bet-left#bet-f1 .bet-left-art { background-position: 0% 0; }
+    .bet-zone.bet-left#bet-f2 .bet-left-art { background-position: 9.09% 0; }
+    .bet-zone.bet-left#bet-f3 .bet-left-art { background-position: 18.18% 0; }
+    .bet-zone.bet-left#bet-f4 .bet-left-art { background-position: 27.27% 0; }
+    .bet-zone.bet-left#bet-f5 .bet-left-art { background-position: 36.36% 0; }
+    .bet-zone.bet-left#bet-f6 .bet-left-art { background-position: 45.45% 0; }
+    .bet-zone.bet-left#bet-t1 .bet-left-art { background-position: 54.55% 0; }
+    .bet-zone.bet-left#bet-t2 .bet-left-art { background-position: 63.64% 0; }
+    .bet-zone.bet-left#bet-t3 .bet-left-art { background-position: 72.73% 0; }
+    .bet-zone.bet-left#bet-t4 .bet-left-art { background-position: 81.82% 0; }
+    .bet-zone.bet-left#bet-t5 .bet-left-art { background-position: 90.91% 0; }
+    .bet-zone.bet-left#bet-t6 .bet-left-art { background-position: 100% 0; }
     .bet-zone .bet-chip {
       position: absolute;
       left: 50%;
@@ -765,8 +792,8 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full-v107.webp?v=v1.0.11g" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v107.jpg?v=v1.0.11g" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full-v107.webp?v=v1.10" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full-v107.jpg?v=v1.10" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
@@ -922,6 +949,55 @@
         <span class="bet-pair-art" aria-hidden="true"></span>
       </button>
 
+      <button class="bet-zone bet-pair bet-left" id="bet-f1" type="button" data-bet="f1" data-kind="face" data-n="1" aria-label="压单骰1">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-f2" type="button" data-bet="f2" data-kind="face" data-n="2" aria-label="压单骰2">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-f3" type="button" data-bet="f3" data-kind="face" data-n="3" aria-label="压单骰3">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-f4" type="button" data-bet="f4" data-kind="face" data-n="4" aria-label="压单骰4">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-f5" type="button" data-bet="f5" data-kind="face" data-n="5" aria-label="压单骰5">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-f6" type="button" data-bet="f6" data-kind="face" data-n="6" aria-label="压单骰6">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-t1" type="button" data-bet="t1" data-kind="triple" data-n="1" aria-label="压围骰1">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-t2" type="button" data-bet="t2" data-kind="triple" data-n="2" aria-label="压围骰2">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-t3" type="button" data-bet="t3" data-kind="triple" data-n="3" aria-label="压围骰3">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-t4" type="button" data-bet="t4" data-kind="triple" data-n="4" aria-label="压围骰4">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-t5" type="button" data-bet="t5" data-kind="triple" data-n="5" aria-label="压围骰5">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-left" id="bet-t6" type="button" data-bet="t6" data-kind="triple" data-n="6" aria-label="压围骰6">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-left-art" aria-hidden="true"></span>
+      </button>
+
       <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
       <div class="chip-cover" id="cover-b" aria-hidden="true"></div>
       <div class="chip-cover" id="cover-c" aria-hidden="true"></div>
@@ -953,7 +1029,7 @@
   </div>
   <script>
     (async function () {
-      const V = 'v1.0.11g';
+      const V = 'v1.10';
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
       const SLOT_LEFT = [69.104, 74.543, 79.982, 85.283];
@@ -964,12 +1040,16 @@
         'c12','c13','c14','c15','c16','c23','c24',
         'c25','c26','c34','c35','c36','c45','c46','c56',
         'd1','d2','d3','d4','d5','d6',
+        'f1','f2','f3','f4','f5','f6',
+        't1','t2','t3','t4','t5','t6',
       ];
       const BET_LABEL = {
         small: '小', big: '大', odd: '单', even: '双', wrap: '全圍',
         c12:'1·2', c13:'1·3', c14:'1·4', c15:'1·5', c16:'1·6', c23:'2·3', c24:'2·4',
         c25:'2·5', c26:'2·6', c34:'3·4', c35:'3·5', c36:'3·6', c45:'4·5', c46:'4·6', c56:'5·6',
         d1:'对1', d2:'对2', d3:'对3', d4:'对4', d5:'对5', d6:'对6',
+        f1:'单1', f2:'单2', f3:'单3', f4:'单4', f5:'单5', f6:'单6',
+        t1:'围1', t2:'围2', t3:'围3', t4:'围4', t5:'围5', t6:'围6',
       };
       /*
         中间五格 + 右栏组合/对子：共用凹槽缝 + inset 键面（底图 v107 已清空烤字）。
@@ -985,6 +1065,10 @@
         xPair0: [1532, 1624, 1716, 1808, 1901, 1994, 2086, 2176],
         xPair1: [1532, 1612, 1694, 1774, 1854, 1936, 2016, 2097, 2177],
         xPair2: [1530, 1638, 1744, 1851, 1958, 2064, 2172],
+        ySing: [680, 798],
+        yTrip: [848, 988],
+        xSing: [9, 117, 225, 334, 442, 550, 658],
+        xTrip: [14, 118, 224, 330, 438, 544, 650],
         inset: 4,
         pairInset: 2,
       };
@@ -1015,13 +1099,25 @@
         d4: { yKey: 'yPair2', y0: 0, y1: 1, xKey: 'xPair2', x0: 3, x1: 4 },
         d5: { yKey: 'yPair2', y0: 0, y1: 1, xKey: 'xPair2', x0: 4, x1: 5 },
         d6: { yKey: 'yPair2', y0: 0, y1: 1, xKey: 'xPair2', x0: 5, x1: 6 },
+        f1: { yKey: 'ySing', y0: 0, y1: 1, xKey: 'xSing', x0: 0, x1: 1 },
+        f2: { yKey: 'ySing', y0: 0, y1: 1, xKey: 'xSing', x0: 1, x1: 2 },
+        f3: { yKey: 'ySing', y0: 0, y1: 1, xKey: 'xSing', x0: 2, x1: 3 },
+        f4: { yKey: 'ySing', y0: 0, y1: 1, xKey: 'xSing', x0: 3, x1: 4 },
+        f5: { yKey: 'ySing', y0: 0, y1: 1, xKey: 'xSing', x0: 4, x1: 5 },
+        f6: { yKey: 'ySing', y0: 0, y1: 1, xKey: 'xSing', x0: 5, x1: 6 },
+        t1: { yKey: 'yTrip', y0: 0, y1: 1, xKey: 'xTrip', x0: 0, x1: 1 },
+        t2: { yKey: 'yTrip', y0: 0, y1: 1, xKey: 'xTrip', x0: 1, x1: 2 },
+        t3: { yKey: 'yTrip', y0: 0, y1: 1, xKey: 'xTrip', x0: 2, x1: 3 },
+        t4: { yKey: 'yTrip', y0: 0, y1: 1, xKey: 'xTrip', x0: 3, x1: 4 },
+        t5: { yKey: 'yTrip', y0: 0, y1: 1, xKey: 'xTrip', x0: 4, x1: 5 },
+        t6: { yKey: 'yTrip', y0: 0, y1: 1, xKey: 'xTrip', x0: 5, x1: 6 },
       };
       function cellRect(key) {
         const c = BET_CELLS[key];
         if (!c) return null;
         const xs = GRID[c.xKey];
         const ys = GRID[c.yKey || 'y'];
-        const isPair = c.yKey && String(c.yKey).startsWith('yPair');
+        const isPair = c.yKey && /^(yPair|ySing|yTrip)/.test(String(c.yKey));
         const inset = isPair ? (GRID.pairInset ?? 0) : GRID.inset;
         const L = xs[c.x0] + inset;
         const R = xs[c.x1] - inset;
@@ -1265,6 +1361,17 @@
             const n = Number(key[1]);
             win = counts[n] >= 2;
             mult = 9;
+          } else if (key[0] === 'f') {
+            const n = Number(key[1]);
+            const cnt = counts[n] || 0;
+            if (cnt >= 1) {
+              win = true;
+              mult = cnt + 1; /* 1x1 / 1x2 / 1x3 → 返还 2/3/4 */
+            }
+          } else if (key[0] === 't') {
+            const n = Number(key[1]);
+            win = counts[n] === 3;
+            mult = 151; /* 1 x 150 */
           }
           if (win) {
             returned += stake * mult;
