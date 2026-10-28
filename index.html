@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
-  <link rel="preload" as="image" href="pc-full.webp?v=v1.0.2" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="chips/chip-10.webp?v=v1.0.2" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-20.webp?v=v1.0.2" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-50.webp?v=v1.0.2" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-100.webp?v=v1.0.2" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full.webp?v=v1.0.3" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="chips/chip-10.webp?v=v1.0.3" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-20.webp?v=v1.0.3" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-50.webp?v=v1.0.3" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-100.webp?v=v1.0.3" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -65,7 +65,7 @@
       z-index: 20;
     }
 
-    /* 未点：露出底图原筹码。一点：原位贴上 → 升起，原底边变光柱（高度对齐黄50，只压一点绿边） */
+    /* 未点：底图平贴。一点：原位贴上 → 升起 + 光柱（1.0.2） */
     .chip-btn {
       position: absolute;
       z-index: 32;
@@ -80,7 +80,6 @@
     }
     .chip-btn:focus,
     .chip-btn:focus-visible { outline: none !important; }
-    /* 光圈：钉在原筹码底边位置，不跟着筹码走 */
     .chip-btn::after {
       content: "";
       position: absolute;
@@ -104,7 +103,6 @@
       z-index: 0;
       transition: opacity .16s ease, transform .2s cubic-bezier(.2,.8,.2,1);
     }
-    /* 光柱：从原底边往上，背景不动 */
     .chip-btn::before {
       content: "";
       position: absolute;
@@ -166,39 +164,41 @@
       opacity: 1;
       transform: translateX(-50%) scale(1);
     }
-    /* 升起：与黄50同高，只压一点绿边；不加放大 */
     .chip-btn.on.up img {
       transform: translateY(-22%);
     }
 
-    /* 最早热区位置，不动筹码底图 */
-    #chip-a  { left: 69.104%; top: 84.35%; width: 3.931%; aspect-ratio: 1; }
-    #chip-b  { left: 74.543%; top: 84.28%; width: 4.022%; aspect-ratio: 1; }
-    #chip-c  { left: 79.159%; top: 84.35%; width: 4.479%; aspect-ratio: 1; }
-    #chip-d  { left: 85.283%; top: 84.40%; width: 4.205%; aspect-ratio: 1; }
+    /* 第一步：50 叠层先关掉，只留涂抹干净的空座位；下一步再贴筹码 */
+    #chip-c { visibility: hidden; pointer-events: none; }
+
+    /* 10/20/50/100 同尺寸；50 在 20 与 100 正中 */
+    #chip-a  { left: 69.104%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
+    #chip-b  { left: 74.543%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
+    #chip-c  { left: 79.982%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
+    #chip-d  { left: 85.283%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
   </style>
 </head>
 <body>
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full.webp?v=v1.0.2" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full.jpg?v=v1.0.2" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full.webp?v=v1.0.3" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full.jpg?v=v1.0.3" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <div class="bal">2,000</div>
 
       <button class="chip-btn" id="chip-a" data-slot="0" type="button" aria-label="筹码10">
-        <img src="chips/chip-10.webp?v=v1.0.2" alt="" decoding="async" draggable="false" />
+        <img src="chips/chip-10.webp?v=v1.0.3" alt="" decoding="async" draggable="false" />
       </button>
       <button class="chip-btn" id="chip-b" data-slot="1" type="button" aria-label="筹码20">
-        <img src="chips/chip-20.webp?v=v1.0.2" alt="" decoding="async" draggable="false" />
+        <img src="chips/chip-20.webp?v=v1.0.3" alt="" decoding="async" draggable="false" />
       </button>
       <button class="chip-btn" id="chip-c" data-slot="2" type="button" aria-label="筹码50">
-        <img src="chips/chip-50.webp?v=v1.0.2" alt="" decoding="async" draggable="false" />
+        <img src="chips/chip-50.webp?v=v1.0.3" alt="" decoding="async" draggable="false" />
       </button>
       <button class="chip-btn" id="chip-d" data-slot="3" type="button" aria-label="筹码100">
-        <img src="chips/chip-100.webp?v=v1.0.2" alt="" decoding="async" draggable="false" />
+        <img src="chips/chip-100.webp?v=v1.0.3" alt="" decoding="async" draggable="false" />
       </button>
     </div>
   </div>
@@ -214,7 +214,6 @@
           const turnOn = !btn.classList.contains('on');
           chips.forEach((b) => b.classList.remove('on', 'up'));
           if (!turnOn) return;
-          // 先原位贴上，再抬起（上升动作，不是直接盖住）
           btn.classList.add('on');
           requestAnimationFrame(() => {
             requestAnimationFrame(() => btn.classList.add('up'));
