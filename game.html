@@ -6,8 +6,8 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v107.webp?v=v1.0.11f" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.11f" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full-v107.webp?v=v1.0.11g" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.11g" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -287,7 +287,7 @@
       闲置=全透明透出原图；点选/已注=黄键面 + 原骰子图集（不抹掉模块）。
     */
     .bet-zone.bet-pair {
-      --bet-r: calc(min(100vw, 100vh * 2188 / 1393) * 12 / 2188);
+      --bet-r: calc(min(100vw, 100vh * 2188 / 1393) * 16 / 2188);
       overflow: hidden;
       background: transparent;
     }
@@ -307,7 +307,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/atlas.webp?v=v1.0.11f");
+      background-image: url("assets/pair-dice/atlas.webp?v=v1.0.11g");
       background-repeat: no-repeat;
       background-size: 2100% 100%;
     }
@@ -765,8 +765,8 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full-v107.webp?v=v1.0.11f" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v107.jpg?v=v1.0.11f" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full-v107.webp?v=v1.0.11g" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full-v107.jpg?v=v1.0.11g" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
@@ -953,7 +953,7 @@
   </div>
   <script>
     (async function () {
-      const V = 'v1.0.11f';
+      const V = 'v1.0.11g';
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
       const SLOT_LEFT = [69.104, 74.543, 79.982, 85.283];
@@ -978,15 +978,15 @@
         y: [716, 868, 998],
         xRow0: [714, 1096, 1516],
         xRow1: [714, 922, 1270, 1516],
-        yPair0: [696, 762],
-        yPair1: [788, 862],
-        yPair2: [902, 978],
+        /* 竖长整框：与底图原模块同高，点选黄面铺满整格（不再是中间小横块） */
+        yPair0: [678, 778],
+        yPair1: [778, 868],
+        yPair2: [892, 998],
         xPair0: [1532, 1624, 1716, 1808, 1901, 1994, 2086, 2176],
         xPair1: [1532, 1612, 1694, 1774, 1854, 1936, 2016, 2097, 2177],
         xPair2: [1530, 1638, 1744, 1851, 1958, 2064, 2172],
         inset: 4,
-        /* 与底图凹槽对齐：略内缩，键面严丝合缝贴原模块 */
-        pairInset: 3,
+        pairInset: 2,
       };
       const BET_CELLS = {
         small: { y0: 0, y1: 1, xKey: 'xRow0', x0: 0, x1: 1 },

@@ -11,7 +11,7 @@
     .load {
       position: relative;
       width: 100%; height: 100%;
-      background: #050505 url("assets/ref-loading.jpg?v=v1.0.11f") center / cover no-repeat;
+      background: #050505 url("assets/ref-loading.jpg?v=v1.0.11g") center / cover no-repeat;
     }
     .load::after {
       content: "";
@@ -64,14 +64,14 @@
     (function () {
       try {
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
-          location.replace('index.html?v=v1.0.11f');
+          location.replace('index.html?v=v1.0.11g');
           return;
         }
       } catch (_) { /* ignore */ }
 
       const fill = document.getElementById('fill');
       const txt = document.getElementById('txt');
-      const LOBBY = 'lobby.html?v=v1.0.11f';
+      const LOBBY = 'lobby.html?v=v1.0.11g';
       const duration = 1600; // 约 1.6 秒缓存页
       const t0 = performance.now();
 
