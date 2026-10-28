@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
-  <link rel="preload" as="image" href="pc-full-v106.webp?v=v1.0.9" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="chips/chip-10.webp?v=v1.0.9" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-20.webp?v=v1.0.9" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-50.webp?v=v1.0.9" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-100.webp?v=v1.0.9" type="image/webp" />
+  <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
+  <link rel="preload" as="image" href="pc-full-v107.webp?v=v1.0.11f" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.11f" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -67,7 +65,7 @@
       color: #6fff9a;
       font-family: Arial, Helvetica, sans-serif;
       font-weight: 900;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 42 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 58 / 2188);
       line-height: 1;
       text-shadow: 0 1px 2px rgba(0,0,0,.65);
     }
@@ -117,20 +115,20 @@
       transform: translate(-50%, -50%) scale(1);
     }
 
-    /* 积分：盖住底图烤死数字，输赢必变 */
+    /* 积分数字：无黑底框，贴回凹槽里原来的数字样式 */
     .bal {
       position: absolute;
-      left: 48.55%; top: 79.55%;
-      width: 7.20%; height: 3.60%;
+      left: 50.091%; top: 80.043%;
+      width: 4.068%; height: 3.015%;
       display: flex; align-items: center; justify-content: center;
       pointer-events: none;
-      color: #f0f4c8;
+      color: #c8d09b;
       font-family: Arial, Helvetica, sans-serif;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
-      font-weight: 800;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 19 / 2188);
+      font-weight: 700;
       line-height: 1; white-space: nowrap;
-      background: rgba(8, 16, 10, 0.92);
-      border-radius: 0.25em;
+      background: transparent;
+      border-radius: 0;
       text-shadow:
         -1px 0 0 rgba(6,18,12,.85), 1px 0 0 rgba(6,18,12,.85),
         0 -1px 0 rgba(6,18,12,.85), 0 1px 0 rgba(6,18,12,.85);
@@ -140,39 +138,231 @@
     .bal.flash-up { color: #7dff9f; transform: scale(1.08); }
     .bal.flash-down { color: #ffb4b4; transform: scale(1.08); }
 
-    /* 大 / 小 / 单 / 双 热区（对齐底图格子） */
+    /*
+      中间五格网格层（对标）：底图凹槽只留空键面；每格=真按钮。
+      默认绿键面+描边字常显；选中键面变黄，字层保留（对标换底不换结构）。
+    */
     .bet-zone {
+      --bet-r: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      --glyph: #b8fff0;
+      --stroke: #fff;
       position: absolute;
-      z-index: 45;
+      z-index: 55;
       margin: 0; padding: 0; border: 0;
       background: transparent;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      border-radius: 0.35em;
+      border-radius: var(--bet-r);
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      appearance: none;
+      overflow: hidden;
     }
+    #bet-big { --glyph: #ff8b7a; }
+    #bet-odd { --glyph: #7eb8ff; }
+    #bet-even { --glyph: #ff9aab; }
+    #bet-wrap { --glyph: #9dffb0; }
     .bet-zone:focus,
     .bet-zone:focus-visible { outline: none; }
     .stage.betting-closed .bet-zone {
       pointer-events: none;
       cursor: default;
     }
-    .bet-zone:hover { background: rgba(255,255,255,.05); }
-    .bet-zone.has-bet { background: rgba(255, 220, 120, .10); }
+    .bet-zone .bet-face {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--bet-r);
+      background: rgba(10, 48, 38, 0.88);
+      pointer-events: none;
+      z-index: 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.25);
+      transition: background .12s ease;
+    }
+    .bet-zone.is-key-on .bet-face,
+    .bet-zone.has-bet .bet-face {
+      background: rgba(232, 196, 48, 0.96);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 0 rgba(120,80,0,.22);
+    }
+    .bet-zone.is-key-on:not(#bet-odd),
+    .bet-zone.has-bet:not(#bet-odd) {
+      --glyph: #dc2828;
+    }
+    .bet-zone.key-flash .bet-face {
+      animation: keyPressFlash 0.45s ease-out;
+    }
+    @keyframes keyPressFlash {
+      0%   { filter: brightness(1); }
+      30%  { filter: brightness(1.18); }
+      100% { filter: brightness(1); }
+    }
+    .bet-zone .bet-glyph,
+    .bet-zone .bet-odds {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      pointer-events: none;
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+      color: var(--glyph);
+      -webkit-text-stroke: calc(min(100vw, 100vh * 2188 / 1393) * 2.4 / 2188) var(--stroke);
+      paint-order: stroke fill;
+      text-shadow: 0 1px 2px rgba(0,0,0,.35);
+    }
+    .bet-zone .bet-glyph {
+      top: 16%;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 58 / 2188);
+      letter-spacing: 0.02em;
+    }
+    .bet-zone .bet-odds {
+      top: 58%;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 26 / 2188);
+      letter-spacing: 0.08em;
+    }
+    #bet-odd .bet-glyph,
+    #bet-even .bet-glyph {
+      top: 14%;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 48 / 2188);
+    }
+    #bet-odd .bet-odds,
+    #bet-even .bet-odds {
+      top: 56%;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+    }
+    /* 全圍：左骰列 + 文案 + 右骰列 */
+    #bet-wrap .bet-wrap-inner {
+      position: absolute;
+      inset: 8% 4%;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2%;
+      pointer-events: none;
+    }
+    #bet-wrap .bet-glyph,
+    #bet-wrap .bet-odds {
+      position: static;
+      left: auto;
+      transform: none;
+      display: block;
+      text-align: center;
+    }
+    #bet-wrap .bet-wrap-txt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25em;
+    }
+    #bet-wrap .bet-glyph {
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 36 / 2188);
+    }
+    #bet-wrap .bet-odds {
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+    }
+    #bet-wrap .bet-dice-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+      width: 34%;
+    }
+    #bet-wrap .mini-die {
+      aspect-ratio: 1;
+      border-radius: 15%;
+      background: #f4f4f4;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.2);
+      display: grid;
+      place-items: center;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 11 / 2188);
+      font-weight: 900;
+      color: #111;
+      line-height: 1;
+    }
+    #bet-wrap .mini-die.r { color: #d22; }
+    /*
+      右边组合/对子：底图恢复原烤制模块；网格只做热区。
+      闲置=全透明透出原图；点选/已注=黄键面 + 原骰子图集（不抹掉模块）。
+    */
+    .bet-zone.bet-pair {
+      --bet-r: calc(min(100vw, 100vh * 2188 / 1393) * 12 / 2188);
+      overflow: hidden;
+      background: transparent;
+    }
+    .bet-zone.bet-pair .bet-face {
+      background: transparent;
+      box-shadow: none;
+    }
+    .bet-zone.bet-pair.is-key-on .bet-face,
+    .bet-zone.bet-pair.has-bet .bet-face {
+      background: rgb(232, 196, 48);
+      box-shadow: none;
+    }
+    /* 闲置隐藏图集（看底图原骰）；黄态再盖上，避免挡原样貌 */
+    .bet-zone.bet-pair .bet-pair-art {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0;
+      background-image: url("assets/pair-dice/atlas.webp?v=v1.0.11f");
+      background-repeat: no-repeat;
+      background-size: 2100% 100%;
+    }
+    .bet-zone.bet-pair.is-key-on .bet-pair-art,
+    .bet-zone.bet-pair.has-bet .bet-pair-art {
+      opacity: 1;
+    }
+    .bet-zone.bet-pair#bet-c12 .bet-pair-art { background-position: 0% 0; }
+    .bet-zone.bet-pair#bet-c13 .bet-pair-art { background-position: 5% 0; }
+    .bet-zone.bet-pair#bet-c14 .bet-pair-art { background-position: 10% 0; }
+    .bet-zone.bet-pair#bet-c15 .bet-pair-art { background-position: 15% 0; }
+    .bet-zone.bet-pair#bet-c16 .bet-pair-art { background-position: 20% 0; }
+    .bet-zone.bet-pair#bet-c23 .bet-pair-art { background-position: 25% 0; }
+    .bet-zone.bet-pair#bet-c24 .bet-pair-art { background-position: 30% 0; }
+    .bet-zone.bet-pair#bet-c25 .bet-pair-art { background-position: 35% 0; }
+    .bet-zone.bet-pair#bet-c26 .bet-pair-art { background-position: 40% 0; }
+    .bet-zone.bet-pair#bet-c34 .bet-pair-art { background-position: 45% 0; }
+    .bet-zone.bet-pair#bet-c35 .bet-pair-art { background-position: 50% 0; }
+    .bet-zone.bet-pair#bet-c36 .bet-pair-art { background-position: 55% 0; }
+    .bet-zone.bet-pair#bet-c45 .bet-pair-art { background-position: 60% 0; }
+    .bet-zone.bet-pair#bet-c46 .bet-pair-art { background-position: 65% 0; }
+    .bet-zone.bet-pair#bet-c56 .bet-pair-art { background-position: 70% 0; }
+    .bet-zone.bet-pair#bet-d1 .bet-pair-art { background-position: 75% 0; }
+    .bet-zone.bet-pair#bet-d2 .bet-pair-art { background-position: 80% 0; }
+    .bet-zone.bet-pair#bet-d3 .bet-pair-art { background-position: 85% 0; }
+    .bet-zone.bet-pair#bet-d4 .bet-pair-art { background-position: 90% 0; }
+    .bet-zone.bet-pair#bet-d5 .bet-pair-art { background-position: 95% 0; }
+    .bet-zone.bet-pair#bet-d6 .bet-pair-art { background-position: 100% 0; }
+    .bet-zone.bet-pair .bet-chip {
+      top: 50%;
+      width: 42%;
+      max-width: 36px;
+    }
+    .bet-zone.bet-pair .bet-stake {
+      bottom: 2%;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 12 / 2188);
+      padding: 0.05em 0.25em;
+    }
     .bet-zone .bet-chip {
       position: absolute;
       left: 50%;
       top: 58%;
-      width: 22%;
-      max-width: 48px;
+      width: 18%;
+      max-width: 44px;
       transform: translate(-50%, -50%);
       pointer-events: none;
+      z-index: 2;
       filter: drop-shadow(0 2px 3px rgba(0,0,0,.55));
     }
     .bet-zone .bet-stake {
       position: absolute;
       left: 50%;
-      bottom: 6%;
+      bottom: 5%;
       transform: translateX(-50%);
+      z-index: 3;
       min-width: 1.6em;
       padding: 0.05em 0.35em;
       border-radius: 999px;
@@ -185,10 +375,12 @@
       pointer-events: none;
       text-shadow: 0 1px 2px rgba(0,0,0,.8);
     }
-    #bet-small { left: 33.59%; top: 52.98%; width: 15.77%; height: 9.33%; }
-    #bet-big   { left: 51.19%; top: 52.98%; width: 15.77%; height: 9.33%; }
-    #bet-odd   { left: 33.59%; top: 63.03%; width: 12.34%; height: 7.68%; }
-    #bet-even  { left: 54.62%; top: 63.03%; width: 12.34%; height: 7.68%; }
+    /* 兜底%：GRID 内缩键面；JS 精修 */
+    #bet-small { left: 32.82%; top: 51.69%; width: 17.09%; height: 10.34%; }
+    #bet-big   { left: 50.27%; top: 51.69%; width: 18.83%; height: 10.34%; }
+    #bet-odd   { left: 32.82%; top: 62.60%; width: 9.14%;  height: 8.76%; }
+    #bet-wrap  { left: 42.32%; top: 62.60%; width: 15.36%; height: 8.76%; }
+    #bet-even  { left: 58.23%; top: 62.60%; width: 10.88%; height: 8.76%; }
 
     .result-board {
       position: absolute;
@@ -273,36 +465,30 @@
     .result-board .pay-line.lose { color: #ff8d8d; }
     .result-board .pay-line.flat { color: #c8d09b; }
 
-    /* 透明热区盖住底图金色「骰子/确定」键，不另画一块黄钮 */
-    .btn-confirm {
+    /* 透明热区：对准底图 重複下注 / 確定 / 取消 */
+    .btn-act {
       position: absolute;
-      left: 53.85%;
-      top: 86.55%;
-      width: 6.40%;
-      height: 3.95%;
-      z-index: 55;
+      z-index: 70;
       margin: 0; padding: 0; border: 0;
       background: transparent;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      border-radius: 0.25em;
+      border-radius: 0.35em;
     }
-    .btn-confirm:focus,
-    .btn-confirm:focus-visible { outline: none; }
-    .stage.betting-closed .btn-confirm {
+    .btn-act:focus,
+    .btn-act:focus-visible { outline: none; }
+    .stage.betting-closed .btn-act {
       pointer-events: none;
       cursor: default;
     }
-    .bet-zone.is-pending {
-      background: rgba(255, 230, 120, .16);
-      box-shadow: inset 0 0 0 2px rgba(255, 220, 120, .55);
-    }
-
+    #btnRepeat  { left: 67.40%; top: 91.00%; width: 6.80%; height: 3.90%; }
+    #btnConfirm { left: 78.00%; top: 91.00%; width: 6.80%; height: 3.90%; }
+    #btnCancel  { left: 85.60%; top: 91.00%; width: 6.80%; height: 3.90%; }
     .toast-msg {
       position: absolute;
       left: 50%;
       top: 48%;
-      transform: translate(-50%, -50%) scale(.96);
+      transform: translate(-50%, -50%) scale(.92);
       z-index: 96;
       padding: 0.45em 1.1em;
       border-radius: 0.3em;
@@ -316,13 +502,39 @@
       pointer-events: none;
       opacity: 0;
       visibility: hidden;
-      transition: opacity .2s ease, transform .2s ease, visibility .2s;
+      transition: opacity .22s ease, transform .22s ease, visibility .22s;
       text-shadow: 0 2px 8px rgba(0,0,0,.7);
     }
     .toast-msg.show {
       opacity: 1;
       visibility: visible;
       transform: translate(-50%, -50%) scale(1);
+    }
+    /* 下注成功：立体字 */
+    .toast-msg.is-success {
+      padding: 0.55em 1.35em;
+      border-radius: 0.45em;
+      background:
+        linear-gradient(180deg, rgba(40, 28, 8, 0.92) 0%, rgba(12, 10, 6, 0.94) 100%);
+      border: 2px solid #e8c56a;
+      box-shadow:
+        0 0 0 1px rgba(255, 230, 150, 0.35),
+        0 10px 28px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 240, 180, 0.35);
+      color: #fff3c4;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 52 / 2188);
+      letter-spacing: 0.22em;
+      text-shadow:
+        0 1px 0 #d4a84b,
+        0 2px 0 #b8892e,
+        0 3px 0 #9a7120,
+        0 4px 0 #7e5c18,
+        0 6px 12px rgba(0, 0, 0, 0.65),
+        0 0 18px rgba(255, 210, 100, 0.45);
+      transform: translate(-50%, -50%) scale(.88) perspective(600px) rotateX(8deg);
+    }
+    .toast-msg.is-success.show {
+      transform: translate(-50%, -50%) scale(1) perspective(600px) rotateX(4deg);
     }
 
     .board-outcome {
@@ -553,8 +765,8 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full-v106.webp?v=v1.0.9" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v106.jpg?v=v1.0.9" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full-v107.webp?v=v1.0.11f" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full-v107.jpg?v=v1.0.11f" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
@@ -569,24 +781,146 @@
         <div class="pay-line flat" id="resultPay">本局 —</div>
       </div>
       <div class="bal" id="bal">2,000</div>
-      <button class="btn-confirm" id="btnConfirm" type="button" aria-label="确定"></button>
+      <button class="btn-act" id="btnRepeat" type="button" aria-label="重复下注"></button>
+      <button class="btn-act" id="btnConfirm" type="button" aria-label="确定"></button>
+      <button class="btn-act" id="btnCancel" type="button" aria-label="取消"></button>
       <div class="toast-msg" id="toastMsg">下注成功</div>
       <div class="board-outcome" id="boardOutcome" aria-live="polite"></div>
-      <audio id="voWelcome" preload="auto" playsinline></audio>
-      <audio id="voStartBet" preload="auto" playsinline></audio>
-      <audio id="voStopBet" preload="auto" playsinline></audio>
-      <audio id="voBetOk" preload="auto" playsinline></audio>
-      <audio id="voYouWin" preload="auto" playsinline></audio>
-      <audio id="voYouLose" preload="auto" playsinline></audio>
-      <audio id="sfxCoin" preload="auto" playsinline></audio>
-      <audio id="sfxTick" preload="auto" playsinline></audio>
-      <audio id="sfxBomb" preload="auto" playsinline></audio>
-      <audio id="sfxKey" preload="auto" playsinline></audio>
+      <audio id="voWelcome" preload="none" playsinline></audio>
+      <audio id="voStartBet" preload="none" playsinline></audio>
+      <audio id="voStopBet" preload="none" playsinline></audio>
+      <audio id="voBetOk" preload="none" playsinline></audio>
+      <audio id="voYouWin" preload="none" playsinline></audio>
+      <audio id="voYouLose" preload="none" playsinline></audio>
+      <audio id="sfxCoin" preload="none" playsinline></audio>
+      <audio id="sfxTick" preload="none" playsinline></audio>
+      <audio id="sfxBomb" preload="none" playsinline></audio>
+      <audio id="sfxKey" preload="none" playsinline></audio>
 
-      <button class="bet-zone" id="bet-small" type="button" data-bet="small" aria-label="压小"></button>
-      <button class="bet-zone" id="bet-big" type="button" data-bet="big" aria-label="压大"></button>
-      <button class="bet-zone" id="bet-odd" type="button" data-bet="odd" aria-label="压单"></button>
-      <button class="bet-zone" id="bet-even" type="button" data-bet="even" aria-label="压双"></button>
+      <button class="bet-zone" id="bet-small" type="button" data-bet="small" aria-label="压小">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-glyph">小</span>
+        <span class="bet-odds">1 x 1</span>
+      </button>
+      <button class="bet-zone" id="bet-big" type="button" data-bet="big" aria-label="压大">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-glyph">大</span>
+        <span class="bet-odds">1 x 1</span>
+      </button>
+      <button class="bet-zone" id="bet-odd" type="button" data-bet="odd" aria-label="压单">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-glyph">单</span>
+        <span class="bet-odds">1 x 1</span>
+      </button>
+      <button class="bet-zone" id="bet-wrap" type="button" data-bet="wrap" aria-label="压全圍">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-wrap-inner" aria-hidden="true">
+          <span class="bet-dice-col">
+            <span class="mini-die r">1</span><span class="mini-die r">1</span><span class="mini-die r">1</span>
+            <span class="mini-die">2</span><span class="mini-die">2</span><span class="mini-die">2</span>
+            <span class="mini-die">3</span><span class="mini-die">3</span><span class="mini-die">3</span>
+          </span>
+          <span class="bet-wrap-txt">
+            <span class="bet-glyph">全圍</span>
+            <span class="bet-odds">1 x 24</span>
+          </span>
+          <span class="bet-dice-col">
+            <span class="mini-die r">4</span><span class="mini-die r">4</span><span class="mini-die r">4</span>
+            <span class="mini-die">5</span><span class="mini-die">5</span><span class="mini-die">5</span>
+            <span class="mini-die">6</span><span class="mini-die">6</span><span class="mini-die">6</span>
+          </span>
+        </span>
+      </button>
+      <button class="bet-zone" id="bet-even" type="button" data-bet="even" aria-label="压双">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-glyph">双</span>
+        <span class="bet-odds">1 x 1</span>
+      </button>
+
+      <button class="bet-zone bet-pair" id="bet-c12" type="button" data-bet="c12" data-kind="combo" data-a="1" data-b="2" aria-label="压1·2">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c13" type="button" data-bet="c13" data-kind="combo" data-a="1" data-b="3" aria-label="压1·3">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c14" type="button" data-bet="c14" data-kind="combo" data-a="1" data-b="4" aria-label="压1·4">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c15" type="button" data-bet="c15" data-kind="combo" data-a="1" data-b="5" aria-label="压1·5">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c16" type="button" data-bet="c16" data-kind="combo" data-a="1" data-b="6" aria-label="压1·6">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c23" type="button" data-bet="c23" data-kind="combo" data-a="2" data-b="3" aria-label="压2·3">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c24" type="button" data-bet="c24" data-kind="combo" data-a="2" data-b="4" aria-label="压2·4">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c25" type="button" data-bet="c25" data-kind="combo" data-a="2" data-b="5" aria-label="压2·5">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c26" type="button" data-bet="c26" data-kind="combo" data-a="2" data-b="6" aria-label="压2·6">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c34" type="button" data-bet="c34" data-kind="combo" data-a="3" data-b="4" aria-label="压3·4">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c35" type="button" data-bet="c35" data-kind="combo" data-a="3" data-b="5" aria-label="压3·5">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c36" type="button" data-bet="c36" data-kind="combo" data-a="3" data-b="6" aria-label="压3·6">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c45" type="button" data-bet="c45" data-kind="combo" data-a="4" data-b="5" aria-label="压4·5">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c46" type="button" data-bet="c46" data-kind="combo" data-a="4" data-b="6" aria-label="压4·6">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair" id="bet-c56" type="button" data-bet="c56" data-kind="combo" data-a="5" data-b="6" aria-label="压5·6">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-double" id="bet-d1" type="button" data-bet="d1" data-kind="double" data-n="1" aria-label="压对1">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-double" id="bet-d2" type="button" data-bet="d2" data-kind="double" data-n="2" aria-label="压对2">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-double" id="bet-d3" type="button" data-bet="d3" data-kind="double" data-n="3" aria-label="压对3">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-double" id="bet-d4" type="button" data-bet="d4" data-kind="double" data-n="4" aria-label="压对4">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-double" id="bet-d5" type="button" data-bet="d5" data-kind="double" data-n="5" aria-label="压对5">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
+      <button class="bet-zone bet-pair bet-double" id="bet-d6" type="button" data-bet="d6" data-kind="double" data-n="6" aria-label="压对6">
+        <span class="bet-face" aria-hidden="true"></span>
+        <span class="bet-pair-art" aria-hidden="true"></span>
+      </button>
 
       <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
       <div class="chip-cover" id="cover-b" aria-hidden="true"></div>
@@ -594,39 +928,117 @@
       <div class="chip-cover" id="cover-d" aria-hidden="true"></div>
 
       <button class="chip-arrow" id="arrow-l" type="button" aria-label="筹码向左">
-        <img src="chips/arrow-left.png?v=v1.0.9" alt="" draggable="false" />
+        <img src="chips/arrow-left.png?v=v1.0.9u" alt="" draggable="false" />
       </button>
 
       <div class="chip-viewport" id="chipViewport">
         <button class="chip-btn" id="chip-a" data-slot="0" type="button" aria-label="筹码10">
-          <img src="chips/chip-10.webp?v=v1.0.9" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-10.webp?v=v1.0.9u" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-b" data-slot="1" type="button" aria-label="筹码20">
-          <img src="chips/chip-20.webp?v=v1.0.9" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-20.webp?v=v1.0.9u" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-c" data-slot="2" type="button" aria-label="筹码50">
-          <img src="chips/chip-50.webp?v=v1.0.9" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-50.webp?v=v1.0.9u" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-d" data-slot="3" type="button" aria-label="筹码100">
-          <img src="chips/chip-100.webp?v=v1.0.9" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-100.webp?v=v1.0.9u" alt="" decoding="async" draggable="false" />
         </button>
       </div>
 
       <button class="chip-arrow" id="arrow-r" type="button" aria-label="筹码向右">
-        <img src="chips/arrow-right.png?v=v1.0.9" alt="" draggable="false" />
+        <img src="chips/arrow-right.png?v=v1.0.9u" alt="" draggable="false" />
       </button>
     </div>
   </div>
   <script>
     (async function () {
-      const V = 'v1.0.9';
+      const V = 'v1.0.11f';
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
       const SLOT_LEFT = [69.104, 74.543, 79.982, 85.283];
       const GAP = SLOT_LEFT[1] - SLOT_LEFT[0];
       const BET_SECS = 22;
       const START_BAL = 2000;
-      const BET_LABEL = { small: '小', big: '大', odd: '单', even: '双' };
+      const PAIR_KEYS = [
+        'c12','c13','c14','c15','c16','c23','c24',
+        'c25','c26','c34','c35','c36','c45','c46','c56',
+        'd1','d2','d3','d4','d5','d6',
+      ];
+      const BET_LABEL = {
+        small: '小', big: '大', odd: '单', even: '双', wrap: '全圍',
+        c12:'1·2', c13:'1·3', c14:'1·4', c15:'1·5', c16:'1·6', c23:'2·3', c24:'2·4',
+        c25:'2·5', c26:'2·6', c34:'3·4', c35:'3·5', c36:'3·6', c45:'4·5', c46:'4·6', c56:'5·6',
+        d1:'对1', d2:'对2', d3:'对3', d4:'对4', d5:'对5', d6:'对6',
+      };
+      /*
+        中间五格 + 右栏组合/对子：共用凹槽缝 + inset 键面（底图 v107 已清空烤字）。
+      */
+      const GRID = {
+        y: [716, 868, 998],
+        xRow0: [714, 1096, 1516],
+        xRow1: [714, 922, 1270, 1516],
+        yPair0: [696, 762],
+        yPair1: [788, 862],
+        yPair2: [902, 978],
+        xPair0: [1532, 1624, 1716, 1808, 1901, 1994, 2086, 2176],
+        xPair1: [1532, 1612, 1694, 1774, 1854, 1936, 2016, 2097, 2177],
+        xPair2: [1530, 1638, 1744, 1851, 1958, 2064, 2172],
+        inset: 4,
+        /* 与底图凹槽对齐：略内缩，键面严丝合缝贴原模块 */
+        pairInset: 3,
+      };
+      const BET_CELLS = {
+        small: { y0: 0, y1: 1, xKey: 'xRow0', x0: 0, x1: 1 },
+        big:   { y0: 0, y1: 1, xKey: 'xRow0', x0: 1, x1: 2 },
+        odd:   { y0: 1, y1: 2, xKey: 'xRow1', x0: 0, x1: 1 },
+        wrap:  { y0: 1, y1: 2, xKey: 'xRow1', x0: 1, x1: 2 },
+        even:  { y0: 1, y1: 2, xKey: 'xRow1', x0: 2, x1: 3 },
+        c12: { yKey: 'yPair0', y0: 0, y1: 1, xKey: 'xPair0', x0: 0, x1: 1 },
+        c13: { yKey: 'yPair0', y0: 0, y1: 1, xKey: 'xPair0', x0: 1, x1: 2 },
+        c14: { yKey: 'yPair0', y0: 0, y1: 1, xKey: 'xPair0', x0: 2, x1: 3 },
+        c15: { yKey: 'yPair0', y0: 0, y1: 1, xKey: 'xPair0', x0: 3, x1: 4 },
+        c16: { yKey: 'yPair0', y0: 0, y1: 1, xKey: 'xPair0', x0: 4, x1: 5 },
+        c23: { yKey: 'yPair0', y0: 0, y1: 1, xKey: 'xPair0', x0: 5, x1: 6 },
+        c24: { yKey: 'yPair0', y0: 0, y1: 1, xKey: 'xPair0', x0: 6, x1: 7 },
+        c25: { yKey: 'yPair1', y0: 0, y1: 1, xKey: 'xPair1', x0: 0, x1: 1 },
+        c26: { yKey: 'yPair1', y0: 0, y1: 1, xKey: 'xPair1', x0: 1, x1: 2 },
+        c34: { yKey: 'yPair1', y0: 0, y1: 1, xKey: 'xPair1', x0: 2, x1: 3 },
+        c35: { yKey: 'yPair1', y0: 0, y1: 1, xKey: 'xPair1', x0: 3, x1: 4 },
+        c36: { yKey: 'yPair1', y0: 0, y1: 1, xKey: 'xPair1', x0: 4, x1: 5 },
+        c45: { yKey: 'yPair1', y0: 0, y1: 1, xKey: 'xPair1', x0: 5, x1: 6 },
+        c46: { yKey: 'yPair1', y0: 0, y1: 1, xKey: 'xPair1', x0: 6, x1: 7 },
+        c56: { yKey: 'yPair1', y0: 0, y1: 1, xKey: 'xPair1', x0: 7, x1: 8 },
+        d1: { yKey: 'yPair2', y0: 0, y1: 1, xKey: 'xPair2', x0: 0, x1: 1 },
+        d2: { yKey: 'yPair2', y0: 0, y1: 1, xKey: 'xPair2', x0: 1, x1: 2 },
+        d3: { yKey: 'yPair2', y0: 0, y1: 1, xKey: 'xPair2', x0: 2, x1: 3 },
+        d4: { yKey: 'yPair2', y0: 0, y1: 1, xKey: 'xPair2', x0: 3, x1: 4 },
+        d5: { yKey: 'yPair2', y0: 0, y1: 1, xKey: 'xPair2', x0: 4, x1: 5 },
+        d6: { yKey: 'yPair2', y0: 0, y1: 1, xKey: 'xPair2', x0: 5, x1: 6 },
+      };
+      function cellRect(key) {
+        const c = BET_CELLS[key];
+        if (!c) return null;
+        const xs = GRID[c.xKey];
+        const ys = GRID[c.yKey || 'y'];
+        const isPair = c.yKey && String(c.yKey).startsWith('yPair');
+        const inset = isPair ? (GRID.pairInset ?? 0) : GRID.inset;
+        const L = xs[c.x0] + inset;
+        const R = xs[c.x1] - inset;
+        const T = ys[c.y0] + inset;
+        const B = ys[c.y1] - inset;
+        return { x: L, y: T, w: R - L, h: B - T };
+      }
+      function emptyBets() {
+        const o = { small: 0, big: 0, odd: 0, even: 0, wrap: 0 };
+        for (const k of PAIR_KEYS) o[k] = 0;
+        return o;
+      }
+      function emptyDenom() {
+        const o = { small: null, big: null, odd: null, even: null, wrap: null };
+        for (const k of PAIR_KEYS) o[k] = null;
+        return o;
+      }
 
       const bg = document.getElementById('bgImg');
       try { if (bg.decode) await bg.decode(); } catch (_) {}
@@ -646,19 +1058,57 @@
       const resultSum = document.getElementById('resultSum');
       const resultPay = document.getElementById('resultPay');
       const betZones = [...document.querySelectorAll('.bet-zone')];
+      const btnRepeat = document.getElementById('btnRepeat');
       const btnConfirm = document.getElementById('btnConfirm');
+      const btnCancel = document.getElementById('btnCancel');
       const toastMsg = document.getElementById('toastMsg');
       const boardOutcome = document.getElementById('boardOutcome');
 
+      function syncBetZones() {
+        const nw = bg.naturalWidth || 2188;
+        const nh = bg.naturalHeight || 1393;
+        if (!nw || !nh) return;
+        const ir = bg.getBoundingClientRect();
+        const sr = stage.getBoundingClientRect();
+        if (ir.width < 2 || ir.height < 2 || sr.width < 2) return;
+        const sx = ir.width / nw;
+        const sy = ir.height / nh;
+        const ox = ir.left - sr.left;
+        const oy = ir.top - sr.top;
+        for (const z of betZones) {
+          const b = cellRect(z.dataset.bet);
+          if (!b) continue;
+          z.style.left = (ox + b.x * sx) + 'px';
+          z.style.top = (oy + b.y * sy) + 'px';
+          z.style.width = (b.w * sx) + 'px';
+          z.style.height = (b.h * sy) + 'px';
+        }
+      }
+      function syncBetZonesSoon() {
+        syncBetZones();
+        requestAnimationFrame(() => {
+          syncBetZones();
+          requestAnimationFrame(syncBetZones);
+        });
+      }
+      syncBetZonesSoon();
+      window.addEventListener('resize', syncBetZonesSoon);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(syncBetZonesSoon).observe(stage);
+      }
+      if (bg.complete) syncBetZonesSoon();
+      else bg.addEventListener('load', syncBetZonesSoon);
+
       let start = 0;
       let selected = null; // 已选筹码面额
-      let pendingMarket = null; // 已选盘口，点确定才落注
+      let pendingMarket = null; // 已选盘口
+      let pendingStake = 0; // 待确认金额（可被重复下注加倍）
       let busy = false;
       let bettingOpen = true;
       let roundStarted = false;
       let balance = START_BAL;
-      let bets = { small: 0, big: 0, odd: 0, even: 0 };
-      let betDenom = { small: null, big: null, odd: null, even: null };
+      let bets = emptyBets();
+      let betDenom = emptyDenom();
       let toastTimer = null;
 
       function fmtBal(n) {
@@ -705,23 +1155,60 @@
           amt.textContent = String(stake);
         });
       }
-      function resetBets() {
-        bets = { small: 0, big: 0, odd: 0, even: 0 };
-        betDenom = { small: null, big: null, odd: null, even: null };
+      function clearPending(silent) {
         pendingMarket = null;
+        pendingStake = 0;
+        paintPending();
+        if (!silent) showToast('已取消', 1000);
+      }
+      function resetBets() {
+        bets = emptyBets();
+        betDenom = emptyDenom();
+        pendingMarket = null;
+        pendingStake = 0;
         paintBets();
         paintPending();
       }
       function paintPending() {
         betZones.forEach((z) => {
-          z.classList.toggle('is-pending', z.dataset.bet === pendingMarket);
+          const on = z.dataset.bet === pendingMarket && pendingStake > 0;
+          z.classList.toggle('is-key-on', on);
+          let pend = z.querySelector('.bet-pend');
+          if (!on) {
+            if (pend) pend.remove();
+            return;
+          }
+          if (!pend) {
+            pend = document.createElement('span');
+            pend.className = 'bet-stake bet-pend';
+            z.appendChild(pend);
+          }
+          pend.textContent = String(pendingStake);
         });
       }
-      function showToast(text, ms = 1600) {
+      /** 确定时：所有浅绿按键闪一下 */
+      function flashGreenKeys() {
+        const keys = betZones.filter(
+          (z) => z.classList.contains('is-key-on') || z.classList.contains('has-bet')
+        );
+        keys.forEach((z) => {
+          z.classList.remove('key-flash');
+          void z.offsetWidth;
+          z.classList.add('key-flash');
+        });
+        setTimeout(() => {
+          keys.forEach((z) => z.classList.remove('key-flash'));
+        }, 520);
+        return keys.length ? 520 : 0;
+      }
+      function showToast(text, ms = 1600, kind) {
         toastMsg.textContent = text;
+        toastMsg.classList.toggle('is-success', kind === 'success');
         toastMsg.classList.add('show');
         if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toastMsg.classList.remove('show'), ms);
+        toastTimer = setTimeout(() => {
+          toastMsg.classList.remove('show', 'is-success');
+        }, ms);
       }
       function showBoardOutcome(kind) {
         boardOutcome.classList.remove('show', 'win', 'lose');
@@ -744,25 +1231,44 @@
           sum,
           size: sum >= 11 ? 'big' : 'small',
           parity: sum % 2 === 0 ? 'even' : 'odd',
+          triple: dice[0] === dice[1] && dice[1] === dice[2],
         };
       }
-      /** 1 赔 1：中奖退本+赢同额；输则下注时已扣，余额保持 */
+      /** 大小单双 1 赔 1；全圍 1 赔 24；组合 1 赔 5；指定对子 1 赔 8 */
       function settle(info) {
         let staked = 0;
         let returned = 0;
         const hits = [];
-        for (const key of ['small', 'big', 'odd', 'even']) {
+        const dice = info.dice;
+        const counts = [0, 0, 0, 0, 0, 0, 0];
+        for (const n of dice) counts[n] += 1;
+        const keys = ['small', 'big', 'odd', 'even', 'wrap', ...PAIR_KEYS];
+        for (const key of keys) {
           const stake = bets[key] || 0;
           if (stake <= 0) continue;
           staked += stake;
-          const win =
-            (key === 'small' && info.size === 'small') ||
-            (key === 'big' && info.size === 'big') ||
-            (key === 'odd' && info.parity === 'odd') ||
-            (key === 'even' && info.parity === 'even');
+          let win = false;
+          let mult = 2;
+          if (key === 'small') win = info.size === 'small';
+          else if (key === 'big') win = info.size === 'big';
+          else if (key === 'odd') win = info.parity === 'odd';
+          else if (key === 'even') win = info.parity === 'even';
+          else if (key === 'wrap') {
+            win = info.triple;
+            mult = 25;
+          } else if (key[0] === 'c') {
+            const a = Number(key[1]);
+            const b = Number(key[2]);
+            win = counts[a] > 0 && counts[b] > 0;
+            mult = 6;
+          } else if (key[0] === 'd') {
+            const n = Number(key[1]);
+            win = counts[n] >= 2;
+            mult = 9;
+          }
           if (win) {
-            returned += stake * 2;
-            hits.push(BET_LABEL[key]);
+            returned += stake * mult;
+            hits.push(BET_LABEL[key] || key);
           }
         }
         const net = returned - staked;
@@ -828,6 +1334,7 @@
       const Voice = {
         ctx: null,
         unlocked: false,
+        dead: false, // 关页/切走后禁止再出声
         pending: [],
         pendingText: null,
         players: {
@@ -862,6 +1369,10 @@
           '恭喜你赢钱了': 'youWin',
           '很遗憾你输了': 'youLose',
         },
+        /* TTS 读音校正：骰宝念「头宝」，绝不能念成「筛宝」 */
+        ttsAlias: {
+          '欢迎进入骰宝游戏': '欢迎进入头宝游戏',
+        },
 
         init() {
           Object.keys(this.players).forEach((k) => {
@@ -878,19 +1389,66 @@
           }
         },
 
+        /** 关页/切走：立刻停声（系统女声关标签后仍可能续播，必须强杀） */
+        silence() {
+          this.dead = true;
+          this._playToken = {};
+          this.pending.length = 0;
+          this.pendingText = null;
+          const killTts = () => {
+            try {
+              if (window.speechSynthesis) window.speechSynthesis.cancel();
+            } catch (_) { /* ignore */ }
+          };
+          killTts();
+          try { setTimeout(killTts, 0); } catch (_) { /* ignore */ }
+          Object.keys(this.players).forEach((k) => {
+            const el = this.players[k];
+            if (!el) return;
+            try {
+              el.pause();
+              el.currentTime = 0;
+              el.muted = true;
+              el.volume = 0;
+            } catch (_) { /* ignore */ }
+          });
+          (this._ephemeral || []).forEach((el) => {
+            try { el.pause(); el.muted = true; el.src = ''; } catch (_) { /* ignore */ }
+          });
+          this._ephemeral = [];
+          // 页面上所有 audio 一并停（防漏网）
+          try {
+            document.querySelectorAll('audio').forEach((el) => {
+              el.pause();
+              el.muted = true;
+              el.currentTime = 0;
+            });
+          } catch (_) { /* ignore */ }
+          try {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+          } catch (_) { /* ignore */ }
+          try {
+            if (this.ctx && this.ctx.state === 'running') this.ctx.suspend();
+          } catch (_) { /* ignore */ }
+        },
+
         unlock() {
+          this.dead = false;
+          try {
+            Object.keys(this.players).forEach((k) => {
+              const el = this.players[k];
+              if (!el) return;
+              el.muted = false;
+              el.volume = 1;
+            });
+          } catch (_) { /* ignore */ }
           try {
             const AC = window.AudioContext || window.webkitAudioContext;
             if (AC) {
               this.ctx = this.ctx || new AC();
               if (this.ctx.state === 'suspended') this.ctx.resume();
             }
-            // 不要 cancel 正在播的女声（以前一点页面就把口播掐了）
-            if (window.speechSynthesis && !window.speechSynthesis.speaking) {
-              const warm = new SpeechSynthesisUtterance(' ');
-              warm.volume = 0;
-              window.speechSynthesis.speak(warm);
-            }
+            // 不再唤醒 speechSynthesis（关页后系统女声杀不掉）
             this.unlocked = true;
             while (this.pending.length) {
               const fn = this.pending.shift();
@@ -906,32 +1464,52 @@
 
         playEl(el) {
           return new Promise((resolve) => {
-            if (!el) { resolve(false); return; }
+            if (this.dead || !el) { resolve(false); return; }
             let settled = false;
+            let playing = false;
+            const token = {};
+            this._playToken = token;
             const done = (ok) => {
               if (settled) return;
               settled = true;
+              clearTimeout(loadTimer);
+              clearTimeout(endTimer);
               resolve(!!ok);
             };
-            // 预录加载/自动播放失败时绝不等死，马上交给 TTS
-            const timer = setTimeout(() => done(false), 350);
+            // 加载失败才超时；一旦开始播必须等播完，绝不能 350ms 误判导致下一句叠上去
+            const loadTimer = setTimeout(() => {
+              if (!playing) done(false);
+            }, 4000);
+            let endTimer = null;
             el.pause();
             try { el.currentTime = 0; } catch (_) { /* ignore */ }
-            el.onended = () => { clearTimeout(timer); done(true); };
-            el.onerror = () => { clearTimeout(timer); done(false); };
+            el.onended = () => done(true);
+            el.onerror = () => done(false);
             const kick = () => {
+              if (settled || this.dead || this._playToken !== token) return;
               const p = el.play();
               if (p && typeof p.then === 'function') {
-                p.then(() => { clearTimeout(timer); /* 真正在播，等 onended */ }).catch(() => {
-                  clearTimeout(timer);
-                  this.pending.push(() => { el.play().catch(() => {}); });
-                  done(false);
-                });
+                p.then(() => {
+                  if (settled || this._playToken !== token) {
+                    try { el.pause(); } catch (_) { /* ignore */ }
+                    return;
+                  }
+                  playing = true;
+                  clearTimeout(loadTimer);
+                  // 兜底：按时长结束，防止 onended 丢了卡住
+                  const dur = (Number.isFinite(el.duration) && el.duration > 0)
+                    ? el.duration * 1000 + 200
+                    : 5000;
+                  endTimer = setTimeout(() => done(true), dur);
+                }).catch(() => done(false));
+              } else {
+                done(false);
               }
             };
             if (el.readyState >= 2) kick();
             else {
-              el.addEventListener('canplay', () => kick(), { once: true });
+              const onReady = () => kick();
+              el.addEventListener('canplay', onReady, { once: true });
               try { el.load(); } catch (_) { kick(); }
             }
           });
@@ -969,61 +1547,93 @@
           await this.playEl(el);
         },
 
-        tts(text, { rate = 0.86 } = {}) {
-          return new Promise(async (resolve) => {
-            if (!window.speechSynthesis) {
-              setTimeout(resolve, Math.max(700, text.length * 120));
-              return;
-            }
-            await this.awaitVoices();
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            u.rate = rate;
-            u.pitch = 1.28; // 柔美偏甜，不加语气词
-            this.pickFemaleVoice(u);
-            let done = false;
-            const finish = () => {
-              if (done) return;
-              done = true;
-              resolve();
+        /** 禁止用系统 TTS：关标签后 macOS 女声还会继续响。只用页面 audio。 */
+        tts() {
+          return Promise.resolve();
+        },
+
+        /** 播一个临时 mp3（随页面生死，关页必停） */
+        playUrl(url) {
+          return new Promise((resolve) => {
+            if (this.dead) { resolve(false); return; }
+            const el = new Audio(url);
+            el.preload = 'auto';
+            el.volume = 1;
+            let settled = false;
+            const done = (ok) => {
+              if (settled) return;
+              settled = true;
+              try { el.pause(); } catch (_) { /* ignore */ }
+              resolve(!!ok);
             };
-            u.onend = finish;
-            u.onerror = finish;
-            try {
-              window.speechSynthesis.speak(u);
-              // 兜底：按字数估时，宁可稍长也不要提前接下句
-              setTimeout(finish, Math.max(3200, text.length * 280));
-            } catch (_) {
-              this.pendingText = text;
-              finish();
+            const timer = setTimeout(() => done(false), 4000);
+            el.onended = () => { clearTimeout(timer); done(true); };
+            el.onerror = () => { clearTimeout(timer); done(false); };
+            const p = el.play();
+            if (p && typeof p.then === 'function') {
+              p.then(() => {}).catch(() => { clearTimeout(timer); done(false); });
             }
+            // 关页时一并静音
+            this._ephemeral = this._ephemeral || [];
+            this._ephemeral.push(el);
           });
         },
 
-        /** 一句一句播：先预录，失败再用 TTS；绝不两路同时出声 */
-        async speak(text, opts) {
-          await this.awaitVoices();
-          // 打断上一句，保证不叠音
-          try {
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-            Object.keys(this.players).forEach((k) => {
-              if (k === 'tick' || k === 'bombTick' || k === 'coin' || k === 'keyClick') return;
-              const el = this.players[k];
-              if (!el) return;
-              try { el.pause(); el.currentTime = 0; } catch (_) { /* ignore */ }
-            });
-          } catch (_) { /* ignore */ }
+        /** 一句一句播：串行队列，上一句播完才下一句；只用预录 mp3。返回是否真正播出。 */
+        async speak(text) {
+          const run = async () => {
+            if (this.dead) return false;
+            // 打断上一句音源
+            this._playToken = {}; // 作废进行中的 playEl
+            try {
+              if (window.speechSynthesis) window.speechSynthesis.cancel();
+              Object.keys(this.players).forEach((k) => {
+                if (k === 'tick' || k === 'bombTick' || k === 'coin' || k === 'keyClick') return;
+                const el = this.players[k];
+                if (!el) return;
+                try { el.pause(); el.currentTime = 0; } catch (_) { /* ignore */ }
+              });
+              (this._ephemeral || []).forEach((el) => {
+                try { el.pause(); el.src = ''; } catch (_) { /* ignore */ }
+              });
+              this._ephemeral = [];
+            } catch (_) { /* ignore */ }
 
-          const key = this.clipFor[text];
-          if (key && this.players[key]) {
-            const ok = await this.playEl(this.players[key]);
-            if (ok) return;
+            const key = this.clipFor[text];
+            if (key && this.players[key]) {
+              return await this.playEl(this.players[key]);
+            }
+
+            // 报点：3点、5点、2点，共10点 → 全 mp3 拼接
+            const m = /^(\d)点、(\d)点、(\d)点，共(\d{1,2})点$/.exec(text);
+            if (m) {
+              const [, a, b, c, sum] = m;
+              for (const n of [a, b, c]) {
+                if (this.dead) return false;
+                const ok = await this.playUrl(`audio/dice-${n}.mp3?v=${V}`);
+                if (!ok) return false;
+              }
+              if (this.dead) return false;
+              return await this.playUrl(`audio/sum-${sum}.mp3?v=${V}`);
+            }
+            return false;
+          };
+
+          // 严格排队：欢迎说完才「开始下注」
+          const prev = this._speakChain || Promise.resolve();
+          let release;
+          this._speakChain = new Promise((r) => { release = r; });
+          await prev.catch(() => {});
+          try {
+            return await run();
+          } finally {
+            release();
           }
-          await this.tts(text, opts);
         },
 
         /** 短音效：钟表滴答 / 炸弹滴滴（预录，不再用刺耳方波） */
         playQuick(key, vol = 0.6) {
+          if (this.dead) return;
           const el = this.players[key];
           if (!el) return;
           try {
@@ -1069,6 +1679,22 @@
       }
 
       let welcomed = false;
+      const unlockWaiters = [];
+
+      function sleep(ms) {
+        return new Promise((r) => setTimeout(r, ms));
+      }
+      function alive() {
+        return !Voice.dead && !document.hidden;
+      }
+      function whenAudioReady() {
+        if (Voice.unlocked && !Voice.dead) return Promise.resolve();
+        return new Promise((resolve) => { unlockWaiters.push(resolve); });
+      }
+      function notifyAudioReady() {
+        const q = unlockWaiters.splice(0);
+        q.forEach((fn) => { try { fn(); } catch (_) { /* ignore */ } });
+      }
 
       async function runRound() {
         if (roundStarted) return;
@@ -1079,35 +1705,55 @@
         showStopBet(false);
         setTimerDisplay(BET_SECS);
 
-        // 先进欢迎，说完再「开始下注」，两句绝不叠播；然后再倒计时滴答
-        Voice.unlock();
+        // 浏览器禁止未手势自动播：必须等用户点一下再出声，否则会「假成功」导致以后再也不欢迎
+        await whenAudioReady();
+        if (!alive()) { roundStarted = false; return; }
+
         if (!welcomed) {
-          welcomed = true;
-          await Voice.speak('欢迎进入骰宝游戏');
-          await new Promise((r) => setTimeout(r, 350));
+          if (!alive()) { roundStarted = false; return; }
+          const okWelcome = await Voice.speak('欢迎进入骰宝游戏');
+          if (!alive()) { roundStarted = false; return; }
+          if (okWelcome) {
+            await sleep(280);
+            if (!alive()) { roundStarted = false; return; }
+            const okStart = await Voice.speak('开始下注');
+            if (okStart) welcomed = true;
+          }
+          // 若被自动播放拦截，不标 welcomed，下次点按再试
+          if (!welcomed) {
+            roundStarted = false;
+            return;
+          }
+        } else {
+          if (!alive()) { roundStarted = false; return; }
+          await Voice.speak('开始下注');
         }
-        await Voice.speak('开始下注');
 
         for (let t = BET_SECS; t >= 1; t--) {
+          if (!alive()) { roundStarted = false; return; }
           setTimerDisplay(t);
           if (t <= 10) Voice.bombTick();
           else Voice.tick();
-          await new Promise((r) => setTimeout(r, 1000));
+          await sleep(1000);
         }
 
+        if (!alive()) { roundStarted = false; return; }
         setTimerDisplay(0);
         setBettingOpen(false);
         showStopBet(true);
         await Voice.speak('停止下注');
 
         // 停注后停顿 5 秒 → 三骰上屏 → 报点数 → 再判输赢
-        await new Promise((r) => setTimeout(r, 5000));
+        if (!alive()) { roundStarted = false; return; }
+        await sleep(5000);
+        if (!alive()) { roundStarted = false; return; }
         showStopBet(false);
 
         const info = classify(rollDice());
         showDiceOnly(info);
         const [a, b, c] = info.dice;
         await Voice.speak(`${a}点、${b}点、${c}点，共${info.sum}点`, { rate: 0.84 });
+        if (!alive()) { roundStarted = false; return; }
 
         const pay = settle(info);
         showResultPay(info, pay);
@@ -1115,20 +1761,34 @@
         if (pay.staked > 0 && pay.net > 0) {
           // 赢：金币哗啦啦，再说恭喜
           await Voice.playSfx('coin');
-          await new Promise((r) => setTimeout(r, 200));
+          await sleep(200);
           await Voice.playSfx('coin');
           await Voice.speak('恭喜你赢钱了');
         }
         // 输：只显示小白字「输」，不说话
 
-        await new Promise((r) => setTimeout(r, 3500));
+        if (!alive()) { roundStarted = false; return; }
+        await sleep(3500);
         roundStarted = false;
-        runRound();
+        if (alive()) runRound();
       }
 
       // 静默解锁音频，无提示按钮
       Voice.init();
-      document.addEventListener('pointerdown', () => Voice.unlock(), { passive: true });
+      document.addEventListener('pointerdown', () => {
+        Voice.unlock();
+        notifyAudioReady();
+        if (!roundStarted) runRound();
+      }, { passive: true });
+      // 关页/切走：马上静音（capture 尽早拦；切回前台不自动恢复，点一下再播）
+      const killAudio = () => Voice.silence();
+      window.addEventListener('pagehide', killAudio, true);
+      window.addEventListener('beforeunload', killAudio, true);
+      window.addEventListener('unload', killAudio, true);
+      window.addEventListener('freeze', killAudio, true);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) Voice.silence();
+      }, true);
       setBalance(START_BAL);
       setTimerDisplay(BET_SECS);
       runRound();
@@ -1180,34 +1840,66 @@
         });
       });
 
-      async function confirmBet(marketKey) {
+      /** 確定：绿键齐闪 → 立体「下注成功」→ 扣积分/口播 */
+      async function confirmBet() {
         if (!bettingOpen) return false;
         if (!selected) {
           showToast('请先选择筹码', 1200);
           return false;
         }
-        const key = marketKey || pendingMarket;
-        if (!key || !(key in bets)) {
+        if (!pendingMarket || pendingStake <= 0) {
           showToast('请先选择大/小/单/双', 1200);
           return false;
         }
-        if (balance < selected) {
+        if (balance < pendingStake) {
           showToast('积分不足', 1200);
           return false;
         }
-        const amt = selected;
-        // 确定：先按键声 → 扣积分 → 再说下注成功
-        Voice.playQuick('keyClick', 0.8);
-        await new Promise((r) => setTimeout(r, 140));
+        const key = pendingMarket;
+        const amt = pendingStake;
+        Voice.playQuick('keyClick', 0.85);
+        // 先落注让 has-bet 变绿，再全部绿键闪
         setBalance(balance - amt, true);
         bets[key] += amt;
-        betDenom[key] = amt;
+        betDenom[key] = selected || amt;
         pendingMarket = null;
+        pendingStake = 0;
         paintBets();
         paintPending();
-        showToast('下注成功');
+        const wait = flashGreenKeys();
+        await new Promise((r) => setTimeout(r, Math.max(180, wait * 0.55)));
+        showToast('下注成功', 1800, 'success');
         await Voice.speak('下注成功');
         return true;
+      }
+
+      /** 重複下注：当前待确认金额再加一倍 */
+      function repeatBet() {
+        if (!bettingOpen) return;
+        Voice.playQuick('keyClick', 0.7);
+        if (!pendingMarket || pendingStake <= 0) {
+          showToast('请先选筹码并点大/小/单/双', 1400);
+          return;
+        }
+        const next = pendingStake * 2;
+        if (balance < next) {
+          showToast('积分不足，无法加倍', 1400);
+          return;
+        }
+        pendingStake = next;
+        paintPending();
+        showToast(`加倍 ${pendingStake}`, 1000);
+      }
+
+      /** 取消：清掉未确认的选择 */
+      function cancelBet() {
+        if (!bettingOpen) return;
+        Voice.playQuick('keyClick', 0.65);
+        if (!pendingMarket && pendingStake <= 0) {
+          showToast('没有可取消的下注', 1000);
+          return;
+        }
+        clearPending(false);
       }
 
       betZones.forEach((zone) => {
@@ -1223,7 +1915,9 @@
           const key = zone.dataset.bet;
           if (!(key in bets)) return;
           pendingMarket = key;
-          paintPending();
+          pendingStake = selected; // 先按当前筹码额挂单
+          Voice.playQuick('keyClick', 0.7);
+          paintPending(); // 整格透明黄 × 底图字透红
         });
       });
 
@@ -1231,7 +1925,19 @@
         e.preventDefault();
         e.stopPropagation();
         Voice.unlock();
-        await confirmBet(pendingMarket);
+        await confirmBet();
+      });
+      btnCancel.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Voice.unlock();
+        cancelBet();
+      });
+      btnRepeat.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Voice.unlock();
+        repeatBet();
       });
 
       function sleep(ms) {
@@ -1317,7 +2023,10 @@
       bindArrow(arrowL, -1);
       bindArrow(arrowR, 1);
 
-      DENOMS.forEach((n) => { const i = new Image(); i.src = srcFor(n); });
+      // 台面先出：筹码图空闲再预热，避免抢首屏带宽
+      const warmChips = () => { DENOMS.forEach((n) => { const i = new Image(); i.src = srcFor(n); }); };
+      if ('requestIdleCallback' in window) requestIdleCallback(warmChips, { timeout: 2500 });
+      else setTimeout(warmChips, 1200);
       paint();
     })();
   </script>
