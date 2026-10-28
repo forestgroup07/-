@@ -4,684 +4,312 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>Forest Group · 骰宝</title>
-  <link rel="preload" as="image" href="pc-full-v106.webp?v=v1.0.8" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="chips/chip-10.webp?v=v1.0.8" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-20.webp?v=v1.0.8" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-50.webp?v=v1.0.8" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-100.webp?v=v1.0.8" type="image/webp" />
+  <title>Forest Group · 登入</title>
   <style>
     :root {
-      --stage-w: 2188;
-      --stage-h: 1393;
-      --chip-slide: .38s cubic-bezier(.25,.7,.2,1);
+      --gold: #d4b06a;
+      --gold-bright: #f0d392;
+      --gold-deep: #a67c2e;
+      --ink: #0a0c10;
+      --panel: rgba(12, 14, 18, 0.78);
+      --line: rgba(212, 176, 106, 0.35);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%; height: 100%;
-      background: #000;
       overflow: hidden;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
+      background: var(--ink);
+      color: #e8e2d4;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
     }
-    .frame {
-      width: 100vw; height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      background: #000;
-      opacity: 0;
-      transition: opacity .12s ease;
-    }
-    html.is-ready .frame { opacity: 1; }
-    .stage {
+    /* 首页干净登入：无游戏台面、无骰宝图 */
+    .scene {
       position: relative;
-      width: min(100vw, calc(100vh * 2188 / 1393));
-      height: min(100vh, calc(100vw * 1393 / 2188));
-      overflow: hidden;
-      background: #000;
-    }
-    .stage > picture,
-    .stage .bg {
-      position: absolute; inset: 0;
       width: 100%; height: 100%;
-      display: block;
-      pointer-events: none;
-    }
-    .stage .bg { object-fit: fill; }
-
-    /* 倒计时：盖住底图烤死的 16，从 22 开始 */
-    .timer {
-      --p: 1;
-      position: absolute;
-      left: 37.48%;
-      top: 20.05%;
-      width: 6.85%;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      z-index: 40;
       display: flex;
       align-items: center;
       justify-content: center;
-      pointer-events: none;
-      background: rgba(18, 32, 14, .92);
-      color: #6fff9a;
-      font-family: Arial, Helvetica, sans-serif;
-      font-weight: 900;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 42 / 2188);
-      line-height: 1;
-      text-shadow: 0 1px 2px rgba(0,0,0,.65);
-    }
-    .timer::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: conic-gradient(#6fff9a calc(var(--p) * 1turn), rgba(40,55,35,.75) 0);
-      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
-              mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
-      pointer-events: none;
-    }
-    .timer > span { position: relative; z-index: 1; }
-    .timer.danger {
-      color: #ff3b3b;
-    }
-    .timer.danger::before {
-      background: conic-gradient(#ff3b3b calc(var(--p) * 1turn), rgba(60,20,20,.75) 0);
+      background: #0a0c10;
     }
 
-    .stop-bet {
-      position: absolute;
-      left: 50%;
-      top: 42%;
-      transform: translate(-50%, -50%) scale(.96);
-      z-index: 90;
-      padding: 0.55em 1.25em;
-      border-radius: 0.2em;
-      background: rgba(0,0,0,.62);
-      border: 1px solid rgba(255,220,140,.45);
-      color: #ffe29a;
-      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 52 / 2188);
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity .25s ease, transform .25s ease, visibility .25s;
-      text-shadow: 0 2px 8px rgba(0,0,0,.7);
-    }
-    .stop-bet.show {
-      opacity: 1;
-      visibility: visible;
-      transform: translate(-50%, -50%) scale(1);
+    .wrap {
+      position: relative;
+      z-index: 2;
+      width: min(420px, 92vw);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.4rem;
+      transform: translateY(-4vh);
     }
 
-    /* 仅余额数字，无汇率条 */
-    .bal {
-      position: absolute;
-      left: 50.091%; top: 80.043%;
-      width: 4.068%; height: 3.015%;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: none;
-      color: #c8d09b;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 19 / 2188);
-      line-height: 1; white-space: nowrap;
-      text-shadow:
-        -1px 0 0 rgba(6,18,12,.85), 1px 0 0 rgba(6,18,12,.85),
-        0 -1px 0 rgba(6,18,12,.85), 0 1px 0 rgba(6,18,12,.85);
-      z-index: 20;
+    .brand {
+      text-align: center;
+      animation: rise .7s ease both;
     }
-
-    /* 未点：平贴可见。一点：升起 + 光柱 */
-    .chip-btn {
-      position: absolute;
-      z-index: 32;
-      padding: 0; margin: 0; border: 0;
-      background: transparent;
-      cursor: pointer;
+    .brand-mark {
+      width: 92px; height: 92px;
+      margin: 0 auto .75rem;
       border-radius: 50%;
-      line-height: 0;
-      overflow: visible;
-      outline: none;
-      -webkit-tap-highlight-color: transparent;
-      transition: transform var(--chip-slide);
-      will-change: transform;
-    }
-    .chip-btn:focus,
-    .chip-btn:focus-visible { outline: none !important; }
-    .chip-btn::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      bottom: 0;
-      width: 112%;
-      height: 32%;
-      transform: translateX(-50%) scale(0.55);
-      border-radius: 50%;
+      display: grid; place-items: center;
       background:
-        radial-gradient(ellipse at center,
-          rgba(255,255,255,1) 0%,
-          rgba(255,236,170,.95) 28%,
-          rgba(255,255,255,.45) 52%,
-          rgba(255,255,255,0) 72%);
+        radial-gradient(circle at 35% 30%, #f7e2a8, #c9973a 55%, #7a5418 100%);
       box-shadow:
-        0 0 10px 3px rgba(255,255,255,.55),
-        0 0 22px 6px rgba(255,230,140,.35);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 0;
-      transition: opacity .16s ease, transform .2s cubic-bezier(.2,.8,.2,1);
+        0 0 0 2px rgba(255,220,150,.35),
+        0 10px 28px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.45);
+      color: #2a1a05;
+      font-family: "Songti SC", "STSong", "Noto Serif TC", serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1.05;
     }
-    .chip-btn::before {
-      content: "";
-      position: absolute;
-      left: 50%;
-      bottom: 10%;
-      width: 86%;
-      height: 140%;
-      transform: translateX(-50%) scaleY(0.35);
-      transform-origin: 50% 100%;
-      background:
-        repeating-linear-gradient(
-          90deg,
-          transparent 0,
-          transparent 9%,
-          rgba(255,255,255,.34) 9%,
-          rgba(255,255,255,.34) 13%,
-          transparent 13%,
-          transparent 22%
-        ),
-        linear-gradient(
-          to top,
-          rgba(255,255,255,.55) 0%,
-          rgba(255,245,200,.28) 38%,
-          rgba(255,255,255,0) 78%
-        );
-      -webkit-mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 100%);
-      mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 100%);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 0;
-      filter: blur(0.4px);
-      transition: opacity .16s ease, transform .2s cubic-bezier(.2,.8,.2,1);
+    .brand h1 {
+      font-size: clamp(1.35rem, 3.2vw, 1.85rem);
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      color: var(--gold-bright);
+      text-indent: 0.28em;
+      text-shadow: 0 2px 16px rgba(0,0,0,.55);
     }
-    .chip-btn img {
-      position: relative;
-      z-index: 1;
-      width: 100%; height: 100%;
-      display: block;
-      border-radius: 50%;
-      pointer-events: none;
-      opacity: 1;
-      transform: translateY(0);
-      transition: transform .2s cubic-bezier(.2,.8,.2,1);
-      filter: none;
-      will-change: transform;
-    }
-    .chip-btn.on { z-index: 99; }
-    .chip-btn.on img {
-      filter:
-        drop-shadow(0 8px 6px rgba(0,0,0,.45))
-        drop-shadow(0 0 4px rgba(255,255,255,.5));
-    }
-    .chip-btn.on::before {
-      opacity: 1;
-      transform: translateX(-50%) scaleY(1);
-    }
-    .chip-btn.on::after {
-      opacity: 1;
-      transform: translateX(-50%) scale(1);
-    }
-    .chip-btn.on.up img {
-      transform: translateY(-22%);
+    .brand p {
+      margin-top: .35rem;
+      font-size: .78rem;
+      letter-spacing: 0.22em;
+      color: rgba(232,226,212,.65);
+      text-indent: 0.22em;
     }
 
-    /* 盖住底图烤死的 10/20/50/100，避免滑动后露出底圈 */
-    .chip-cover {
-      position: absolute;
-      z-index: 30;
-      border-radius: 50%;
-      background: #000;
-      pointer-events: none;
-    }
-    #cover-a { left: 68.95%; top: 84.15%; width: 4.35%; aspect-ratio: 1; }
-    #cover-b { left: 74.39%; top: 84.15%; width: 4.35%; aspect-ratio: 1; }
-    #cover-c { left: 79.83%; top: 84.15%; width: 4.35%; aspect-ratio: 1; }
-    #cover-d { left: 85.13%; top: 84.15%; width: 4.35%; aspect-ratio: 1; }
-
-    /* 整台面定位筹码外形；仅左右裁切，上下不切，避免扁底 */
-    .chip-viewport {
-      position: absolute;
-      inset: 0;
-      z-index: 32;
-      pointer-events: none;
-      overflow: visible;
-      clip-path: inset(81.5% 10.65% 8.2% 69.05%);
-    }
-    .chip-viewport .chip-btn {
-      pointer-events: auto;
-    }
-    #chip-a  { left: 69.104%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
-    #chip-b  { left: 74.543%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
-    #chip-c  { left: 79.982%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
-    #chip-d  { left: 85.283%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
-
-    /* 左箭头：与底图右侧 > 同款同尺寸；右箭头：只保留透明热区（底图已有 >） */
-    .chip-arrow {
-      position: absolute;
-      z-index: 80;
-      padding: 0; margin: 0; border: 0;
-      background: transparent;
-      cursor: pointer;
-      line-height: 0;
-      outline: none;
-      -webkit-tap-highlight-color: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 1;
-      transition: opacity .15s ease;
-      pointer-events: auto;
-    }
-    .chip-arrow:focus,
-    .chip-arrow:focus-visible { outline: none !important; }
-    .chip-arrow img {
+    .panel {
       width: 100%;
-      height: auto;
-      pointer-events: none;
-      display: block;
+      padding: 1.55rem 1.35rem 1.35rem;
+      border-radius: 10px;
+      background: rgba(10, 12, 16, 0.92);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      animation: rise .75s .08s ease both;
     }
-    .chip-arrow.is-dim {
-      opacity: .34;
+    .field {
+      position: relative;
+      margin-bottom: .85rem;
+    }
+    .field input {
+      width: 100%;
+      height: 46px;
+      padding: 0 2.4rem 0 2.55rem;
+      border-radius: 6px;
+      border: 1px solid rgba(212,176,106,.28);
+      background: rgba(0,0,0,.45);
+      color: #f4efdf;
+      font-size: .98rem;
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .field input:focus {
+      border-color: rgba(240,211,146,.7);
+      box-shadow: 0 0 0 3px rgba(212,176,106,.15);
+    }
+    .field .ico {
+      position: absolute;
+      left: .85rem; top: 50%;
+      transform: translateY(-50%);
+      width: 18px; height: 18px;
+      opacity: .75;
+      pointer-events: none;
+    }
+    .field .eye {
+      position: absolute;
+      right: .7rem; top: 50%;
+      transform: translateY(-50%);
+      width: 34px; height: 34px;
+      border: 0; background: transparent;
+      color: rgba(232,226,212,.65);
+      cursor: pointer;
+      font-size: .95rem;
+    }
+
+    .btn-login {
+      width: 100%;
+      height: 48px;
+      margin-top: .25rem;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.35em;
+      text-indent: 0.35em;
+      color: #2a1a05;
+      background: linear-gradient(180deg, #f3dfa0 0%, #d4b06a 48%, #b8893a 100%);
+      box-shadow: 0 2px 0 #8a6520, 0 8px 18px rgba(0,0,0,.35);
+      transition: filter .15s ease, transform .1s ease;
+    }
+    .btn-login:hover { filter: brightness(1.05); }
+    .btn-login:active { transform: translateY(1px); }
+    .btn-login:disabled {
+      opacity: .6;
       cursor: default;
     }
-    /* 左 < ：镜像底图右侧 >，同款同尺寸；热区略大于图形 */
-    #arrow-l {
-      left: 67.55%;
-      top: 84.85%;
-      width: 1.55%;
-      height: 3.35%;
-    }
-    #arrow-l img {
-      width: 55%;
-      image-rendering: auto;
-    }
-    /* 底图 > 在最右侧 ≈98.2%：热区必须盖住这里（以前错盖在 MAX 上所以点不到） */
-    #arrow-r {
-      left: 97.55%;
-      top: 84.55%;
-      width: 2.20%;
-      height: 4.30%;
-    }
-    #arrow-r img { display: none; }
 
-    /* 滑入临时筹码 */
-    .chip-btn.chip-ghost {
-      z-index: 31;
-      pointer-events: none;
+    .hint {
+      margin-top: .85rem;
+      text-align: center;
+      font-size: .72rem;
+      line-height: 1.55;
+      color: rgba(232,226,212,.55);
+    }
+    .err {
+      min-height: 1.2em;
+      margin: .55rem 0 0;
+      text-align: center;
+      font-size: .82rem;
+      color: #ff9b9b;
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+    .err.show { opacity: 1; }
+
+    .langs {
+      position: absolute;
+      right: max(1.2rem, 2vw);
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+      font-size: .72rem;
+      color: rgba(232,226,212,.72);
+    }
+    .langs label {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .langs input { accent-color: var(--gold); }
+
+    .foot {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      z-index: 3;
+      padding: .65rem 1rem .8rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: .5rem 1rem;
+      font-size: .68rem;
+      color: rgba(232,226,212,.45);
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,.55));
+    }
+    .foot a { color: rgba(240,211,146,.7); text-decoration: none; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 720px) {
+      .langs {
+        right: auto; left: 50%;
+        top: auto; bottom: 3.2rem;
+        transform: translateX(-50%);
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: .55rem .9rem;
+        max-width: 92vw;
+      }
+      .brand-mark { width: 78px; height: 78px; font-size: 1.3rem; }
+      .wrap { transform: none; margin-bottom: 3.5rem; }
     }
   </style>
 </head>
 <body>
-  <div class="frame">
-    <div class="stage">
-      <picture>
-        <source srcset="pc-full-v106.webp?v=v1.0.8" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v106.jpg?v=v1.0.8" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
-      </picture>
+  <div class="scene">
+    <aside class="langs" aria-label="语言">
+      <label><input type="radio" name="lang" value="zh-Hant" checked /> 繁體中文</label>
+      <label><input type="radio" name="lang" value="zh-Hans" /> 简体中文</label>
+      <label><input type="radio" name="lang" value="en" /> 英文</label>
+      <label><input type="radio" name="lang" value="id" /> 印尼文</label>
+    </aside>
 
-      <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
-      <div class="stop-bet" id="stopBet" aria-live="polite">停止下注</div>
-      <div class="bal">2,000</div>
-
-      <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
-      <div class="chip-cover" id="cover-b" aria-hidden="true"></div>
-      <div class="chip-cover" id="cover-c" aria-hidden="true"></div>
-      <div class="chip-cover" id="cover-d" aria-hidden="true"></div>
-
-      <button class="chip-arrow" id="arrow-l" type="button" aria-label="筹码向左">
-        <img src="chips/arrow-left.png?v=v1.0.8" alt="" draggable="false" />
-      </button>
-
-      <div class="chip-viewport" id="chipViewport">
-        <button class="chip-btn" id="chip-a" data-slot="0" type="button" aria-label="筹码10">
-          <img src="chips/chip-10.webp?v=v1.0.8" alt="" decoding="async" draggable="false" />
-        </button>
-        <button class="chip-btn" id="chip-b" data-slot="1" type="button" aria-label="筹码20">
-          <img src="chips/chip-20.webp?v=v1.0.8" alt="" decoding="async" draggable="false" />
-        </button>
-        <button class="chip-btn" id="chip-c" data-slot="2" type="button" aria-label="筹码50">
-          <img src="chips/chip-50.webp?v=v1.0.8" alt="" decoding="async" draggable="false" />
-        </button>
-        <button class="chip-btn" id="chip-d" data-slot="3" type="button" aria-label="筹码100">
-          <img src="chips/chip-100.webp?v=v1.0.8" alt="" decoding="async" draggable="false" />
-        </button>
+    <div class="wrap">
+      <div class="brand">
+        <div class="brand-mark">森<br/>林</div>
+        <h1>FOREST GROUP</h1>
+        <p>LIVE CASINO</p>
       </div>
 
-      <button class="chip-arrow" id="arrow-r" type="button" aria-label="筹码向右">
-        <img src="chips/arrow-right.png?v=v1.0.8" alt="" draggable="false" />
-      </button>
+      <form class="panel" id="loginForm" autocomplete="on">
+        <div class="field">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 19c1.8-3.2 4.2-4.8 7-4.8s5.2 1.6 7 4.8"/></svg>
+          <input id="user" name="username" type="text" placeholder="账号" value="asdg" maxlength="32" />
+        </div>
+        <div class="field">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <input id="pass" name="password" type="password" placeholder="密码" value="123456" maxlength="32" />
+          <button class="eye" id="togglePass" type="button" aria-label="显示密码">显示</button>
+        </div>
+        <button class="btn-login" id="btnLogin" type="submit">登入</button>
+        <p class="err" id="err"></p>
+        <p class="hint">本演示厅直播与软件仅供 Forest Group 内部演示使用</p>
+      </form>
     </div>
+
+    <footer class="foot">
+      <span>在线客服 · Demo</span>
+      <span>V1.0.9 · Chrome</span>
+      <span>请启用 JavaScript 与 Cookies，建议使用 Chrome</span>
+    </footer>
   </div>
+
   <script>
-    (async function () {
-      const V = 'v1.0.8';
-      const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
-      const VISIBLE = 4;
-      const SLOT_LEFT = [69.104, 74.543, 79.982, 85.283];
-      const GAP = SLOT_LEFT[1] - SLOT_LEFT[0];
-      const BET_SECS = 22;
+    (function () {
+      const NEXT = 'loading.html?v=v1.0.9';
+      const form = document.getElementById('loginForm');
+      const user = document.getElementById('user');
+      const pass = document.getElementById('pass');
+      const err = document.getElementById('err');
+      const btn = document.getElementById('btnLogin');
+      const toggle = document.getElementById('togglePass');
 
-      const bg = document.getElementById('bgImg');
-      try { if (bg.decode) await bg.decode(); } catch (_) {}
-      document.documentElement.classList.add('is-ready');
-
-      const stage = document.querySelector('.stage');
-      const viewport = document.getElementById('chipViewport');
-      const chips = [...viewport.querySelectorAll('.chip-btn')];
-      const arrowL = document.getElementById('arrow-l');
-      const arrowR = document.getElementById('arrow-r');
-      const timerEl = document.getElementById('timer');
-      const timerNum = document.getElementById('timerNum');
-      const stopBetEl = document.getElementById('stopBet');
-
-      let start = 0;
-      let selected = null;
-      let busy = false;
-      let bettingOpen = true;
-      let roundStarted = false;
-
-      /* ---------- 一局倒计时：22→0 + 音效/女声 ---------- */
-      const Voice = {
-        ctx: null,
-        unlocked: false,
-        welcomed: false,
-
-        unlock() {
-          if (this.unlocked) return;
-          try {
-            const AC = window.AudioContext || window.webkitAudioContext;
-            if (AC) {
-              this.ctx = this.ctx || new AC();
-              if (this.ctx.state === 'suspended') this.ctx.resume();
-            }
-            if (window.speechSynthesis) {
-              window.speechSynthesis.cancel();
-              const warm = new SpeechSynthesisUtterance(' ');
-              warm.volume = 0;
-              window.speechSynthesis.speak(warm);
-            }
-            this.unlocked = true;
-          } catch (_) { /* ignore */ }
-        },
-
-        speak(text, { rate = 1.02 } = {}) {
-          return new Promise((resolve) => {
-            if (!window.speechSynthesis) {
-              setTimeout(resolve, Math.max(800, text.length * 110));
-              return;
-            }
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'zh-CN';
-            u.rate = rate;
-            u.pitch = 1.12;
-            const pick = () => {
-              const vs = window.speechSynthesis.getVoices() || [];
-              const female = vs.find((v) => /zh|Chinese/i.test(v.lang) && /female|女|婷|晓|Mei|Ting|Xiaoxiao|Yaoyao/i.test(v.name))
-                || vs.find((v) => /zh-CN|zh_CN|Chinese/.test(v.lang));
-              if (female) u.voice = female;
-            };
-            pick();
-            if (!u.voice) window.speechSynthesis.onvoiceschanged = pick;
-            u.onend = resolve;
-            u.onerror = resolve;
-            window.speechSynthesis.speak(u);
-          });
-        },
-
-        /** 普通秒针滴答 */
-        tick() {
-          try {
-            const AC = window.AudioContext || window.webkitAudioContext;
-            if (!AC) return;
-            this.ctx = this.ctx || new AC();
-            if (this.ctx.state === 'suspended') this.ctx.resume();
-            const t0 = this.ctx.currentTime;
-            const o = this.ctx.createOscillator();
-            const g = this.ctx.createGain();
-            o.type = 'square';
-            o.frequency.value = 880;
-            g.gain.setValueAtTime(0.0001, t0);
-            g.gain.exponentialRampToValueAtTime(0.07, t0 + 0.01);
-            g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
-            o.connect(g);
-            g.connect(this.ctx.destination);
-            o.start(t0);
-            o.stop(t0 + 0.1);
-          } catch (_) { /* ignore */ }
-        },
-
-        /** 第 10 秒起：炸弹倒计时感（双脉冲更沉） */
-        bombTick() {
-          try {
-            const AC = window.AudioContext || window.webkitAudioContext;
-            if (!AC) return;
-            this.ctx = this.ctx || new AC();
-            if (this.ctx.state === 'suspended') this.ctx.resume();
-            const t0 = this.ctx.currentTime;
-            const beep = (freq, at, dur, vol) => {
-              const o = this.ctx.createOscillator();
-              const g = this.ctx.createGain();
-              o.type = 'sawtooth';
-              o.frequency.value = freq;
-              g.gain.setValueAtTime(0.0001, at);
-              g.gain.exponentialRampToValueAtTime(vol, at + 0.012);
-              g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-              o.connect(g);
-              g.connect(this.ctx.destination);
-              o.start(at);
-              o.stop(at + dur + 0.02);
-            };
-            beep(220, t0, 0.1, 0.14);
-            beep(160, t0 + 0.12, 0.12, 0.16);
-          } catch (_) { /* ignore */ }
-        },
-      };
-
-      function setTimerDisplay(sec) {
-        const p = Math.max(0, Math.min(1, sec / BET_SECS));
-        timerEl.style.setProperty('--p', String(p));
-        timerNum.textContent = String(sec);
-        timerEl.classList.toggle('danger', sec > 0 && sec <= 10);
-        if (sec <= 0) timerEl.classList.add('danger');
-      }
-
-      function setBettingOpen(open) {
-        bettingOpen = open;
-        stage.classList.toggle('betting-closed', !open);
-      }
-
-      function showStopBet(show) {
-        stopBetEl.classList.toggle('show', !!show);
-      }
-
-      async function runRound() {
-        if (roundStarted) return;
-        roundStarted = true;
-        setBettingOpen(true);
-        showStopBet(false);
-        setTimerDisplay(BET_SECS);
-
-        Voice.unlock();
-        const firstVisit = !sessionStorage.getItem('sicbo_welcomed');
-        if (firstVisit) {
-          sessionStorage.setItem('sicbo_welcomed', '1');
-          await Voice.speak('欢迎光临骰宝游戏');
-          await Voice.speak('已开局请下注');
-        } else {
-          await Voice.speak('已开局请下注');
+      // 已登入：进缓存页再进大厅
+      try {
+        if (sessionStorage.getItem('fg_sicbo_auth') === '1') {
+          location.replace(NEXT);
+          return;
         }
+      } catch (_) { /* ignore */ }
 
-        for (let t = BET_SECS; t >= 1; t--) {
-          setTimerDisplay(t);
-          if (t <= 10) Voice.bombTick();
-          else Voice.tick();
-          await new Promise((r) => setTimeout(r, 1000));
-        }
-
-        setTimerDisplay(0);
-        setBettingOpen(false);
-        showStopBet(true);
-        await Voice.speak('停止下注');
-      }
-
-      function unlockAndMaybeStart() {
-        Voice.unlock();
-        if (!roundStarted) runRound();
-      }
-      stage.addEventListener('pointerdown', unlockAndMaybeStart, { once: true });
-      // 视觉先显示 22；首点后开局（浏览器需用户手势才能出声）
-      setTimerDisplay(BET_SECS);
-
-      function srcFor(n) {
-        return `chips/chip-${n}.webp?v=${V}`;
-      }
-
-      function visibleDenoms() {
-        return DENOMS.slice(start, start + VISIBLE);
-      }
-
-      function syncArrows() {
-        const atStart = start <= 0;
-        const atEnd = start >= DENOMS.length - VISIBLE;
-        arrowL.classList.toggle('is-dim', atStart);
-        arrowR.classList.toggle('is-dim', atEnd);
-        arrowL.setAttribute('aria-disabled', atStart ? 'true' : 'false');
-        arrowR.setAttribute('aria-disabled', atEnd ? 'true' : 'false');
-      }
-
-      function paint() {
-        const list = visibleDenoms();
-        chips.forEach((btn, i) => {
-          const n = list[i];
-          const img = btn.querySelector('img');
-          if (img.getAttribute('src') !== srcFor(n)) img.src = srcFor(n);
-          btn.dataset.value = String(n);
-          btn.setAttribute('aria-label', `筹码${n}`);
-          const on = selected === n;
-          btn.classList.toggle('on', on);
-          btn.classList.toggle('up', on);
-        });
-        syncArrows();
-      }
-
-      function clearSelectVisual() {
-        chips.forEach((b) => b.classList.remove('on', 'up'));
-      }
-
-      chips.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          if (busy || !bettingOpen) return;
-          const n = Number(btn.dataset.value);
-          const turnOn = selected !== n;
-          selected = turnOn ? n : null;
-          clearSelectVisual();
-          if (!turnOn) return;
-          btn.classList.add('on');
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => btn.classList.add('up'));
-          });
-        });
+      toggle.addEventListener('click', () => {
+        const show = pass.type === 'password';
+        pass.type = show ? 'text' : 'password';
+        toggle.textContent = show ? '隐藏' : '显示';
       });
 
-      function sleep(ms) {
-        return new Promise((r) => setTimeout(r, ms));
+      function fail(msg) {
+        err.textContent = msg;
+        err.classList.add('show');
       }
 
-      async function slide(dir) {
-        if (busy) return;
-        const next = start + dir;
-        if (next < 0 || next > DENOMS.length - VISIBLE) return;
-        busy = true;
-        try {
-          clearSelectVisual();
-
-          const entering = dir > 0
-            ? DENOMS[start + VISIBLE]
-            : DENOMS[start - 1];
-
-          const ghost = document.createElement('button');
-          ghost.className = 'chip-btn chip-ghost';
-          ghost.type = 'button';
-          ghost.tabIndex = -1;
-          const gImg = document.createElement('img');
-          gImg.src = srcFor(entering);
-          gImg.alt = '';
-          gImg.draggable = false;
-          ghost.appendChild(gImg);
-
-          // 第 5 枚在左右裁切线外待命，滑入时被 clip，肉眼始终 4 枚；上下不裁以保圆形
-          ghost.style.left = (dir > 0
-            ? SLOT_LEFT[VISIBLE - 1] + GAP
-            : SLOT_LEFT[0] - GAP) + '%';
-          ghost.style.top = '84.32%';
-          ghost.style.width = '4.022%';
-          ghost.style.aspectRatio = '1';
-          viewport.appendChild(ghost);
-
-          const gapPx = (GAP / 100) * stage.clientWidth;
-          const dx = dir > 0 ? -gapPx : gapPx;
-          const movers = [...chips, ghost];
-          void ghost.offsetWidth;
-          movers.forEach((el) => {
-            el.style.transition = 'transform var(--chip-slide)';
-            el.style.transform = `translateX(${dx}px)`;
-          });
-
-          await sleep(400);
-
-          start = next;
-          movers.forEach((el) => {
-            el.style.transition = 'none';
-            el.style.transform = '';
-          });
-          ghost.remove();
-          paint();
-          void chips[0].offsetWidth;
-          chips.forEach((el) => { el.style.transition = ''; });
-
-          if (selected != null) {
-            const btn = chips.find((b) => Number(b.dataset.value) === selected);
-            if (btn) {
-              btn.classList.add('on');
-              requestAnimationFrame(() => btn.classList.add('up'));
-            } else {
-              selected = null;
-            }
-          }
-        } catch (_) {
-          start = Math.max(0, Math.min(DENOMS.length - VISIBLE, start + dir));
-          paint();
-        } finally {
-          busy = false;
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        err.classList.remove('show');
+        const u = (user.value || '').trim();
+        const p = (pass.value || '').trim();
+        if (!u || !p) {
+          fail('请输入账号和密码');
+          return;
         }
-      }
-
-      function bindArrow(el, dir) {
-        el.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          slide(dir);
-        });
-      }
-      bindArrow(arrowL, -1);
-      bindArrow(arrowR, 1);
-
-      DENOMS.forEach((n) => { const i = new Image(); i.src = srcFor(n); });
-      paint();
+        btn.disabled = true;
+        btn.textContent = '登入中';
+        // 演示：任意非空账号密码即可进入骰宝
+        try { sessionStorage.setItem('fg_sicbo_auth', '1'); } catch (_) { /* ignore */ }
+        setTimeout(() => { location.href = NEXT; }, 280);
+      });
     })();
   </script>
 </body>

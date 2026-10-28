@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Forest Group · 大廳</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --panel: #12151c;
+      --gold: #d4b06a;
+      --gold2: #f0d392;
+      --line: rgba(212,176,106,.22);
+      --muted: #9aa0ad;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: #ece7db;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      overflow: hidden;
+    }
+    .app {
+      display: grid;
+      grid-template-rows: 52px 1fr;
+      height: 100%;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0 1rem;
+      background: linear-gradient(180deg, #171a22, #10131a);
+      border-bottom: 1px solid var(--line);
+    }
+    .top-left, .top-right {
+      display: flex; align-items: center; gap: .85rem;
+    }
+    .user {
+      display: flex; align-items: center; gap: .45rem;
+      font-size: .9rem;
+    }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(160deg, #f0d392, #a67c2e);
+      display: grid; place-items: center;
+      color: #2a1a05; font-weight: 800; font-size: .75rem;
+    }
+    .bal {
+      display: flex; align-items: center; gap: .35rem;
+      color: var(--gold2);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip-ico {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffe9a8, #c9973a 70%);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.25);
+    }
+    .limit {
+      font-size: .78rem;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: .2rem .45rem;
+    }
+    .icon-btn {
+      width: 30px; height: 30px;
+      border: 0; border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .95rem;
+    }
+    .icon-btn:hover { color: var(--gold2); background: rgba(255,255,255,.04); }
+
+    .body {
+      display: grid;
+      grid-template-columns: 168px 1fr;
+      min-height: 0;
+    }
+    .side {
+      background: #0e1117;
+      border-right: 1px solid var(--line);
+      padding: .55rem 0;
+      overflow: auto;
+    }
+    .nav-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      padding: .7rem .9rem;
+      border: 0;
+      background: transparent;
+      color: #c9c4b8;
+      font-size: .86rem;
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.04); color: #fff; }
+    .nav-item.active {
+      color: #fff;
+      background: linear-gradient(90deg, rgba(212,176,106,.22), transparent);
+    }
+    .nav-item.active::before {
+      content: "";
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--gold);
+    }
+    .nav-item .tag {
+      margin-left: auto;
+      font-size: .62rem;
+      font-weight: 800;
+      color: #fff;
+      background: #d23b3b;
+      border-radius: 3px;
+      padding: .08rem .28rem;
+    }
+    .nav-ico { width: 1.1em; opacity: .9; }
+
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(180,140,60,.08), transparent 55%),
+        #0b0d12;
+    }
+    .recent {
+      display: flex;
+      gap: .55rem;
+      padding: .7rem 1rem .35rem;
+      overflow-x: auto;
+    }
+    .recent .pill {
+      flex: 0 0 auto;
+      min-width: 72px;
+      padding: .45rem .55rem;
+      border-radius: 8px;
+      background: #151923;
+      border: 1px solid var(--line);
+      font-size: .72rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    .recent .pill b {
+      display: block;
+      color: var(--gold2);
+      font-size: .78rem;
+      margin-bottom: .15rem;
+    }
+
+    .grid {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: .6rem 1rem 1.2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: .85rem;
+      align-content: start;
+    }
+    .card {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #151923;
+      border: 1px solid var(--line);
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+      text-align: left;
+      color: inherit;
+      font: inherit;
+      padding: 0;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(240,211,146,.45);
+      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    }
+    .card.featured {
+      border-color: rgba(240,211,146,.55);
+      box-shadow: 0 0 0 1px rgba(212,176,106,.2), 0 12px 28px rgba(0,0,0,.4);
+    }
+    .card .thumb {
+      height: 118px;
+      background:
+        linear-gradient(180deg, transparent 40%, rgba(0,0,0,.75)),
+        url("pc-full-v106.jpg?v=v1.0.9") center 20% / cover no-repeat;
+    }
+    .card.featured .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        url("pc-full-v106.jpg?v=v1.0.9") center 12% / cover no-repeat;
+    }
+    .card .meta {
+      padding: .65rem .75rem .75rem;
+    }
+    .card .name {
+      font-size: .92rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .card .sub {
+      margin-top: .25rem;
+      font-size: .72rem;
+      color: var(--muted);
+    }
+    .card .timer {
+      position: absolute;
+      right: .55rem; top: .55rem;
+      min-width: 2.2em;
+      padding: .15rem .35rem;
+      border-radius: 4px;
+      background: rgba(20,140,70,.9);
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 800;
+      text-align: center;
+    }
+    .hint-bar {
+      padding: .35rem 1rem .7rem;
+      font-size: .78rem;
+      color: var(--muted);
+    }
+    .hint-bar em {
+      color: var(--gold2);
+      font-style: normal;
+      font-weight: 700;
+    }
+
+    @media (max-width: 760px) {
+      .body { grid-template-columns: 118px 1fr; }
+      .nav-item { padding: .65rem .55rem; font-size: .78rem; }
+      .card .thumb { height: 96px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="top-left">
+        <div class="user"><span class="avatar">A</span><span>asdg</span></div>
+        <div class="bal"><span class="chip-ico"></span><span>2,000.00</span></div>
+        <div class="limit">20 - 10,000</div>
+      </div>
+      <div class="top-right">
+        <button class="icon-btn" type="button" title="客服">客服</button>
+        <button class="icon-btn" type="button" title="声音" id="volBtn">声音</button>
+        <button class="icon-btn" type="button" title="离开" id="logoutBtn">离开</button>
+      </div>
+    </header>
+
+    <div class="body">
+      <nav class="side" aria-label="游戏分类">
+        <button class="nav-item active" type="button" data-cat="hot">熱門遊戲</button>
+        <button class="nav-item" type="button" data-cat="all">所有遊戲</button>
+        <button class="nav-item" type="button" data-cat="baccarat">所有百家樂</button>
+        <button class="nav-item" type="button" data-cat="sexy">性感廳</button>
+        <button class="nav-item" type="button" data-cat="wheel">幸運輪 <span class="tag">NEW</span></button>
+        <button class="nav-item" type="button" data-cat="sicbo" id="navSicbo">骰寶</button>
+        <button class="nav-item" type="button" data-cat="color">色碟</button>
+        <button class="nav-item" type="button" data-cat="paigow">推筒子</button>
+        <button class="nav-item" type="button" data-cat="other">其他遊戲</button>
+      </nav>
+
+      <main class="main">
+        <div class="recent" aria-label="最近游玩">
+          <div class="pill"><b>S601</b>骰寶</div>
+          <div class="pill"><b>S602</b>骰寶</div>
+          <div class="pill"><b>B601</b>百家樂</div>
+          <div class="pill"><b>R501</b>輪盤</div>
+        </div>
+        <p class="hint-bar">點左側 <em>骰寶</em>，或點下方骰寶桌，進入遊戲</p>
+        <div class="grid" id="grid"></div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const GAME = 'game.html?v=v1.0.9';
+      try {
+        if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
+          location.replace('index.html?v=v1.0.9');
+          return;
+        }
+      } catch (_) { /* ignore */ }
+
+      const tables = [
+        { id: 'S601', name: '骰寶 S601', kind: 'sicbo', featured: true, sec: 22 },
+        { id: 'S602', name: '骰寶 S602', kind: 'sicbo', featured: true, sec: 18 },
+        { id: 'F701', name: '魚蝦蟹 F701', kind: 'other', sec: 15 },
+        { id: 'BB701', name: '牛牛 BB701', kind: 'other', sec: 16 },
+        { id: 'W701', name: '三公 W701', kind: 'other', sec: 12 },
+        { id: 'D801', name: '龍虎 D801', kind: 'other', sec: 14 },
+        { id: 'B601', name: '百家樂 B601', kind: 'baccarat', sec: 20 },
+        { id: 'B501', name: '百家樂 B501', kind: 'baccarat', sec: 11 },
+      ];
+
+      const grid = document.getElementById('grid');
+      let cat = 'hot';
+
+      function enterSicbo() {
+        location.href = GAME;
+      }
+
+      function paint() {
+        const list = tables.filter((t) => {
+          if (cat === 'hot') return t.featured || t.kind === 'sicbo';
+          if (cat === 'all') return true;
+          if (cat === 'sicbo') return t.kind === 'sicbo';
+          if (cat === 'baccarat') return t.kind === 'baccarat';
+          return t.kind === 'other' || t.kind === cat;
+        });
+        grid.innerHTML = '';
+        list.forEach((t) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'card' + (t.featured ? ' featured' : '');
+          btn.innerHTML =
+            '<span class="timer">' + t.sec + 's</span>' +
+            '<div class="thumb"></div>' +
+            '<div class="meta"><div class="name">' + t.name + '</div>' +
+            '<div class="sub">' + (t.kind === 'sicbo' ? '點擊進入骰寶桌' : '演示桌 · 暫未開放') + '</div></div>';
+          btn.addEventListener('click', () => {
+            if (t.kind === 'sicbo') enterSicbo();
+            else alert('演示版请点击「骰寶」进入');
+          });
+          grid.appendChild(btn);
+        });
+      }
+
+      document.querySelectorAll('.nav-item').forEach((el) => {
+        el.addEventListener('click', () => {
+          document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
+          el.classList.add('active');
+          cat = el.dataset.cat;
+          if (cat === 'sicbo') {
+            // 点左侧骰宝：直接进游戏
+            enterSicbo();
+            return;
+          }
+          paint();
+        });
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        try { sessionStorage.removeItem('fg_sicbo_auth'); } catch (_) {}
+        location.href = 'index.html?v=v1.0.9';
+      });
+
+      paint();
+    })();
+  </script>
+</body>
+</html>
