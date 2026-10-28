@@ -5,20 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
-  <link rel="preload" as="image" href="pc-full-v106.webp?v=v1.0.7" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="chips/chip-10.webp?v=v1.0.7" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-20.webp?v=v1.0.7" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-50.webp?v=v1.0.7" type="image/webp" />
-  <link rel="preload" as="image" href="chips/chip-100.webp?v=v1.0.7" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full-v106.webp?v=v1.0.8" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="chips/chip-10.webp?v=v1.0.8" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-20.webp?v=v1.0.8" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-50.webp?v=v1.0.8" type="image/webp" />
+  <link rel="preload" as="image" href="chips/chip-100.webp?v=v1.0.8" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
       --stage-h: 1393;
       --chip-slide: .38s cubic-bezier(.25,.7,.2,1);
-      --chip-vp-left: 69.104%;
-      --chip-vp-width: 20.201%;
-      --chip-slot-w: 19.91%;
-      --chip-slot-gap: 26.925%;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -53,7 +49,75 @@
     }
     .stage .bg { object-fit: fill; }
 
-    /* 仅余额数字，无汇率条、无倒计时 */
+    /* 倒计时：盖住底图烤死的 16，从 22 开始 */
+    .timer {
+      --p: 1;
+      position: absolute;
+      left: 37.48%;
+      top: 20.05%;
+      width: 6.85%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background: rgba(18, 32, 14, .92);
+      color: #6fff9a;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 900;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 42 / 2188);
+      line-height: 1;
+      text-shadow: 0 1px 2px rgba(0,0,0,.65);
+    }
+    .timer::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(#6fff9a calc(var(--p) * 1turn), rgba(40,55,35,.75) 0);
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
+              mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
+      pointer-events: none;
+    }
+    .timer > span { position: relative; z-index: 1; }
+    .timer.danger {
+      color: #ff3b3b;
+    }
+    .timer.danger::before {
+      background: conic-gradient(#ff3b3b calc(var(--p) * 1turn), rgba(60,20,20,.75) 0);
+    }
+
+    .stop-bet {
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%) scale(.96);
+      z-index: 90;
+      padding: 0.55em 1.25em;
+      border-radius: 0.2em;
+      background: rgba(0,0,0,.62);
+      border: 1px solid rgba(255,220,140,.45);
+      color: #ffe29a;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 52 / 2188);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .25s ease, transform .25s ease, visibility .25s;
+      text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    }
+    .stop-bet.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* 仅余额数字，无汇率条 */
     .bal {
       position: absolute;
       left: 50.091%; top: 80.043%;
@@ -187,27 +251,22 @@
     #cover-c { left: 79.83%; top: 84.15%; width: 4.35%; aspect-ratio: 1; }
     #cover-d { left: 85.13%; top: 84.15%; width: 4.35%; aspect-ratio: 1; }
 
-    /* 裁切视窗：永远只看见 4 个，进出在边缘被裁掉，不会挤出第 5 个 */
+    /* 整台面定位筹码外形；仅左右裁切，上下不切，避免扁底 */
     .chip-viewport {
       position: absolute;
-      left: var(--chip-vp-left);
-      top: 82.55%;
-      width: var(--chip-vp-width);
-      height: 7.35%;
-      overflow: hidden;
+      inset: 0;
       z-index: 32;
       pointer-events: none;
+      overflow: visible;
+      clip-path: inset(81.5% 10.65% 8.2% 69.05%);
     }
     .chip-viewport .chip-btn {
       pointer-events: auto;
-      top: 24%;
-      width: var(--chip-slot-w);
-      aspect-ratio: 1;
     }
-    #chip-a { left: 0; }
-    #chip-b { left: var(--chip-slot-gap); }
-    #chip-c { left: calc(var(--chip-slot-gap) * 2); }
-    #chip-d { left: calc(var(--chip-slot-gap) * 3); }
+    #chip-a  { left: 69.104%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
+    #chip-b  { left: 74.543%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
+    #chip-c  { left: 79.982%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
+    #chip-d  { left: 85.283%; top: 84.32%; width: 4.022%; aspect-ratio: 1; }
 
     /* 左箭头：与底图右侧 > 同款同尺寸；右箭头：只保留透明热区（底图已有 >） */
     .chip-arrow {
@@ -269,10 +328,12 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full-v106.webp?v=v1.0.7" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v106.jpg?v=v1.0.7" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full-v106.webp?v=v1.0.8" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full-v106.jpg?v=v1.0.8" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
+      <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
+      <div class="stop-bet" id="stopBet" aria-live="polite">停止下注</div>
       <div class="bal">2,000</div>
 
       <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
@@ -281,49 +342,209 @@
       <div class="chip-cover" id="cover-d" aria-hidden="true"></div>
 
       <button class="chip-arrow" id="arrow-l" type="button" aria-label="筹码向左">
-        <img src="chips/arrow-left.png?v=v1.0.7" alt="" draggable="false" />
+        <img src="chips/arrow-left.png?v=v1.0.8" alt="" draggable="false" />
       </button>
 
       <div class="chip-viewport" id="chipViewport">
         <button class="chip-btn" id="chip-a" data-slot="0" type="button" aria-label="筹码10">
-          <img src="chips/chip-10.webp?v=v1.0.7" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-10.webp?v=v1.0.8" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-b" data-slot="1" type="button" aria-label="筹码20">
-          <img src="chips/chip-20.webp?v=v1.0.7" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-20.webp?v=v1.0.8" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-c" data-slot="2" type="button" aria-label="筹码50">
-          <img src="chips/chip-50.webp?v=v1.0.7" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-50.webp?v=v1.0.8" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-d" data-slot="3" type="button" aria-label="筹码100">
-          <img src="chips/chip-100.webp?v=v1.0.7" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-100.webp?v=v1.0.8" alt="" decoding="async" draggable="false" />
         </button>
       </div>
 
       <button class="chip-arrow" id="arrow-r" type="button" aria-label="筹码向右">
-        <img src="chips/arrow-right.png?v=v1.0.7" alt="" draggable="false" />
+        <img src="chips/arrow-right.png?v=v1.0.8" alt="" draggable="false" />
       </button>
     </div>
   </div>
   <script>
     (async function () {
-      const V = 'v1.0.7';
+      const V = 'v1.0.8';
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
-      const SLOT_LEFT = [0, 26.925, 53.85, 80.775]; // % of viewport
+      const SLOT_LEFT = [69.104, 74.543, 79.982, 85.283];
       const GAP = SLOT_LEFT[1] - SLOT_LEFT[0];
+      const BET_SECS = 22;
 
       const bg = document.getElementById('bgImg');
       try { if (bg.decode) await bg.decode(); } catch (_) {}
       document.documentElement.classList.add('is-ready');
 
+      const stage = document.querySelector('.stage');
       const viewport = document.getElementById('chipViewport');
       const chips = [...viewport.querySelectorAll('.chip-btn')];
       const arrowL = document.getElementById('arrow-l');
       const arrowR = document.getElementById('arrow-r');
+      const timerEl = document.getElementById('timer');
+      const timerNum = document.getElementById('timerNum');
+      const stopBetEl = document.getElementById('stopBet');
 
       let start = 0;
       let selected = null;
       let busy = false;
+      let bettingOpen = true;
+      let roundStarted = false;
+
+      /* ---------- 一局倒计时：22→0 + 音效/女声 ---------- */
+      const Voice = {
+        ctx: null,
+        unlocked: false,
+        welcomed: false,
+
+        unlock() {
+          if (this.unlocked) return;
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+              this.ctx = this.ctx || new AC();
+              if (this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            if (window.speechSynthesis) {
+              window.speechSynthesis.cancel();
+              const warm = new SpeechSynthesisUtterance(' ');
+              warm.volume = 0;
+              window.speechSynthesis.speak(warm);
+            }
+            this.unlocked = true;
+          } catch (_) { /* ignore */ }
+        },
+
+        speak(text, { rate = 1.02 } = {}) {
+          return new Promise((resolve) => {
+            if (!window.speechSynthesis) {
+              setTimeout(resolve, Math.max(800, text.length * 110));
+              return;
+            }
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'zh-CN';
+            u.rate = rate;
+            u.pitch = 1.12;
+            const pick = () => {
+              const vs = window.speechSynthesis.getVoices() || [];
+              const female = vs.find((v) => /zh|Chinese/i.test(v.lang) && /female|女|婷|晓|Mei|Ting|Xiaoxiao|Yaoyao/i.test(v.name))
+                || vs.find((v) => /zh-CN|zh_CN|Chinese/.test(v.lang));
+              if (female) u.voice = female;
+            };
+            pick();
+            if (!u.voice) window.speechSynthesis.onvoiceschanged = pick;
+            u.onend = resolve;
+            u.onerror = resolve;
+            window.speechSynthesis.speak(u);
+          });
+        },
+
+        /** 普通秒针滴答 */
+        tick() {
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            this.ctx = this.ctx || new AC();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            const t0 = this.ctx.currentTime;
+            const o = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            o.type = 'square';
+            o.frequency.value = 880;
+            g.gain.setValueAtTime(0.0001, t0);
+            g.gain.exponentialRampToValueAtTime(0.07, t0 + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
+            o.connect(g);
+            g.connect(this.ctx.destination);
+            o.start(t0);
+            o.stop(t0 + 0.1);
+          } catch (_) { /* ignore */ }
+        },
+
+        /** 第 10 秒起：炸弹倒计时感（双脉冲更沉） */
+        bombTick() {
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            this.ctx = this.ctx || new AC();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            const t0 = this.ctx.currentTime;
+            const beep = (freq, at, dur, vol) => {
+              const o = this.ctx.createOscillator();
+              const g = this.ctx.createGain();
+              o.type = 'sawtooth';
+              o.frequency.value = freq;
+              g.gain.setValueAtTime(0.0001, at);
+              g.gain.exponentialRampToValueAtTime(vol, at + 0.012);
+              g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+              o.connect(g);
+              g.connect(this.ctx.destination);
+              o.start(at);
+              o.stop(at + dur + 0.02);
+            };
+            beep(220, t0, 0.1, 0.14);
+            beep(160, t0 + 0.12, 0.12, 0.16);
+          } catch (_) { /* ignore */ }
+        },
+      };
+
+      function setTimerDisplay(sec) {
+        const p = Math.max(0, Math.min(1, sec / BET_SECS));
+        timerEl.style.setProperty('--p', String(p));
+        timerNum.textContent = String(sec);
+        timerEl.classList.toggle('danger', sec > 0 && sec <= 10);
+        if (sec <= 0) timerEl.classList.add('danger');
+      }
+
+      function setBettingOpen(open) {
+        bettingOpen = open;
+        stage.classList.toggle('betting-closed', !open);
+      }
+
+      function showStopBet(show) {
+        stopBetEl.classList.toggle('show', !!show);
+      }
+
+      async function runRound() {
+        if (roundStarted) return;
+        roundStarted = true;
+        setBettingOpen(true);
+        showStopBet(false);
+        setTimerDisplay(BET_SECS);
+
+        Voice.unlock();
+        const firstVisit = !sessionStorage.getItem('sicbo_welcomed');
+        if (firstVisit) {
+          sessionStorage.setItem('sicbo_welcomed', '1');
+          await Voice.speak('欢迎光临骰宝游戏');
+          await Voice.speak('已开局请下注');
+        } else {
+          await Voice.speak('已开局请下注');
+        }
+
+        for (let t = BET_SECS; t >= 1; t--) {
+          setTimerDisplay(t);
+          if (t <= 10) Voice.bombTick();
+          else Voice.tick();
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+
+        setTimerDisplay(0);
+        setBettingOpen(false);
+        showStopBet(true);
+        await Voice.speak('停止下注');
+      }
+
+      function unlockAndMaybeStart() {
+        Voice.unlock();
+        if (!roundStarted) runRound();
+      }
+      stage.addEventListener('pointerdown', unlockAndMaybeStart, { once: true });
+      // 视觉先显示 22；首点后开局（浏览器需用户手势才能出声）
+      setTimerDisplay(BET_SECS);
 
       function srcFor(n) {
         return `chips/chip-${n}.webp?v=${V}`;
@@ -363,7 +584,7 @@
 
       chips.forEach((btn) => {
         btn.addEventListener('click', () => {
-          if (busy) return;
+          if (busy || !bettingOpen) return;
           const n = Number(btn.dataset.value);
           const turnOn = selected !== n;
           selected = turnOn ? n : null;
@@ -402,16 +623,16 @@
           gImg.draggable = false;
           ghost.appendChild(gImg);
 
-          // 第 5 枚只在裁切窗外待命，滑入时被视窗裁掉，肉眼始终 4 枚
+          // 第 5 枚在左右裁切线外待命，滑入时被 clip，肉眼始终 4 枚；上下不裁以保圆形
           ghost.style.left = (dir > 0
             ? SLOT_LEFT[VISIBLE - 1] + GAP
             : SLOT_LEFT[0] - GAP) + '%';
-          ghost.style.top = '24%';
-          ghost.style.width = 'var(--chip-slot-w)';
+          ghost.style.top = '84.32%';
+          ghost.style.width = '4.022%';
           ghost.style.aspectRatio = '1';
           viewport.appendChild(ghost);
 
-          const gapPx = (GAP / 100) * viewport.clientWidth;
+          const gapPx = (GAP / 100) * stage.clientWidth;
           const dx = dir > 0 ? -gapPx : gapPx;
           const movers = [...chips, ghost];
           void ghost.offsetWidth;
