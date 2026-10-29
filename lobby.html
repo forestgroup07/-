@@ -191,12 +191,12 @@
       height: 118px;
       background:
         linear-gradient(180deg, transparent 40%, rgba(0,0,0,.75)),
-        url("assets/lobby-thumb.webp?v=v1.10") center / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.10.1") center / cover no-repeat;
     }
     .card.featured .thumb {
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
-        url("assets/lobby-thumb.webp?v=v1.10") center 30% / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.10.1") center 30% / cover no-repeat;
     }
     .card .meta {
       padding: .65rem .75rem .75rem;
@@ -284,10 +284,10 @@
 
   <script>
     (function () {
-      const GAME = 'game.html?v=v1.10';
+      const GAME = 'game.html?v=v1.10.1';
       try {
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
-          location.replace('index.html?v=v1.10');
+          location.replace('index.html?v=v1.10.1');
           return;
         }
       } catch (_) { /* ignore */ }
@@ -352,7 +352,7 @@
 
       document.getElementById('logoutBtn').addEventListener('click', () => {
         try { sessionStorage.removeItem('fg_sicbo_auth'); } catch (_) {}
-        location.href = 'index.html?v=v1.10';
+        location.href = 'index.html?v=v1.10.1';
       });
 
       paint();
