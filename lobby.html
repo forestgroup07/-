@@ -191,12 +191,12 @@
       height: 118px;
       background:
         linear-gradient(180deg, transparent 40%, rgba(0,0,0,.75)),
-        url("assets/lobby-thumb.webp?v=v1.10.2") center / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.10.32") center / cover no-repeat;
     }
     .card.featured .thumb {
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
-        url("assets/lobby-thumb.webp?v=v1.10.2") center 30% / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.10.32") center 30% / cover no-repeat;
     }
     .card .meta {
       padding: .65rem .75rem .75rem;
@@ -247,7 +247,7 @@
       <div class="top-left">
         <div class="user"><span class="avatar">A</span><span>asdg</span></div>
         <div class="bal"><span class="chip-ico"></span><span>2,000.00</span></div>
-        <div class="limit">20 - 10,000</div>
+        <div class="limit">10 - 5,000</div>
       </div>
       <div class="top-right">
         <button class="icon-btn" type="button" title="客服">客服</button>
@@ -284,10 +284,10 @@
 
   <script>
     (function () {
-      const GAME = 'game.html?v=v1.10.2';
+      const GAME = 'game.html?v=v1.10.32';
       try {
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
-          location.replace('index.html?v=v1.10.2');
+          location.replace('index.html?v=v1.10.32');
           return;
         }
       } catch (_) { /* ignore */ }
@@ -352,7 +352,7 @@
 
       document.getElementById('logoutBtn').addEventListener('click', () => {
         try { sessionStorage.removeItem('fg_sicbo_auth'); } catch (_) {}
-        location.href = 'index.html?v=v1.10.2';
+        location.href = 'index.html?v=v1.10.32';
       });
 
       paint();

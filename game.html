@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v107.webp?v=v1.10.2" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.10.2" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.10.2" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.10.2" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full-v109.webp?v=v1.10.32" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.10.32" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.10.32" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.10.32" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -139,6 +139,454 @@
     }
     .bal.flash-up { color: #7dff9f; transform: scale(1.08); }
     .bal.flash-down { color: #ffb4b4; transform: scale(1.08); }
+
+    /* 积分热区：整颗余额胶囊；点击弹出「賬戶餘額」 */
+    .bal-hot {
+      position: absolute;
+      left: 45.247%;
+      top: 79.971%;
+      width: 9.644%;
+      height: 3.159%;
+      z-index: 80;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 999px;
+    }
+    .bal-hot:focus,
+    .bal-hot:focus-visible { outline: none; }
+    .bal-tip {
+      position: absolute;
+      left: 50.046%;
+      bottom: 20.65%;
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      padding: 0.42em 0.85em;
+      border-radius: 0.55em;
+      background: rgba(0, 0, 0, 0.92);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .bal-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .bal-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.42em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.45em solid transparent;
+      border-right: 0.45em solid transparent;
+      border-top: 0.48em solid rgba(0, 0, 0, 0.92);
+    }
+
+    /* 账号热区：盖住底图 asdg 胶囊；点击弹出对标资料气泡 */
+    .account-hot {
+      position: absolute;
+      left: 37.523%;
+      top: 79.971%;
+      width: 6.536%;
+      height: 3.159%;
+      z-index: 80;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 999px;
+    }
+    .account-hot:focus,
+    .account-hot:focus-visible { outline: none; }
+    .account-tip {
+      position: absolute;
+      left: 40.791%;
+      bottom: 20.65%;
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      min-width: 14.2%;
+      padding: 0.55em 0.75em 0.55em 0.55em;
+      border-radius: 0.55em;
+      background: rgba(0, 0, 0, 0.92);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      line-height: 1.35;
+      display: none;
+      align-items: center;
+      gap: 0.55em;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .account-tip.show {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .account-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.42em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.45em solid transparent;
+      border-right: 0.45em solid transparent;
+      border-top: 0.48em solid rgba(0, 0, 0, 0.92);
+    }
+    .account-tip-avatar {
+      flex: 0 0 auto;
+      width: 2.35em;
+      height: 2.35em;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #e8d4a8 0%, #c9a978 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .account-tip-avatar svg {
+      width: 68%;
+      height: 68%;
+      display: block;
+    }
+    .account-tip-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.12em;
+      white-space: nowrap;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    /* 注金热区：盖住底图金币+0 胶囊；点击弹出玩法/下注/輸贏 */
+    .stake-hot {
+      position: absolute;
+      left: 56.124%;
+      top: 79.971%;
+      width: 6.079%;
+      height: 3.159%;
+      z-index: 80;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 999px;
+    }
+    .stake-hot:focus,
+    .stake-hot:focus-visible { outline: none; }
+    .stake-amt {
+      position: absolute;
+      left: 57.95%;
+      top: 80.55%;
+      width: 2.35%;
+      height: 2.4%;
+      z-index: 81;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      color: #f2f2f2;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 18 / 2188);
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      background: #0a1f1a;
+      border-radius: 0.2em;
+    }
+    .stake-tip {
+      position: absolute;
+      left: 33.2%;
+      bottom: 20.65%;
+      width: 29.6%;
+      z-index: 120;
+      padding: 0.55em 0.7em 0.65em;
+      border-radius: 0.7em;
+      background: rgba(0, 0, 0, 0.78);
+      color: #f3f3f3;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      line-height: 1.45;
+      display: none;
+      flex-direction: column;
+      gap: 0.15em;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(4px);
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+      pointer-events: auto;
+    }
+    .stake-tip.show {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .stake-tip::after {
+      content: "";
+      position: absolute;
+      left: 87.1%;
+      bottom: -0.45em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.48em solid transparent;
+      border-right: 0.48em solid transparent;
+      border-top: 0.5em solid rgba(0, 0, 0, 0.78);
+    }
+    .stake-tip-head,
+    .stake-tip-row {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 1fr;
+      align-items: center;
+      column-gap: 0.4em;
+      min-height: 1.35em;
+    }
+    .stake-tip-head {
+      color: #d8c39a;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding-bottom: 0.2em;
+      margin-bottom: 0.1em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .stake-tip-head span:nth-child(2),
+    .stake-tip-head span:nth-child(3),
+    .stake-tip-row span:nth-child(2),
+    .stake-tip-row span:nth-child(3) {
+      text-align: center;
+    }
+    .stake-tip-row span:first-child {
+      color: #f0f0f0;
+      font-weight: 500;
+    }
+    .stake-tip-row.is-total {
+      margin-top: 0.15em;
+      padding-top: 0.25em;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      font-weight: 700;
+    }
+    .stake-tip-row .is-win { color: #7dff9f; }
+    .stake-tip-row .is-lose { color: #ff8d8d; }
+    .stake-tip-row .is-flat { color: #c8d09b; }
+
+    /* 限红热区：盖住底图区间字，显示 10 - 5,000；点击弹出玩法/彩池限红 */
+    .limit-hot {
+      position: absolute;
+      left: 76.097%;
+      top: 80.043%;
+      width: 10.420%;
+      height: 2.872%;
+      z-index: 80;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 999px;
+    }
+    .limit-hot:focus,
+    .limit-hot:focus-visible { outline: none; }
+    .limit-label {
+      position: absolute;
+      left: 77.925%;
+      top: 80.689%;
+      width: 6.764%;
+      height: 1.795%;
+      z-index: 81;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background: #0a1f1a;
+      color: #f2f2f2;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 16 / 2188);
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+    .limit-tip {
+      position: absolute;
+      left: 38.5%;
+      bottom: 20.65%;
+      width: 46.5%;
+      max-height: 58%;
+      z-index: 120;
+      padding: 0.55em 0.7em 0.7em;
+      border-radius: 0.65em;
+      background: rgba(0, 0, 0, 0.82);
+      color: #f2f2f2;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 17 / 2188);
+      line-height: 1.42;
+      display: none;
+      flex-direction: column;
+      gap: 0.35em;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(4px);
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+      pointer-events: auto;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .limit-tip.show {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .limit-tip::after {
+      content: "";
+      position: absolute;
+      left: 91.9%;
+      bottom: -0.45em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.48em solid transparent;
+      border-right: 0.48em solid transparent;
+      border-top: 0.5em solid rgba(0, 0, 0, 0.82);
+    }
+    .limit-tip-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85em;
+      align-items: start;
+    }
+    .limit-tip-col-title {
+      text-align: center;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding-bottom: 0.25em;
+      margin-bottom: 0.15em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .limit-tip-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5em;
+      padding: 0.08em 0;
+      white-space: nowrap;
+    }
+    .limit-tip-row .k { color: #f0f0f0; }
+    .limit-tip-row .v { color: #e8e8e8; font-variant-numeric: tabular-nums; }
+
+    /* 喇叭：底图原位+圆盘底座已烤进图；热区/红叉对齐底座圆心（不挪喇叭） */
+    .sound-wrap {
+      position: absolute;
+      left: 75.137%;
+      top: 97.810%;
+      width: 1.92%;
+      aspect-ratio: 1;
+      height: auto;
+      z-index: 80;
+      transform: translate(-50%, -50%);
+    }
+    .sound-hot {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 50%;
+    }
+    .sound-hot:focus,
+    .sound-hot:focus-visible { outline: none; }
+    .sound-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 0.35em);
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      padding: 0.38em 0.75em;
+      border-radius: 0.45em;
+      background: rgba(20, 20, 20, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .sound-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .sound-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.4em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.4em solid transparent;
+      border-right: 0.4em solid transparent;
+      border-top: 0.45em solid rgba(20, 20, 20, 0.55);
+    }
+    .sound-mute {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .sound-mute.show { display: flex; }
+    .sound-mute svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
 
     /*
       中间五格网格层（对标）：底图凹槽只留空键面；每格=真按钮。
@@ -309,7 +757,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/atlas.webp?v=v1.10.2");
+      background-image: url("assets/pair-dice/atlas.webp?v=v1.10.32");
       background-repeat: no-repeat;
       background-size: 2100% 100%;
     }
@@ -356,7 +804,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.10.2");
+      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.10.32");
       background-repeat: no-repeat;
       background-size: 1200% 100%;
     }
@@ -383,7 +831,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.10.2");
+      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.10.32");
       background-repeat: no-repeat;
       background-size: 1400% 100%;
     }
@@ -522,6 +970,25 @@
     .result-board .pay-line.win { color: #7dff9f; }
     .result-board .pay-line.lose { color: #ff8d8d; }
     .result-board .pay-line.flat { color: #c8d09b; }
+
+    /* 左侧工具条「返回」箭头：回上一页 */
+    .back-hot {
+      position: absolute;
+      left: 1.50%;
+      top: 80.00%;
+      width: 3.20%;
+      height: 3.50%;
+      z-index: 80;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 0.35em;
+    }
+    .back-hot:focus,
+    .back-hot:focus-visible { outline: none; }
 
     /* 透明热区：对准底图 重複下注 / 確定 / 取消 */
     .btn-act {
@@ -823,8 +1290,8 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full-v107.webp?v=v1.10.2" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v107.jpg?v=v1.10.2" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full-v109.webp?v=v1.10.32" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full-v109.jpg?v=v1.10.32" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
@@ -839,6 +1306,87 @@
         <div class="pay-line flat" id="resultPay">本局 —</div>
       </div>
       <div class="bal" id="bal">2,000</div>
+      <button class="bal-hot" id="balHot" type="button" aria-label="账户余额" aria-expanded="false" aria-controls="balTip"></button>
+      <div class="bal-tip" id="balTip" role="tooltip">賬戶餘額</div>
+      <button class="account-hot" id="accountHot" type="button" aria-label="账号" aria-expanded="false" aria-controls="accountTip"></button>
+      <div class="account-tip" id="accountTip" role="tooltip">
+        <div class="account-tip-avatar" aria-hidden="true">
+          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="24" r="14" fill="#6b4a2e"/>
+            <ellipse cx="32" cy="56" rx="22" ry="18" fill="#6b4a2e"/>
+          </svg>
+        </div>
+        <div class="account-tip-meta">
+          <div>暱稱:</div>
+          <div>賬號: asdg</div>
+        </div>
+      </div>
+      <button class="stake-hot" id="stakeHot" type="button" aria-label="本局注金" aria-expanded="false" aria-controls="stakeTip"></button>
+      <div class="stake-amt" id="stakeAmt">0</div>
+      <div class="stake-tip" id="stakeTip" role="dialog" aria-label="本局下注">
+        <div class="stake-tip-head">
+          <span>玩法</span><span>下注</span><span>輸贏</span>
+        </div>
+        <div class="stake-tip-row" data-stake-key="big"><span>大</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="small"><span>小</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="odd"><span>單</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="even"><span>雙</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="wrap"><span>全圍</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row is-total" data-stake-key="total"><span>總計:</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+      </div>
+      <button class="limit-hot" id="limitHot" type="button" aria-label="限红" aria-expanded="false" aria-controls="limitTip"></button>
+      <div class="limit-label" aria-hidden="true">10 - 5,000</div>
+      <div class="limit-tip" id="limitTip" role="dialog" aria-label="限红说明">
+        <div class="limit-tip-cols">
+          <div>
+            <div class="limit-tip-col-title">玩法限红</div>
+            <div class="limit-tip-row"><span class="k">大/小</span><span class="v">10 - 5,000</span></div>
+            <div class="limit-tip-row"><span class="k">单/双</span><span class="v">10 - 5,000</span></div>
+            <div class="limit-tip-row"><span class="k">全围</span><span class="v">1 - 416</span></div>
+            <div class="limit-tip-row"><span class="k">围1~围6</span><span class="v">1 - 66</span></div>
+            <div class="limit-tip-row"><span class="k">对子1~对子6</span><span class="v">3 - 1,250</span></div>
+            <div class="limit-tip-row"><span class="k">单点1~单点6</span><span class="v">10 - 5,000</span></div>
+            <div class="limit-tip-row"><span class="k">组合</span><span class="v">4 - 2,000</span></div>
+            <div class="limit-tip-row"><span class="k">和值9/10/11/12</span><span class="v">4 - 1,666</span></div>
+            <div class="limit-tip-row"><span class="k">和值8/13</span><span class="v">3 - 1,250</span></div>
+            <div class="limit-tip-row"><span class="k">和值7/14</span><span class="v">2 - 833</span></div>
+            <div class="limit-tip-row"><span class="k">和值6/15</span><span class="v">2 - 714</span></div>
+            <div class="limit-tip-row"><span class="k">和值5/16</span><span class="v">2 - 555</span></div>
+            <div class="limit-tip-row"><span class="k">和值4/17</span><span class="v">1 - 200</span></div>
+            <div class="limit-tip-row"><span class="k">双骰加单骰组合</span><span class="v">1 - 200</span></div>
+            <div class="limit-tip-row"><span class="k">三数组合</span><span class="v">1 - 400</span></div>
+          </div>
+          <div>
+            <div class="limit-tip-col-title">彩池限红</div>
+            <div class="limit-tip-row"><span class="k">大/小差额限红</span><span class="v">1.20M</span></div>
+            <div class="limit-tip-row"><span class="k">单/双差额限红</span><span class="v">1.20M</span></div>
+            <div class="limit-tip-row"><span class="k">全围总额限红</span><span class="v">50,000</span></div>
+            <div class="limit-tip-row"><span class="k">围1-围6总额限红</span><span class="v">8,000</span></div>
+            <div class="limit-tip-row"><span class="k">对子1-对子6总额限红</span><span class="v">150,000</span></div>
+            <div class="limit-tip-row"><span class="k">单点1-单点6总额限红</span><span class="v">1.20M</span></div>
+            <div class="limit-tip-row"><span class="k">组合总额限红</span><span class="v">240,000</span></div>
+            <div class="limit-tip-row"><span class="k">和值9/10/11/12总额限红</span><span class="v">200,000</span></div>
+            <div class="limit-tip-row"><span class="k">和值8/13总额限红</span><span class="v">150,000</span></div>
+            <div class="limit-tip-row"><span class="k">和值7/14总额限红</span><span class="v">100,000</span></div>
+            <div class="limit-tip-row"><span class="k">和值6/15总额限红</span><span class="v">85,714</span></div>
+            <div class="limit-tip-row"><span class="k">和值5/16总额限红</span><span class="v">66,666</span></div>
+            <div class="limit-tip-row"><span class="k">和值4/17总额限红</span><span class="v">24,000</span></div>
+            <div class="limit-tip-row"><span class="k">双骰加单骰组合总额限红</span><span class="v">24,000</span></div>
+            <div class="limit-tip-row"><span class="k">三数组合总额限红</span><span class="v">48,000</span></div>
+          </div>
+        </div>
+      </div>
+      <button class="back-hot" id="backHot" type="button" aria-label="返回上一页"></button>
+      <div class="sound-wrap" id="soundWrap">
+        <button class="sound-hot" id="soundHot" type="button" aria-label="声效" aria-pressed="false" aria-describedby="soundTip"></button>
+        <div class="sound-tip" id="soundTip" role="tooltip">聲效</div>
+        <div class="sound-mute" id="soundMute" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="15.5" fill="none" stroke="#e53935" stroke-width="3.2"/>
+            <line x1="9.5" y1="9.5" x2="30.5" y2="30.5" stroke="#e53935" stroke-width="3.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
       <button class="btn-act" id="btnRepeat" type="button" aria-label="重复下注"></button>
       <button class="btn-act" id="btnConfirm" type="button" aria-label="确定"></button>
       <button class="btn-act" id="btnCancel" type="button" aria-label="取消"></button>
@@ -1117,13 +1665,56 @@
   </div>
   <script>
     (async function () {
-      const V = 'v1.10.2';
+      const V = 'v1.10.32';
+      const backHot = document.getElementById('backHot');
+      if (backHot) {
+        backHot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // 大厅有鉴权：不写回 flag 会被踢去登录页。上一页=选桌，不是首页。
+          try { sessionStorage.setItem('fg_sicbo_auth', '1'); } catch (_) {}
+          location.replace(new URL(`lobby.html?v=${V}`, location.href).href);
+        });
+      }
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
       const SLOT_LEFT = [69.104, 74.543, 79.982, 85.283];
       const GAP = SLOT_LEFT[1] - SLOT_LEFT[0];
       const BET_SECS = 22;
       const START_BAL = 2000;
+      /** 玩法限红（与限红浮层一致；筹码最小 10，低于 10 的下限实际按 10 起） */
+      const SUM_LIMITS = {
+        4: { min: 1, max: 200 }, 17: { min: 1, max: 200 },
+        5: { min: 2, max: 555 }, 16: { min: 2, max: 555 },
+        6: { min: 2, max: 714 }, 15: { min: 2, max: 714 },
+        7: { min: 2, max: 833 }, 14: { min: 2, max: 833 },
+        8: { min: 3, max: 1250 }, 13: { min: 3, max: 1250 },
+        9: { min: 4, max: 1666 }, 10: { min: 4, max: 1666 },
+        11: { min: 4, max: 1666 }, 12: { min: 4, max: 1666 },
+      };
+      function limitFor(key) {
+        if (key === 'big' || key === 'small') return { min: 10, max: 5000 };
+        if (key === 'odd' || key === 'even') return { min: 10, max: 5000 };
+        if (key === 'wrap') return { min: 1, max: 416 };
+        if (/^t[1-6]$/.test(key)) return { min: 1, max: 66 };
+        if (/^d[1-6]$/.test(key)) return { min: 3, max: 1250 };
+        if (/^f[1-6]$/.test(key)) return { min: 10, max: 5000 };
+        if (/^c\d\d$/.test(key)) return { min: 4, max: 2000 };
+        if (key[0] === 's') {
+          const n = Number(key.slice(1));
+          return SUM_LIMITS[n] || { min: 10, max: 5000 };
+        }
+        return { min: 10, max: 5000 };
+      }
+      function checkBetLimit(key, addAmt) {
+        const lim = limitFor(key);
+        const cur = bets[key] || 0;
+        const next = cur + addAmt;
+        if (addAmt <= 0) return '下注金额无效';
+        if (next < lim.min) return `未达下限 ${lim.min}`;
+        if (next > lim.max) return `超过上限 ${lim.max.toLocaleString('en-US')}`;
+        return null;
+      }
       const PAIR_KEYS = [
         'c12','c13','c14','c15','c16','c23','c24',
         'c25','c26','c34','c35','c36','c45','c46','c56',
@@ -1255,6 +1846,19 @@
       const timerNum = document.getElementById('timerNum');
       const stopBetEl = document.getElementById('stopBet');
       const balEl = document.getElementById('bal');
+      const balHot = document.getElementById('balHot');
+      const balTip = document.getElementById('balTip');
+      const accountHot = document.getElementById('accountHot');
+      const accountTip = document.getElementById('accountTip');
+      const stakeHot = document.getElementById('stakeHot');
+      const stakeTip = document.getElementById('stakeTip');
+      const stakeAmt = document.getElementById('stakeAmt');
+      const limitHot = document.getElementById('limitHot');
+      const limitTip = document.getElementById('limitTip');
+      const soundHot = document.getElementById('soundHot');
+      const soundTip = document.getElementById('soundTip');
+      const soundMute = document.getElementById('soundMute');
+      const STAKE_PANEL_KEYS = ['big', 'small', 'odd', 'even', 'wrap'];
       const resultBoard = document.getElementById('resultBoard');
       const resultDice = document.getElementById('resultDice');
       const resultSum = document.getElementById('resultSum');
@@ -1310,6 +1914,7 @@
       let roundStarted = false;
       let balance = START_BAL;
       let bets = emptyBets();
+      let lastPnl = { big: null, small: null, odd: null, even: null, wrap: null };
       let betDenom = emptyDenom();
       let toastTimer = null;
 
@@ -1326,6 +1931,47 @@
           balEl.classList.add(balance > prev ? 'flash-up' : 'flash-down');
           setTimeout(() => balEl.classList.remove('flash-up', 'flash-down'), 500);
         }
+      }
+      function fmtStakeCell(n) {
+        return n > 0 ? String(n) : '-';
+      }
+      function fmtPnlCell(n) {
+        if (n == null) return { text: '-', cls: '' };
+        if (n > 0) return { text: `+${n}`, cls: 'is-win' };
+        if (n < 0) return { text: String(n), cls: 'is-lose' };
+        return { text: '0', cls: 'is-flat' };
+      }
+      function paintStakePanel() {
+        let betTotal = 0;
+        let pnlTotal = 0;
+        let pnlAny = false;
+        STAKE_PANEL_KEYS.forEach((key) => {
+          const row = stakeTip.querySelector(`[data-stake-key="${key}"]`);
+          if (!row) return;
+          const stake = bets[key] || 0;
+          betTotal += stake;
+          row.querySelector('[data-col="bet"]').textContent = fmtStakeCell(stake);
+          const pnl = lastPnl[key];
+          const cell = row.querySelector('[data-col="pnl"]');
+          const fmt = fmtPnlCell(pnl);
+          cell.textContent = fmt.text;
+          cell.className = fmt.cls;
+          if (pnl != null) {
+            pnlAny = true;
+            pnlTotal += pnl;
+          }
+        });
+        const totalRow = stakeTip.querySelector('[data-stake-key="total"]');
+        if (totalRow) {
+          totalRow.querySelector('[data-col="bet"]').textContent = fmtStakeCell(betTotal);
+          const cell = totalRow.querySelector('[data-col="pnl"]');
+          const fmt = pnlAny ? fmtPnlCell(pnlTotal) : fmtPnlCell(null);
+          cell.textContent = fmt.text;
+          cell.className = fmt.cls;
+        }
+        let allStake = 0;
+        Object.keys(bets).forEach((k) => { allStake += bets[k] || 0; });
+        stakeAmt.textContent = String(allStake);
       }
       function paintBets() {
         betZones.forEach((zone) => {
@@ -1356,6 +2002,7 @@
           }
           amt.textContent = String(stake);
         });
+        paintStakePanel();
       }
       function clearPending(silent) {
         pendingMarket = null;
@@ -1368,6 +2015,7 @@
         betDenom = emptyDenom();
         pendingMarket = null;
         pendingStake = 0;
+        lastPnl = { big: null, small: null, odd: null, even: null, wrap: null };
         paintBets();
         paintPending();
       }
@@ -1445,6 +2093,7 @@
         const counts = [0, 0, 0, 0, 0, 0, 0];
         for (const n of dice) counts[n] += 1;
         const keys = ['small', 'big', 'odd', 'even', 'wrap', ...PAIR_KEYS];
+        const nextPnl = { big: null, small: null, odd: null, even: null, wrap: null };
         for (const key of keys) {
           const stake = bets[key] || 0;
           if (stake <= 0) continue;
@@ -1487,8 +2136,13 @@
           if (win) {
             returned += stake * mult;
             hits.push(BET_LABEL[key] || key);
+            if (key in nextPnl) nextPnl[key] = stake * (mult - 1);
+          } else if (key in nextPnl) {
+            nextPnl[key] = -stake;
           }
         }
+        lastPnl = nextPnl;
+        paintStakePanel();
         const net = returned - staked;
         if (returned > 0) {
           setBalance(balance + returned, true);
@@ -1553,6 +2207,7 @@
         ctx: null,
         unlocked: false,
         dead: false, // 关页/切走后禁止再出声
+        muted: false, // 喇叭红叉：全部静音
         pending: [],
         pendingText: null,
         players: {
@@ -1680,9 +2335,30 @@
           } catch (_) { /* ignore */ }
         },
 
+        stopAllAudio() {
+          this._playToken = {};
+          try {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+          } catch (_) { /* ignore */ }
+          Object.keys(this.players).forEach((k) => {
+            const el = this.players[k];
+            if (!el) return;
+            try { el.pause(); el.currentTime = 0; } catch (_) { /* ignore */ }
+          });
+          (this._ephemeral || []).forEach((el) => {
+            try { el.pause(); el.src = ''; } catch (_) { /* ignore */ }
+          });
+          this._ephemeral = [];
+        },
+
+        setMuted(on) {
+          this.muted = !!on;
+          if (this.muted) this.stopAllAudio();
+        },
+
         playEl(el) {
           return new Promise((resolve) => {
-            if (this.dead || !el) { resolve(false); return; }
+            if (this.dead || this.muted || !el) { resolve(false); return; }
             let settled = false;
             let playing = false;
             const token = {};
@@ -1773,7 +2449,7 @@
         /** 播一个临时 mp3（随页面生死，关页必停） */
         playUrl(url) {
           return new Promise((resolve) => {
-            if (this.dead) { resolve(false); return; }
+            if (this.dead || this.muted) { resolve(false); return; }
             const el = new Audio(url);
             el.preload = 'auto';
             el.volume = 1;
@@ -1800,7 +2476,7 @@
         /** 一句一句播：串行队列，上一句播完才下一句；只用预录 mp3。返回是否真正播出。 */
         async speak(text) {
           const run = async () => {
-            if (this.dead) return false;
+            if (this.dead || this.muted) return false;
             // 打断上一句音源
             this._playToken = {}; // 作废进行中的 playEl
             try {
@@ -1851,7 +2527,7 @@
 
         /** 短音效：钟表滴答 / 炸弹滴滴（预录，不再用刺耳方波） */
         playQuick(key, vol = 0.6) {
-          if (this.dead) return;
+          if (this.dead || this.muted) return;
           const el = this.players[key];
           if (!el) return;
           try {
@@ -2075,6 +2751,11 @@
         }
         const key = pendingMarket;
         const amt = pendingStake;
+        const limErr = checkBetLimit(key, amt);
+        if (limErr) {
+          showToast(limErr, 1600);
+          return false;
+        }
         Voice.playQuick('keyClick', 0.85);
         // 先落注让 has-bet 变绿，再全部绿键闪
         setBalance(balance - amt, true);
@@ -2102,6 +2783,11 @@
         const next = pendingStake * 2;
         if (balance < next) {
           showToast('积分不足，无法加倍', 1400);
+          return;
+        }
+        const limErr = checkBetLimit(pendingMarket, next);
+        if (limErr) {
+          showToast(limErr, 1600);
           return;
         }
         pendingStake = next;
@@ -2132,6 +2818,11 @@
           }
           const key = zone.dataset.bet;
           if (!(key in bets)) return;
+          const limErr = checkBetLimit(key, selected);
+          if (limErr) {
+            showToast(limErr, 1600);
+            return;
+          }
           pendingMarket = key;
           pendingStake = selected; // 先按当前筹码额挂单
           Voice.playQuick('keyClick', 0.7);
@@ -2157,6 +2848,88 @@
         Voice.unlock();
         repeatBet();
       });
+
+      function closeHudTips() {
+        accountTip.classList.remove('show');
+        accountHot.setAttribute('aria-expanded', 'false');
+        stakeTip.classList.remove('show');
+        stakeHot.setAttribute('aria-expanded', 'false');
+        balTip.classList.remove('show');
+        balHot.setAttribute('aria-expanded', 'false');
+        limitTip.classList.remove('show');
+        limitHot.setAttribute('aria-expanded', 'false');
+      }
+      function setAccountTip(open) {
+        if (open) closeHudTips();
+        accountTip.classList.toggle('show', open);
+        accountHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      function setStakeTip(open) {
+        if (open) {
+          closeHudTips();
+          paintStakePanel();
+        }
+        stakeTip.classList.toggle('show', open);
+        stakeHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      function setBalTip(open) {
+        if (open) closeHudTips();
+        balTip.classList.toggle('show', open);
+        balHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      function setLimitTip(open) {
+        if (open) closeHudTips();
+        limitTip.classList.toggle('show', open);
+        limitHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      accountHot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Voice.unlock();
+        setAccountTip(!accountTip.classList.contains('show'));
+      });
+      stakeHot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Voice.unlock();
+        setStakeTip(!stakeTip.classList.contains('show'));
+      });
+      balHot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Voice.unlock();
+        setBalTip(!balTip.classList.contains('show'));
+      });
+      limitHot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Voice.unlock();
+        setLimitTip(!limitTip.classList.contains('show'));
+      });
+      function showSoundTip(show) {
+        /* 红叉静音时不显示「聲效」 */
+        const on = !!show && !Voice.muted;
+        soundTip.classList.toggle('show', on);
+      }
+      function setSoundMuted(on) {
+        Voice.setMuted(on);
+        soundMute.classList.toggle('show', !!on);
+        soundHot.setAttribute('aria-pressed', on ? 'true' : 'false');
+        soundHot.setAttribute('aria-label', on ? '取消静音' : '声效');
+        if (on) showSoundTip(false);
+      }
+      soundHot.addEventListener('mouseenter', () => showSoundTip(true));
+      soundHot.addEventListener('mouseleave', () => showSoundTip(false));
+      soundHot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Voice.unlock();
+        setSoundMuted(!Voice.muted);
+      });
+      stakeTip.addEventListener('click', (e) => e.stopPropagation());
+      limitTip.addEventListener('click', (e) => e.stopPropagation());
+      document.addEventListener('click', () => closeHudTips());
+      paintStakePanel();
 
       function sleep(ms) {
         return new Promise((r) => setTimeout(r, ms));
