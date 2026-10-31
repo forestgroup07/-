@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.webp?v=v1.0.6" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.6" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.6" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.6" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full-v111.webp?v=v1.0.28" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.28" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.28" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.28" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -49,48 +49,72 @@
     }
     .stage .bg { object-fit: fill; }
 
-    /* 立体视频大按键：边框=容器，照片精确定位在内 */
+    /* 整块荧幕：方圆形边角；底沿贴绿键盘外沿（中间凹 U 形，不压绿边） */
     .video-bezel {
+      --vb-r: calc(min(100vw, 100vh * 2188 / 1393) * 36 / 2188);
+      --vb-rim: calc(min(100vw, 100vh * 2188 / 1393) * 11 / 2188);
+      --vb-inner-r: calc(var(--vb-r) - var(--vb-rim));
       position: absolute;
       left: 25.594%;
-      top: 4.164%;
+      top: 3.95%;
       width: 45.018%;
-      height: 28.715%;
+      /* 底贴绿键盘外沿谷底 ≈51.48%（不压绿边） */
+      height: 47.53%;
       z-index: 40;
       box-sizing: border-box;
-      padding: 0.55%;
-      border-radius: 0.55em;
+      padding: var(--vb-rim);
+      border-radius: var(--vb-r);
+      pointer-events: none;
+      /* 底边贴绿边外沿：左右肩 / 中间凹 */
+      clip-path: polygon(
+        0% 0%,
+        100% 0%,
+        100% 91.35%,
+        98.55% 91.35%,
+        97.85% 99.85%,
+        10.55% 99.85%,
+        9.85% 91.35%,
+        0% 91.35%
+      );
       background:
-        linear-gradient(160deg, #e8d4a0 0%, #b8924a 28%, #6a4a22 62%, #3a2810 100%);
+        linear-gradient(158deg, #f3e2b8 0%, #d8b56f 26%, #a8793c 55%, #6a451c 78%, #3d2710 100%);
       box-shadow:
-        0 0 0 1px rgba(255, 230, 170, 0.35),
+        0 0 0 1px rgba(255, 232, 175, 0.45),
         0 10px 22px rgba(0, 0, 0, 0.55),
-        inset 0 2px 0 rgba(255, 245, 210, 0.55),
+        inset 0 2px 0 rgba(255, 248, 220, 0.6),
         inset 0 -3px 5px rgba(0, 0, 0, 0.45);
-      transform: perspective(900px) rotateX(2.2deg);
-      transform-origin: 50% 100%;
     }
     .video-bezel::before {
       content: "";
       position: absolute;
-      inset: 0.55%;
-      border-radius: 0.4em;
+      inset: var(--vb-rim);
+      border-radius: var(--vb-inner-r);
       pointer-events: none;
-      z-index: 2;
+      z-index: 3;
       box-shadow:
-        inset 0 0 0 1px rgba(40, 28, 10, 0.75),
-        inset 0 0 18px rgba(0, 0, 0, 0.35);
+        inset 0 0 0 1.2px rgba(32, 22, 8, 0.85),
+        inset 0 2px 10px rgba(0, 0, 0, 0.45),
+        inset 0 0 18px rgba(0, 0, 0, 0.28);
     }
     .video-well {
       position: relative;
       width: 100%;
       height: 100%;
-      border-radius: 0.38em;
+      border-radius: var(--vb-inner-r);
       overflow: hidden;
-      background: #0a0806;
+      background: #050403;
       box-shadow:
-        inset 0 3px 8px rgba(0, 0, 0, 0.65),
-        inset 0 -1px 0 rgba(255, 220, 160, 0.12);
+        inset 0 4px 10px rgba(0, 0, 0, 0.7),
+        inset 0 -1px 0 rgba(255, 220, 160, 0.1);
+    }
+    .video-well > picture {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: inherit;
+      overflow: hidden;
     }
     .video-feed {
       position: absolute;
@@ -103,9 +127,10 @@
       pointer-events: none;
       user-select: none;
       -webkit-user-drag: none;
+      border-radius: var(--vb-inner-r);
     }
 
-    /* 倒计时：相对视频框左上 */
+    /* 倒计时：相对视频框左上（动态绿圈） */
     .timer {
       --p: 1;
       position: absolute;
@@ -693,13 +718,86 @@
     .bet-zone.has-bet:not(#bet-odd) {
       --glyph: #dc2828;
     }
-    .bet-zone.key-flash .bet-face {
-      animation: keyPressFlash 0.45s ease-out;
+    /* 确定成功：全体键淡入淡出浅绿（约 2.55s） */
+    .bet-zone.key-flash-all .bet-face {
+      animation: keyDeepGreenFlash 2.55s ease-in-out;
     }
-    @keyframes keyPressFlash {
-      0%   { filter: brightness(1); }
-      30%  { filter: brightness(1.18); }
-      100% { filter: brightness(1); }
+    @keyframes keyDeepGreenFlash {
+      0% {
+        background: rgba(10, 48, 38, 0.88);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.25);
+        filter: brightness(1);
+      }
+      35% {
+        background: rgba(46, 128, 98, 0.92);
+        box-shadow:
+          0 0 10px rgba(120, 210, 170, 0.35),
+          inset 0 0 8px rgba(160, 240, 200, 0.22);
+        filter: brightness(1.08);
+      }
+      65% {
+        background: rgba(46, 128, 98, 0.92);
+        box-shadow:
+          0 0 10px rgba(120, 210, 170, 0.35),
+          inset 0 0 8px rgba(160, 240, 200, 0.22);
+        filter: brightness(1.08);
+      }
+      100% {
+        background: rgba(10, 48, 38, 0.88);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.25);
+        filter: brightness(1);
+      }
+    }
+    /* 开奖：中奖格柔和金光淡入淡出闪 7 秒 */
+    .bet-zone.win-gold-flash {
+      z-index: 70;
+    }
+    .bet-zone.win-gold-flash .bet-face {
+      animation: winGoldPulse 7s ease-in-out forwards;
+      background: rgba(10, 48, 38, 0.88);
+    }
+    @keyframes winGoldPulse {
+      0% {
+        background: rgba(10, 48, 38, 0.88);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.25);
+        filter: brightness(1);
+      }
+      12% {
+        background: rgba(236, 210, 120, 0.88);
+        box-shadow:
+          0 0 8px rgba(240, 215, 140, 0.5),
+          0 0 14px rgba(230, 190, 100, 0.3),
+          inset 0 0 8px rgba(255, 245, 210, 0.32);
+        filter: brightness(1.1);
+      }
+      28%, 42%, 56%, 70% {
+        background: rgba(236, 210, 120, 0.88);
+        box-shadow:
+          0 0 6px rgba(235, 210, 130, 0.4),
+          0 0 12px rgba(220, 185, 100, 0.25),
+          inset 0 0 6px rgba(255, 240, 190, 0.28);
+        filter: brightness(1.04);
+      }
+      35%, 49%, 63% {
+        background: rgba(242, 220, 140, 0.92);
+        box-shadow:
+          0 0 12px rgba(245, 225, 150, 0.65),
+          0 0 18px rgba(235, 200, 110, 0.4),
+          inset 0 0 10px rgba(255, 248, 220, 0.42);
+        filter: brightness(1.16);
+      }
+      82% {
+        background: rgba(236, 210, 120, 0.7);
+        box-shadow:
+          0 0 8px rgba(240, 215, 140, 0.35),
+          inset 0 0 6px rgba(255, 245, 210, 0.22);
+        filter: brightness(1.06);
+      }
+      100% {
+        background: rgba(10, 48, 38, 0.88);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.25);
+        filter: brightness(1);
+      }
     }
     .bet-zone .bet-glyph,
     .bet-zone .bet-odds {
@@ -813,7 +911,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/atlas.webp?v=v1.0.6");
+      background-image: url("assets/pair-dice/atlas.webp?v=v1.0.28");
       background-repeat: no-repeat;
       background-size: 2100% 100%;
     }
@@ -844,13 +942,14 @@
     .bet-zone.bet-pair#bet-d6 .bet-pair-art { background-position: 100% 0; }
     .bet-zone.bet-pair .bet-chip {
       top: 50%;
-      width: 42%;
-      max-width: 36px;
+      width: 46%;
+      max-width: 40px;
     }
     .bet-zone.bet-pair .bet-stake {
-      bottom: 2%;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 12 / 2188);
-      padding: 0.05em 0.25em;
+      top: 50%;
+      bottom: auto;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 18 / 2188);
+      padding: 0.08em 0.28em;
     }
     /* 左栏单骰/围骰：同闲置透底、点选黄整框 */
     .bet-zone.bet-left .bet-pair-art { display: none; }
@@ -860,7 +959,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.0.6");
+      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.0.28");
       background-repeat: no-repeat;
       background-size: 1200% 100%;
     }
@@ -887,7 +986,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.0.6");
+      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.0.28");
       background-repeat: no-repeat;
       background-size: 1400% 100%;
     }
@@ -911,31 +1010,34 @@
     .bet-zone .bet-chip {
       position: absolute;
       left: 50%;
-      top: 58%;
-      width: 18%;
-      max-width: 44px;
+      top: 54%;
+      width: 26%;
+      max-width: 52px;
       transform: translate(-50%, -50%);
       pointer-events: none;
       z-index: 2;
       filter: drop-shadow(0 2px 3px rgba(0,0,0,.55));
     }
+    /* 总注额盖在筹码正中，避免只看见筹码面额（如 10） */
     .bet-zone .bet-stake {
       position: absolute;
       left: 50%;
-      bottom: 5%;
-      transform: translateX(-50%);
-      z-index: 3;
-      min-width: 1.6em;
-      padding: 0.05em 0.35em;
+      top: 54%;
+      bottom: auto;
+      transform: translate(-50%, -50%);
+      z-index: 4;
+      min-width: 1.8em;
+      padding: 0.12em 0.42em;
       border-radius: 999px;
-      background: rgba(0,0,0,.55);
+      background: rgba(0, 0, 0, 0.78);
       color: #ffe9a8;
       font-family: Arial, Helvetica, sans-serif;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 16 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 26 / 2188);
       font-weight: 800;
-      line-height: 1.2;
+      line-height: 1.15;
       pointer-events: none;
-      text-shadow: 0 1px 2px rgba(0,0,0,.8);
+      text-shadow: 0 1px 2px rgba(0,0,0,.85);
+      white-space: nowrap;
     }
     /* 兜底%：GRID 内缩键面；JS 精修 */
     #bet-small { left: 32.82%; top: 51.69%; width: 17.09%; height: 10.34%; }
@@ -966,14 +1068,14 @@
       --s: calc(min(100vw, 100vh * 2188 / 1393) * 26 / 2188);
     }
 
-    /* 开奖层：平时全透明不挡视频；有结果才出卡/路单 */
+    /* 开奖层：靠右，不挡女孩脸；有结果才出卡/路单 */
     .road-screen {
       position: absolute;
-      left: 50%;
-      top: 18.5%;
+      left: 84%;
+      top: 22%;
       transform: translate(-50%, -50%);
       z-index: 92;
-      width: 20%;
+      width: 16%;
       aspect-ratio: 1 / 1.05;
       pointer-events: none;
       background: transparent;
@@ -1129,36 +1231,23 @@
     .result-board .pay-line.lose { color: #ff8d8d; }
     .result-board .pay-line.flat { color: #c8d09b; }
 
-    /* 左侧工具条「返回」箭头：回上一页 */
-    .back-hot {
-      position: absolute;
-      left: 1.50%;
-      top: 80.00%;
-      width: 3.20%;
-      height: 3.50%;
-      z-index: 80;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      background: transparent;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      border-radius: 0.35em;
-    }
-    .back-hot:focus,
-    .back-hot:focus-visible { outline: none; }
-
-    /* 问号：平时露底图原样；悬停才叠金面 +「遊戲規則」 */
+    /* 左侧底栏三格：返回 / 下注记录 / 游戏规则 — 同一底格 */
+    .back-wrap,
+    .record-wrap,
     .help-wrap {
       position: absolute;
-      left: 9.049%;
-      top: 81.551%;
+      top: 81.55%;
       width: 2.85%;
       aspect-ratio: 1;
       height: auto;
       z-index: 80;
       transform: translate(-50%, -50%);
     }
+    .back-wrap { left: 2.01%; }
+    .record-wrap { left: 5.53%; }
+    .help-wrap { left: 9.05%; }
+    .back-face,
+    .record-face,
     .help-face {
       position: absolute;
       inset: 0;
@@ -1176,16 +1265,23 @@
         0 1px 2px rgba(0, 0, 0, 0.3);
       transition: opacity .12s ease;
     }
+    .back-face svg,
+    .record-face svg,
     .help-face svg {
-      width: 72%;
-      height: 72%;
+      width: 70%;
+      height: 70%;
       display: block;
-      overflow: visible;
     }
+    .back-wrap.is-hover .back-face,
+    .back-wrap:hover .back-face,
+    .record-wrap.is-hover .record-face,
+    .record-wrap:hover .record-face,
     .help-wrap.is-hover .help-face,
     .help-wrap:hover .help-face {
       opacity: 1;
     }
+    .back-hot,
+    .record-hot,
     .help-hot {
       position: absolute;
       inset: 0;
@@ -1198,60 +1294,15 @@
       -webkit-tap-highlight-color: transparent;
       border-radius: 0.28em;
     }
+    .back-hot:focus,
+    .back-hot:focus-visible,
+    .record-hot:focus,
+    .record-hot:focus-visible,
     .help-hot:focus,
     .help-hot:focus-visible { outline: none; }
-    /* 下注記錄：左侧工具条第二枚（文件+放大镜） */
-    .record-wrap {
-      position: absolute;
-      left: 5.53%;
-      top: 81.551%;
-      width: 2.85%;
-      aspect-ratio: 1;
-      height: auto;
-      z-index: 80;
-      transform: translate(-50%, -50%);
-    }
-    .record-face {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      border-radius: 0.28em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      background: linear-gradient(165deg, #f0e2c0 0%, #e0c892 45%, #c9a56a 100%);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.65),
-        inset 0 -2px 3px rgba(80, 55, 15, 0.35),
-        0 1px 2px rgba(0, 0, 0, 0.3);
-      transition: opacity .12s ease;
-    }
-    .record-face svg {
-      width: 70%;
-      height: 70%;
-      display: block;
-    }
-    .record-wrap.is-hover .record-face,
-    .record-wrap:hover .record-face {
-      opacity: 1;
-    }
-    .record-hot {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      background: transparent;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      border-radius: 0.28em;
-    }
-    .record-hot:focus,
-    .record-hot:focus-visible { outline: none; }
-    .record-tip {
+    .back-tip,
+    .record-tip,
+    .help-tip {
       position: absolute;
       left: 50%;
       bottom: calc(100% + 0.4em);
@@ -1274,13 +1325,17 @@
       visibility: hidden;
       transition: opacity .15s ease, transform .15s ease, visibility .15s;
     }
-    .record-tip.show {
+    .back-tip.show,
+    .record-tip.show,
+    .help-tip.show {
       display: block;
       opacity: 1;
       visibility: visible;
       transform: translateX(-50%) translateY(0);
     }
-    .record-tip::after {
+    .back-tip::after,
+    .record-tip::after,
+    .help-tip::after {
       content: "";
       position: absolute;
       left: 50%;
@@ -1292,6 +1347,7 @@
       border-right: 0.4em solid transparent;
       border-top: 0.45em solid rgba(12, 12, 12, 0.92);
     }
+
     .records-overlay {
       position: absolute;
       inset: 0;
@@ -1391,7 +1447,7 @@
       min-width: 7.5em;
     }
     .records-query {
-      margin-left: auto;
+      margin-left: 0.35em;
       padding: 0.35em 1.1em;
       border: 0;
       border-radius: 0.25em;
@@ -1403,6 +1459,12 @@
       position: relative;
       z-index: 5;
       pointer-events: auto;
+    }
+    .records-query.is-reset {
+      margin-left: auto;
+      background: #3a3a3a;
+      color: #eee;
+      border: 1px solid #777;
     }
     .records-query-msg {
       flex: 1 0 100%;
@@ -1485,49 +1547,6 @@
       opacity: 0.4;
       cursor: default;
     }
-    .help-tip {
-      position: absolute;
-      left: 50%;
-      bottom: calc(100% + 0.4em);
-      transform: translateX(-50%) translateY(4px);
-      z-index: 120;
-      padding: 0.38em 0.75em;
-      border-radius: 0.45em;
-      background: rgba(12, 12, 12, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #fff;
-      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      line-height: 1.3;
-      white-space: nowrap;
-      display: none;
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity .15s ease, transform .15s ease, visibility .15s;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-    }
-    .help-tip.show {
-      display: block;
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(0);
-    }
-    .help-tip::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      bottom: -0.4em;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 0.4em solid transparent;
-      border-right: 0.4em solid transparent;
-      border-top: 0.45em solid rgba(12, 12, 12, 0.92);
-    }
-
     /* 遊戲規則弹层：只保留骰寶 */
     .rules-overlay {
       position: absolute;
@@ -1968,15 +1987,15 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full-v111.webp?v=v1.0.6" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=v1.0.6" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full-v111.webp?v=v1.0.28" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=v1.0.28" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
           <picture>
-            <source srcset="assets/video-feed.webp?v=v1.0.6" type="image/webp" />
-            <img class="video-feed" id="videoFeed" src="assets/video-feed.jpg?v=v1.0.6" alt="" width="1024" height="572" decoding="async" draggable="false" />
+            <source srcset="assets/video-feed.webp?v=v1.0.28" type="image/webp" />
+            <img class="video-feed" id="videoFeed" src="assets/video-feed.jpg?v=v1.0.28" alt="" width="1024" height="572" decoding="async" draggable="false" />
           </picture>
           <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
           <div class="video-dice" id="videoDice" aria-hidden="true">
@@ -2070,7 +2089,17 @@
           </div>
         </div>
       </div>
-      <button class="back-hot" id="backHot" type="button" aria-label="返回上一页"></button>
+      <div class="back-wrap" id="backWrap">
+        <div class="back-face" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <!-- 底图同款 U 形回转：左指箭头 + 右下半圆尾 -->
+            <path d="M12 15h12c3.9 0 7 3.1 7 7s-3.1 7-7 7H14" fill="none" stroke="#1a1208" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M17 9l-7 6 7 6" fill="none" stroke="#1a1208" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <button class="back-hot" id="backHot" type="button" aria-label="返回" aria-describedby="backTip"></button>
+        <div class="back-tip" id="backTip" role="tooltip">返回</div>
+      </div>
       <div class="record-wrap" id="recordWrap">
         <div class="record-face" aria-hidden="true">
           <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
@@ -2124,6 +2153,7 @@
               <span>至</span>
               <input id="recTo" type="date" />
             </label>
+            <button class="records-query is-reset" id="recResetBtn" type="button">當前</button>
             <button class="records-query" id="recQueryBtn" type="button" onclick="window.__fgRecQuery&&window.__fgRecQuery(event)">查詢</button>
             <div class="records-query-msg" id="recQueryMsg" aria-live="polite"></div>
           </div>
@@ -2577,33 +2607,33 @@
       <div class="chip-cover" id="cover-d" aria-hidden="true"></div>
 
       <button class="chip-arrow" id="arrow-l" type="button" aria-label="筹码向左">
-        <img src="chips/arrow-left.png?v=v1.0.9u" alt="" draggable="false" />
+        <img src="chips/arrow-left.png?v=v1.0.28u" alt="" draggable="false" />
       </button>
 
       <div class="chip-viewport" id="chipViewport">
         <button class="chip-btn" id="chip-a" data-slot="0" type="button" aria-label="筹码10">
-          <img src="chips/chip-10.webp?v=v1.0.9u" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-10.webp?v=v1.0.28u" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-b" data-slot="1" type="button" aria-label="筹码20">
-          <img src="chips/chip-20.webp?v=v1.0.9u" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-20.webp?v=v1.0.28u" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-c" data-slot="2" type="button" aria-label="筹码50">
-          <img src="chips/chip-50.webp?v=v1.0.9u" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-50.webp?v=v1.0.28u" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-d" data-slot="3" type="button" aria-label="筹码100">
-          <img src="chips/chip-100.webp?v=v1.0.9u" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-100.webp?v=v1.0.28u" alt="" decoding="async" draggable="false" />
         </button>
       </div>
 
       <button class="chip-arrow" id="arrow-r" type="button" aria-label="筹码向右">
-        <img src="chips/arrow-right.png?v=v1.0.9u" alt="" draggable="false" />
+        <img src="chips/arrow-right.png?v=v1.0.28u" alt="" draggable="false" />
       </button>
     </div>
   </div>
-  <script src="js/sicbo-engine.js?v=1.0.6"></script>
+  <script src="js/sicbo-engine.js?v=1.0.28"></script>
   <script>
     (async function () {
-      const V = 'v1.0.6';
+      const V = 'v1.0.28';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -2675,8 +2705,20 @@
       const OPEN_BETS_KEY = 'fg_sicbo_openbets::' + ACCOUNT_ID.trim().toLowerCase();
       let roundGen = 0;
       let balance = loadSavedBalance();
+      const backWrap = document.getElementById('backWrap');
       const backHot = document.getElementById('backHot');
+      const backTip = document.getElementById('backTip');
       if (backHot) {
+        if (backWrap && backTip) {
+          const showBackTip = (on) => {
+            backTip.classList.toggle('show', on);
+            backWrap.classList.toggle('is-hover', on);
+          };
+          backHot.addEventListener('mouseenter', () => showBackTip(true));
+          backHot.addEventListener('mouseleave', () => showBackTip(false));
+          backHot.addEventListener('focus', () => showBackTip(true));
+          backHot.addEventListener('blur', () => showBackTip(false));
+        }
         backHot.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -2746,14 +2788,26 @@
         recFilter.from = parseRecDayStart(fromRaw);
         recFilter.to = parseRecDayEnd(toRaw);
       }
-      function initRecDateDefaults() {
+      function initRecDateDefaults(force) {
         const fromEl = document.getElementById('recFrom');
         const toEl = document.getElementById('recTo');
         if (!fromEl || !toEl) return;
         const now = new Date();
         const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
-        if (!fromEl.value) fromEl.value = fmtDateInput(from);
-        if (!toEl.value) toEl.value = fmtDateInput(now);
+        if (force || !fromEl.value) fromEl.value = fmtDateInput(from);
+        if (force || !toEl.value) toEl.value = fmtDateInput(now);
+      }
+      function resetRecToCurrent(ev) {
+        if (ev) {
+          try { ev.preventDefault(); ev.stopPropagation(); } catch (_) {}
+        }
+        const roundEl = document.getElementById('recRoundQ');
+        const orderEl = document.getElementById('recOrderQ');
+        if (roundEl) roundEl.value = '';
+        if (orderEl) orderEl.value = '';
+        initRecDateDefaults(true);
+        setRecQueryMsg('已回到當前時段', 'ok');
+        runRecQuery();
       }
       function filteredBetLog() {
         return loadBetLog().filter((r) => {
@@ -2920,9 +2974,14 @@
         }
       }
       window.__fgRecQuery = runRecQuery;
+      window.__fgRecReset = resetRecToCurrent;
       const recQueryBtn = document.getElementById('recQueryBtn');
       if (recQueryBtn) {
         recQueryBtn.addEventListener('click', (e) => runRecQuery(e));
+      }
+      const recResetBtn = document.getElementById('recResetBtn');
+      if (recResetBtn) {
+        recResetBtn.addEventListener('click', (e) => resetRecToCurrent(e));
       }
       ['recRoundQ', 'recOrderQ', 'recFrom', 'recTo'].forEach((id) => {
         const el = document.getElementById(id);
@@ -3275,19 +3334,29 @@
         Object.keys(bets).forEach((k) => { allStake += bets[k] || 0; });
         stakeAmt.textContent = String(allStake);
       }
+      /** 按总注选筹码图：不超过注额的最大面额（90→50） */
+      function chipArtFor(stake) {
+        let d = DENOMS[0];
+        for (const n of DENOMS) {
+          if (n <= stake) d = n;
+          else break;
+        }
+        return d;
+      }
       function paintBets() {
         betZones.forEach((zone) => {
           const key = zone.dataset.bet;
           const stake = bets[key] || 0;
           zone.classList.toggle('has-bet', stake > 0);
           let chip = zone.querySelector('.bet-chip');
-          let amt = zone.querySelector('.bet-stake');
+          let amt = zone.querySelector('.bet-stake:not(.bet-pend)');
           if (stake <= 0) {
             if (chip) chip.remove();
             if (amt) amt.remove();
             return;
           }
-          const denom = betDenom[key] || stake;
+          const denom = chipArtFor(stake);
+          betDenom[key] = denom;
           if (!chip) {
             chip = document.createElement('img');
             chip.className = 'bet-chip';
@@ -3302,6 +3371,7 @@
             amt.className = 'bet-stake';
             zone.appendChild(amt);
           }
+          // 必须显示累计总注，不能只显示筹码面额
           amt.textContent = String(stake);
         });
         paintStakePanel();
@@ -3338,20 +3408,66 @@
           pend.textContent = String(pendingStake);
         });
       }
-      /** 确定时：所有浅绿按键闪一下 */
+      /** 确定成功：所有下注键全体淡入淡出浅绿 */
       function flashGreenKeys() {
-        const keys = betZones.filter(
-          (z) => z.classList.contains('is-key-on') || z.classList.contains('has-bet')
-        );
-        keys.forEach((z) => {
-          z.classList.remove('key-flash');
+        const ms = 2550;
+        betZones.forEach((z) => {
+          z.classList.remove('key-flash-all', 'win-gold-flash');
           void z.offsetWidth;
-          z.classList.add('key-flash');
+          z.classList.add('key-flash-all');
         });
         setTimeout(() => {
-          keys.forEach((z) => z.classList.remove('key-flash'));
-        }, 520);
-        return keys.length ? 520 : 0;
+          betZones.forEach((z) => z.classList.remove('key-flash-all'));
+        }, ms);
+        return ms;
+      }
+
+      /** 本局开奖结果对应的「中奖格」：三点数/和值/大小单双 + 相关对子组合围骰 */
+      function resultHitKeys(info) {
+        const hits = [];
+        const dice = info.dice || [];
+        const counts = [0, 0, 0, 0, 0, 0, 0];
+        for (const n of dice) counts[n] += 1;
+        for (const n of new Set(dice)) hits.push('f' + n);
+        if (info.sum >= 4 && info.sum <= 17) hits.push('s' + info.sum);
+        if (!info.triple) {
+          hits.push(info.size === 'big' ? 'big' : 'small');
+          hits.push(info.parity === 'even' ? 'even' : 'odd');
+        } else {
+          hits.push('wrap');
+          hits.push('t' + dice[0]);
+        }
+        for (let n = 1; n <= 6; n++) {
+          if (counts[n] >= 2) hits.push('d' + n);
+        }
+        for (let a = 1; a <= 5; a++) {
+          for (let b = a + 1; b <= 6; b++) {
+            if (counts[a] > 0 && counts[b] > 0) hits.push('c' + a + b);
+          }
+        }
+        return hits;
+      }
+
+      let winGoldTimer = 0;
+      /** 开奖后：中奖格整格金光淡入淡出闪 durationMs（默认 7s） */
+      function flashWinGold(info, durationMs = 7000) {
+        if (winGoldTimer) {
+          clearTimeout(winGoldTimer);
+          winGoldTimer = 0;
+        }
+        betZones.forEach((z) => z.classList.remove('win-gold-flash', 'key-flash-all'));
+        const hit = new Set(resultHitKeys(info));
+        const zones = betZones.filter((z) => hit.has(z.dataset.bet));
+        zones.forEach((z) => {
+          z.classList.remove('win-gold-flash');
+          void z.offsetWidth;
+          z.classList.add('win-gold-flash');
+        });
+        winGoldTimer = setTimeout(() => {
+          zones.forEach((z) => z.classList.remove('win-gold-flash'));
+          winGoldTimer = 0;
+        }, durationMs);
+        return zones.length;
       }
       function showToast(text, ms = 1600, kind) {
         toastMsg.textContent = text;
@@ -4021,6 +4137,8 @@
         if (roundStarted) return;
         const gen = ++roundGen;
         roundStarted = true;
+        if (winGoldTimer) { clearTimeout(winGoldTimer); winGoldTimer = 0; }
+        betZones.forEach((z) => z.classList.remove('win-gold-flash', 'key-flash-all'));
         resetBets();
         clearOpenBetSnapshot();
         hideResult();
@@ -4081,6 +4199,8 @@
 
         const info = classify(rollDice());
         showDiceOnly(info);
+        // 开奖亮相：中奖格整格金光淡入淡出闪 7 秒（三点数/和值/大小单双等）
+        flashWinGold(info, 7000);
         const [a, b, c] = info.dice;
         await Voice.speak(`${a}点、${b}点、${c}点，共${info.sum}点`, { rate: 0.84 });
         if (!stillThisRound(gen)) { bail(); return; }
@@ -4193,6 +4313,7 @@
           const n = Number(btn.dataset.value);
           if (!Number.isFinite(n) || n <= 0) return;
           if (balance < n) return;
+          // 点筹码只切换面额，不改挂单（避免「选50再点大」被加两次）
           selected = n;
           clearSelectVisual();
           btn.classList.add('on');
@@ -4228,14 +4349,14 @@
         // 先落注让 has-bet 变绿，再全部绿键闪
         setBalance(balance - amt, true);
         bets[key] += amt;
-        betDenom[key] = selected || amt;
+        betDenom[key] = chipArtFor(bets[key]);
         persistOpenBets();
         pendingMarket = null;
         pendingStake = 0;
         paintBets();
         paintPending();
         const wait = flashGreenKeys();
-        await new Promise((r) => setTimeout(r, Math.max(180, wait * 0.55)));
+        await new Promise((r) => setTimeout(r, Math.max(180, Math.min(900, wait * 0.35))));
         showToast('下注成功', 1800, 'success');
         await Voice.speak('下注成功');
         return true;
@@ -4281,6 +4402,7 @@
         showToast('已取消', 1000);
       }
 
+      let lastZoneBetAt = 0;
       betZones.forEach((zone) => {
         zone.addEventListener('click', (e) => {
           e.preventDefault();
@@ -4291,17 +4413,28 @@
             showToast('请先选择筹码', 1200);
             return;
           }
+          const now = Date.now();
+          if (now - lastZoneBetAt < 280) return; // 防一次点击触发两次
+          lastZoneBetAt = now;
           const key = zone.dataset.bet;
           if (!(key in bets)) return;
-          const limErr = checkBetLimit(key, selected);
+          // 同一盘口再点 = 累加；换盘口 = 按当前筹码新挂单
+          const next = (pendingMarket === key && pendingStake > 0)
+            ? pendingStake + selected
+            : selected;
+          if (balance < next) {
+            showToast('积分不足', 1200);
+            return;
+          }
+          const limErr = checkBetLimit(key, next);
           if (limErr) {
             showToast(limErr, 1600);
             return;
           }
           pendingMarket = key;
-          pendingStake = selected; // 先按当前筹码额挂单
+          pendingStake = next;
           Voice.playQuick('keyClick', 0.7);
-          paintPending(); // 整格透明黄 × 底图字透红
+          paintPending();
         });
       });
 

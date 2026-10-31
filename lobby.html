@@ -191,12 +191,12 @@
       height: 118px;
       background:
         linear-gradient(180deg, transparent 40%, rgba(0,0,0,.75)),
-        url("assets/lobby-thumb.webp?v=v1.0.6") center / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.0.28") center / cover no-repeat;
     }
     .card.featured .thumb {
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
-        url("assets/lobby-thumb.webp?v=v1.0.6") center 30% / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.0.28") center 30% / cover no-repeat;
     }
     .card .meta {
       padding: .65rem .75rem .75rem;
@@ -284,7 +284,7 @@
 
   <script>
     (function () {
-      const GAME = 'game.html?v=v1.0.6';
+      const GAME = 'game.html?v=v1.0.28';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -314,7 +314,7 @@
       }
       try {
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
-          location.replace('index.html?v=v1.0.6');
+          location.replace('index.html?v=v1.0.28');
           return;
         }
         let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
@@ -407,7 +407,7 @@
           sessionStorage.removeItem('fg_sicbo_auth');
           sessionStorage.removeItem('fg_sicbo_user');
         } catch (_) {}
-        location.href = 'index.html?v=v1.0.6';
+        location.href = 'index.html?v=v1.0.28';
       });
 
       paint();
