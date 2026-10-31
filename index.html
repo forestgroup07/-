@@ -268,7 +268,7 @@
 
   <script>
     (function () {
-      const NEXT = 'loading.html?v=v1.10.32';
+      const NEXT = 'loading.html?v=v1.10.62';
       const form = document.getElementById('loginForm');
       const user = document.getElementById('user');
       const pass = document.getElementById('pass');
@@ -276,9 +276,16 @@
       const btn = document.getElementById('btnLogin');
       const toggle = document.getElementById('togglePass');
 
-      // 已登入：进缓存页再进大厅
+      // 已登入：进缓存页再进大厅（补绑账号，避免余额读成默认 2000）
       try {
+        const last = localStorage.getItem('fg_sicbo_last_user');
+        if (last) user.value = last;
         if (sessionStorage.getItem('fg_sicbo_auth') === '1') {
+          let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
+          if (!u && last) {
+            u = last.trim();
+            sessionStorage.setItem('fg_sicbo_user', u);
+          }
           location.replace(NEXT);
           return;
         }
@@ -306,8 +313,12 @@
         }
         btn.disabled = true;
         btn.textContent = '登入中';
-        // 演示：任意非空账号密码即可进入骰宝
-        try { sessionStorage.setItem('fg_sicbo_auth', '1'); } catch (_) { /* ignore */ }
+        // 演示：任意非空账号密码即可进入；余额按账号各自累积
+        try {
+          sessionStorage.setItem('fg_sicbo_auth', '1');
+          sessionStorage.setItem('fg_sicbo_user', u);
+          localStorage.setItem('fg_sicbo_last_user', u);
+        } catch (_) { /* ignore */ }
         setTimeout(() => { location.href = NEXT; }, 280);
       });
     })();

@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v109.webp?v=v1.10.32" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.10.32" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.10.32" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.10.32" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full-v111.webp?v=v1.10.62" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.10.62" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.10.62" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.10.62" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -49,16 +49,72 @@
     }
     .stage .bg { object-fit: fill; }
 
-    /* 倒计时：盖住底图烤死的 16，从 22 开始 */
+    /* 立体视频大按键：边框=容器，照片精确定位在内 */
+    .video-bezel {
+      position: absolute;
+      left: 25.594%;
+      top: 4.164%;
+      width: 45.018%;
+      height: 28.715%;
+      z-index: 40;
+      box-sizing: border-box;
+      padding: 0.55%;
+      border-radius: 0.55em;
+      background:
+        linear-gradient(160deg, #e8d4a0 0%, #b8924a 28%, #6a4a22 62%, #3a2810 100%);
+      box-shadow:
+        0 0 0 1px rgba(255, 230, 170, 0.35),
+        0 10px 22px rgba(0, 0, 0, 0.55),
+        inset 0 2px 0 rgba(255, 245, 210, 0.55),
+        inset 0 -3px 5px rgba(0, 0, 0, 0.45);
+      transform: perspective(900px) rotateX(2.2deg);
+      transform-origin: 50% 100%;
+    }
+    .video-bezel::before {
+      content: "";
+      position: absolute;
+      inset: 0.55%;
+      border-radius: 0.4em;
+      pointer-events: none;
+      z-index: 2;
+      box-shadow:
+        inset 0 0 0 1px rgba(40, 28, 10, 0.75),
+        inset 0 0 18px rgba(0, 0, 0, 0.35);
+    }
+    .video-well {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 0.38em;
+      overflow: hidden;
+      background: #0a0806;
+      box-shadow:
+        inset 0 3px 8px rgba(0, 0, 0, 0.65),
+        inset 0 -1px 0 rgba(255, 220, 160, 0.12);
+    }
+    .video-feed {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 42%;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    /* 倒计时：相对视频框左上 */
     .timer {
       --p: 1;
       position: absolute;
-      left: 37.20%;
-      top: 19.70%;
-      width: 7.35%;
+      left: 2.4%;
+      top: 4.5%;
+      width: 14.5%;
       aspect-ratio: 1;
       border-radius: 50%;
-      z-index: 40;
+      z-index: 5;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -67,7 +123,7 @@
       color: #6fff9a;
       font-family: Arial, Helvetica, sans-serif;
       font-weight: 900;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 58 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 48 / 2188);
       line-height: 1;
       text-shadow: 0 1px 2px rgba(0,0,0,.65);
     }
@@ -757,7 +813,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/atlas.webp?v=v1.10.32");
+      background-image: url("assets/pair-dice/atlas.webp?v=v1.10.62");
       background-repeat: no-repeat;
       background-size: 2100% 100%;
     }
@@ -804,7 +860,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.10.32");
+      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.10.62");
       background-repeat: no-repeat;
       background-size: 1200% 100%;
     }
@@ -831,7 +887,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.10.32");
+      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.10.62");
       background-repeat: no-repeat;
       background-size: 1400% 100%;
     }
@@ -888,46 +944,133 @@
     #bet-wrap  { left: 42.32%; top: 62.60%; width: 15.36%; height: 8.76%; }
     #bet-even  { left: 58.23%; top: 62.60%; width: 10.88%; height: 8.76%; }
 
+    /* 视频罩内骰子：相对立体框定位 */
+    .video-dice {
+      position: absolute;
+      left: 50%;
+      top: 78%;
+      transform: translate(-50%, -50%);
+      z-index: 4;
+      pointer-events: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      justify-items: center;
+      align-items: center;
+      gap: 0.12em 0.22em;
+      width: max-content;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,.55));
+    }
+    .video-dice .die:nth-child(1) { grid-column: 1 / 3; }
+    .video-dice .die {
+      --s: calc(min(100vw, 100vh * 2188 / 1393) * 26 / 2188);
+    }
+
+    /* 开奖层：平时全透明不挡视频；有结果才出卡/路单 */
+    .road-screen {
+      position: absolute;
+      left: 50%;
+      top: 18.5%;
+      transform: translate(-50%, -50%);
+      z-index: 92;
+      width: 20%;
+      aspect-ratio: 1 / 1.05;
+      pointer-events: none;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+    .road-grid {
+      position: absolute;
+      left: 50%;
+      top: 118%;
+      transform: translateX(-50%);
+      width: 140%;
+      height: 22%;
+      display: none;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 2px;
+      z-index: 1;
+      padding: 0.25em;
+      border-radius: 0.3em;
+      background: rgba(8, 6, 14, 0.72);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+    .road-grid.has-rows { display: grid; }
+    .road-cell {
+      border-radius: 0.18em;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.05;
+      color: #d8d0e8;
+      min-width: 0;
+    }
+    .road-cell .n {
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 15 / 2188);
+      font-weight: 800;
+    }
+    .road-cell .t {
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 10 / 2188);
+      opacity: 0.9;
+    }
+    .road-cell.is-big { color: #ff8a80; }
+    .road-cell.is-small { color: #82b1ff; }
+    .road-cell.is-fresh {
+      box-shadow: inset 0 0 0 1px rgba(255, 220, 140, 0.55);
+      background: rgba(40, 30, 10, 0.55);
+    }
     .result-board {
       position: absolute;
       left: 50%;
-      top: 34%;
+      top: 38%;
       transform: translate(-50%, -50%) scale(.96);
-      z-index: 92;
-      min-width: 34%;
-      padding: 0.7em 1.2em 0.75em;
-      border-radius: 0.4em;
-      background: rgba(0,0,0,.78);
-      border: 1px solid rgba(255,220,140,.5);
-      color: #fff4d0;
-      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      z-index: 2;
+      width: 58%;
+      padding: 0.55em 0.55em 0.4em;
+      border-radius: 0.45em;
+      background: #0a0a0a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
       text-align: center;
-      pointer-events: none;
       opacity: 0;
       visibility: hidden;
       transition: opacity .25s ease, transform .25s ease, visibility .25s;
-      text-shadow: 0 2px 8px rgba(0,0,0,.7);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
     }
     .result-board.show {
       opacity: 1;
       visibility: visible;
       transform: translate(-50%, -50%) scale(1);
     }
-    .result-board .dice-row {
-      display: flex;
-      justify-content: center;
-      gap: 0.55em;
-      margin-bottom: 0.45em;
+    .result-board .dice-pyramid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      justify-items: center;
+      align-items: center;
+      gap: 0.22em 0.35em;
+      width: max-content;
+      margin: 0 auto 0.15em;
+    }
+    .result-board .dice-pyramid .die:nth-child(1) {
+      grid-column: 1 / 3;
     }
     .die {
-      --s: calc(min(100vw, 100vh * 2188 / 1393) * 64 / 2188);
+      --s: calc(min(100vw, 100vh * 2188 / 1393) * 38 / 2188);
       width: var(--s);
       height: var(--s);
       border-radius: 18%;
       background: linear-gradient(160deg, #fff 0%, #f2f2f2 55%, #ddd 100%);
       box-shadow:
-        0 2px 0 #bbb,
-        0 6px 14px rgba(0,0,0,.45),
+        0 1px 0 #bbb,
+        0 3px 8px rgba(0,0,0,.45),
         inset 0 1px 0 rgba(255,255,255,.9);
       position: relative;
       flex: 0 0 auto;
@@ -948,23 +1091,38 @@
     .die i:nth-child(5) { right: 16%; top: 41%; left: auto; }
     .die i:nth-child(6) { left: 16%; bottom: 16%; top: auto; }
     .die i:nth-child(7) { right: 16%; bottom: 16%; left: auto; top: auto; }
-    .die.p1 i:nth-child(4) { display: block; }
+    .die.p1 i:nth-child(4) { display: block; background: #e53935; }
     .die.p2 i:nth-child(1), .die.p2 i:nth-child(7) { display: block; }
     .die.p3 i:nth-child(1), .die.p3 i:nth-child(4), .die.p3 i:nth-child(7) { display: block; }
-    .die.p4 i:nth-child(1), .die.p4 i:nth-child(2), .die.p4 i:nth-child(6), .die.p4 i:nth-child(7) { display: block; }
+    .die.p4 i:nth-child(1), .die.p4 i:nth-child(2), .die.p4 i:nth-child(6), .die.p4 i:nth-child(7) {
+      display: block;
+      background: #e53935;
+    }
     .die.p5 i:nth-child(1), .die.p5 i:nth-child(2), .die.p5 i:nth-child(4), .die.p5 i:nth-child(6), .die.p5 i:nth-child(7) { display: block; }
     .die.p6 i:nth-child(1), .die.p6 i:nth-child(2), .die.p6 i:nth-child(3),
     .die.p6 i:nth-child(5), .die.p6 i:nth-child(6), .die.p6 i:nth-child(7) { display: block; }
-    .result-board .sum-line {
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 30 / 2188);
+    .result-board .sum-num {
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 42 / 2188);
       font-weight: 800;
-      color: #ffe29a;
+      color: #fff;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      margin: 0.05em 0 0.2em;
+      text-shadow: 0 2px 6px rgba(0,0,0,.7);
+    }
+    .result-board .tag-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 0.35em 0.1em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      font-weight: 800;
+      color: #4ea1ff;
       letter-spacing: 0.08em;
     }
     .result-board .pay-line {
-      margin-top: 0.4em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 28 / 2188);
-      font-weight: 900;
+      margin-top: 0.35em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 18 / 2188);
+      font-weight: 800;
       letter-spacing: 0.06em;
     }
     .result-board .pay-line.win { color: #7dff9f; }
@@ -990,6 +1148,526 @@
     .back-hot:focus,
     .back-hot:focus-visible { outline: none; }
 
+    /* 问号：平时露底图原样；悬停才叠金面 +「遊戲規則」 */
+    .help-wrap {
+      position: absolute;
+      left: 9.049%;
+      top: 81.551%;
+      width: 2.85%;
+      aspect-ratio: 1;
+      height: auto;
+      z-index: 80;
+      transform: translate(-50%, -50%);
+    }
+    .help-face {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      border-radius: 0.28em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      background: linear-gradient(165deg, #f0e2c0 0%, #e0c892 45%, #c9a56a 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 -2px 3px rgba(80, 55, 15, 0.35),
+        0 1px 2px rgba(0, 0, 0, 0.3);
+      transition: opacity .12s ease;
+    }
+    .help-face svg {
+      width: 72%;
+      height: 72%;
+      display: block;
+      overflow: visible;
+    }
+    .help-wrap.is-hover .help-face,
+    .help-wrap:hover .help-face {
+      opacity: 1;
+    }
+    .help-hot {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 0.28em;
+    }
+    .help-hot:focus,
+    .help-hot:focus-visible { outline: none; }
+    /* 下注記錄：左侧工具条第二枚（文件+放大镜） */
+    .record-wrap {
+      position: absolute;
+      left: 5.53%;
+      top: 81.551%;
+      width: 2.85%;
+      aspect-ratio: 1;
+      height: auto;
+      z-index: 80;
+      transform: translate(-50%, -50%);
+    }
+    .record-face {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      border-radius: 0.28em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      background: linear-gradient(165deg, #f0e2c0 0%, #e0c892 45%, #c9a56a 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 -2px 3px rgba(80, 55, 15, 0.35),
+        0 1px 2px rgba(0, 0, 0, 0.3);
+      transition: opacity .12s ease;
+    }
+    .record-face svg {
+      width: 70%;
+      height: 70%;
+      display: block;
+    }
+    .record-wrap.is-hover .record-face,
+    .record-wrap:hover .record-face {
+      opacity: 1;
+    }
+    .record-hot {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 0.28em;
+    }
+    .record-hot:focus,
+    .record-hot:focus-visible { outline: none; }
+    .record-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 0.4em);
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      padding: 0.38em 0.75em;
+      border-radius: 0.45em;
+      background: rgba(12, 12, 12, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .record-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .record-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.4em solid transparent;
+      border-right: 0.4em solid transparent;
+      border-top: 0.45em solid rgba(12, 12, 12, 0.92);
+    }
+    .records-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 210;
+      display: none;
+      align-items: stretch;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.72);
+      pointer-events: auto;
+    }
+    .records-overlay.show { display: flex; }
+    .records-panel {
+      position: relative;
+      width: 96%;
+      max-width: 100%;
+      height: 94%;
+      margin: auto;
+      box-sizing: border-box;
+      padding: 1.2% 1.4% 1%;
+      border-radius: 0.35em;
+      background: rgba(18, 18, 18, 0.96);
+      color: #e8e8e8;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .records-close {
+      position: absolute;
+      right: 0.8%;
+      top: 0.8%;
+      z-index: 2;
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(80, 80, 80, 0.9);
+      color: #f5f5f5;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .records-tabs {
+      display: flex;
+      gap: 0.45em;
+      margin: 0 0 0.7em;
+      padding-right: 2.5em;
+    }
+    .records-tab {
+      padding: 0.35em 0.9em;
+      border-radius: 0.3em;
+      border: 1px solid #555;
+      background: #2a2a2a;
+      color: #cfcfcf;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 18 / 2188);
+      font-weight: 600;
+      cursor: default;
+    }
+    .records-tab.is-on {
+      background: #d7c29a;
+      border-color: #d7c29a;
+      color: #2a1c0c;
+    }
+    .records-filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45em 0.7em;
+      margin: 0 0 0.7em;
+      padding: 0.55em 0.7em;
+      background: #1a1a1a;
+      border-radius: 0.25em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 16 / 2188);
+    }
+    .records-filters label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      color: #c8c8c8;
+      white-space: nowrap;
+    }
+    .records-filters input {
+      width: 8.5em;
+      max-width: 18vw;
+      height: 1.9em;
+      border: 1px solid #666;
+      border-radius: 0.2em;
+      background: #fff;
+      color: #222;
+      padding: 0 0.4em;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    .records-filters input[type="date"] {
+      width: 9.5em;
+      max-width: 22vw;
+      min-width: 7.5em;
+    }
+    .records-query {
+      margin-left: auto;
+      padding: 0.35em 1.1em;
+      border: 0;
+      border-radius: 0.25em;
+      background: #d7c29a;
+      color: #2a1c0c;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1em;
+      position: relative;
+      z-index: 5;
+      pointer-events: auto;
+    }
+    .records-query-msg {
+      flex: 1 0 100%;
+      width: 100%;
+      margin: 0.15em 0 0;
+      min-height: 1.2em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 16 / 2188);
+      color: #f0c070;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+    }
+    .records-query-msg.is-empty { color: #ff8d8d; }
+    .records-query-msg.is-ok { color: #7dff9f; }
+    .records-table-wrap {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      border: 1px solid #444;
+      border-radius: 0.2em;
+    }
+    .records-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 14 / 2188);
+      white-space: nowrap;
+    }
+    .records-table th {
+      position: sticky;
+      top: 0;
+      background: #d7c29a;
+      color: #2a1c0c;
+      font-weight: 700;
+      padding: 0.55em 0.5em;
+      border: 1px solid #b79a6a;
+      text-align: center;
+      z-index: 1;
+    }
+    .records-table td {
+      padding: 0.5em 0.45em;
+      border: 1px solid #333;
+      text-align: center;
+      color: #ddd;
+      background: #141414;
+    }
+    .records-table tr:nth-child(even) td { background: #1c1c1c; }
+    .records-table .pnl-win { color: #3dce6a; font-weight: 700; }
+    .records-table .pnl-lose { color: #e74c3c; font-weight: 700; }
+    .records-table .st-ok { color: #3dce6a; }
+    .records-empty td {
+      padding: 2.5em 1em;
+      color: #888;
+    }
+    .records-foot {
+      margin-top: 0.55em;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6em 1.2em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 15 / 2188);
+      color: #cfcfcf;
+    }
+    .records-sum span { margin-right: 0.9em; }
+    .records-sum .pnl-win { color: #3dce6a; }
+    .records-sum .pnl-lose { color: #e74c3c; }
+    .records-pager {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+    }
+    .records-pager button {
+      min-width: 1.8em;
+      height: 1.8em;
+      border: 1px solid #555;
+      border-radius: 0.2em;
+      background: #2a2a2a;
+      color: #eee;
+      cursor: pointer;
+    }
+    .records-pager button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+    .help-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 0.4em);
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      padding: 0.38em 0.75em;
+      border-radius: 0.45em;
+      background: rgba(12, 12, 12, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+    .help-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .help-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.4em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.4em solid transparent;
+      border-right: 0.4em solid transparent;
+      border-top: 0.45em solid rgba(12, 12, 12, 0.92);
+    }
+
+    /* 遊戲規則弹层：只保留骰寶 */
+    .rules-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 200;
+      display: none;
+      align-items: stretch;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.55);
+      pointer-events: auto;
+    }
+    .rules-overlay.show { display: flex; }
+    .rules-panel {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      background: linear-gradient(180deg, #cbb58a 0%, #e8d9b4 18%, #f3e9cf 55%, #efe4c4 100%);
+      color: #3a2a18;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      box-sizing: border-box;
+      padding: 1.6% 3.2% 3%;
+    }
+    .rules-close {
+      position: absolute;
+      right: 1.2%;
+      top: 1.2%;
+      z-index: 2;
+      width: 2.4%;
+      min-width: 28px;
+      aspect-ratio: 1;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(80, 50, 20, 0.85);
+      color: #f5ecd8;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      line-height: 1;
+      cursor: pointer;
+    }
+    .rules-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45em;
+      margin: 0.2em 0 1.1em;
+      padding-right: 3%;
+    }
+    .rules-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.38em 0.85em;
+      border-radius: 0.35em;
+      border: 1px solid #8a6a3a;
+      background: #5c3d1f;
+      color: #fff;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .rules-title {
+      margin: 0 0 0.85em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 42 / 2188);
+      font-weight: 800;
+      color: #3d2a14;
+      letter-spacing: 0.02em;
+    }
+    .rules-h {
+      margin: 1.05em 0 0.45em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 28 / 2188);
+      font-weight: 800;
+      color: #3d2a14;
+    }
+    .rules-sub {
+      margin: 0.85em 0 0.35em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      font-weight: 700;
+      color: #3d2a14;
+      max-width: 92%;
+    }
+    .rules-p {
+      margin: 0 0 0.55em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      line-height: 1.65;
+      color: #3a2a18;
+      max-width: 92%;
+    }
+    .rules-list {
+      margin: 0.2em 0 0.6em;
+      padding-left: 1.35em;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      line-height: 1.7;
+      color: #3a2a18;
+      max-width: 92%;
+      list-style: disc;
+    }
+    .rules-list.rules-ol {
+      list-style: decimal;
+      padding-left: 1.55em;
+    }
+    .rules-list li { margin: 0.15em 0; }
+    .rules-table-wrap {
+      width: 92%;
+      max-width: 920px;
+      margin: 0.35em 0 1em;
+      overflow: auto;
+      border-radius: 0.25em;
+      border: 1px solid #8a6a3a;
+      background: rgba(255, 250, 235, 0.55);
+    }
+    .rules-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      color: #3a2a18;
+    }
+    .rules-table th,
+    .rules-table td {
+      border: 1px solid #a8844a;
+      padding: 0.55em 0.7em;
+      vertical-align: top;
+      text-align: left;
+      line-height: 1.45;
+    }
+    .rules-table th {
+      background: #5c3d1f;
+      color: #fff;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .rules-table td:last-child {
+      white-space: nowrap;
+      font-weight: 700;
+      width: 18%;
+    }
+    .rules-table tr:nth-child(even) td {
+      background: rgba(232, 214, 170, 0.35);
+    }
+
     /* 透明热区：对准底图 重複下注 / 確定 / 取消 */
     .btn-act {
       position: absolute;
@@ -1006,15 +1684,15 @@
       pointer-events: none;
       cursor: default;
     }
-    #btnRepeat  { left: 67.40%; top: 91.00%; width: 6.80%; height: 3.90%; }
-    #btnConfirm { left: 78.00%; top: 91.00%; width: 6.80%; height: 3.90%; }
-    #btnCancel  { left: 85.60%; top: 91.00%; width: 6.80%; height: 3.90%; }
+    #btnRepeat  { left: 67.73%; top: 90.70%; width: 7.54%; height: 4.40%; z-index: 82; }
+    #btnConfirm { left: 77.15%; top: 90.70%; width: 7.59%; height: 4.40%; z-index: 82; }
+    #btnCancel  { left: 86.61%; top: 90.70%; width: 7.59%; height: 4.40%; z-index: 82; }
     .toast-msg {
       position: absolute;
       left: 50%;
       top: 48%;
       transform: translate(-50%, -50%) scale(.92);
-      z-index: 96;
+      z-index: 230;
       padding: 0.45em 1.1em;
       border-radius: 0.3em;
       background: rgba(0,0,0,.75);
@@ -1290,20 +1968,40 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full-v109.webp?v=v1.10.32" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v109.jpg?v=v1.10.32" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full-v111.webp?v=v1.10.62" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=v1.10.62" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
-      <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
-      <div class="stop-bet" id="stopBet" aria-live="polite">停止下注</div>
-      <div class="result-board" id="resultBoard" aria-live="polite">
-        <div class="dice-row" id="resultDice">
-          <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-          <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-          <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <div class="video-bezel" id="videoBezel" aria-label="视频屏">
+        <div class="video-well">
+          <picture>
+            <source srcset="assets/video-feed.webp?v=v1.10.62" type="image/webp" />
+            <img class="video-feed" id="videoFeed" src="assets/video-feed.jpg?v=v1.10.62" alt="" width="1024" height="572" decoding="async" draggable="false" />
+          </picture>
+          <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
+          <div class="video-dice" id="videoDice" aria-hidden="true">
+            <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="die p2" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="die p3" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          </div>
         </div>
-        <div class="sum-line" id="resultSum">和 —</div>
-        <div class="pay-line flat" id="resultPay">本局 —</div>
+      </div>
+      <div class="stop-bet" id="stopBet" aria-live="polite">停止下注</div>
+      <div class="road-screen" id="roadScreen" aria-hidden="false">
+        <div class="result-board" id="resultBoard" aria-live="polite">
+          <div class="dice-pyramid" id="resultDice">
+            <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          </div>
+          <div class="sum-num" id="resultSumNum">—</div>
+          <div class="tag-row">
+            <span id="resultSize">—</span>
+            <span id="resultParity">—</span>
+          </div>
+          <div class="pay-line flat" id="resultPay"></div>
+        </div>
+        <div class="road-grid" id="roadGrid" aria-label="开奖路单"></div>
       </div>
       <div class="bal" id="bal">2,000</div>
       <button class="bal-hot" id="balHot" type="button" aria-label="账户余额" aria-expanded="false" aria-controls="balTip"></button>
@@ -1317,8 +2015,8 @@
           </svg>
         </div>
         <div class="account-tip-meta">
-          <div>暱稱:</div>
-          <div>賬號: asdg</div>
+          <div>暱稱: <span id="accountNick">—</span></div>
+          <div>賬號: <span id="accountId">—</span></div>
         </div>
       </div>
       <button class="stake-hot" id="stakeHot" type="button" aria-label="本局注金" aria-expanded="false" aria-controls="stakeTip"></button>
@@ -1353,8 +2051,6 @@
             <div class="limit-tip-row"><span class="k">和值6/15</span><span class="v">2 - 714</span></div>
             <div class="limit-tip-row"><span class="k">和值5/16</span><span class="v">2 - 555</span></div>
             <div class="limit-tip-row"><span class="k">和值4/17</span><span class="v">1 - 200</span></div>
-            <div class="limit-tip-row"><span class="k">双骰加单骰组合</span><span class="v">1 - 200</span></div>
-            <div class="limit-tip-row"><span class="k">三数组合</span><span class="v">1 - 400</span></div>
           </div>
           <div>
             <div class="limit-tip-col-title">彩池限红</div>
@@ -1371,12 +2067,32 @@
             <div class="limit-tip-row"><span class="k">和值6/15总额限红</span><span class="v">85,714</span></div>
             <div class="limit-tip-row"><span class="k">和值5/16总额限红</span><span class="v">66,666</span></div>
             <div class="limit-tip-row"><span class="k">和值4/17总额限红</span><span class="v">24,000</span></div>
-            <div class="limit-tip-row"><span class="k">双骰加单骰组合总额限红</span><span class="v">24,000</span></div>
-            <div class="limit-tip-row"><span class="k">三数组合总额限红</span><span class="v">48,000</span></div>
           </div>
         </div>
       </div>
       <button class="back-hot" id="backHot" type="button" aria-label="返回上一页"></button>
+      <div class="record-wrap" id="recordWrap">
+        <div class="record-face" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect x="9" y="6" width="18" height="24" rx="1.5" fill="none" stroke="#1a1208" stroke-width="2.2"/>
+            <path d="M13 12h10M13 17h10M13 22h7" fill="none" stroke="#1a1208" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="27" cy="27" r="6" fill="none" stroke="#1a1208" stroke-width="2.2"/>
+            <path d="M31.2 31.2L35 35" stroke="#1a1208" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <button class="record-hot" id="recordHot" type="button" aria-label="下注记录" aria-describedby="recordTip"></button>
+        <div class="record-tip" id="recordTip" role="tooltip">下注記錄</div>
+      </div>
+      <div class="help-wrap" id="helpWrap">
+        <div class="help-face" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="11.2" fill="none" stroke="#1a1208" stroke-width="2.4"/>
+            <text x="20" y="25.2" text-anchor="middle" fill="#1a1208" font-size="16" font-weight="700" font-family="Georgia, 'Times New Roman', serif">?</text>
+          </svg>
+        </div>
+        <button class="help-hot" id="helpHot" type="button" aria-label="游戏规则" aria-describedby="helpTip"></button>
+        <div class="help-tip" id="helpTip" role="tooltip">遊戲規則</div>
+      </div>
       <div class="sound-wrap" id="soundWrap">
         <button class="sound-hot" id="soundHot" type="button" aria-label="声效" aria-pressed="false" aria-describedby="soundTip"></button>
         <div class="sound-tip" id="soundTip" role="tooltip">聲效</div>
@@ -1392,6 +2108,227 @@
       <button class="btn-act" id="btnCancel" type="button" aria-label="取消"></button>
       <div class="toast-msg" id="toastMsg">下注成功</div>
       <div class="board-outcome" id="boardOutcome" aria-live="polite"></div>
+      <div class="records-overlay" id="recordsOverlay" aria-hidden="true">
+        <div class="records-panel" role="dialog" aria-modal="true" aria-labelledby="recordsTitle">
+          <button class="records-close" id="recordsClose" type="button" aria-label="关闭">×</button>
+          <div class="records-tabs" id="recordsTitle">
+            <span class="records-tab is-on">投注記錄</span>
+            <span class="records-tab">額度記錄</span>
+            <span class="records-tab">電子遊戲記錄</span>
+          </div>
+          <div class="records-filters">
+            <label>局號 <input id="recRoundQ" type="text" autocomplete="off" /></label>
+            <label>訂單號 <input id="recOrderQ" type="text" autocomplete="off" /></label>
+            <label>下注時間
+              <input id="recFrom" type="date" />
+              <span>至</span>
+              <input id="recTo" type="date" />
+            </label>
+            <button class="records-query" id="recQueryBtn" type="button" onclick="window.__fgRecQuery&&window.__fgRecQuery(event)">查詢</button>
+            <div class="records-query-msg" id="recQueryMsg" aria-live="polite"></div>
+          </div>
+          <div class="records-table-wrap">
+            <table class="records-table">
+              <thead>
+                <tr>
+                  <th>投注編號</th>
+                  <th>時間</th>
+                  <th>靴-局</th>
+                  <th>局號</th>
+                  <th>遊戲類型</th>
+                  <th>桌檯編號</th>
+                  <th>結果</th>
+                  <th>玩法</th>
+                  <th>下注總額</th>
+                  <th>輸贏</th>
+                  <th>有效投注</th>
+                  <th>狀態</th>
+                </tr>
+              </thead>
+              <tbody id="recordsBody"></tbody>
+            </table>
+          </div>
+          <div class="records-foot">
+            <div class="records-sum" id="recordsSum"></div>
+            <div class="records-pager">
+              <span id="recordsTotalLabel">總計: 0</span>
+              <button type="button" id="recPrev" aria-label="上一页">‹</button>
+              <span id="recordsPageLabel">1/1</span>
+              <button type="button" id="recNext" aria-label="下一页">›</button>
+              <span>每頁顯示 10</span>
+            </div>
+            <div style="margin-left:auto">洗碼比 0.00%　洗碼佣金 0</div>
+          </div>
+        </div>
+      </div>
+      <div class="rules-overlay" id="rulesOverlay" aria-hidden="true">
+        <div class="rules-panel" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+          <button class="rules-close" id="rulesClose" type="button" aria-label="关闭">×</button>
+          <div class="rules-tabs">
+            <span class="rules-tab">骰宝</span>
+          </div>
+          <h1 class="rules-title" id="rulesTitle">骰宝</h1>
+          <h2 class="rules-h">遊戲概述</h2>
+          <p class="rules-p">骰寶也叫賭大小，以猜測骰子開出的點數或是點數總合的博彩。多元化的投注種類及吸引的賠率，極之受玩家歡迎。</p>
+          <h2 class="rules-h">如何勝出</h2>
+          <p class="rules-p">玩家的押注的內容與三顆骰子停留開出的點數相同，便贏得彩金。</p>
+          <h2 class="rules-h">參與說明和投注選項</h2>
+          <ul class="rules-list">
+            <li>在新遊戲開始時，您可以根據您的預測選擇籌碼進行投注。</li>
+            <li>倒計時結束後，投注過程將終止：荷官按下按鈕，自動搖動在骰盅裡面的骰子。</li>
+            <li>骰子停止滾動後，荷官將骰子值輸入至系統，最終結果的結算顯示在投注記錄裡。</li>
+            <li>如果骰子靠在骰盅邊緣或重疊其他骰子阻止荷官讀取骰子值，荷官將重新搖動骰盅裡面的骰子，直到獲得有效結果。</li>
+          </ul>
+          <h2 class="rules-h">遊戲規則</h2>
+          <ol class="rules-list rules-ol">
+            <li>玩家可以在倒計時開始後下注。</li>
+            <li>如果骰子組合匹配您所投注的數字，則勝出。</li>
+          </ol>
+          <h2 class="rules-h">限紅說明</h2>
+          <p class="rules-p"><strong>玩法限紅：</strong>是由盤口和桌臺限紅兩者的交集所得的。其中盤口是開戶時被設置好了，而桌臺限紅取決於用戶所進的桌台。比如用戶的盤口是10-5000，而進入的桌臺限紅10-5000，那麼最終限紅為10-5000。</p>
+          <p class="rules-p"><strong>彩池限紅：</strong>對於每張桌臺，對沖下注類型有一個差額限紅，差額限紅是指對沖情況（兩個對應的投注項目）的下注總數值必須在差額限紅所顯示數值之內。其他非對沖下注類型有一個總值限紅，總值限紅是指該局遊戲中桌臺可接受該投注項目的總下注數值。具體限紅值請查詢“桌臺資料”。</p>
+          <p class="rules-p">骰寶(HiLo)對沖類型說明：單-雙，大-小，其他為非對沖類型。</p>
+          <h2 class="rules-h">派彩賠率</h2>
+          <div class="rules-table-wrap">
+            <table class="rules-table">
+              <thead>
+                <tr>
+                  <th>投注項目</th>
+                  <th>說明</th>
+                  <th>賠率</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>大 / 小</td>
+                  <td>大：骰子點數總數總和在11到17之間<br>小：骰子點數總數總和在4到10之間<br>（如果結果是圍骰，則莊家通吃）</td>
+                  <td>1 賠 1</td>
+                </tr>
+                <tr>
+                  <td>圍骰</td>
+                  <td>投注指定的圍骰 ( 如 6圍骰) ，一定開出 3 顆所投注的骰子</td>
+                  <td>1 賠 150</td>
+                </tr>
+                <tr>
+                  <td>全圍</td>
+                  <td>3顆骰子都一樣</td>
+                  <td>1 賠 24。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="rules-sub">下注在單一個點數：</p>
+          <div class="rules-table-wrap">
+            <table class="rules-table">
+              <thead>
+                <tr>
+                  <th>投注項目</th>
+                  <th>說明</th>
+                  <th>賠率</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>單骰</td>
+                  <td>投注每顆骰子 1 至 6 中指定的點數，點數出現 1 次</td>
+                  <td>1 賠 1</td>
+                </tr>
+                <tr>
+                  <td>雙骰</td>
+                  <td>投注每顆骰子 1 至 6 中指定的點數，點數出現 2 次</td>
+                  <td>1 賠 2</td>
+                </tr>
+                <tr>
+                  <td>全骰</td>
+                  <td>投注每顆骰子 1 至 6 中指定的點數，點數出現 3 次</td>
+                  <td>1 賠 3</td>
+                </tr>
+                <tr>
+                  <td>對子</td>
+                  <td>投注指定的雙骰 (如雙 1 點)，至少開出 2 顆所投注的骰子，如此類推</td>
+                  <td>1 賠 8</td>
+                </tr>
+                <tr>
+                  <td>兩個骰子組合</td>
+                  <td>投注 15 種 2 顆骰子可能出現的組合 (如 1，2) (3，4) (4，5) 等等</td>
+                  <td>1 賠 5</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="rules-sub">3顆骰子點數總和：</p>
+          <div class="rules-table-wrap">
+            <table class="rules-table">
+              <thead>
+                <tr>
+                  <th>投注項目</th>
+                  <th>說明</th>
+                  <th>賠率</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>4 或 17 點</td>
+                  <td>總和為 4 或 17 點</td>
+                  <td>1 賠 50</td>
+                </tr>
+                <tr>
+                  <td>5 或 16 點</td>
+                  <td>總和為 5 或 16 點</td>
+                  <td>1 賠 18</td>
+                </tr>
+                <tr>
+                  <td>6 或 15 點</td>
+                  <td>總和為 6 或 15 點</td>
+                  <td>1 賠 14</td>
+                </tr>
+                <tr>
+                  <td>7 或 14 點</td>
+                  <td>總和為 7 或 14 點</td>
+                  <td>1 賠 12</td>
+                </tr>
+                <tr>
+                  <td>8 或 13 點</td>
+                  <td>總和為 8 或 13 點</td>
+                  <td>1 賠 8</td>
+                </tr>
+                <tr>
+                  <td>9,10,11,或 12 點</td>
+                  <td>總和為 9，10，11 或 12 點</td>
+                  <td>1 賠 6</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="rules-sub">3顆骰子點數總和:</p>
+          <div class="rules-table-wrap">
+            <table class="rules-table">
+              <thead>
+                <tr>
+                  <th>投注項目</th>
+                  <th>說明</th>
+                  <th>賠率</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>單</td>
+                  <td>總點數為 5,7,9,11,13,15,17 點（如果結果是圍骰，則莊家通吃）</td>
+                  <td>1 賠 1</td>
+                </tr>
+                <tr>
+                  <td>雙</td>
+                  <td>總點數為 4,6,8,10,12,14,16 點（如果結果是圍骰，則莊家通吃）</td>
+                  <td>1 賠 1</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h2 class="rules-h">請注意</h2>
+          <p class="rules-p">如遊戲過程中因遊戲平台網絡等故障造成未能正常完成牌局，系統將取消整局玩家下注並退回下注本金。</p>
+          <p class="rules-p">骰寶的玩家獲利率最高約為97.22%。</p>
+        </div>
+      </div>
       <audio id="voWelcome" preload="none" playsinline></audio>
       <audio id="voStartBet" preload="none" playsinline></audio>
       <audio id="voStopBet" preload="none" playsinline></audio>
@@ -1663,25 +2600,385 @@
       </button>
     </div>
   </div>
+  <script src="js/sicbo-engine.js?v=1.10.48"></script>
   <script>
     (async function () {
-      const V = 'v1.10.32';
+      const V = 'v1.10.62';
+      const START_BAL = 2000;
+      function currentUser() {
+        try {
+          const u = (sessionStorage.getItem('fg_sicbo_user')
+            || localStorage.getItem('fg_sicbo_last_user')
+            || 'asdg').trim();
+          return u || 'asdg';
+        } catch (_) {
+          return 'asdg';
+        }
+      }
+      const ACCOUNT_ID = currentUser();
+      try {
+        sessionStorage.setItem('fg_sicbo_user', ACCOUNT_ID);
+        localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
+      } catch (_) {}
+      function balKeyFor(user) {
+        return 'fg_sicbo_bal::' + String(user || 'asdg').trim().toLowerCase();
+      }
+      const BAL_KEY = balKeyFor(ACCOUNT_ID);
+      function loadSavedBalance() {
+        try {
+          let raw = localStorage.getItem(BAL_KEY);
+          if (raw == null || raw === '') {
+            const legacy = localStorage.getItem('fg_sicbo_balance');
+            if (legacy != null && legacy !== '') {
+              raw = legacy;
+              localStorage.setItem(BAL_KEY, String(Math.max(0, Math.round(Number(legacy)) || 0)));
+            }
+          }
+          if (raw == null || raw === '') return START_BAL;
+          const n = Math.round(Number(raw));
+          if (!Number.isFinite(n) || n < 0) return START_BAL;
+          return n;
+        } catch (_) {
+          return START_BAL;
+        }
+      }
+      function saveBalance(n) {
+        const v = String(Math.max(0, Math.round(n)));
+        try {
+          localStorage.setItem(BAL_KEY, v);
+          localStorage.setItem('fg_sicbo_balance', v);
+          localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
+        } catch (_) {}
+      }
+      const BET_LOG_KEY = 'fg_sicbo_betlog::' + ACCOUNT_ID.trim().toLowerCase();
+      function loadBetLog() {
+        try {
+          const raw = localStorage.getItem(BET_LOG_KEY);
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch (_) {
+          return [];
+        }
+      }
+      function saveBetLog(list) {
+        try {
+          localStorage.setItem(BET_LOG_KEY, JSON.stringify(list.slice(0, 2000)));
+        } catch (_) {}
+      }
+      function pushBetRecords(rows) {
+        if (!rows || !rows.length) return;
+        const list = loadBetLog();
+        for (let i = rows.length - 1; i >= 0; i--) list.unshift(rows[i]);
+        saveBetLog(list);
+      }
+      const OPEN_BETS_KEY = 'fg_sicbo_openbets::' + ACCOUNT_ID.trim().toLowerCase();
+      let roundGen = 0;
+      let balance = loadSavedBalance();
       const backHot = document.getElementById('backHot');
       if (backHot) {
         backHot.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
           // 大厅有鉴权：不写回 flag 会被踢去登录页。上一页=选桌，不是首页。
-          try { sessionStorage.setItem('fg_sicbo_auth', '1'); } catch (_) {}
+          try {
+            sessionStorage.setItem('fg_sicbo_auth', '1');
+            sessionStorage.setItem('fg_sicbo_user', ACCOUNT_ID);
+            localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
+            saveBalance(balance);
+          } catch (_) {}
           location.replace(new URL(`lobby.html?v=${V}`, location.href).href);
         });
+      }
+      const helpWrap = document.getElementById('helpWrap');
+      const helpHot = document.getElementById('helpHot');
+      const helpTip = document.getElementById('helpTip');
+      const rulesOverlay = document.getElementById('rulesOverlay');
+      const rulesClose = document.getElementById('rulesClose');
+      const recordWrap = document.getElementById('recordWrap');
+      const recordHot = document.getElementById('recordHot');
+      const recordTip = document.getElementById('recordTip');
+      const recordsOverlay = document.getElementById('recordsOverlay');
+      const recordsClose = document.getElementById('recordsClose');
+      let recPage = 1;
+      const REC_PAGE_SIZE = 10;
+      let recFilter = { round: '', order: '', from: 0, to: 0 };
+      function fmtRecTime(ts) {
+        const d = new Date(ts);
+        const p = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+      }
+      function fmtDateInput(d) {
+        const p = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+      }
+      function parseRecDateParts(raw) {
+        const s = String(raw || '').trim();
+        if (!s) return null;
+        let m = /^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/.exec(s);
+        if (!m) m = /^(\d{4})(\d{2})(\d{2})$/.exec(s);
+        if (!m) return null;
+        const y = Number(m[1]);
+        const mo = Number(m[2]);
+        const d = Number(m[3]);
+        if (!y || mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+        return { y, mo, d };
+      }
+      function parseRecDayStart(raw) {
+        const p = parseRecDateParts(raw);
+        if (!p) return 0;
+        return new Date(p.y, p.mo - 1, p.d, 0, 0, 0, 0).getTime();
+      }
+      function parseRecDayEnd(raw) {
+        const p = parseRecDateParts(raw);
+        if (!p) return 0;
+        return new Date(p.y, p.mo - 1, p.d, 23, 59, 59, 999).getTime();
+      }
+      function syncRecFilterFromInputs() {
+        const roundEl = document.getElementById('recRoundQ');
+        const orderEl = document.getElementById('recOrderQ');
+        const fromEl = document.getElementById('recFrom');
+        const toEl = document.getElementById('recTo');
+        recFilter.round = ((roundEl && roundEl.value) || '').trim();
+        recFilter.order = ((orderEl && orderEl.value) || '').trim();
+        const fromRaw = fromEl ? (fromEl.value || fromEl.getAttribute('value') || '') : '';
+        const toRaw = toEl ? (toEl.value || toEl.getAttribute('value') || '') : '';
+        recFilter.from = parseRecDayStart(fromRaw);
+        recFilter.to = parseRecDayEnd(toRaw);
+      }
+      function initRecDateDefaults() {
+        const fromEl = document.getElementById('recFrom');
+        const toEl = document.getElementById('recTo');
+        if (!fromEl || !toEl) return;
+        const now = new Date();
+        const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+        if (!fromEl.value) fromEl.value = fmtDateInput(from);
+        if (!toEl.value) toEl.value = fmtDateInput(now);
+      }
+      function filteredBetLog() {
+        return loadBetLog().filter((r) => {
+          const ts = Number(r.ts) || 0;
+          if (recFilter.round && !String(r.roundId || '').includes(recFilter.round)) return false;
+          if (recFilter.order && !String(r.betId || '').includes(recFilter.order)) return false;
+          if (recFilter.from && ts < recFilter.from) return false;
+          if (recFilter.to && ts > recFilter.to) return false;
+          return true;
+        });
+      }
+      function setRecQueryMsg(text, kind) {
+        const el = document.getElementById('recQueryMsg');
+        if (!el) return;
+        el.textContent = text || '';
+        el.classList.toggle('is-empty', kind === 'empty');
+        el.classList.toggle('is-ok', kind === 'ok');
+      }
+      function paintRecords() {
+        const body = document.getElementById('recordsBody');
+        const sumEl = document.getElementById('recordsSum');
+        const totalLabel = document.getElementById('recordsTotalLabel');
+        const pageLabel = document.getElementById('recordsPageLabel');
+        const prevBtn = document.getElementById('recPrev');
+        const nextBtn = document.getElementById('recNext');
+        if (!body) return;
+        const all = filteredBetLog();
+        const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
+        if (recPage > pages) recPage = pages;
+        if (recPage < 1) recPage = 1;
+        const start = (recPage - 1) * REC_PAGE_SIZE;
+        const pageRows = all.slice(start, start + REC_PAGE_SIZE);
+        const filtered = !!(recFilter.round || recFilter.order || recFilter.from || recFilter.to);
+        if (!pageRows.length) {
+          const emptyText = filtered ? '該時段沒有符合條件的記錄' : '暫無投注記錄';
+          body.innerHTML = `<tr class="records-empty"><td colspan="12">${emptyText}</td></tr>`;
+        } else {
+          body.innerHTML = pageRows.map((r) => {
+            const pnl = Number(r.pnl) || 0;
+            const pnlCls = pnl > 0 ? 'pnl-win' : (pnl < 0 ? 'pnl-lose' : '');
+            return `<tr>
+              <td>${r.betId}</td>
+              <td>${fmtRecTime(r.ts)}</td>
+              <td>—</td>
+              <td>${r.roundId}</td>
+              <td>骰寶</td>
+              <td>${r.tableId || 'S601'}</td>
+              <td>${r.result || '—'}</td>
+              <td>${r.market || '—'}</td>
+              <td>${r.stake}</td>
+              <td class="${pnlCls}">${pnl}</td>
+              <td>${r.stake}</td>
+              <td class="st-ok">已結算</td>
+            </tr>`;
+          }).join('');
+        }
+        const pageStake = pageRows.reduce((s, r) => s + (Number(r.stake) || 0), 0);
+        const pagePnl = pageRows.reduce((s, r) => s + (Number(r.pnl) || 0), 0);
+        const allStake = all.reduce((s, r) => s + (Number(r.stake) || 0), 0);
+        const allPnl = all.reduce((s, r) => s + (Number(r.pnl) || 0), 0);
+        const pnlClass = (n) => (n > 0 ? 'pnl-win' : (n < 0 ? 'pnl-lose' : ''));
+        if (sumEl) {
+          sumEl.innerHTML =
+            `小計　下注總額 ${pageStake.toLocaleString('en-US')}　`
+            + `輸贏 <span class="${pnlClass(pagePnl)}">${pagePnl.toLocaleString('en-US')}</span>　`
+            + `有效投注 ${pageStake.toLocaleString('en-US')}<br>`
+            + `總計　下注總額 ${allStake.toLocaleString('en-US')}　`
+            + `輸贏 <span class="${pnlClass(allPnl)}">${allPnl.toLocaleString('en-US')}</span>　`
+            + `有效投注 ${allStake.toLocaleString('en-US')}`;
+        }
+        if (totalLabel) totalLabel.textContent = `總計: ${all.length}`;
+        if (pageLabel) pageLabel.textContent = `${recPage}/${pages}`;
+        if (prevBtn) prevBtn.disabled = recPage <= 1;
+        if (nextBtn) nextBtn.disabled = recPage >= pages;
+      }
+      function openRecords() {
+        if (recordTip) recordTip.classList.remove('show');
+        if (recordWrap) recordWrap.classList.remove('is-hover');
+        if (!recordsOverlay) return;
+        initRecDateDefaults();
+        syncRecFilterFromInputs();
+        setRecQueryMsg('');
+        recPage = 1;
+        paintRecords();
+        recordsOverlay.classList.add('show');
+        recordsOverlay.setAttribute('aria-hidden', 'false');
+      }
+      function closeRecords() {
+        if (!recordsOverlay) return;
+        recordsOverlay.classList.remove('show');
+        recordsOverlay.setAttribute('aria-hidden', 'true');
+      }
+      if (recordHot && recordTip && recordWrap) {
+        const showRecordTip = (on) => {
+          recordTip.classList.toggle('show', on);
+          recordWrap.classList.toggle('is-hover', on);
+        };
+        recordHot.addEventListener('mouseenter', () => showRecordTip(true));
+        recordHot.addEventListener('mouseleave', () => showRecordTip(false));
+        recordHot.addEventListener('focus', () => showRecordTip(true));
+        recordHot.addEventListener('blur', () => showRecordTip(false));
+        recordHot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openRecords();
+        });
+      }
+      if (recordsClose) {
+        recordsClose.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeRecords();
+        });
+      }
+      if (recordsOverlay) {
+        recordsOverlay.addEventListener('click', (e) => {
+          if (e.target === recordsOverlay) closeRecords();
+        });
+      }
+      function runRecQuery(ev) {
+        if (ev) {
+          try { ev.preventDefault(); ev.stopPropagation(); } catch (_) {}
+        }
+        try {
+          syncRecFilterFromInputs();
+          const fromEl = document.getElementById('recFrom');
+          const toEl = document.getElementById('recTo');
+          const fromRaw = fromEl ? String(fromEl.value || '').trim() : '';
+          const toRaw = toEl ? String(toEl.value || '').trim() : '';
+          // 填了但解析失败：直接提示，避免“没反应”
+          if (fromRaw && !recFilter.from) {
+            setRecQueryMsg('開始日期格式無效，請重選', 'empty');
+            return;
+          }
+          if (toRaw && !recFilter.to) {
+            setRecQueryMsg('結束日期格式無效，請重選', 'empty');
+            return;
+          }
+          if (!fromRaw) recFilter.from = 0;
+          if (!toRaw) recFilter.to = 0;
+          if (recFilter.from && recFilter.to && recFilter.from > recFilter.to) {
+            setRecQueryMsg('開始時間不能晚於結束時間', 'empty');
+            const body = document.getElementById('recordsBody');
+            if (body) body.innerHTML = '<tr class="records-empty"><td colspan="12">時間區間無效</td></tr>';
+            const totalLabel = document.getElementById('recordsTotalLabel');
+            if (totalLabel) totalLabel.textContent = '總計: 0';
+            return;
+          }
+          recPage = 1;
+          paintRecords();
+          const n = filteredBetLog().length;
+          if (n > 0) {
+            setRecQueryMsg(`查詢完成：共 ${n} 筆（已按時間篩選）`, 'ok');
+          } else {
+            setRecQueryMsg('該時段沒有記錄', 'empty');
+          }
+          try {
+            if (typeof showToast === 'function') {
+              showToast(n > 0 ? `查到 ${n} 筆` : '該時段無記錄', 1400);
+            }
+          } catch (_) {}
+        } catch (err) {
+          setRecQueryMsg('查詢失敗，請重試', 'empty');
+        }
+      }
+      window.__fgRecQuery = runRecQuery;
+      const recQueryBtn = document.getElementById('recQueryBtn');
+      if (recQueryBtn) {
+        recQueryBtn.addEventListener('click', (e) => runRecQuery(e));
+      }
+      ['recRoundQ', 'recOrderQ', 'recFrom', 'recTo'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') runRecQuery(e);
+        });
+        el.addEventListener('change', () => {
+          setRecQueryMsg('日期已更改，請點「查詢」', '');
+        });
+      });
+      const recPrev = document.getElementById('recPrev');
+      const recNext = document.getElementById('recNext');
+      if (recPrev) recPrev.addEventListener('click', () => { recPage -= 1; paintRecords(); });
+      if (recNext) recNext.addEventListener('click', () => { recPage += 1; paintRecords(); });
+      if (helpHot && helpTip && helpWrap) {
+        const showHelpTip = (on) => {
+          helpTip.classList.toggle('show', on);
+          helpWrap.classList.toggle('is-hover', on);
+        };
+        const openRules = () => {
+          showHelpTip(false);
+          if (!rulesOverlay) return;
+          rulesOverlay.classList.add('show');
+          rulesOverlay.setAttribute('aria-hidden', 'false');
+        };
+        const closeRules = () => {
+          if (!rulesOverlay) return;
+          rulesOverlay.classList.remove('show');
+          rulesOverlay.setAttribute('aria-hidden', 'true');
+        };
+        helpHot.addEventListener('mouseenter', () => showHelpTip(true));
+        helpHot.addEventListener('mouseleave', () => showHelpTip(false));
+        helpHot.addEventListener('focus', () => showHelpTip(true));
+        helpHot.addEventListener('blur', () => showHelpTip(false));
+        helpHot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openRules();
+        });
+        if (rulesClose) rulesClose.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeRules();
+        });
+        if (rulesOverlay) {
+          rulesOverlay.addEventListener('click', (e) => {
+            if (e.target === rulesOverlay) closeRules();
+          });
+        }
       }
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
       const SLOT_LEFT = [69.104, 74.543, 79.982, 85.283];
       const GAP = SLOT_LEFT[1] - SLOT_LEFT[0];
       const BET_SECS = 22;
-      const START_BAL = 2000;
       /** 玩法限红（与限红浮层一致；筹码最小 10，低于 10 的下限实际按 10 起） */
       const SUM_LIMITS = {
         4: { min: 1, max: 200 }, 17: { min: 1, max: 200 },
@@ -1861,8 +3158,13 @@
       const STAKE_PANEL_KEYS = ['big', 'small', 'odd', 'even', 'wrap'];
       const resultBoard = document.getElementById('resultBoard');
       const resultDice = document.getElementById('resultDice');
-      const resultSum = document.getElementById('resultSum');
+      const resultSumNum = document.getElementById('resultSumNum');
+      const resultSize = document.getElementById('resultSize');
+      const resultParity = document.getElementById('resultParity');
       const resultPay = document.getElementById('resultPay');
+      const roadGrid = document.getElementById('roadGrid');
+      const ROAD_MAX = 16;
+      const roadHistory = [];
       const betZones = [...document.querySelectorAll('.bet-zone')];
       const btnRepeat = document.getElementById('btnRepeat');
       const btnConfirm = document.getElementById('btnConfirm');
@@ -1912,7 +3214,6 @@
       let busy = false;
       let bettingOpen = true;
       let roundStarted = false;
-      let balance = START_BAL;
       let bets = emptyBets();
       let lastPnl = { big: null, small: null, odd: null, even: null, wrap: null };
       let betDenom = emptyDenom();
@@ -1924,6 +3225,7 @@
       function setBalance(n, flash) {
         const prev = balance;
         balance = Math.max(0, Math.round(n));
+        saveBalance(balance);
         balEl.textContent = fmtBal(balance);
         if (flash && balance !== prev) {
           balEl.classList.remove('flash-up', 'flash-down');
@@ -2089,6 +3391,7 @@
         let staked = 0;
         let returned = 0;
         const hits = [];
+        const settleLines = [];
         const dice = info.dice;
         const counts = [0, 0, 0, 0, 0, 0, 0];
         for (const n of dice) counts[n] += 1;
@@ -2133,16 +3436,35 @@
             win = info.sum === n;
             mult = (SUM_ODDS[n] || 0) + 1;
           }
+          let linePnl = -stake;
           if (win) {
             returned += stake * mult;
             hits.push(BET_LABEL[key] || key);
-            if (key in nextPnl) nextPnl[key] = stake * (mult - 1);
+            linePnl = stake * (mult - 1);
+            if (key in nextPnl) nextPnl[key] = linePnl;
           } else if (key in nextPnl) {
             nextPnl[key] = -stake;
           }
+          settleLines.push({ key, stake, pnl: linePnl, win });
         }
         lastPnl = nextPnl;
         paintStakePanel();
+        if (settleLines.length) {
+          const ts = Date.now();
+          const roundId = String(530000000 + (ts % 100000000));
+          const resultStr = `${info.dice[0]}, ${info.dice[1]}, ${info.dice[2]}`;
+          pushBetRecords(settleLines.map((line, idx) => ({
+            betId: String(ts) + String(idx).padStart(2, '0') + String(Math.floor(Math.random() * 90) + 10),
+            ts,
+            roundId,
+            tableId: 'S601',
+            result: resultStr,
+            market: BET_LABEL[line.key] || line.key,
+            stake: line.stake,
+            pnl: line.pnl,
+          })));
+        }
+        clearOpenBetSnapshot();
         const net = returned - staked;
         if (returned > 0) {
           setBalance(balance + returned, true);
@@ -2155,19 +3477,121 @@
         }
         return { staked, returned, net, hits };
       }
+      function persistOpenBets() {
+        try {
+          const snap = {};
+          let any = false;
+          Object.keys(bets).forEach((k) => {
+            const n = bets[k] || 0;
+            if (n > 0) { snap[k] = n; any = true; }
+          });
+          if (!any) {
+            localStorage.removeItem(OPEN_BETS_KEY);
+            return;
+          }
+          const den = {};
+          Object.keys(snap).forEach((k) => { den[k] = betDenom[k] || snap[k]; });
+          localStorage.setItem(OPEN_BETS_KEY, JSON.stringify({ bets: snap, betDenom: den, ts: Date.now() }));
+        } catch (_) {}
+      }
+      function clearOpenBetSnapshot() {
+        try { localStorage.removeItem(OPEN_BETS_KEY); } catch (_) {}
+      }
+      function restoreOpenBetsFromStore() {
+        try {
+          const raw = localStorage.getItem(OPEN_BETS_KEY);
+          if (!raw) return false;
+          const o = JSON.parse(raw);
+          if (!o || !o.bets) return false;
+          let any = false;
+          Object.keys(o.bets).forEach((k) => {
+            const n = Math.round(Number(o.bets[k]) || 0);
+            if (n > 0) {
+              bets[k] = n;
+              betDenom[k] = (o.betDenom && o.betDenom[k]) || n;
+              any = true;
+            }
+          });
+          return any;
+        } catch (_) {
+          return false;
+        }
+      }
+      function hasOpenBets() {
+        return Object.keys(bets).some((k) => (bets[k] || 0) > 0);
+      }
+      /** 中途退出：只结算「已点确定」的注；未确定的选盘一律作废，不算赢 */
+      function finalizeOpenBets() {
+        // 未点确定的挂单直接丢弃
+        pendingMarket = null;
+        pendingStake = 0;
+        try { paintPending(); } catch (_) {}
+        if (!hasOpenBets()) restoreOpenBetsFromStore();
+        if (!hasOpenBets()) {
+          clearOpenBetSnapshot();
+          return false;
+        }
+        roundGen += 1;
+        roundStarted = false;
+        const info = classify(rollDice());
+        const pay = settle(info);
+        resetBets();
+        clearOpenBetSnapshot();
+        try { paintBets(); paintPending(); } catch (_) {}
+        saveBalance(balance);
+        // 收官静默记账，不口播「恭喜」（避免未确定也被当成赢）
+        return !!(pay && pay.staked > 0);
+      }
+      const videoDice = document.getElementById('videoDice');
       function paintDiceFaces(dice) {
-        const dies = [...resultDice.querySelectorAll('.die')];
-        dice.forEach((n, i) => {
-          const el = dies[i];
-          if (!el) return;
-          el.className = `die p${n}`;
+        const targets = [];
+        if (resultDice) targets.push(...resultDice.querySelectorAll('.die'));
+        if (videoDice) targets.push(...videoDice.querySelectorAll('.die'));
+        const pairs = [
+          resultDice ? [...resultDice.querySelectorAll('.die')] : [],
+          videoDice ? [...videoDice.querySelectorAll('.die')] : [],
+        ];
+        pairs.forEach((dies) => {
+          dice.forEach((n, i) => {
+            const el = dies[i];
+            if (!el) return;
+            el.className = `die p${n}`;
+          });
         });
       }
-      function showDiceOnly(info) {
+      function paintResultCard(info) {
         paintDiceFaces(info.dice);
-        const sizeTxt = info.size === 'big' ? '大' : '小';
-        const parTxt = info.parity === 'odd' ? '单' : '双';
-        resultSum.textContent = `${info.dice[0]} · ${info.dice[1]} · ${info.dice[2]}  共 ${info.sum} 点 · ${sizeTxt}/${parTxt}`;
+        resultSumNum.textContent = String(info.sum);
+        resultSize.textContent = info.size === 'big' ? '大' : '小';
+        resultParity.textContent = info.parity === 'odd' ? '單' : '雙';
+      }
+      function paintRoadGrid() {
+        if (!roadGrid) return;
+        roadGrid.innerHTML = '';
+        const list = roadHistory.slice(-ROAD_MAX);
+        roadGrid.classList.toggle('has-rows', list.length > 0);
+        list.forEach((item, idx) => {
+          const cell = document.createElement('div');
+          const fresh = idx === list.length - 1;
+          cell.className = 'road-cell'
+            + (item.size === 'big' ? ' is-big' : ' is-small')
+            + (fresh ? ' is-fresh' : '');
+          cell.innerHTML = `<span class="n">${item.sum}</span><span class="t">${item.size === 'big' ? '大' : '小'}${item.parity === 'odd' ? '單' : '雙'}</span>`;
+          roadGrid.appendChild(cell);
+        });
+      }
+      function pushRoad(info) {
+        roadHistory.push({
+          sum: info.sum,
+          size: info.size,
+          parity: info.parity,
+          dice: info.dice.slice(),
+        });
+        if (roadHistory.length > 40) roadHistory.splice(0, roadHistory.length - 40);
+        paintRoadGrid();
+      }
+      function showDiceOnly(info) {
+        paintResultCard(info);
         resultPay.classList.remove('win', 'lose', 'flat');
         resultPay.textContent = '开奖中';
         resultPay.classList.add('flat');
@@ -2175,12 +3599,11 @@
         resultBoard.classList.add('show');
       }
       function showResultPay(info, pay) {
-        const sizeTxt = info.size === 'big' ? '大' : '小';
-        const parTxt = info.parity === 'odd' ? '单' : '双';
-        resultSum.textContent = `${info.dice[0]} · ${info.dice[1]} · ${info.dice[2]}  共 ${info.sum} 点 · ${sizeTxt}/${parTxt}`;
+        paintResultCard(info);
+        pushRoad(info);
         resultPay.classList.remove('win', 'lose', 'flat');
         if (pay.staked <= 0) {
-          resultPay.textContent = '本局未下注';
+          resultPay.textContent = '';
           resultPay.classList.add('flat');
           hideBoardOutcome();
         } else if (pay.net > 0) {
@@ -2579,7 +4002,11 @@
         return new Promise((r) => setTimeout(r, ms));
       }
       function alive() {
-        return !Voice.dead && !document.hidden;
+        // 仅校验本局世代；切走/关页由 finalizeOpenBets 收官，不在此用 hidden 直接作废
+        return !Voice.dead;
+      }
+      function stillThisRound(gen) {
+        return gen === roundGen && !Voice.dead;
       }
       function whenAudioReady() {
         if (Voice.unlocked && !Voice.dead) return Promise.resolve();
@@ -2592,79 +4019,96 @@
 
       async function runRound() {
         if (roundStarted) return;
+        const gen = ++roundGen;
         roundStarted = true;
         resetBets();
+        clearOpenBetSnapshot();
         hideResult();
         setBettingOpen(true);
         showStopBet(false);
         setTimerDisplay(BET_SECS);
 
+        const bail = () => {
+          if (gen !== roundGen) return;
+          // 切走时若已有确认注，先收官再结束本局循环
+          if (hasOpenBets()) finalizeOpenBets();
+          if (gen === roundGen) roundStarted = false;
+        };
+
         // 浏览器禁止未手势自动播：必须等用户点一下再出声，否则会「假成功」导致以后再也不欢迎
         await whenAudioReady();
-        if (!alive()) { roundStarted = false; return; }
+        if (!stillThisRound(gen)) { bail(); return; }
 
         if (!welcomed) {
-          if (!alive()) { roundStarted = false; return; }
+          if (!stillThisRound(gen)) { bail(); return; }
           const okWelcome = await Voice.speak('欢迎进入骰宝游戏');
-          if (!alive()) { roundStarted = false; return; }
+          if (!stillThisRound(gen)) { bail(); return; }
           if (okWelcome) {
             await sleep(280);
-            if (!alive()) { roundStarted = false; return; }
+            if (!stillThisRound(gen)) { bail(); return; }
             const okStart = await Voice.speak('开始下注');
             if (okStart) welcomed = true;
           }
           // 若被自动播放拦截，不标 welcomed，下次点按再试
           if (!welcomed) {
-            roundStarted = false;
+            if (gen === roundGen) roundStarted = false;
             return;
           }
         } else {
-          if (!alive()) { roundStarted = false; return; }
+          if (!stillThisRound(gen)) { bail(); return; }
           await Voice.speak('开始下注');
         }
 
         for (let t = BET_SECS; t >= 1; t--) {
-          if (!alive()) { roundStarted = false; return; }
+          if (!stillThisRound(gen)) { bail(); return; }
           setTimerDisplay(t);
           if (t <= 10) Voice.bombTick();
           else Voice.tick();
           await sleep(1000);
         }
 
-        if (!alive()) { roundStarted = false; return; }
+        if (!stillThisRound(gen)) { bail(); return; }
         setTimerDisplay(0);
         setBettingOpen(false);
         showStopBet(true);
         await Voice.speak('停止下注');
 
         // 停注后停顿 5 秒 → 三骰上屏 → 报点数 → 再判输赢
-        if (!alive()) { roundStarted = false; return; }
+        if (!stillThisRound(gen)) { bail(); return; }
         await sleep(5000);
-        if (!alive()) { roundStarted = false; return; }
+        if (!stillThisRound(gen)) { bail(); return; }
         showStopBet(false);
 
         const info = classify(rollDice());
         showDiceOnly(info);
         const [a, b, c] = info.dice;
         await Voice.speak(`${a}点、${b}点、${c}点，共${info.sum}点`, { rate: 0.84 });
-        if (!alive()) { roundStarted = false; return; }
+        if (!stillThisRound(gen)) { bail(); return; }
+
+        // 未点确定的挂单：开奖前作废，绝不参与结算
+        pendingMarket = null;
+        pendingStake = 0;
+        paintPending();
 
         const pay = settle(info);
+        resetBets();
+        paintBets();
         showResultPay(info, pay);
 
-        if (pay.staked > 0 && pay.net > 0) {
-          // 赢：金币哗啦啦，再说恭喜
+        // 只有本局确实有「已确定」投注且净赢才口播恭喜
+        if (pay.staked > 0 && pay.net > 0 && stillThisRound(gen)) {
           await Voice.playSfx('coin');
           await sleep(200);
           await Voice.playSfx('coin');
-          await Voice.speak('恭喜你赢钱了');
+          if (stillThisRound(gen)) await Voice.speak('恭喜你赢钱了');
         }
         // 输：只显示小白字「输」，不说话
 
-        if (!alive()) { roundStarted = false; return; }
+        if (!stillThisRound(gen)) { bail(); return; }
         await sleep(3500);
+        if (gen !== roundGen) return;
         roundStarted = false;
-        if (alive()) runRound();
+        if (stillThisRound(gen)) runRound();
       }
 
       // 静默解锁音频，无提示按钮
@@ -2674,16 +4118,40 @@
         notifyAudioReady();
         if (!roundStarted) runRound();
       }, { passive: true });
-      // 关页/切走：马上静音（capture 尽早拦；切回前台不自动恢复，点一下再播）
-      const killAudio = () => Voice.silence();
-      window.addEventListener('pagehide', killAudio, true);
-      window.addEventListener('beforeunload', killAudio, true);
-      window.addEventListener('unload', killAudio, true);
-      window.addEventListener('freeze', killAudio, true);
+      // 关页：丢弃未确定选盘；仅「已确定」注码收官结算；再静音
+      const leavePage = () => {
+        pendingMarket = null;
+        pendingStake = 0;
+        try { paintPending(); } catch (_) {}
+        try { finalizeOpenBets(); } catch (_) {}
+        try { saveBalance(balance); } catch (_) {}
+        Voice.silence();
+      };
+      window.addEventListener('pagehide', leavePage, true);
+      window.addEventListener('beforeunload', leavePage, true);
+      window.addEventListener('unload', leavePage, true);
+      window.addEventListener('freeze', leavePage, true);
+      // 仅切后台：本局继续倒数/开奖；未确定选盘保留；不口播收官
       document.addEventListener('visibilitychange', () => {
-        if (document.hidden) Voice.silence();
+        if (document.hidden) {
+          try { saveBalance(balance); } catch (_) {}
+          try { persistOpenBets(); } catch (_) {}
+          // 停声但不标 dead，避免把未确定当成退出收官
+          try {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            document.querySelectorAll('audio').forEach((el) => { try { el.pause(); } catch (_) {} });
+          } catch (_) {}
+        }
       }, true);
-      setBalance(START_BAL);
+      (function paintAccountTip() {
+        const nick = document.getElementById('accountNick');
+        const aid = document.getElementById('accountId');
+        if (nick) nick.textContent = ACCOUNT_ID;
+        if (aid) aid.textContent = ACCOUNT_ID;
+      })();
+      setBalance(balance);
+      // 上次关页留下的「已确定未结算」注：进页静默收官（不播恭喜）
+      try { finalizeOpenBets(); } catch (_) {}
       setTimerDisplay(BET_SECS);
       runRound();
 
@@ -2761,6 +4229,7 @@
         setBalance(balance - amt, true);
         bets[key] += amt;
         betDenom[key] = selected || amt;
+        persistOpenBets();
         pendingMarket = null;
         pendingStake = 0;
         paintBets();
@@ -2795,15 +4264,21 @@
         showToast(`加倍 ${pendingStake}`, 1000);
       }
 
-      /** 取消：清掉未确认的选择 */
+      /** 取消：清掉未点「确定」的选盘/挂单（已确定的注不受影响） */
       function cancelBet() {
-        if (!bettingOpen) return;
-        Voice.playQuick('keyClick', 0.65);
-        if (!pendingMarket && pendingStake <= 0) {
-          showToast('没有可取消的下注', 1000);
+        if (!bettingOpen) {
+          showToast('已停止下注，无法取消', 1200);
           return;
         }
-        clearPending(false);
+        Voice.playQuick('keyClick', 0.65);
+        if (!pendingMarket && pendingStake <= 0) {
+          showToast('没有可取消的选择', 1000);
+          return;
+        }
+        pendingMarket = null;
+        pendingStake = 0;
+        paintPending();
+        showToast('已取消', 1000);
       }
 
       betZones.forEach((zone) => {

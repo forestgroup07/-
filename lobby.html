@@ -191,12 +191,12 @@
       height: 118px;
       background:
         linear-gradient(180deg, transparent 40%, rgba(0,0,0,.75)),
-        url("assets/lobby-thumb.webp?v=v1.10.32") center / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.10.62") center / cover no-repeat;
     }
     .card.featured .thumb {
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
-        url("assets/lobby-thumb.webp?v=v1.10.32") center 30% / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.10.62") center 30% / cover no-repeat;
     }
     .card .meta {
       padding: .65rem .75rem .75rem;
@@ -245,8 +245,8 @@
   <div class="app">
     <header class="top">
       <div class="top-left">
-        <div class="user"><span class="avatar">A</span><span>asdg</span></div>
-        <div class="bal"><span class="chip-ico"></span><span>2,000.00</span></div>
+        <div class="user"><span class="avatar" id="lobbyAvatar">A</span><span id="lobbyUser">asdg</span></div>
+        <div class="bal"><span class="chip-ico"></span><span id="lobbyBal">2,000.00</span></div>
         <div class="limit">10 - 5,000</div>
       </div>
       <div class="top-right">
@@ -284,13 +284,65 @@
 
   <script>
     (function () {
-      const GAME = 'game.html?v=v1.10.32';
+      const GAME = 'game.html?v=v1.10.62';
+      const START_BAL = 2000;
+      function currentUser() {
+        try {
+          const u = (sessionStorage.getItem('fg_sicbo_user')
+            || localStorage.getItem('fg_sicbo_last_user')
+            || 'asdg').trim();
+          return u || 'asdg';
+        } catch (_) {
+          return 'asdg';
+        }
+      }
+      function balKeyFor(user) {
+        return 'fg_sicbo_bal::' + String(user || 'asdg').trim().toLowerCase();
+      }
+      function loadBal(user) {
+        try {
+          let raw = localStorage.getItem(balKeyFor(user));
+          if (raw == null || raw === '') {
+            raw = localStorage.getItem('fg_sicbo_balance');
+          }
+          if (raw == null || raw === '') return START_BAL;
+          const n = Math.round(Number(raw));
+          return Number.isFinite(n) && n >= 0 ? n : START_BAL;
+        } catch (_) {
+          return START_BAL;
+        }
+      }
       try {
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
-          location.replace('index.html?v=v1.10.32');
+          location.replace('index.html?v=v1.10.62');
           return;
         }
+        let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
+        if (!u) {
+          u = currentUser();
+          sessionStorage.setItem('fg_sicbo_user', u);
+          localStorage.setItem('fg_sicbo_last_user', u);
+        }
       } catch (_) { /* ignore */ }
+
+      function paintUserBar() {
+        const u = currentUser();
+        const nameEl = document.getElementById('lobbyUser');
+        const av = document.getElementById('lobbyAvatar');
+        const balEl = document.getElementById('lobbyBal');
+        if (nameEl) nameEl.textContent = u;
+        if (av) av.textContent = (u.charAt(0) || 'A').toUpperCase();
+        if (balEl) {
+          balEl.textContent = loadBal(u).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        }
+      }
+      paintUserBar();
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) paintUserBar();
+      });
 
       const tables = [
         { id: 'S601', name: '骰寶 S601', kind: 'sicbo', featured: true, sec: 22 },
@@ -351,8 +403,11 @@
       });
 
       document.getElementById('logoutBtn').addEventListener('click', () => {
-        try { sessionStorage.removeItem('fg_sicbo_auth'); } catch (_) {}
-        location.href = 'index.html?v=v1.10.32';
+        try {
+          sessionStorage.removeItem('fg_sicbo_auth');
+          sessionStorage.removeItem('fg_sicbo_user');
+        } catch (_) {}
+        location.href = 'index.html?v=v1.10.62';
       });
 
       paint();

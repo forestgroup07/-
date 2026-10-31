@@ -1,0 +1,254 @@
+[
+  {
+    "key": "c12",
+    "box": [
+      1535,
+      699,
+      1621,
+      759
+    ],
+    "w": 86,
+    "h": 60,
+    "file": "assets/pair-dice/c12.webp"
+  },
+  {
+    "key": "c13",
+    "box": [
+      1627,
+      699,
+      1713,
+      759
+    ],
+    "w": 86,
+    "h": 60,
+    "file": "assets/pair-dice/c13.webp"
+  },
+  {
+    "key": "c14",
+    "box": [
+      1719,
+      699,
+      1805,
+      759
+    ],
+    "w": 86,
+    "h": 60,
+    "file": "assets/pair-dice/c14.webp"
+  },
+  {
+    "key": "c15",
+    "box": [
+      1811,
+      699,
+      1898,
+      759
+    ],
+    "w": 87,
+    "h": 60,
+    "file": "assets/pair-dice/c15.webp"
+  },
+  {
+    "key": "c16",
+    "box": [
+      1904,
+      699,
+      1991,
+      759
+    ],
+    "w": 87,
+    "h": 60,
+    "file": "assets/pair-dice/c16.webp"
+  },
+  {
+    "key": "c23",
+    "box": [
+      1997,
+      699,
+      2083,
+      759
+    ],
+    "w": 86,
+    "h": 60,
+    "file": "assets/pair-dice/c23.webp"
+  },
+  {
+    "key": "c24",
+    "box": [
+      2089,
+      699,
+      2173,
+      759
+    ],
+    "w": 84,
+    "h": 60,
+    "file": "assets/pair-dice/c24.webp"
+  },
+  {
+    "key": "c25",
+    "box": [
+      1535,
+      791,
+      1609,
+      859
+    ],
+    "w": 74,
+    "h": 68,
+    "file": "assets/pair-dice/c25.webp"
+  },
+  {
+    "key": "c26",
+    "box": [
+      1615,
+      791,
+      1691,
+      859
+    ],
+    "w": 76,
+    "h": 68,
+    "file": "assets/pair-dice/c26.webp"
+  },
+  {
+    "key": "c34",
+    "box": [
+      1697,
+      791,
+      1771,
+      859
+    ],
+    "w": 74,
+    "h": 68,
+    "file": "assets/pair-dice/c34.webp"
+  },
+  {
+    "key": "c35",
+    "box": [
+      1777,
+      791,
+      1851,
+      859
+    ],
+    "w": 74,
+    "h": 68,
+    "file": "assets/pair-dice/c35.webp"
+  },
+  {
+    "key": "c36",
+    "box": [
+      1857,
+      791,
+      1933,
+      859
+    ],
+    "w": 76,
+    "h": 68,
+    "file": "assets/pair-dice/c36.webp"
+  },
+  {
+    "key": "c45",
+    "box": [
+      1939,
+      791,
+      2013,
+      859
+    ],
+    "w": 74,
+    "h": 68,
+    "file": "assets/pair-dice/c45.webp"
+  },
+  {
+    "key": "c46",
+    "box": [
+      2019,
+      791,
+      2094,
+      859
+    ],
+    "w": 75,
+    "h": 68,
+    "file": "assets/pair-dice/c46.webp"
+  },
+  {
+    "key": "c56",
+    "box": [
+      2100,
+      791,
+      2174,
+      859
+    ],
+    "w": 74,
+    "h": 68,
+    "file": "assets/pair-dice/c56.webp"
+  },
+  {
+    "key": "d1",
+    "box": [
+      1533,
+      905,
+      1635,
+      975
+    ],
+    "w": 102,
+    "h": 70,
+    "file": "assets/pair-dice/d1.webp"
+  },
+  {
+    "key": "d2",
+    "box": [
+      1641,
+      905,
+      1741,
+      975
+    ],
+    "w": 100,
+    "h": 70,
+    "file": "assets/pair-dice/d2.webp"
+  },
+  {
+    "key": "d3",
+    "box": [
+      1747,
+      905,
+      1848,
+      975
+    ],
+    "w": 101,
+    "h": 70,
+    "file": "assets/pair-dice/d3.webp"
+  },
+  {
+    "key": "d4",
+    "box": [
+      1854,
+      905,
+      1955,
+      975
+    ],
+    "w": 101,
+    "h": 70,
+    "file": "assets/pair-dice/d4.webp"
+  },
+  {
+    "key": "d5",
+    "box": [
+      1961,
+      905,
+      2061,
+      975
+    ],
+    "w": 100,
+    "h": 70,
+    "file": "assets/pair-dice/d5.webp"
+  },
+  {
+    "key": "d6",
+    "box": [
+      2067,
+      905,
+      2169,
+      975
+    ],
+    "w": 102,
+    "h": 70,
+    "file": "assets/pair-dice/d6.webp"
+  }
+]
