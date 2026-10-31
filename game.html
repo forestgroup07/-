@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.webp?v=v1.10.62" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.10.62" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.10.62" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.10.62" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full-v111.webp?v=v1.0.6" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.6" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.6" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.6" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -813,7 +813,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/atlas.webp?v=v1.10.62");
+      background-image: url("assets/pair-dice/atlas.webp?v=v1.0.6");
       background-repeat: no-repeat;
       background-size: 2100% 100%;
     }
@@ -860,7 +860,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.10.62");
+      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.0.6");
       background-repeat: no-repeat;
       background-size: 1200% 100%;
     }
@@ -887,7 +887,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.10.62");
+      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.0.6");
       background-repeat: no-repeat;
       background-size: 1400% 100%;
     }
@@ -1968,15 +1968,15 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full-v111.webp?v=v1.10.62" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=v1.10.62" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <source srcset="pc-full-v111.webp?v=v1.0.6" type="image/webp" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=v1.0.6" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
           <picture>
-            <source srcset="assets/video-feed.webp?v=v1.10.62" type="image/webp" />
-            <img class="video-feed" id="videoFeed" src="assets/video-feed.jpg?v=v1.10.62" alt="" width="1024" height="572" decoding="async" draggable="false" />
+            <source srcset="assets/video-feed.webp?v=v1.0.6" type="image/webp" />
+            <img class="video-feed" id="videoFeed" src="assets/video-feed.jpg?v=v1.0.6" alt="" width="1024" height="572" decoding="async" draggable="false" />
           </picture>
           <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
           <div class="video-dice" id="videoDice" aria-hidden="true">
@@ -2603,7 +2603,7 @@
   <script src="js/sicbo-engine.js?v=1.10.48"></script>
   <script>
     (async function () {
-      const V = 'v1.10.62';
+      const V = 'v1.0.6';
       const START_BAL = 2000;
       function currentUser() {
         try {
