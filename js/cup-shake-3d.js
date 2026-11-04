@@ -306,14 +306,14 @@ async function mountCupShake3D(canvas, opts = {}) {
       rnd(10, 22) * rndSign(),
       rnd(8, 20) * rndSign()
     ));
-    // 上下跳动，每局幅度/相位不同
+    // 上下跳动要够高（实心骰撞实心底）
     const dieJump = [0, 1, 2].map(() => ({
-      ax: rnd(0.035, 0.065) * rndSign(),
-      ay: rnd(0.32, 0.48),
-      az: rnd(0.03, 0.06) * rndSign(),
+      ax: rnd(0.045, 0.08) * rndSign(),
+      ay: rnd(0.95, 1.35),
+      az: rnd(0.04, 0.075) * rndSign(),
       fx: rnd(0.9, 1.45),
-      fy: rnd(1.15, 1.65),
-      fz: rnd(0.85, 1.35),
+      fy: rnd(1.25, 1.75),
+      fz: rnd(0.85, 1.4),
       ph: rnd(0, Math.PI * 2),
     }));
     const cupBase = new THREE.Vector3(0, CUP_REST_Y, 0);
@@ -361,24 +361,25 @@ async function mountCupShake3D(canvas, opts = {}) {
 
     /*
      * ========== 落定铁律（写死）==========
-     * 1) 未轮到：继续上下轻跳，禁止悬空停、禁止突然加速
-     * 2) 陆续：上一颗贴地后再轮下一颗
-     * 3) 下落匀速到位；朝向在下落过程中滚到结果面，贴地即冻死
-     * 4) 禁止落地后再翻面
+     * 实心骰 → 实心落地板：
+     * 1) 未轮到：高位悬停，可慢转；禁止弹跳抽筋
+     * 2) 开始下落瞬间定死结果面（空中定面）
+     * 3) 下落只动位置：重力加速砸地；全程禁止再改朝向
+     * 4) 贴地即冻死：禁止落地后再调整、再翻面
      * =====================================
      */
-    function smoothstep(e) {
-      return e * e * (3 - 2 * e);
+    function easeInQuad(e) {
+      return e * e;
     }
     const toQuat = f.map((n, i) => quatFaceUp(n, (i - 1) * 0.18));
     const FALL_MS = 420;
-    const GAP_MS = 150;
+    const GAP_MS = 130;
     const slot = FALL_MS + GAP_MS;
     const totalMs = slot * 2 + FALL_MS;
     const settled = [false, false, false];
     const started = [false, false, false];
     const fallFrom = [null, null, null];
-    const fromQuat = [null, null, null];
+    const hoverY = dice.map((d) => Math.max(d.position.y, DIE_REST_Y + 0.22));
     const s0 = performance.now();
     await new Promise((resolve) => {
       function step(now) {
@@ -391,32 +392,34 @@ async function mountCupShake3D(canvas, opts = {}) {
           }
           const startMs = i * slot;
           const doneMs = startMs + FALL_MS;
-          const m = dieJump[i];
           if (t < startMs) {
-            // 未轮到：轻跳撞地
-            const phase = t * 0.02 + m.ph;
-            const env = 0.45;
-            d.position.set(
-              spots[i].x + Math.sin(phase * m.fx) * m.ax * env * 0.5,
-              bounceY(DIE_REST_Y, phase, m.fy, m.ay * 0.55, env),
-              spots[i].z + Math.cos(phase * m.fz) * m.az * env * 0.5
-            );
+            // 未轮到：高位悬停 + 慢转（像还在空中），不弹跳
+            const sink = Math.min(0.03, (t / Math.max(1, startMs)) * 0.03);
+            d.position.set(spots[i].x, hoverY[i] - sink, spots[i].z);
+            d.rotation.x += spins[i].x * 0.003;
+            d.rotation.y += spins[i].y * 0.003;
+            d.rotation.z += spins[i].z * 0.003;
             return;
           }
           if (!started[i]) {
             started[i] = true;
-            fromQuat[i] = d.quaternion.clone();
-            const p = d.position.clone();
-            p.y = Math.max(p.y, DIE_REST_Y + 0.12);
-            fallFrom[i] = p;
+            // 空中定面：下落全程与落地后都不再改朝向
+            d.quaternion.copy(toQuat[i]);
+            fallFrom[i] = d.position.clone();
+            fallFrom[i].x = spots[i].x;
+            fallFrom[i].z = spots[i].z;
+            fallFrom[i].y = Math.max(fallFrom[i].y, DIE_REST_Y + 0.28);
+            d.position.copy(fallFrom[i]);
           }
           if (t < doneMs) {
             const e = (t - startMs) / FALL_MS;
-            d.position.lerpVectors(fallFrom[i], spots[i], e);
+            const g = easeInQuad(e); // 自由落体砸向落地板
+            d.position.lerpVectors(fallFrom[i], spots[i], g);
             d.position.y = Math.max(d.position.y, DIE_REST_Y);
-            d.quaternion.slerpQuaternions(fromQuat[i], toQuat[i], smoothstep(e));
+            d.quaternion.copy(toQuat[i]); // 死锁朝向
             return;
           }
+          // 贴地冻死：位置+朝向，禁止再抖再翻
           settled[i] = true;
           d.position.copy(spots[i]);
           d.quaternion.copy(toQuat[i]);

@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.0.6" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.0.9" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.30" type="image/webp" />
@@ -2078,9 +2078,10 @@
       pointer-events: none;
       cursor: default;
     }
-    #btnRepeat  { left: 67.73%; top: 90.70%; width: 7.54%; height: 4.40%; z-index: 82; }
-    #btnConfirm { left: 77.15%; top: 90.70%; width: 7.59%; height: 4.40%; z-index: 82; }
-    #btnCancel  { left: 86.61%; top: 90.70%; width: 7.59%; height: 4.40%; z-index: 82; }
+    /* z 必须高于 .chip-btn.on(99)，否则选中筹码会挡住「确定/取消」上沿（老 bug） */
+    #btnRepeat  { left: 67.73%; top: 90.70%; width: 7.54%; height: 4.40%; z-index: 130; }
+    #btnConfirm { left: 77.15%; top: 90.70%; width: 7.59%; height: 4.40%; z-index: 130; }
+    #btnCancel  { left: 86.61%; top: 90.70%; width: 7.59%; height: 4.40%; z-index: 130; }
     .toast-msg {
       position: absolute;
       left: 50%;
@@ -2254,7 +2255,8 @@
       filter: none;
       will-change: transform;
     }
-    .chip-btn.on { z-index: 99; }
+    /* 升起筹码仍低于确定/取消热区(130)，避免挡点击 */
+    .chip-btn.on { z-index: 90; }
     .chip-btn.on img {
       filter:
         drop-shadow(0 8px 6px rgba(0,0,0,.45))
@@ -2362,7 +2364,7 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.0.6" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.0.9" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <!-- 框外两侧：卡通美女 -->
@@ -3044,7 +3046,7 @@
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.0.6"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.0.9"></script>
   <script src="js/sicbo-engine.js?v=1.0.30"></script>
   <script>
     (async function () {
