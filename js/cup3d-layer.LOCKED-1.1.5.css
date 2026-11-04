@@ -1,0 +1,16 @@
+/* LOCKED cup 1.1.5 — 黑底座离红底边有缝、整座露全；do not overwrite */
+.cup3d-layer {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 50;
+      transform: translateX(-50%);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease;
+      overflow: visible;
+    }

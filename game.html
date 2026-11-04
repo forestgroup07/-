@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.webp?v=v1.0.28" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.28" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.28" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.28" type="image/webp" />
+  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.0.6" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.30" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.30" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.30" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -49,7 +49,7 @@
     }
     .stage .bg { object-fit: fill; }
 
-    /* 整块荧幕：方圆形边角；底沿贴绿键盘外沿（中间凹 U 形，不压绿边） */
+    /* 中间视频框：沉入绿键盘 U 底格，严丝合缝（舌口嵌槽，不压绿格面） */
     .video-bezel {
       --vb-r: calc(min(100vw, 100vh * 2188 / 1393) * 36 / 2188);
       --vb-rim: calc(min(100vw, 100vh * 2188 / 1393) * 11 / 2188);
@@ -58,14 +58,14 @@
       left: 25.594%;
       top: 3.95%;
       width: 45.018%;
-      /* 底贴绿键盘外沿谷底 ≈51.48%（不压绿边） */
+      /* 底贴绿键盘 U 槽谷底 ≈51.48% */
       height: 47.53%;
       z-index: 40;
       box-sizing: border-box;
       padding: var(--vb-rim);
       border-radius: var(--vb-r);
       pointer-events: none;
-      /* 底边贴绿边外沿：左右肩 / 中间凹 */
+      /* 底舌嵌进绿键盘凹槽（底格），肩线落在绿格上沿 */
       clip-path: polygon(
         0% 0%,
         100% 0%,
@@ -102,9 +102,10 @@
       height: 100%;
       border-radius: var(--vb-inner-r);
       overflow: hidden;
-      background: #050403;
+      /* 红桌布底，与 3D 盅场景衔接 */
+      background: radial-gradient(ellipse at 50% 40%, #c81828 0%, #8e0c16 55%, #5a060c 100%);
       box-shadow:
-        inset 0 4px 10px rgba(0, 0, 0, 0.7),
+        inset 0 4px 10px rgba(0, 0, 0, 0.35),
         inset 0 -1px 0 rgba(255, 220, 160, 0.1);
     }
     .video-well > picture {
@@ -121,8 +122,10 @@
       inset: 0;
       width: 100%;
       height: 100%;
+      /* 中间框只放盅：纯暗底 */
       object-fit: cover;
-      object-position: center 42%;
+      object-position: center center;
+      background: #080406;
       display: block;
       pointer-events: none;
       user-select: none;
@@ -139,7 +142,7 @@
       width: 14.5%;
       aspect-ratio: 1;
       border-radius: 50%;
-      z-index: 5;
+      z-index: 60;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -911,7 +914,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/atlas.webp?v=v1.0.28");
+      background-image: url("assets/pair-dice/atlas.webp?v=v1.0.30");
       background-repeat: no-repeat;
       background-size: 2100% 100%;
     }
@@ -959,7 +962,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.0.28");
+      background-image: url("assets/pair-dice/left-atlas.webp?v=v1.0.30");
       background-repeat: no-repeat;
       background-size: 1200% 100%;
     }
@@ -986,7 +989,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.0.28");
+      background-image: url("assets/pair-dice/sum-atlas.webp?v=v1.0.30");
       background-repeat: no-repeat;
       background-size: 1400% 100%;
     }
@@ -1062,94 +1065,456 @@
       gap: 0.12em 0.22em;
       width: max-content;
       filter: drop-shadow(0 2px 3px rgba(0,0,0,.55));
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .25s ease;
+    }
+    .video-dice.is-show {
+      opacity: 1;
+      visibility: visible;
     }
     .video-dice .die:nth-child(1) { grid-column: 1 / 3; }
     .video-dice .die {
       --s: calc(min(100vw, 100vh * 2188 / 1393) * 26 / 2188);
     }
 
-    /* 开奖层：靠右，不挡女孩脸；有结果才出卡/路单 */
+    /* 新骰子：透明盅 3D（die-face 贴图） */
+    /*
+     * 左右美女 = 底格（垫在绿格/视频框之下的底板）
+     * 底边对齐绿键盘上沿肩线，嵌进底槽，不盖绿格面 → 严丝合缝
+     */
+    .side-beauty {
+      position: absolute;
+      top: 0;
+      /* 肩线 ≈ top+height*0.9135 → 与 video-bezel 肩齐，不压绿格面 */
+      height: 47.35%;
+      z-index: 25; /* 底格：低于 video-bezel(40)、低于绿区热区 */
+      pointer-events: none;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      background: #0a0608;
+    }
+    .side-beauty-l {
+      left: 0;
+      width: 25.55%;
+      object-position: 65% top;
+    }
+    .side-beauty-r {
+      left: 70.62%;
+      width: 29.38%;
+      object-position: 35% top;
+    }
+
+    .cup3d-layer {
+      position: absolute;
+      /* LOCKED-1.1.5：满画布+SCALE2.55，黑底座离红底边有缝、整座露全；勿改 */
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 50;
+      transform: translateX(-50%);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease;
+      overflow: visible;
+    }
+    .cup3d-layer.is-on {
+      opacity: 1;
+      visibility: visible;
+    }
+    #cup3dCanvas,
+    .godot-cup-frame {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
+      background: transparent !important;
+      color-scheme: normal;
+    }
+
+    /* 旧 CSS 摇盅（3D 不可用时兜底） */
+    .shake-stage {
+      position: absolute;
+      left: 50%;
+      top: 74%;
+      width: 17.5%;
+      height: 28%;
+      z-index: 6;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transform: translate(-50%, -50%);
+    }
+    .shake-stage.is-on {
+      opacity: 1;
+      visibility: visible;
+    }
+    .shake-cup {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      width: 92%;
+      aspect-ratio: 1.05 / 1;
+      transform: translate(-50%, -50%);
+      /* 贴合玻璃盅轮廓：上圆下收 */
+      border-radius: 50% 50% 46% 46% / 58% 58% 40% 40%;
+      background: transparent;
+      overflow: hidden;
+      clip-path: ellipse(48% 46% at 50% 52%);
+    }
+    .shake-dice {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 28%;
+      bottom: 18%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 3%;
+    }
+    .shake-dice .die {
+      --s: calc(min(100vw, 100vh * 2188 / 1393) * 38 / 2188);
+      position: relative;
+      flex: 0 0 auto;
+      transform-origin: center bottom;
+    }
+    .shake-stage.is-shaking .shake-dice .die:nth-child(1) {
+      animation: dieJumpA 0.32s ease-in-out infinite;
+    }
+    .shake-stage.is-shaking .shake-dice .die:nth-child(2) {
+      animation: dieJumpB 0.28s ease-in-out infinite 0.04s;
+    }
+    .shake-stage.is-shaking .shake-dice .die:nth-child(3) {
+      animation: dieJumpC 0.34s ease-in-out infinite 0.08s;
+    }
+    @keyframes dieJumpA {
+      0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+      30% { transform: translate(-32%, -260%) rotate(-36deg) scale(1.16); }
+      55% { transform: translate(22%, -70%) rotate(28deg) scale(0.94); }
+      78% { transform: translate(-16%, -170%) rotate(-18deg) scale(1.12); }
+    }
+    @keyframes dieJumpB {
+      0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+      25% { transform: translate(20%, -280%) rotate(32deg) scale(1.18); }
+      50% { transform: translate(-26%, -55%) rotate(-26deg) scale(0.93); }
+      72% { transform: translate(16%, -190%) rotate(22deg) scale(1.14); }
+    }
+    @keyframes dieJumpC {
+      0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+      28% { transform: translate(28%, -250%) rotate(30deg) scale(1.15); }
+      52% { transform: translate(-20%, -90%) rotate(-34deg) scale(0.94); }
+      76% { transform: translate(14%, -210%) rotate(20deg) scale(1.16); }
+    }
+    .dealer-hand {
+      position: absolute;
+      left: 62%;
+      top: -18%;
+      width: 95%;
+      max-width: none;
+      transform: translate(-40%, -110%) rotate(-18deg);
+      opacity: 0;
+      z-index: 7;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.45));
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .shake-stage.is-press .dealer-hand {
+      animation: handPress 1.1s ease-in-out forwards;
+    }
+    @keyframes handPress {
+      0% {
+        opacity: 0;
+        transform: translate(-40%, -120%) rotate(-22deg) scale(1.05);
+      }
+      35% {
+        opacity: 1;
+        transform: translate(-40%, -22%) rotate(-14deg) scale(1);
+      }
+      55%, 78% {
+        opacity: 1;
+        transform: translate(-40%, -8%) rotate(-12deg) scale(0.97);
+      }
+      100% {
+        opacity: 0.92;
+        transform: translate(-40%, -12%) rotate(-13deg) scale(0.98);
+      }
+    }
+    .shake-stage.is-done .dealer-hand {
+      animation: handRetreat 0.55s ease-in forwards;
+    }
+    @keyframes handRetreat {
+      0% { opacity: 0.92; transform: translate(-40%, -12%) rotate(-13deg); }
+      100% { opacity: 0; transform: translate(-30%, -130%) rotate(-28deg); }
+    }
+
+    /* 开奖层：黄框内右上，与左上计时器对称同大（勿压金边） */
     .road-screen {
       position: absolute;
-      left: 84%;
-      top: 22%;
-      transform: translate(-50%, -50%);
-      z-index: 92;
-      width: 16%;
-      aspect-ratio: 1 / 1.05;
+      left: auto;
+      right: 2.4%;
+      top: 3.2%;
+      transform: none;
+      z-index: 65;
+      width: 14.5%;
+      aspect-ratio: 1;
       pointer-events: none;
       background: transparent;
       box-shadow: none;
       overflow: visible;
     }
-    .road-grid {
+    /* 旧视频框旁路单已弃用，隐藏 */
+    .road-grid { display: none !important; }
+
+    /*
+      母版历史已按格像素抹成空底格。直播层只贴和值+三骰，尺寸对齐原版：
+      骰 41px、间距 10px、和值约 22px；格 bounds 与抹图一致。
+      空/有内容皆透明——露出底格，禁止灰黑块覆盖。
+      strip: x=6..1007, y=1182..1380（2188×1393）
+    */
+    .road-strip {
       position: absolute;
-      left: 50%;
-      top: 118%;
-      transform: translateX(-50%);
-      width: 140%;
-      height: 22%;
-      display: none;
-      grid-template-columns: repeat(8, 1fr);
-      grid-template-rows: repeat(2, 1fr);
-      gap: 2px;
-      z-index: 1;
-      padding: 0.25em;
-      border-radius: 0.3em;
-      background: rgba(8, 6, 14, 0.72);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+      left: 0.274%; /* 6/2188 */
+      top: 84.85%; /* 1182/1393 */
+      z-index: 40;
+      width: 45.75%; /* 1001/2188 */
+      height: 14.21%; /* 198/1393 */
+      display: block;
+      background: transparent;
+      pointer-events: none;
+      overflow: visible;
+      padding: 0;
+      margin: 0;
     }
-    .road-grid.has-rows { display: grid; }
-    .road-cell {
-      border-radius: 0.18em;
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    .road-strip,
+    .road-strip * {
+      pointer-events: none !important;
+    }
+    .road-col {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      /* 原版：和值顶≈1193，首骰顶=1225，骰高41，骰间距10 */
+      gap: calc(min(100vw, 100vh * 2188 / 1393) * 10 / 2188);
+      padding: calc(min(100vw, 100vh * 2188 / 1393) * 11 / 2188) 0 0;
+      box-sizing: border-box;
+      background: transparent !important;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .road-col.is-empty {
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    .road-col .road-sum {
+      flex: 0 0 auto;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: calc(min(100vw, 100vh * 2188 / 1393) * 10 / 2188);
+    }
+    .road-col.is-empty .road-sum { display: none; }
+    .road-col.is-big .road-sum { color: #ff4d4d; }
+    .road-col.is-small .road-sum { color: #4ea1ff; }
+    .road-col .die {
+      flex: 0 0 auto;
+      /* 原版底格骰面 ≈ 41×41 */
+      --s: calc(min(100vw, 100vh * 2188 / 1393) * 41 / 2188);
+    }
+    .road-col.is-fresh {
+      box-shadow: inset 0 0 0 1px rgba(255, 210, 120, 0.75);
+    }
+
+    /*
+      最近50局点数统计（母版蓝柱已抹净）。
+      仅覆盖柱区：x=1165..1444, y=1178..1287；骰面留在母版。
+      柱宽39、间距48（与母版骰位对齐）；满柱参考原版最高≈31→109px。
+    */
+    .face-stat {
+      position: absolute;
+      left: 53.245%; /* 1165/2188 */
+      top: 84.566%; /* 1178/1393 */
+      z-index: 40;
+      width: 12.751%; /* 279/2188 */
+      height: 7.825%; /* 109/1393 */
+      pointer-events: none;
+      background: transparent;
+    }
+    .face-stat,
+    .face-stat * {
+      pointer-events: none !important;
+    }
+    .face-stat-col {
+      position: absolute;
+      bottom: 0;
+      width: calc(39 / 279 * 100%);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .face-stat-col[data-face="1"] { left: calc(0 / 279 * 100%); }
+    .face-stat-col[data-face="2"] { left: calc(48 / 279 * 100%); }
+    .face-stat-col[data-face="3"] { left: calc(96 / 279 * 100%); }
+    .face-stat-col[data-face="4"] { left: calc(145 / 279 * 100%); }
+    .face-stat-col[data-face="5"] { left: calc(193 / 279 * 100%); }
+    .face-stat-col[data-face="6"] { left: calc(241 / 279 * 100%); }
+    .face-stat-bar {
+      width: 100%;
+      height: 0;
+      box-sizing: border-box;
+      border-radius: 0.18em 0.18em 0 0;
+      background: linear-gradient(180deg, #6ec4f5 0%, #3a9ee0 55%, #2b86c8 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: height 0.25s ease;
+    }
+    .face-stat-bar.is-empty {
+      height: 0 !important;
+      box-shadow: none;
+    }
+    .face-stat-n {
+      font-family: Arial, Helvetica, "PingFang TC", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 15 / 2188);
+      font-weight: 800;
+      line-height: 1;
+      color: #eaf7ff;
+      text-shadow: 0 1px 1px rgba(0,40,80,.35);
+      user-select: none;
+    }
+    .face-stat-bar.is-empty .face-stat-n { display: none; }
+    .face-stat.is-hidden { visibility: hidden; }
+
+    /*
+      最底下右侧金色小三角：打开后弹出「最近50局」和值记录面板（对照参考图）。
+      顶：4–17；中：绿柱；底：「最近 50 局」；右下角贴三角。
+    */
+    /* 右下黄三角已按要求去掉；热区暂隐藏，后续再接打开方式 */
+    .stat-toggle {
+      display: none !important;
+    }
+
+    .sum-stat {
+      position: absolute;
+      left: 52.2%;
+      bottom: 5.5%;
+      width: 13.5%;
+      height: 15.8%;
+      z-index: 210;
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      box-sizing: border-box;
+      padding: 0.35em 0.4em 0.25em;
+      background: rgb(66, 54, 38);
+      border-radius: 0.28em;
+      border: 0;
+      outline: none;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+    }
+    .sum-stat.is-open {
+      display: flex;
+    }
+    .sum-stat-chart {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      gap: 0;
+    }
+    .sum-stat-col {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .sum-stat-n {
+      flex: 0 0 auto;
+      margin: 0 0 0.12em;
+      font-family: Arial, Helvetica, "PingFang TC", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 15 / 2188);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      user-select: none;
+    }
+    .sum-stat-col.is-small .sum-stat-n { color: #7eb6ff; } /* 4–10 */
+    .sum-stat-col.is-big .sum-stat-n { color: #ff7a72; }   /* 11–17 */
+    .sum-stat-track {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 62%;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .sum-stat-bar {
+      width: 100%;
+      height: 0;
+      background: #73d060;
+      border-radius: 0.08em 0.08em 0 0;
+      transition: height 0.2s ease;
+    }
+    .sum-stat-bar.is-empty { height: 0 !important; }
+    .sum-stat-foot {
+      flex: 0 0 auto;
+      margin-top: 0.2em;
+      text-align: center;
+      font-family: "Songti TC", "Songti SC", "PingFang TC", serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 13 / 2188);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: #d8c48a;
+      line-height: 1.2;
+      user-select: none;
+    }
+    .result-board {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 0.35em 0.32em 0.3em;
+      border-radius: 0.45em;
+      background: rgba(8, 8, 10, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
-      line-height: 1.05;
-      color: #d8d0e8;
-      min-width: 0;
-    }
-    .road-cell .n {
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 15 / 2188);
-      font-weight: 800;
-    }
-    .road-cell .t {
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 10 / 2188);
-      opacity: 0.9;
-    }
-    .road-cell.is-big { color: #ff8a80; }
-    .road-cell.is-small { color: #82b1ff; }
-    .road-cell.is-fresh {
-      box-shadow: inset 0 0 0 1px rgba(255, 220, 140, 0.55);
-      background: rgba(40, 30, 10, 0.55);
-    }
-    .result-board {
-      position: absolute;
-      left: 50%;
-      top: 38%;
-      transform: translate(-50%, -50%) scale(.96);
-      z-index: 2;
-      width: 58%;
-      padding: 0.55em 0.55em 0.4em;
-      border-radius: 0.45em;
-      background: #0a0a0a;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #fff;
-      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
-      text-align: center;
       opacity: 0;
       visibility: hidden;
+      transform: scale(.96);
       transition: opacity .25s ease, transform .25s ease, visibility .25s;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
     }
     .result-board.show {
       opacity: 1;
       visibility: visible;
-      transform: translate(-50%, -50%) scale(1);
+      transform: scale(1);
     }
     .result-board .dice-pyramid {
       display: grid;
@@ -1157,12 +1522,23 @@
       grid-template-rows: auto auto;
       justify-items: center;
       align-items: center;
-      gap: 0.22em 0.35em;
+      gap: 0.18em 0.28em;
       width: max-content;
-      margin: 0 auto 0.15em;
+      margin: 0 auto 0.12em;
     }
     .result-board .dice-pyramid .die:nth-child(1) {
       grid-column: 1 / 3;
+    }
+    .result-board .die {
+      --s: calc(min(100vw, 100vh * 2188 / 1393) * 26 / 2188);
+    }
+    /* 结果卡白骰黑点（对标参考图，1/4 也不用红点） */
+    .result-board .die.p1 i:nth-child(4),
+    .result-board .die.p4 i:nth-child(1),
+    .result-board .die.p4 i:nth-child(2),
+    .result-board .die.p4 i:nth-child(6),
+    .result-board .die.p4 i:nth-child(7) {
+      background: #1a1a1a;
     }
     .die {
       --s: calc(min(100vw, 100vh * 2188 / 1393) * 38 / 2188);
@@ -1204,32 +1580,31 @@
     .die.p6 i:nth-child(1), .die.p6 i:nth-child(2), .die.p6 i:nth-child(3),
     .die.p6 i:nth-child(5), .die.p6 i:nth-child(6), .die.p6 i:nth-child(7) { display: block; }
     .result-board .sum-num {
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 42 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 30 / 2188);
       font-weight: 800;
       color: #fff;
       letter-spacing: 0.02em;
       line-height: 1;
-      margin: 0.05em 0 0.2em;
+      margin: 0.06em 0 0.12em;
       text-shadow: 0 2px 6px rgba(0,0,0,.7);
     }
     .result-board .tag-row {
       display: flex;
       justify-content: space-between;
-      padding: 0 0.35em 0.1em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
-      font-weight: 800;
-      color: #4ea1ff;
-      letter-spacing: 0.08em;
-    }
-    .result-board .pay-line {
-      margin-top: 0.35em;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0 0.35em 0;
       font-size: calc(min(100vw, 100vh * 2188 / 1393) * 18 / 2188);
       font-weight: 800;
       letter-spacing: 0.06em;
     }
-    .result-board .pay-line.win { color: #7dff9f; }
-    .result-board .pay-line.lose { color: #ff8d8d; }
-    .result-board .pay-line.flat { color: #c8d09b; }
+    .result-board .tag-row #resultSize.is-big { color: #ff3b3b; }
+    .result-board .tag-row #resultSize.is-small { color: #4ea1ff; }
+    .result-board .tag-row #resultParity { color: #4ea1ff; }
+    /* 参考卡不含输赢行 */
+    .result-board .pay-line {
+      display: none;
+    }
 
     /* 左侧底栏三格：返回 / 下注记录 / 游戏规则 — 同一底格 */
     .back-wrap,
@@ -1987,17 +2362,48 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <source srcset="pc-full-v111.webp?v=v1.0.28" type="image/webp" />
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=v1.0.28" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.0.6" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
+
+      <!-- 框外两侧：卡通美女 -->
+      <img class="side-beauty side-beauty-l" src="assets/eu-concept/beauty-side-l.png?v=v1.0.9u" alt="" draggable="false" />
+      <img class="side-beauty side-beauty-r" src="assets/eu-concept/beauty-side-r.png?v=v1.0.9u" alt="" draggable="false" />
 
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
           <picture>
-            <source srcset="assets/video-feed.webp?v=v1.0.28" type="image/webp" />
-            <img class="video-feed" id="videoFeed" src="assets/video-feed.jpg?v=v1.0.28" alt="" width="1024" height="572" decoding="async" draggable="false" />
+            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-well-dark.jpg?v=v1.0.9u" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:0" />
           </picture>
           <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
+          <div class="road-screen" id="roadScreen" aria-hidden="false">
+            <div class="result-board" id="resultBoard" aria-live="polite">
+              <div class="dice-pyramid" id="resultDice">
+                <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              </div>
+              <div class="sum-num" id="resultSumNum">—</div>
+              <div class="tag-row">
+                <span id="resultSize">—</span>
+                <span id="resultParity">—</span>
+              </div>
+              <div class="pay-line flat" id="resultPay"></div>
+            </div>
+            <div class="road-grid" id="roadGrid" aria-hidden="true"></div>
+          </div>
+          <div class="cup3d-layer is-on" id="cup3dLayer" aria-hidden="false">
+            <canvas id="cup3dCanvas" width="768" height="768" aria-hidden="true"></canvas>
+          </div>
+          <div class="shake-stage" id="shakeStage" aria-hidden="true">
+            <div class="shake-cup">
+              <div class="shake-dice" id="shakeDice">
+                <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="die p2" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="die p3" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              </div>
+            </div>
+            <img class="dealer-hand" id="dealerHand" src="assets/dealer-hand.png?v=v1.0.30" alt="" draggable="false" />
+          </div>
           <div class="video-dice" id="videoDice" aria-hidden="true">
             <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
             <span class="die p2" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
@@ -2006,22 +2412,23 @@
         </div>
       </div>
       <div class="stop-bet" id="stopBet" aria-live="polite">停止下注</div>
-      <div class="road-screen" id="roadScreen" aria-hidden="false">
-        <div class="result-board" id="resultBoard" aria-live="polite">
-          <div class="dice-pyramid" id="resultDice">
-            <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-            <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-            <span class="die p1" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-          </div>
-          <div class="sum-num" id="resultSumNum">—</div>
-          <div class="tag-row">
-            <span id="resultSize">—</span>
-            <span id="resultParity">—</span>
-          </div>
-          <div class="pay-line flat" id="resultPay"></div>
-        </div>
-        <div class="road-grid" id="roadGrid" aria-label="开奖路单"></div>
+      <div class="road-strip" id="roadStrip" aria-label="每局开奖记录"></div>
+      <!-- 最近50局：默认点数1～6；点金色箭头打开和值4～17绿柱 -->
+      <div class="face-stat" id="faceStat" aria-label="最近50局点数统计">
+        <div class="face-stat-col" data-face="1"><div class="face-stat-bar is-empty"><span class="face-stat-n"></span></div></div>
+        <div class="face-stat-col" data-face="2"><div class="face-stat-bar is-empty"><span class="face-stat-n"></span></div></div>
+        <div class="face-stat-col" data-face="3"><div class="face-stat-bar is-empty"><span class="face-stat-n"></span></div></div>
+        <div class="face-stat-col" data-face="4"><div class="face-stat-bar is-empty"><span class="face-stat-n"></span></div></div>
+        <div class="face-stat-col" data-face="5"><div class="face-stat-bar is-empty"><span class="face-stat-n"></span></div></div>
+        <div class="face-stat-col" data-face="6"><div class="face-stat-bar is-empty"><span class="face-stat-n"></span></div></div>
       </div>
+      <div class="sum-stat" id="sumStat" aria-label="最近50局和值记录" aria-hidden="true">
+        <div class="sum-stat-chart" id="sumStatChart"></div>
+        <div class="sum-stat-foot">最近 50 局</div>
+      </div>
+      <button class="stat-toggle" id="statToggle" type="button" aria-expanded="false" aria-controls="sumStat" aria-label="打开最近50局和值记录">
+        <span class="stat-toggle-tri" aria-hidden="true"></span>
+      </button>
       <div class="bal" id="bal">2,000</div>
       <button class="bal-hot" id="balHot" type="button" aria-label="账户余额" aria-expanded="false" aria-controls="balTip"></button>
       <div class="bal-tip" id="balTip" role="tooltip">賬戶餘額</div>
@@ -2607,33 +3014,41 @@
       <div class="chip-cover" id="cover-d" aria-hidden="true"></div>
 
       <button class="chip-arrow" id="arrow-l" type="button" aria-label="筹码向左">
-        <img src="chips/arrow-left.png?v=v1.0.28u" alt="" draggable="false" />
+        <img src="chips/arrow-left.png?v=v1.0.30u" alt="" draggable="false" />
       </button>
 
       <div class="chip-viewport" id="chipViewport">
         <button class="chip-btn" id="chip-a" data-slot="0" type="button" aria-label="筹码10">
-          <img src="chips/chip-10.webp?v=v1.0.28u" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-10.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-b" data-slot="1" type="button" aria-label="筹码20">
-          <img src="chips/chip-20.webp?v=v1.0.28u" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-20.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-c" data-slot="2" type="button" aria-label="筹码50">
-          <img src="chips/chip-50.webp?v=v1.0.28u" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-50.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
         </button>
         <button class="chip-btn" id="chip-d" data-slot="3" type="button" aria-label="筹码100">
-          <img src="chips/chip-100.webp?v=v1.0.28u" alt="" decoding="async" draggable="false" />
+          <img src="chips/chip-100.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
         </button>
       </div>
 
       <button class="chip-arrow" id="arrow-r" type="button" aria-label="筹码向右">
-        <img src="chips/arrow-right.png?v=v1.0.28u" alt="" draggable="false" />
+        <img src="chips/arrow-right.png?v=v1.0.30u" alt="" draggable="false" />
       </button>
     </div>
   </div>
-  <script src="js/sicbo-engine.js?v=1.0.28"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.0.6"></script>
+  <script src="js/sicbo-engine.js?v=1.0.30"></script>
   <script>
     (async function () {
-      const V = 'v1.0.28';
+      const V = 'v1.0.30';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -2646,6 +3061,7 @@
         }
       }
       const ACCOUNT_ID = currentUser();
+      const ACCOUNT_API = 'api/sicbo-account.php';
       try {
         sessionStorage.setItem('fg_sicbo_user', ACCOUNT_ID);
         localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
@@ -2654,6 +3070,8 @@
         return 'fg_sicbo_bal::' + String(user || 'asdg').trim().toLowerCase();
       }
       const BAL_KEY = balKeyFor(ACCOUNT_ID);
+      let serverSyncTimer = 0;
+      let serverReady = false;
       function loadSavedBalance() {
         try {
           let raw = localStorage.getItem(BAL_KEY);
@@ -2679,6 +3097,7 @@
           localStorage.setItem('fg_sicbo_balance', v);
           localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
         } catch (_) {}
+        scheduleServerSave({ balance: Math.max(0, Math.round(n)) });
       }
       const BET_LOG_KEY = 'fg_sicbo_betlog::' + ACCOUNT_ID.trim().toLowerCase();
       function loadBetLog() {
@@ -2692,9 +3111,11 @@
         }
       }
       function saveBetLog(list) {
+        const clipped = (list || []).slice(0, 2000);
         try {
-          localStorage.setItem(BET_LOG_KEY, JSON.stringify(list.slice(0, 2000)));
+          localStorage.setItem(BET_LOG_KEY, JSON.stringify(clipped));
         } catch (_) {}
+        scheduleServerSave({ betlog: clipped });
       }
       function pushBetRecords(rows) {
         if (!rows || !rows.length) return;
@@ -2703,6 +3124,33 @@
         saveBetLog(list);
       }
       const OPEN_BETS_KEY = 'fg_sicbo_openbets::' + ACCOUNT_ID.trim().toLowerCase();
+      async function postAccountPatch(partial) {
+        try {
+          const body = Object.assign({ user: ACCOUNT_ID }, partial || {});
+          const r = await fetch(ACCOUNT_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            cache: 'no-store',
+          });
+          if (!r.ok) return null;
+          const j = await r.json();
+          return j && j.ok ? j.data : null;
+        } catch (_) {
+          return null;
+        }
+      }
+      function scheduleServerSave(partial) {
+        if (!serverReady) return;
+        window.__fgSicboServerPatch = Object.assign(window.__fgSicboServerPatch || {}, partial || {});
+        if (serverSyncTimer) clearTimeout(serverSyncTimer);
+        serverSyncTimer = setTimeout(() => {
+          const patch = window.__fgSicboServerPatch || {};
+          window.__fgSicboServerPatch = {};
+          serverSyncTimer = 0;
+          postAccountPatch(patch);
+        }, 280);
+      }
       let roundGen = 0;
       let balance = loadSavedBalance();
       const backWrap = document.getElementById('backWrap');
@@ -3222,8 +3670,126 @@
       const resultParity = document.getElementById('resultParity');
       const resultPay = document.getElementById('resultPay');
       const roadGrid = document.getElementById('roadGrid');
-      const ROAD_MAX = 16;
+      const roadStrip = document.getElementById('roadStrip');
+      const faceStat = document.getElementById('faceStat');
+      const sumStat = document.getElementById('sumStat');
+      const statToggle = document.getElementById('statToggle');
+      /** 与母版抹图 bounds 一致；空格透明露底格，新局按格贴 */
+      const ROAD_MAX = 13;
+      const ROAD_BOUNDS = [3, 73, 151, 229, 308, 385, 464, 542, 620, 698, 776, 854, 932, 1010];
+      const ROAD_STRIP_X0 = 6; // bounds[0]+3
+      const ROAD_STRIP_W = 1001; // 1007-6
+      /** 路单保留足够局数供「最近50局」统计 */
+      const FACE_STAT_ROUNDS = 50;
+      /** 原版最高柱≈31 次对应满高；用于高度换算，防止早期局数把柱拉满 */
+      const FACE_STAT_REF_COUNT = 31;
+      /** 和值柱满高参考（50局里单点和值常见上限附近） */
+      const SUM_STAT_REF_COUNT = 10;
+      const SUM_STAT_MIN = 4;
+      const SUM_STAT_MAX = 17;
+      let sumStatOpen = false;
+      const ROAD_HIST_KEY = 'fg_sicbo_roadhist::' + ACCOUNT_ID.trim().toLowerCase();
       const roadHistory = [];
+      function loadRoadHistory() {
+        try {
+          const raw = localStorage.getItem(ROAD_HIST_KEY);
+          if (!raw) return;
+          const list = JSON.parse(raw);
+          if (!Array.isArray(list)) return;
+          roadHistory.length = 0;
+          const keep = Math.max(FACE_STAT_ROUNDS, ROAD_MAX) + 10;
+          for (let i = 0; i < list.length; i++) {
+            const it = list[i];
+            if (!it || !Array.isArray(it.dice)) continue;
+            const dice = it.dice.slice(0, 3).map((d) => Math.max(1, Math.min(6, d | 0)));
+            while (dice.length < 3) dice.push(1);
+            let sum = it.sum | 0;
+            if (!sum) sum = dice[0] + dice[1] + dice[2];
+            roadHistory.push({
+              sum,
+              size: it.size === 'big' || it.size === 'small' ? it.size : (sum >= 11 ? 'big' : 'small'),
+              parity: it.parity,
+              dice,
+            });
+          }
+          if (roadHistory.length > keep) {
+            roadHistory.splice(0, roadHistory.length - keep);
+          }
+        } catch (_) {}
+      }
+      function saveRoadHistory() {
+        try {
+          localStorage.setItem(ROAD_HIST_KEY, JSON.stringify(roadHistory));
+        } catch (_) {}
+        scheduleServerSave({ roadhist: roadHistory.slice() });
+      }
+      async function hydrateAccountFromServer() {
+        try {
+          const r = await fetch(ACCOUNT_API + '?user=' + encodeURIComponent(ACCOUNT_ID), { cache: 'no-store' });
+          if (!r.ok) throw new Error('http ' + r.status);
+          const j = await r.json();
+          if (!j || !j.ok || !j.data) throw new Error('bad payload');
+          const d = j.data;
+          const hasServer = (d.updatedAt | 0) > 0
+            || (Array.isArray(d.betlog) && d.betlog.length)
+            || (Array.isArray(d.roadhist) && d.roadhist.length)
+            || (d.balance != null && d.balance !== START_BAL);
+          if (!hasServer) {
+            // 首次：把本机已有数据迁到服务器
+            await postAccountPatch({
+              balance,
+              betlog: loadBetLog(),
+              roadhist: roadHistory.slice(),
+              openbets: (() => {
+                try {
+                  const raw = localStorage.getItem(OPEN_BETS_KEY);
+                  return raw ? JSON.parse(raw) : null;
+                } catch (_) { return null; }
+              })(),
+            });
+          } else {
+            if (d.balance != null) {
+              balance = Math.max(0, Math.round(Number(d.balance)) || 0);
+              try {
+                localStorage.setItem(BAL_KEY, String(balance));
+                localStorage.setItem('fg_sicbo_balance', String(balance));
+              } catch (_) {}
+            }
+            if (Array.isArray(d.betlog)) {
+              try { localStorage.setItem(BET_LOG_KEY, JSON.stringify(d.betlog.slice(0, 2000))); } catch (_) {}
+            }
+            if (Array.isArray(d.roadhist)) {
+              roadHistory.length = 0;
+              for (let i = 0; i < d.roadhist.length; i++) {
+                const it = d.roadhist[i];
+                if (!it || !Array.isArray(it.dice)) continue;
+                const dice = it.dice.slice(0, 3).map((x) => Math.max(1, Math.min(6, x | 0)));
+                while (dice.length < 3) dice.push(1);
+                let sum = it.sum | 0;
+                if (!sum) sum = dice[0] + dice[1] + dice[2];
+                roadHistory.push({
+                  sum,
+                  size: it.size === 'big' || it.size === 'small' ? it.size : (sum >= 11 ? 'big' : 'small'),
+                  parity: it.parity,
+                  dice,
+                });
+              }
+              try { localStorage.setItem(ROAD_HIST_KEY, JSON.stringify(roadHistory)); } catch (_) {}
+            }
+            if (d.openbets && d.openbets.bets) {
+              try { localStorage.setItem(OPEN_BETS_KEY, JSON.stringify(d.openbets)); } catch (_) {}
+            } else {
+              try { localStorage.removeItem(OPEN_BETS_KEY); } catch (_) {}
+            }
+          }
+          serverReady = true;
+          return true;
+        } catch (_) {
+          // 服务器不可用时仍用本机，稍后重试标记
+          serverReady = false;
+          return false;
+        }
+      }
       const betZones = [...document.querySelectorAll('.bet-zone')];
       const btnRepeat = document.getElementById('btnRepeat');
       const btnConfirm = document.getElementById('btnConfirm');
@@ -3603,15 +4169,19 @@
           });
           if (!any) {
             localStorage.removeItem(OPEN_BETS_KEY);
+            scheduleServerSave({ openbets: null });
             return;
           }
           const den = {};
           Object.keys(snap).forEach((k) => { den[k] = betDenom[k] || snap[k]; });
-          localStorage.setItem(OPEN_BETS_KEY, JSON.stringify({ bets: snap, betDenom: den, ts: Date.now() }));
+          const payload = { bets: snap, betDenom: den, ts: Date.now() };
+          localStorage.setItem(OPEN_BETS_KEY, JSON.stringify(payload));
+          scheduleServerSave({ openbets: payload });
         } catch (_) {}
       }
       function clearOpenBetSnapshot() {
         try { localStorage.removeItem(OPEN_BETS_KEY); } catch (_) {}
+        scheduleServerSave({ openbets: null });
       }
       function restoreOpenBetsFromStore() {
         try {
@@ -3659,14 +4229,14 @@
         return !!(pay && pay.staked > 0);
       }
       const videoDice = document.getElementById('videoDice');
-      function paintDiceFaces(dice) {
-        const targets = [];
-        if (resultDice) targets.push(...resultDice.querySelectorAll('.die'));
-        if (videoDice) targets.push(...videoDice.querySelectorAll('.die'));
+      const shakeStage = document.getElementById('shakeStage');
+      const shakeDice = document.getElementById('shakeDice');
+      function paintDiceFaces(dice, extraRoot) {
         const pairs = [
           resultDice ? [...resultDice.querySelectorAll('.die')] : [],
           videoDice ? [...videoDice.querySelectorAll('.die')] : [],
         ];
+        if (extraRoot) pairs.push([...extraRoot.querySelectorAll('.die')]);
         pairs.forEach((dies) => {
           dice.forEach((n, i) => {
             const el = dies[i];
@@ -3677,34 +4247,247 @@
       }
       function paintResultCard(info) {
         paintDiceFaces(info.dice);
+        if (videoDice) {
+          videoDice.classList.add('is-show');
+          videoDice.setAttribute('aria-hidden', 'false');
+        }
         resultSumNum.textContent = String(info.sum);
         resultSize.textContent = info.size === 'big' ? '大' : '小';
+        resultSize.classList.toggle('is-big', info.size === 'big');
+        resultSize.classList.toggle('is-small', info.size === 'small');
         resultParity.textContent = info.parity === 'odd' ? '單' : '雙';
       }
-      function paintRoadGrid() {
-        if (!roadGrid) return;
-        roadGrid.innerHTML = '';
-        const list = roadHistory.slice(-ROAD_MAX);
-        roadGrid.classList.toggle('has-rows', list.length > 0);
-        list.forEach((item, idx) => {
-          const cell = document.createElement('div');
-          const fresh = idx === list.length - 1;
-          cell.className = 'road-cell'
-            + (item.size === 'big' ? ' is-big' : ' is-small')
-            + (fresh ? ' is-fresh' : '');
-          cell.innerHTML = `<span class="n">${item.sum}</span><span class="t">${item.size === 'big' ? '大' : '小'}${item.parity === 'odd' ? '單' : '雙'}</span>`;
-          roadGrid.appendChild(cell);
+      /** 停注后：新透明盅 + die-face 贴图摇盅；失败则回退旧 CSS */
+      async function playCupShake() {
+        if (videoDice) {
+          videoDice.classList.remove('is-show');
+          videoDice.setAttribute('aria-hidden', 'true');
+        }
+        const info = classify(rollDice());
+
+        // 等 3D 模块就绪（最多 ~2.5s）
+        const wait3d = async () => {
+          const t0 = Date.now();
+          while (!(window.CupShake3D && window.CupShake3D.ready) && Date.now() - t0 < 2500) {
+            await sleep(50);
+          }
+          return !!(window.CupShake3D && window.CupShake3D.ready);
+        };
+
+        if (await wait3d()) {
+          const layer = document.getElementById('cup3dLayer');
+          if (layer) layer.setAttribute('aria-hidden', 'false');
+          try {
+            await window.CupShake3D.play(info.dice);
+            await sleep(1600); // 开盅结果多看一会儿
+          } finally {
+            await sleep(200);
+            if (window.CupShake3D.hide) window.CupShake3D.hide();
+            if (layer) layer.setAttribute('aria-hidden', 'false');
+          }
+          paintDiceFaces(info.dice);
+          return info;
+        }
+
+        // 兜底：旧手势 + CSS 跳动
+        return new Promise((resolve) => {
+          if (!shakeStage || !shakeDice) {
+            resolve(info);
+            return;
+          }
+          const dies = [...shakeDice.querySelectorAll('.die')];
+          shakeStage.classList.remove('is-done');
+          shakeStage.classList.add('is-on', 'is-press');
+          shakeStage.setAttribute('aria-hidden', 'false');
+          setTimeout(() => {
+            shakeStage.classList.add('is-shaking');
+            let ticks = 0;
+            const flip = setInterval(() => {
+              dies.forEach((el) => {
+                el.className = `die p${1 + Math.floor(Math.random() * 6)}`;
+              });
+              ticks += 1;
+              if (ticks >= 14) {
+                clearInterval(flip);
+                shakeStage.classList.remove('is-shaking');
+                paintDiceFaces(info.dice, shakeDice);
+                shakeStage.classList.add('is-done');
+                setTimeout(() => {
+                  shakeStage.classList.remove('is-on', 'is-press', 'is-done');
+                  shakeStage.setAttribute('aria-hidden', 'true');
+                  resolve(info);
+                }, 520);
+              }
+            }, 160);
+          }, 700);
         });
       }
+      function roadDieHtml(face) {
+        const n = Math.max(1, Math.min(6, face | 0));
+        return `<span class="die p${n}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>`;
+      }
+      function paintRoadGrid() {
+        if (roadGrid) {
+          roadGrid.innerHTML = '';
+          roadGrid.classList.remove('has-rows');
+        }
+        if (!roadStrip) return;
+        roadStrip.innerHTML = '';
+        const list = roadHistory.slice(-ROAD_MAX);
+        for (let i = 0; i < ROAD_MAX; i++) {
+          const col = document.createElement('div');
+          const item = list[i];
+          const cellL = ROAD_BOUNDS[i] + 3;
+          const cellR = ROAD_BOUNDS[i + 1] - 3;
+          col.style.left = ((cellL - ROAD_STRIP_X0) / ROAD_STRIP_W * 100) + '%';
+          col.style.width = ((cellR - cellL) / ROAD_STRIP_W * 100) + '%';
+          if (!item) {
+            col.className = 'road-col is-empty';
+            roadStrip.appendChild(col);
+            continue;
+          }
+          const fresh = i === list.length - 1;
+          col.className = 'road-col'
+            + (item.size === 'big' ? ' is-big' : ' is-small')
+            + (fresh ? ' is-fresh' : '');
+          const dice = (item.dice || []).slice(0, 3);
+          while (dice.length < 3) dice.push(1);
+          col.innerHTML = `<span class="road-sum">${item.sum}</span>`
+            + dice.map(roadDieHtml).join('');
+          roadStrip.appendChild(col);
+        }
+      }
+      function countFaceStats(history) {
+        const list = history.slice(-FACE_STAT_ROUNDS);
+        const counts = [0, 0, 0, 0, 0, 0];
+        for (let i = 0; i < list.length; i++) {
+          const dice = list[i].dice || [];
+          for (let j = 0; j < dice.length; j++) {
+            const n = dice[j] | 0;
+            if (n >= 1 && n <= 6) counts[n - 1] += 1;
+          }
+        }
+        return { counts, rounds: list.length };
+      }
+      function paintFaceStat() {
+        if (!faceStat) return;
+        const { counts, rounds } = countFaceStats(roadHistory);
+        const cols = faceStat.querySelectorAll('.face-stat-col');
+        let sum = 0;
+        for (let i = 0; i < 6; i++) {
+          const n = counts[i] | 0;
+          sum += n;
+          const col = cols[i];
+          if (!col) continue;
+          const bar = col.querySelector('.face-stat-bar');
+          const label = col.querySelector('.face-stat-n');
+          if (!bar || !label) continue;
+          if (rounds === 0 || n <= 0) {
+            bar.style.height = '0%';
+            bar.classList.add('is-empty');
+            label.textContent = '';
+          } else {
+            const pct = Math.min(100, (n / FACE_STAT_REF_COUNT) * 100);
+            bar.style.height = pct + '%';
+            bar.classList.remove('is-empty');
+            label.textContent = String(n);
+          }
+        }
+        // 不变量：有局时 次数合计 === 局数×3（每局三骰）
+        if (rounds > 0 && sum !== rounds * 3) {
+          console.warn('[faceStat] count mismatch', { rounds, sum, counts });
+        }
+      }
+      function countSumStats(history) {
+        const list = history.slice(-FACE_STAT_ROUNDS);
+        const counts = Object.create(null);
+        for (let s = SUM_STAT_MIN; s <= SUM_STAT_MAX; s++) counts[s] = 0;
+        for (let i = 0; i < list.length; i++) {
+          let s = list[i].sum | 0;
+          if (!s && list[i].dice && list[i].dice.length) {
+            s = (list[i].dice[0] | 0) + (list[i].dice[1] | 0) + (list[i].dice[2] | 0);
+          }
+          if (s >= SUM_STAT_MIN && s <= SUM_STAT_MAX) counts[s] += 1;
+        }
+        return { counts, rounds: list.length };
+      }
+      function ensureSumStatCols() {
+        const chart = document.getElementById('sumStatChart');
+        if (!sumStat || !chart || sumStat.dataset.ready === '1') return;
+        const frag = document.createDocumentFragment();
+        for (let s = SUM_STAT_MIN; s <= SUM_STAT_MAX; s++) {
+          const col = document.createElement('div');
+          col.className = 'sum-stat-col' + (s <= 10 ? ' is-small' : ' is-big');
+          col.dataset.sum = String(s);
+          col.innerHTML = '<span class="sum-stat-n">' + s + '</span><div class="sum-stat-track"><div class="sum-stat-bar is-empty"></div></div>';
+          frag.appendChild(col);
+        }
+        chart.appendChild(frag);
+        sumStat.dataset.ready = '1';
+      }
+      function paintSumStat() {
+        if (!sumStat) return;
+        ensureSumStatCols();
+        const { counts, rounds } = countSumStats(roadHistory);
+        const cols = sumStat.querySelectorAll('.sum-stat-col');
+        let total = 0;
+        for (let i = 0; i < cols.length; i++) {
+          const col = cols[i];
+          const s = col.dataset.sum | 0;
+          const n = counts[s] | 0;
+          total += n;
+          const bar = col.querySelector('.sum-stat-bar');
+          if (!bar) continue;
+          if (rounds === 0 || n <= 0) {
+            bar.style.height = '0%';
+            bar.classList.add('is-empty');
+          } else {
+            const pct = Math.min(100, (n / SUM_STAT_REF_COUNT) * 100);
+            bar.style.height = pct + '%';
+            bar.classList.remove('is-empty');
+          }
+        }
+        // 不变量：有局时 各和值次数合计 === 局数
+        if (rounds > 0 && total !== rounds) {
+          console.warn('[sumStat] count mismatch', { rounds, total, counts });
+        }
+      }
+      function setSumStatOpen(open) {
+        sumStatOpen = !!open;
+        if (sumStat) {
+          sumStat.classList.toggle('is-open', sumStatOpen);
+          sumStat.setAttribute('aria-hidden', sumStatOpen ? 'false' : 'true');
+        }
+        if (faceStat) faceStat.classList.toggle('is-hidden', sumStatOpen);
+        if (statToggle) {
+          statToggle.classList.toggle('is-open', sumStatOpen);
+          statToggle.setAttribute('aria-expanded', sumStatOpen ? 'true' : 'false');
+          statToggle.setAttribute('aria-label', sumStatOpen ? '关闭最近50局和值记录' : '打开最近50局和值记录');
+        }
+        if (sumStatOpen) paintSumStat();
+      }
       function pushRoad(info) {
+        const dice = Array.isArray(info.dice) ? info.dice.slice(0, 3) : [];
+        while (dice.length < 3) dice.push(1);
+        for (let i = 0; i < 3; i++) {
+          dice[i] = Math.max(1, Math.min(6, dice[i] | 0));
+        }
+        let sum = info.sum | 0;
+        if (!sum) sum = dice[0] + dice[1] + dice[2];
         roadHistory.push({
-          sum: info.sum,
+          sum,
           size: info.size,
           parity: info.parity,
-          dice: info.dice.slice(),
+          dice,
         });
-        if (roadHistory.length > 40) roadHistory.splice(0, roadHistory.length - 40);
+        const keep = Math.max(FACE_STAT_ROUNDS, ROAD_MAX) + 10;
+        if (roadHistory.length > keep) {
+          roadHistory.splice(0, roadHistory.length - keep);
+        }
+        saveRoadHistory();
         paintRoadGrid();
+        paintFaceStat();
+        if (sumStatOpen) paintSumStat();
       }
       function showDiceOnly(info) {
         paintResultCard(info);
@@ -3739,6 +4522,14 @@
       function hideResult() {
         resultBoard.classList.remove('show');
         hideBoardOutcome();
+        if (videoDice) {
+          videoDice.classList.remove('is-show');
+          videoDice.setAttribute('aria-hidden', 'true');
+        }
+        if (shakeStage) {
+          shakeStage.classList.remove('is-on', 'is-press', 'is-shaking', 'is-done');
+          shakeStage.setAttribute('aria-hidden', 'true');
+        }
       }
 
       /* ---------- 女声：对标荷官 TTS（以前能出声那套）+ 预录 ---------- */
@@ -4191,13 +4982,13 @@
         showStopBet(true);
         await Voice.speak('停止下注');
 
-        // 停注后停顿 5 秒 → 三骰上屏 → 报点数 → 再判输赢
+        // 停注 → 手按骰盅 → 骰子跳跃 → 播完再定点数 → 报点结算
         if (!stillThisRound(gen)) { bail(); return; }
-        await sleep(5000);
+        await sleep(600);
         if (!stillThisRound(gen)) { bail(); return; }
         showStopBet(false);
-
-        const info = classify(rollDice());
+        const info = await playCupShake();
+        if (!stillThisRound(gen)) { bail(); return; }
         showDiceOnly(info);
         // 开奖亮相：中奖格整格金光淡入淡出闪 7 秒（三点数/和值/大小单双等）
         flashWinGold(info, 7000);
@@ -4269,7 +5060,21 @@
         if (nick) nick.textContent = ACCOUNT_ID;
         if (aid) aid.textContent = ACCOUNT_ID;
       })();
+      loadRoadHistory();
+      await hydrateAccountFromServer();
       setBalance(balance);
+      paintRoadGrid();
+      paintFaceStat();
+      ensureSumStatCols();
+      paintSumStat();
+      setSumStatOpen(false);
+      if (statToggle) {
+        statToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setSumStatOpen(!sumStatOpen);
+        });
+      }
       // 上次关页留下的「已确定未结算」注：进页静默收官（不播恭喜）
       try { finalizeOpenBets(); } catch (_) {}
       setTimerDisplay(BET_SECS);
@@ -4403,6 +5208,7 @@
       }
 
       let lastZoneBetAt = 0;
+      let lastZoneBetKey = '';
       betZones.forEach((zone) => {
         zone.addEventListener('click', (e) => {
           e.preventDefault();
@@ -4413,15 +5219,15 @@
             showToast('请先选择筹码', 1200);
             return;
           }
-          const now = Date.now();
-          if (now - lastZoneBetAt < 280) return; // 防一次点击触发两次
-          lastZoneBetAt = now;
           const key = zone.dataset.bet;
           if (!(key in bets)) return;
-          // 同一盘口再点 = 累加；换盘口 = 按当前筹码新挂单
-          const next = (pendingMarket === key && pendingStake > 0)
-            ? pendingStake + selected
-            : selected;
+          const now = Date.now();
+          // 防一次点击/冒泡打成两笔（同盘口短时连发直接忽略）
+          if (key === lastZoneBetKey && now - lastZoneBetAt < 450) return;
+          lastZoneBetAt = now;
+          lastZoneBetKey = key;
+          // 点盘口 = 按当前筹码挂单（不累加）；要加倍只用「重复下注」
+          const next = selected;
           if (balance < next) {
             showToast('积分不足', 1200);
             return;
