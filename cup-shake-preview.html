@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sicbo 透明盅摇动预览</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #1a1012; overflow: hidden; font-family: system-ui, sans-serif; }
+  #c { display: block; width: 100%; height: 100%; }
+  .bar {
+    position: fixed; left: 16px; top: 16px; z-index: 5;
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  }
+  button {
+    border: 0; border-radius: 10px; padding: 12px 18px; font-size: 16px;
+    background: #1ec98a; color: #062016; font-weight: 700; cursor: pointer;
+  }
+  button:active { transform: scale(0.98); }
+  .faces {
+    color: #f5e6d8; font-size: 14px; background: rgba(0,0,0,.45);
+    padding: 8px 12px; border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+  <div class="bar">
+    <button id="shake">摇盅</button>
+    <div class="faces" id="faces">点数：—</div>
+  </div>
+  <canvas id="c"></canvas>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+  <script type="module">
+import * as THREE from 'three';
+
+const canvas = document.getElementById('c');
+const facesEl = document.getElementById('faces');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setClearColor(0x1a1012, 1);
+renderer.localClippingEnabled = false;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 40);
+camera.position.set(0, 1.15, 1.65);
+camera.lookAt(0, 0.28, 0);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const sun = new THREE.DirectionalLight(0xfff2e0, 1.15);
+sun.position.set(2, 4, 3);
+scene.add(sun);
+const fill = new THREE.PointLight(0xffffff, 0.45, 8);
+fill.position.set(-1, 1.2, 1.5);
+scene.add(fill);
+
+const cupRoot = new THREE.Group();
+scene.add(cupRoot);
+
+const floor = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.42, 0.42, 0.05, 48),
+  new THREE.MeshStandardMaterial({ color: 0x1c1c20, metalness: 0.35, roughness: 0.5 })
+);
+floor.position.y = 0.0;
+cupRoot.add(floor);
+
+const chrome = new THREE.Mesh(
+  new THREE.TorusGeometry(0.36, 0.04, 16, 48),
+  new THREE.MeshStandardMaterial({ color: 0xb0b4b8, metalness: 0.95, roughness: 0.22 })
+);
+chrome.rotation.x = Math.PI / 2;
+chrome.position.y = 0.035;
+cupRoot.add(chrome);
+
+const glassMat = new THREE.MeshPhysicalMaterial({
+  color: 0xc8d8e8,
+  transparent: true,
+  opacity: 0.18,
+  roughness: 0.06,
+  metalness: 0.04,
+  transmission: 0.55,
+  thickness: 0.12,
+  depthWrite: false,
+  side: THREE.DoubleSide,
+});
+const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.58, 48, 1, true), glassMat);
+glass.position.y = 0.35;
+cupRoot.add(glass);
+const dome = new THREE.Mesh(new THREE.SphereGeometry(0.35, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), glassMat);
+dome.position.y = 0.64;
+cupRoot.add(dome);
+
+/** punch near-black bg → alpha so no black frame on cube edges */
+function punchBlackToAlpha(tex) {
+  const img = tex.image;
+  const c = document.createElement('canvas');
+  c.width = img.width; c.height = img.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, c.width, c.height);
+  const p = data.data;
+  for (let i = 0; i < p.length; i += 4) {
+    const r = p[i], g = p[i+1], b = p[i+2];
+    // black / near-black → transparent
+    if (r < 28 && g < 28 && b < 28) p[i+3] = 0;
+  }
+  ctx.putImageData(data, 0, 0);
+  const out = new THREE.CanvasTexture(c);
+  out.colorSpace = THREE.SRGBColorSpace;
+  out.anisotropy = 8;
+  out.needsUpdate = true;
+  return out;
+}
+
+const loader = new THREE.TextureLoader();
+const faceUrls = [1,2,3,4,5,6].map(i => `assets/dice/die-face-${i}.png?v=shake2`);
+const rawTex = await Promise.all(faceUrls.map(u => new Promise((res, rej) => {
+  loader.load(u, t => res(t), undefined, rej);
+})));
+const faceTex = rawTex.map(punchBlackToAlpha);
+
+const DIE = 0.132;
+const FACE_EPS = 0.001;
+
+function makeDie() {
+  const g = new THREE.Group();
+  // solid red body — no black seams
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(DIE, DIE, DIE),
+    new THREE.MeshStandardMaterial({ color: 0xc81018, roughness: 0.38, metalness: 0.04 })
+  );
+  g.add(body);
+
+  // face map: +Y1 -Y6 +Z2 -Z5 +X3 -X4
+  const specs = [
+    { f: 1, n: new THREE.Vector3(0, 1, 0) },
+    { f: 6, n: new THREE.Vector3(0, -1, 0) },
+    { f: 2, n: new THREE.Vector3(0, 0, 1) },
+    { f: 5, n: new THREE.Vector3(0, 0, -1) },
+    { f: 3, n: new THREE.Vector3(1, 0, 0) },
+    { f: 4, n: new THREE.Vector3(-1, 0, 0) },
+  ];
+  for (const s of specs) {
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(DIE * 0.92, DIE * 0.92),
+      new THREE.MeshStandardMaterial({
+        map: faceTex[s.f - 1],
+        transparent: true,
+        alphaTest: 0.15,
+        roughness: 0.32,
+        metalness: 0.02,
+        depthWrite: true,
+      })
+    );
+    plane.position.copy(s.n).multiplyScalar(DIE * 0.5 + FACE_EPS);
+    plane.lookAt(plane.position.clone().add(s.n));
+    g.add(plane);
+  }
+  return g;
+}
+
+// rest spots: spaced so cubes don't clip when settled
+const spots = [
+  new THREE.Vector3(-0.11, DIE * 0.5 + 0.028, -0.06),
+  new THREE.Vector3(0.11, DIE * 0.5 + 0.028, -0.02),
+  new THREE.Vector3(0.0, DIE * 0.5 + 0.028, 0.11),
+];
+const dice = [];
+for (let i = 0; i < 3; i++) {
+  const die = makeDie();
+  die.position.copy(spots[i]);
+  cupRoot.add(die);
+  dice.push(die);
+}
+
+function quatFaceUp(face) {
+  const map = {
+    1: new THREE.Vector3(0, 1, 0),
+    6: new THREE.Vector3(0, -1, 0),
+    2: new THREE.Vector3(0, 0, 1),
+    5: new THREE.Vector3(0, 0, -1),
+    3: new THREE.Vector3(1, 0, 0),
+    4: new THREE.Vector3(-1, 0, 0),
+  };
+  const q = new THREE.Quaternion();
+  q.setFromUnitVectors(map[face].clone(), new THREE.Vector3(0, 1, 0));
+  // small random yaw so three dice don't look copy-pasted
+  const yaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() - 0.5) * 0.7);
+  return yaw.multiply(q);
+}
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+requestAnimationFrame(function loop() {
+  requestAnimationFrame(loop);
+  renderer.render(scene, camera);
+});
+
+function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+let shaking = false;
+async function playShake(result = null) {
+  if (shaking) return;
+  shaking = true;
+  const faces = result || [1 + (Math.random()*6|0), 1 + (Math.random()*6|0), 1 + (Math.random()*6|0)];
+  facesEl.textContent = `点数：${faces.join(' · ')}`;
+
+  const shakeDur = 3200; // longer tumble
+  const settleDur = 750; // soft land
+  const t0 = performance.now();
+  const base = new THREE.Vector3();
+  const spins = dice.map(() => new THREE.Vector3(
+    (Math.random() - 0.5) * 22,
+    (Math.random() - 0.5) * 22,
+    (Math.random() - 0.5) * 22
+  ));
+
+  // —— shake phase ——
+  await new Promise(resolve => {
+    function step(now) {
+      const u = Math.min(1, (now - t0) / shakeDur);
+      // stay energetic longer, taper only at end
+      const env = u < 0.75 ? 1 : Math.sin(((1 - (u - 0.75) / 0.25) * Math.PI) / 2);
+      const hz = 13 - u * 5;
+      const phase = u * hz * Math.PI * 2;
+      cupRoot.position.set(
+        Math.sin(phase * 1.25) * 0.07 * env,
+        Math.abs(Math.sin(phase)) * 0.36 * env,
+        Math.cos(phase * 0.95) * 0.07 * env
+      );
+      dice.forEach((d, i) => {
+        d.rotation.x += spins[i].x * 0.014 * env;
+        d.rotation.y += spins[i].y * 0.014 * env;
+        d.rotation.z += spins[i].z * 0.014 * env;
+        // keep roughly inside cup, avoid stacking into same point
+        d.position.set(
+          spots[i].x + Math.sin(phase + i * 2.1) * 0.035 * env,
+          spots[i].y + 0.10 * env + Math.abs(Math.sin(phase * 1.15 + i)) * 0.09 * env,
+          spots[i].z + Math.cos(phase + i * 1.7) * 0.035 * env
+        );
+      });
+      if (u < 1) requestAnimationFrame(step);
+      else { cupRoot.position.copy(base); resolve(); }
+    }
+    requestAnimationFrame(step);
+  });
+
+  // —— settle phase: lerp to spaced rest + face-up, with soft bounce ——
+  const fromPos = dice.map(d => d.position.clone());
+  const fromQuat = dice.map(d => d.quaternion.clone());
+  const toQuat = faces.map(f => quatFaceUp(f));
+  const s0 = performance.now();
+  await new Promise(resolve => {
+    function step(now) {
+      const u = Math.min(1, (now - s0) / settleDur);
+      const e = easeOutCubic(u);
+      // tiny bounce on Y
+      const bounce = Math.sin(e * Math.PI) * 0.035 * (1 - e);
+      dice.forEach((d, i) => {
+        d.position.lerpVectors(fromPos[i], spots[i], e);
+        d.position.y = spots[i].y * e + fromPos[i].y * (1 - e) + bounce;
+        d.quaternion.slerpQuaternions(fromQuat[i], toQuat[i], e);
+      });
+      if (u < 1) requestAnimationFrame(step);
+      else {
+        dice.forEach((d, i) => {
+          d.position.copy(spots[i]);
+          d.quaternion.copy(toQuat[i]);
+        });
+        resolve();
+      }
+    }
+    requestAnimationFrame(step);
+  });
+
+  shaking = false;
+}
+
+document.getElementById('shake').onclick = () => playShake();
+playShake([4, 6, 4]);
+  </script>
+</body>
+</html>

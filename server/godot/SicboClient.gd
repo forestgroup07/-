@@ -27,18 +27,50 @@ func _ready() -> void:
 	var old := get_node_or_null("shake_anim")
 	if old:
 		old.visible = false
-	_set_dice_visible(true)
+	_set_dice_visible(false)
+	set_process_input(true)
+	_ensure_shake_button()
 	var err := _peer.connect_to_url(server_url)
 	if err != OK:
 		push_error("WebSocket connect failed: %s" % err)
-	print("[sicbo] 3D cup=", _cup != null, " | press V to preview shake")
+	print("[sicbo] 3D cup=", _cup != null, " | Space/V/click 摇盅")
+	# Auto demo so user sees motion without hunting for a key
+	await get_tree().create_timer(0.6).timeout
+	_trigger_preview_shake()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_V:
-			_pending_result = [1 + randi() % 6, 1 + randi() % 6, 1 + randi() % 6]
-			_play_shake()
+		var k: Key = event.keycode
+		var pk: Key = event.physical_keycode
+		if k == KEY_V or k == KEY_SPACE or pk == KEY_V or pk == KEY_SPACE:
+			_trigger_preview_shake()
+			get_viewport().set_input_as_handled()
 
+func _trigger_preview_shake() -> void:
+	if _shaking:
+		print("[sicbo] already shaking, ignore")
+		return
+	_pending_result = [1 + randi() % 6, 1 + randi() % 6, 1 + randi() % 6]
+	print("[sicbo] PREVIEW SHAKE -> ", _pending_result)
+	_play_shake()
+
+func _ensure_shake_button() -> void:
+	if get_node_or_null("UILayer/ShakeBtn") != null:
+		return
+	var layer := get_node_or_null("UILayer") as CanvasLayer
+	if layer == null:
+		layer = CanvasLayer.new()
+		layer.name = "UILayer"
+		layer.layer = 100
+		add_child(layer)
+	var btn := Button.new()
+	btn.name = "ShakeBtn"
+	btn.text = "摇盅 (空格)"
+	btn.position = Vector2(36, 36)
+	btn.size = Vector2(180, 58)
+	btn.add_theme_font_size_override("font_size", 22)
+	btn.pressed.connect(_trigger_preview_shake)
+	layer.add_child(btn)
 func _load_faces() -> void:
 	_faces.clear()
 	_faces.append(null)
@@ -115,17 +147,20 @@ func _play_shake() -> void:
 	if _shaking:
 		return
 	_shaking = true
+	# Final faces live on 3D dice inside the cup; hide 2D result sprites during shake
 	_set_dice_visible(false)
+	var faces: Array = _pending_result if _pending_result.size() >= 3 else []
 	if _cup and _cup.has_method("play_shake"):
-		print("[sicbo] 3D physics shake start")
-		await _cup.play_shake()
+		print("[sicbo] 3D physics shake start faces=", faces)
+		await _cup.play_shake(faces)
 	else:
 		push_warning("[sicbo] DiceCup3D missing")
 		await get_tree().create_timer(1.2).timeout
 	_shaking = false
-	if _pending_result.size() >= 3:
-		_show_faces(_pending_result)
-	_set_dice_visible(true)
+	if faces.size() >= 3:
+		_show_faces(faces)
+	# keep result sprites off — 3D cup already shows controlled faces
+	_set_dice_visible(false)
 	print("[sicbo] shake done")
 
 func _set_dice_visible(v: bool) -> void:

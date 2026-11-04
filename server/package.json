@@ -1,6 +1,6 @@
 {
   "name": "sicbo-server",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "private": true,
   "description": "Sic Bo game backend: Node.js + ws + MySQL for Godot clients",
   "main": "src/index.js",
