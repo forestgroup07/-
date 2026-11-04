@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.0.9" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.2.0" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.30" type="image/webp" />
@@ -590,7 +590,105 @@
     .limit-tip-row .k { color: #f0f0f0; }
     .limit-tip-row .v { color: #e8e8e8; font-variant-numeric: tabular-nums; }
 
-    /* 喇叭：底图原位+圆盘底座已烤进图；热区/红叉对齐底座圆心（不挪喇叭） */
+    /* 音乐：喇叭左侧，尺寸跟喇叭热区一致，不盖底图喇叭 */
+    .music-wrap {
+      position: absolute;
+      left: 72.45%;
+      top: 97.810%;
+      width: 1.92%;
+      aspect-ratio: 1;
+      height: auto;
+      z-index: 80;
+      transform: translate(-50%, -50%);
+    }
+    .music-face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .music-face svg {
+      width: 88%;
+      height: 88%;
+      display: block;
+      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55));
+    }
+    .music-hot {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 50%;
+    }
+    .music-hot:focus,
+    .music-hot:focus-visible { outline: none; }
+    .music-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 0.35em);
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      padding: 0.38em 0.75em;
+      border-radius: 0.45em;
+      background: rgba(20, 20, 20, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .music-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .music-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.4em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.4em solid transparent;
+      border-right: 0.4em solid transparent;
+      border-top: 0.45em solid rgba(20, 20, 20, 0.55);
+    }
+    .music-mute {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .music-mute.show { display: flex; }
+    .music-mute svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+
+    /* 喇叭：恢复底图原位热区（不画第二只喇叭） */
     .sound-wrap {
       position: absolute;
       left: 75.137%;
@@ -2364,17 +2462,17 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.0.9" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.0" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <!-- 框外两侧：卡通美女 -->
-      <img class="side-beauty side-beauty-l" src="assets/eu-concept/beauty-side-l.png?v=v1.0.9u" alt="" draggable="false" />
-      <img class="side-beauty side-beauty-r" src="assets/eu-concept/beauty-side-r.png?v=v1.0.9u" alt="" draggable="false" />
+      <img class="side-beauty side-beauty-l" src="assets/eu-concept/beauty-side-l.png?v=v1.2.0u" alt="" draggable="false" />
+      <img class="side-beauty side-beauty-r" src="assets/eu-concept/beauty-side-r.png?v=v1.2.0u" alt="" draggable="false" />
 
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
           <picture>
-            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-well-dark.jpg?v=v1.0.9u" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:0" />
+            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-well-dark.jpg?v=v1.2.0u" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:0" />
           </picture>
           <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
           <div class="road-screen" id="roadScreen" aria-hidden="false">
@@ -2530,6 +2628,30 @@
         </div>
         <button class="help-hot" id="helpHot" type="button" aria-label="游戏规则" aria-describedby="helpTip"></button>
         <div class="help-tip" id="helpTip" role="tooltip">遊戲規則</div>
+      </div>
+      <div class="music-wrap" id="musicWrap">
+        <div class="music-face" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="musicNoteGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f6e7c2"/>
+                <stop offset="55%" stop-color="#e0c07a"/>
+                <stop offset="100%" stop-color="#b88945"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="14.5" cy="28.5" rx="6.2" ry="4.6" fill="url(#musicNoteGrad)" transform="rotate(-18 14.5 28.5)"/>
+            <rect x="19.2" y="8" width="2.6" height="21" rx="0.8" fill="url(#musicNoteGrad)"/>
+            <path d="M21.8 8.2c4.2 1.2 7.6 3.4 9.2 6.2.4.7-.3 1.4-1 1.1-2.2-1-4.6-2.1-8.2-2.8V8.2z" fill="url(#musicNoteGrad)"/>
+          </svg>
+        </div>
+        <button class="music-hot" id="musicHot" type="button" aria-label="音乐" aria-pressed="false" aria-describedby="musicTip"></button>
+        <div class="music-tip" id="musicTip" role="tooltip">音樂</div>
+        <div class="music-mute" id="musicMute" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="15.5" fill="none" stroke="#e53935" stroke-width="3.2"/>
+            <line x1="9.5" y1="9.5" x2="30.5" y2="30.5" stroke="#e53935" stroke-width="3.2" stroke-linecap="round"/>
+          </svg>
+        </div>
       </div>
       <div class="sound-wrap" id="soundWrap">
         <button class="sound-hot" id="soundHot" type="button" aria-label="声效" aria-pressed="false" aria-describedby="soundTip"></button>
@@ -3046,7 +3168,7 @@
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.0.9"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.2.0"></script>
   <script src="js/sicbo-engine.js?v=1.0.30"></script>
   <script>
     (async function () {
@@ -3661,9 +3783,15 @@
       const stakeAmt = document.getElementById('stakeAmt');
       const limitHot = document.getElementById('limitHot');
       const limitTip = document.getElementById('limitTip');
+      const musicHot = document.getElementById('musicHot');
+      const musicTip = document.getElementById('musicTip');
+      const musicMute = document.getElementById('musicMute');
       const soundHot = document.getElementById('soundHot');
       const soundTip = document.getElementById('soundTip');
       const soundMute = document.getElementById('soundMute');
+      const MUSIC_MUTE_KEY = 'fg_sicbo_music_mute::' + ACCOUNT_ID.trim().toLowerCase();
+      let musicMuted = false;
+      try { musicMuted = localStorage.getItem(MUSIC_MUTE_KEY) === '1'; } catch (_) {}
       const STAKE_PANEL_KEYS = ['big', 'small', 'odd', 'even', 'wrap'];
       const resultBoard = document.getElementById('resultBoard');
       const resultDice = document.getElementById('resultDice');
@@ -5321,6 +5449,28 @@
         e.stopPropagation();
         Voice.unlock();
         setLimitTip(!limitTip.classList.contains('show'));
+      });
+      function showMusicTip(show) {
+        const on = !!show && !musicMuted;
+        musicTip.classList.toggle('show', on);
+      }
+      function setMusicMuted(on) {
+        musicMuted = !!on;
+        try { localStorage.setItem(MUSIC_MUTE_KEY, musicMuted ? '1' : '0'); } catch (_) {}
+        musicMute.classList.toggle('show', musicMuted);
+        musicMute.setAttribute('aria-hidden', musicMuted ? 'false' : 'true');
+        musicHot.setAttribute('aria-pressed', musicMuted ? 'true' : 'false');
+        musicHot.setAttribute('aria-label', musicMuted ? '打开音乐' : '音乐');
+        if (musicMuted) showMusicTip(false);
+      }
+      setMusicMuted(musicMuted);
+      musicHot.addEventListener('mouseenter', () => showMusicTip(true));
+      musicHot.addEventListener('mouseleave', () => showMusicTip(false));
+      musicHot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Voice.unlock();
+        setMusicMuted(!musicMuted);
       });
       function showSoundTip(show) {
         /* 红叉静音时不显示「聲效」 */
