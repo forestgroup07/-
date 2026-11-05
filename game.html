@@ -1505,16 +1505,34 @@
       object-position: center top;
       display: block;
       background: #0a0608;
+      /* 静图微动：近似呼吸/轻微摆动（真 Live2D 需 .moc3 模型） */
+      transform-origin: 50% 85%;
+      will-change: transform;
+      animation: beautyBreathe 4.8s ease-in-out infinite;
     }
     .side-beauty-l {
       left: 0;
       width: 25.55%;
-      object-position: 65% top;
+      object-position: 58% top;
+      animation-name: beautySwayL;
     }
     .side-beauty-r {
       left: 70.62%;
       width: 29.38%;
-      object-position: 35% top;
+      object-position: 42% top;
+      animation-name: beautySwayR;
+      animation-duration: 5.4s;
+    }
+    @keyframes beautySwayL {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(-0.35deg) scale(1); }
+      50% { transform: translate3d(0.35%, -0.55%, 0) rotate(0.45deg) scale(1.012); }
+    }
+    @keyframes beautySwayR {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0.35deg) scale(1); }
+      50% { transform: translate3d(-0.35%, -0.5%, 0) rotate(-0.4deg) scale(1.012); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .side-beauty { animation: none !important; }
     }
 
     .cup3d-layer {
@@ -2791,8 +2809,8 @@
       </picture>
 
       <!-- 框外两侧：卡通美女 -->
-      <img class="side-beauty side-beauty-l" src="assets/eu-concept/beauty-side-l.png?v=v1.2.0u" alt="" draggable="false" />
-      <img class="side-beauty side-beauty-r" src="assets/eu-concept/beauty-side-r.png?v=v1.2.0u" alt="" draggable="false" />
+      <img class="side-beauty side-beauty-l" src="assets/eu-concept/beauty-side-l.png?v=v1.2.1d" alt="" draggable="false" />
+      <img class="side-beauty side-beauty-r" src="assets/eu-concept/beauty-side-r.png?v=v1.2.1d" alt="" draggable="false" />
 
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
@@ -3561,7 +3579,7 @@
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script>
     (async function () {
-      const V = 'v1.2.1';
+      const V = 'v1.2.1b';
       const START_BAL = 2000;
       function currentUser() {
         try {
