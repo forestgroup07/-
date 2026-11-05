@@ -1,164 +1,172 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hans">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>Forest Group · 登入</title>
+  <title>Forest Group · 登录注册</title>
   <style>
     :root {
       --gold: #d4b06a;
       --gold-bright: #f0d392;
       --gold-deep: #a67c2e;
       --ink: #0a0c10;
-      --panel: rgba(12, 14, 18, 0.78);
       --line: rgba(212, 176, 106, 0.35);
+      --muted: rgba(232, 226, 212, 0.55);
+      --safe-b: env(safe-area-inset-bottom, 0px);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
+      width: 100%; min-height: 100%;
       background: var(--ink);
       color: #e8e2d4;
-      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-family: "PingFang SC", "PingFang TC", "Microsoft YaHei", sans-serif;
     }
-    /* 首页干净登入：无游戏台面、无骰宝图 */
     .scene {
       position: relative;
-      width: 100%; height: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      background: #0a0c10;
+      padding: 1.2rem 1rem calc(4.2rem + var(--safe-b));
+      background:
+        radial-gradient(ellipse at 50% 0%, #1a1520 0%, #0a0c10 55%, #050608 100%);
     }
-
     .wrap {
-      position: relative;
-      z-index: 2;
-      width: min(420px, 92vw);
+      width: min(420px, 100%);
+      margin-top: 2vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 1.4rem;
-      transform: translateY(-4vh);
+      gap: 1rem;
     }
-
-    .brand {
-      text-align: center;
-      animation: rise .7s ease both;
-    }
+    .brand { text-align: center; }
     .brand-mark {
-      width: 92px; height: 92px;
-      margin: 0 auto .75rem;
+      width: 78px; height: 78px;
+      margin: 0 auto .65rem;
       border-radius: 50%;
       display: grid; place-items: center;
-      background:
-        radial-gradient(circle at 35% 30%, #f7e2a8, #c9973a 55%, #7a5418 100%);
-      box-shadow:
-        0 0 0 2px rgba(255,220,150,.35),
-        0 10px 28px rgba(0,0,0,.45),
-        inset 0 1px 0 rgba(255,255,255,.45);
+      background: radial-gradient(circle at 35% 30%, #f7e2a8, #c9973a 55%, #7a5418 100%);
+      box-shadow: 0 0 0 2px rgba(255,220,150,.35), 0 10px 28px rgba(0,0,0,.45);
       color: #2a1a05;
-      font-family: "Songti SC", "STSong", "Noto Serif TC", serif;
-      font-size: 1.55rem;
+      font-family: "Songti SC", "STSong", serif;
+      font-size: 1.35rem;
       font-weight: 700;
-      letter-spacing: 0.08em;
       line-height: 1.05;
     }
     .brand h1 {
-      font-size: clamp(1.35rem, 3.2vw, 1.85rem);
+      font-size: clamp(1.2rem, 3.2vw, 1.7rem);
       font-weight: 700;
-      letter-spacing: 0.28em;
-      color: var(--gold-bright);
-      text-indent: 0.28em;
-      text-shadow: 0 2px 16px rgba(0,0,0,.55);
-    }
-    .brand p {
-      margin-top: .35rem;
-      font-size: .78rem;
       letter-spacing: 0.22em;
-      color: rgba(232,226,212,.65);
+      color: var(--gold-bright);
       text-indent: 0.22em;
     }
-
+    .brand p {
+      margin-top: .3rem;
+      font-size: .74rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+    }
     .panel {
       width: 100%;
-      padding: 1.55rem 1.35rem 1.35rem;
-      border-radius: 10px;
+      padding: 1.15rem 1.1rem 1.2rem;
+      border-radius: 12px;
       background: rgba(10, 12, 16, 0.92);
       border: 1px solid var(--line);
       box-shadow: 0 18px 50px rgba(0,0,0,.45);
-      animation: rise .75s .08s ease both;
     }
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .35rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .tab {
+      border: 0;
+      background: transparent;
+      color: rgba(232,226,212,.55);
+      font-size: .95rem;
+      font-weight: 700;
+      padding: .55rem 0 .7rem;
+      cursor: pointer;
+      position: relative;
+    }
+    .tab.is-on {
+      color: var(--gold-bright);
+    }
+    .tab.is-on::after {
+      content: "";
+      position: absolute;
+      left: 18%; right: 18%;
+      bottom: 0;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #f3dfa0, #b8893a);
+    }
+    .pane { display: none; }
+    .pane.is-on { display: block; }
     .field {
       position: relative;
-      margin-bottom: .85rem;
+      margin-bottom: .72rem;
     }
+    .field label {
+      display: block;
+      margin-bottom: .28rem;
+      font-size: .72rem;
+      color: rgba(232,226,212,.62);
+      letter-spacing: .04em;
+    }
+    .field label .req { color: #ff9b9b; margin-left: .15rem; }
     .field input {
       width: 100%;
-      height: 46px;
-      padding: 0 2.4rem 0 2.55rem;
-      border-radius: 6px;
+      height: 44px;
+      padding: 0 .9rem;
+      border-radius: 8px;
       border: 1px solid rgba(212,176,106,.28);
       background: rgba(0,0,0,.45);
       color: #f4efdf;
-      font-size: .98rem;
+      font-size: .92rem;
       outline: none;
-      transition: border-color .2s ease, box-shadow .2s ease;
     }
     .field input:focus {
       border-color: rgba(240,211,146,.7);
       box-shadow: 0 0 0 3px rgba(212,176,106,.15);
     }
-    .field .ico {
-      position: absolute;
-      left: .85rem; top: 50%;
-      transform: translateY(-50%);
-      width: 18px; height: 18px;
+    .field input:disabled {
       opacity: .75;
-      pointer-events: none;
+      color: #ffe9b0;
     }
     .field .eye {
       position: absolute;
-      right: .7rem; top: 50%;
-      transform: translateY(-50%);
-      width: 34px; height: 34px;
+      right: .45rem; bottom: .28rem;
+      height: 38px; width: 42px;
       border: 0; background: transparent;
       color: rgba(232,226,212,.65);
       cursor: pointer;
-      font-size: .95rem;
+      font-size: .78rem;
     }
-
-    .btn-login {
+    .ref-ok {
+      margin-top: .28rem;
+      font-size: .72rem;
+      color: #7CFF7A;
+      min-height: 1em;
+    }
+    .btn-main {
       width: 100%;
       height: 48px;
-      margin-top: .25rem;
+      margin-top: .35rem;
       border: 0;
-      border-radius: 6px;
+      border-radius: 999px;
       cursor: pointer;
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 800;
-      letter-spacing: 0.35em;
-      text-indent: 0.35em;
+      letter-spacing: 0.12em;
       color: #2a1a05;
       background: linear-gradient(180deg, #f3dfa0 0%, #d4b06a 48%, #b8893a 100%);
       box-shadow: 0 2px 0 #8a6520, 0 8px 18px rgba(0,0,0,.35);
-      transition: filter .15s ease, transform .1s ease;
     }
-    .btn-login:hover { filter: brightness(1.05); }
-    .btn-login:active { transform: translateY(1px); }
-    .btn-login:disabled {
-      opacity: .6;
-      cursor: default;
-    }
-
-    .hint {
-      margin-top: .85rem;
-      text-align: center;
-      font-size: .72rem;
-      line-height: 1.55;
-      color: rgba(232,226,212,.55);
-    }
+    .btn-main:disabled { opacity: .6; cursor: default; }
     .err {
       min-height: 1.2em;
       margin: .55rem 0 0;
@@ -166,162 +174,303 @@
       font-size: .82rem;
       color: #ff9b9b;
       opacity: 0;
-      transition: opacity .2s ease;
     }
     .err.show { opacity: 1; }
-
-    .langs {
-      position: absolute;
-      right: max(1.2rem, 2vw);
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      gap: .45rem;
-      font-size: .72rem;
-      color: rgba(232,226,212,.72);
+    .hint {
+      margin-top: .75rem;
+      text-align: center;
+      font-size: .7rem;
+      line-height: 1.5;
+      color: var(--muted);
     }
-    .langs label {
-      display: flex;
-      align-items: center;
-      gap: .4rem;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .langs input { accent-color: var(--gold); }
-
     .foot {
-      position: absolute;
+      position: fixed;
       left: 0; right: 0; bottom: 0;
       z-index: 3;
-      padding: .65rem 1rem .8rem;
+      padding: .55rem 1rem calc(.65rem + var(--safe-b));
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
-      gap: .5rem 1rem;
-      font-size: .68rem;
-      color: rgba(232,226,212,.45);
-      background: linear-gradient(180deg, transparent, rgba(0,0,0,.55));
+      gap: .4rem 1rem;
+      font-size: .66rem;
+      color: rgba(232,226,212,.42);
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,.7));
     }
-    .foot a { color: rgba(240,211,146,.7); text-decoration: none; }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(14px); }
-      to { opacity: 1; transform: translateY(0); }
+    .langs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .45rem .75rem;
+      font-size: .72rem;
+      color: rgba(232,226,212,.7);
     }
-
-    @media (max-width: 720px) {
-      .langs {
-        right: auto; left: 50%;
-        top: auto; bottom: 3.2rem;
-        transform: translateX(-50%);
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: .55rem .9rem;
-        max-width: 92vw;
-      }
-      .brand-mark { width: 78px; height: 78px; font-size: 1.3rem; }
-      .wrap { transform: none; margin-bottom: 3.5rem; }
-    }
+    .langs label { display: flex; align-items: center; gap: .3rem; cursor: pointer; }
+    .langs input { accent-color: var(--gold); }
   </style>
 </head>
 <body>
   <div class="scene">
-    <aside class="langs" aria-label="语言">
-      <label><input type="radio" name="lang" value="zh-Hant" checked /> 繁體中文</label>
-      <label><input type="radio" name="lang" value="zh-Hans" /> 简体中文</label>
-      <label><input type="radio" name="lang" value="en" /> 英文</label>
-      <label><input type="radio" name="lang" value="id" /> 印尼文</label>
-    </aside>
-
     <div class="wrap">
       <div class="brand">
         <div class="brand-mark">森<br/>林</div>
         <h1>FOREST GROUP</h1>
-        <p>LIVE CASINO</p>
+        <p>LIVE CASINO · 加入牌桌</p>
       </div>
 
-      <form class="panel" id="loginForm" autocomplete="on">
-        <div class="field">
-          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 19c1.8-3.2 4.2-4.8 7-4.8s5.2 1.6 7 4.8"/></svg>
-          <input id="user" name="username" type="text" placeholder="账号" value="asdg" maxlength="32" />
+      <div class="panel">
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab is-on" id="tabLogin" role="tab" aria-selected="true">登录</button>
+          <button type="button" class="tab" id="tabReg" role="tab" aria-selected="false">注册</button>
         </div>
-        <div class="field">
-          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-          <input id="pass" name="password" type="password" placeholder="密码" value="123456" maxlength="32" />
-          <button class="eye" id="togglePass" type="button" aria-label="显示密码">显示</button>
-        </div>
-        <button class="btn-login" id="btnLogin" type="submit">登入</button>
-        <p class="err" id="err"></p>
-        <p class="hint">本演示厅直播与软件仅供 Forest Group 内部演示使用</p>
-      </form>
+
+        <form class="pane is-on" id="loginPane" autocomplete="on">
+          <div class="field">
+            <label>登录账号</label>
+            <input id="loginUser" name="username" type="text" placeholder="请输入账号" maxlength="24" />
+          </div>
+          <div class="field">
+            <label>密码</label>
+            <input id="loginPass" name="password" type="password" placeholder="请输入密码" maxlength="64" />
+            <button class="eye" id="toggleLoginPass" type="button">显示</button>
+          </div>
+          <button class="btn-main" id="btnLogin" type="submit">登录并进入</button>
+          <p class="err" id="loginErr"></p>
+          <p class="hint">Forest Group · 公司根推荐码 FOREST</p>
+        </form>
+
+        <form class="pane" id="regPane" autocomplete="on">
+          <div class="field">
+            <label>登录账号<span class="req">*</span></label>
+            <input id="regUser" type="text" placeholder="3-24 位字母/数字/下划线" maxlength="24" />
+          </div>
+          <div class="field">
+            <label>密码<span class="req">*</span></label>
+            <input id="regPass" type="password" placeholder="至少 8 位" maxlength="64" />
+            <button class="eye" id="toggleRegPass" type="button">显示</button>
+          </div>
+          <div class="field">
+            <label>游戏昵称<span class="req">*</span></label>
+            <input id="regNick" type="text" placeholder="其他玩家看到的名字" maxlength="24" />
+          </div>
+          <div class="field">
+            <label>WhatsApp<span class="req">*</span></label>
+            <input id="regContact" type="tel" placeholder="WhatsApp 号码，如 +62812…" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>邮箱<span class="req">*</span></label>
+            <input id="regEmail" type="email" placeholder="能联系到你的邮箱" maxlength="64" />
+          </div>
+          <div class="field">
+            <label>推荐人推荐码<span class="req">* 必填</span></label>
+            <input id="regRef" type="text" placeholder="必须填写推荐人推荐码" maxlength="32" />
+            <div class="ref-ok" id="refOk"></div>
+          </div>
+          <button class="btn-main" id="btnReg" type="submit">注册并进入</button>
+          <p class="err" id="regErr"></p>
+          <p class="hint">无推荐码无法注册 · 关系创建后不可更改（直销制度）</p>
+        </form>
+      </div>
+
+      <div class="langs" aria-label="语言">
+        <label><input type="radio" name="lang" value="zh-Hans" checked /> 简体</label>
+        <label><input type="radio" name="lang" value="zh-Hant" /> 繁體</label>
+        <label><input type="radio" name="lang" value="en" /> EN</label>
+        <label><input type="radio" name="lang" value="id" /> ID</label>
+      </div>
     </div>
 
     <footer class="foot">
-      <span>在线客服 · Demo</span>
-      <span>V1.0.28 · Chrome</span>
-      <span>请启用 JavaScript 与 Cookies，建议使用 Chrome</span>
+      <span>Forest Group</span>
+      <span>V1.0.35</span>
+      <span>推荐关系系统确认 · 不可更改</span>
     </footer>
   </div>
 
   <script>
-    (function () {
-      const NEXT = 'loading.html?v=v1.0.28';
-      const form = document.getElementById('loginForm');
-      const user = document.getElementById('user');
-      const pass = document.getElementById('pass');
-      const err = document.getElementById('err');
-      const btn = document.getElementById('btnLogin');
-      const toggle = document.getElementById('togglePass');
+  (function () {
+    const V = 'v1.0.35';
+    const NEXT = 'loading.html?v=' + V;
+    const AUTH_API = 'api/sicbo-auth.php';
 
-      // 已登入：进缓存页再进大厅（补绑账号，避免余额读成默认 2000）
-      try {
-        const last = localStorage.getItem('fg_sicbo_last_user');
-        if (last) user.value = last;
-        if (sessionStorage.getItem('fg_sicbo_auth') === '1') {
-          let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
-          if (!u && last) {
-            u = last.trim();
-            sessionStorage.setItem('fg_sicbo_user', u);
-          }
-          location.replace(NEXT);
-          return;
-        }
-      } catch (_) { /* ignore */ }
+    const tabLogin = document.getElementById('tabLogin');
+    const tabReg = document.getElementById('tabReg');
+    const loginPane = document.getElementById('loginPane');
+    const regPane = document.getElementById('regPane');
+    const loginErr = document.getElementById('loginErr');
+    const regErr = document.getElementById('regErr');
+    const refOk = document.getElementById('refOk');
+    const regRef = document.getElementById('regRef');
+    const regContact = document.getElementById('regContact');
 
-      toggle.addEventListener('click', () => {
-        const show = pass.type === 'password';
-        pass.type = show ? 'text' : 'password';
-        toggle.textContent = show ? '隐藏' : '显示';
-      });
+    function showErr(el, msg) {
+      el.textContent = msg || '';
+      el.classList.toggle('show', !!msg);
+    }
 
-      function fail(msg) {
-        err.textContent = msg;
-        err.classList.add('show');
+    function setMode(mode) {
+      const reg = mode === 'reg';
+      tabLogin.classList.toggle('is-on', !reg);
+      tabReg.classList.toggle('is-on', reg);
+      tabLogin.setAttribute('aria-selected', reg ? 'false' : 'true');
+      tabReg.setAttribute('aria-selected', reg ? 'true' : 'false');
+      loginPane.classList.toggle('is-on', !reg);
+      regPane.classList.toggle('is-on', reg);
+      showErr(loginErr, '');
+      showErr(regErr, '');
+    }
+
+    tabLogin.addEventListener('click', () => setMode('login'));
+    tabReg.addEventListener('click', () => setMode('reg'));
+
+    /* ?ref=CODE 或 ?mode=reg 打开注册并预填推荐码 */
+    try {
+      const q = new URLSearchParams(location.search);
+      const ref = (q.get('ref') || q.get('invite') || '').trim();
+      if (ref) {
+        setMode('reg');
+        regRef.value = ref.toUpperCase();
+        regRef.readOnly = true;
+        checkRef(ref);
+      } else if ((q.get('mode') || '') === 'reg') {
+        setMode('reg');
       }
+    } catch (_) {}
 
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        err.classList.remove('show');
-        const u = (user.value || '').trim();
-        const p = (pass.value || '').trim();
-        if (!u || !p) {
-          fail('请输入账号和密码');
+    try {
+      const last = localStorage.getItem('fg_sicbo_last_user');
+      if (last) document.getElementById('loginUser').value = last;
+      if (sessionStorage.getItem('fg_sicbo_auth') === '1') {
+        let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
+        if (!u && last) {
+          u = last.trim();
+          sessionStorage.setItem('fg_sicbo_user', u);
+        }
+        location.replace(NEXT);
+        return;
+      }
+    } catch (_) {}
+
+    function bindEye(btnId, inputId) {
+      const btn = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+      btn.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.textContent = show ? '隐藏' : '显示';
+      });
+    }
+    bindEye('toggleLoginPass', 'loginPass');
+    bindEye('toggleRegPass', 'regPass');
+
+    let refTimer = 0;
+    async function checkRef(code) {
+      const c = (code || '').trim();
+      refOk.textContent = '';
+      if (!c) return false;
+      try {
+        const r = await fetch(AUTH_API + '?check_ref=' + encodeURIComponent(c), { cache: 'no-store' });
+        const j = await r.json();
+        if (j && j.ok && j.referrer) {
+          refOk.textContent = '推荐人：' + (j.referrer.nick || j.referrer.user) + '（' + j.referrer.referralCode + '）';
+          return true;
+        }
+        refOk.textContent = '';
+        return false;
+      } catch (_) {
+        return false;
+      }
+    }
+    regRef.addEventListener('input', () => {
+      clearTimeout(refTimer);
+      refOk.textContent = '';
+      regRef.value = (regRef.value || '').toUpperCase();
+      refTimer = setTimeout(() => checkRef(regRef.value), 350);
+    });
+
+    function enterAs(user, profile) {
+      try {
+        sessionStorage.setItem('fg_sicbo_auth', '1');
+        sessionStorage.setItem('fg_sicbo_user', user);
+        localStorage.setItem('fg_sicbo_last_user', user);
+        if (profile) {
+          sessionStorage.setItem('fg_sicbo_profile', JSON.stringify(profile));
+        }
+      } catch (_) {}
+      location.href = NEXT;
+    }
+
+    document.getElementById('loginPane').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showErr(loginErr, '');
+      const user = (document.getElementById('loginUser').value || '').trim();
+      const password = (document.getElementById('loginPass').value || '').trim();
+      if (!user || !password) {
+        showErr(loginErr, '请输入账号和密码');
+        return;
+      }
+      const btn = document.getElementById('btnLogin');
+      btn.disabled = true;
+      btn.textContent = '登录中…';
+      try {
+        const r = await fetch(AUTH_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'login', user, password }),
+        });
+        const j = await r.json();
+        if (!j || !j.ok) {
+          showErr(loginErr, (j && j.error) || '登录失败');
           return;
         }
-        btn.disabled = true;
-        btn.textContent = '登入中';
-        // 演示：任意非空账号密码即可进入；余额按账号各自累积
-        try {
-          sessionStorage.setItem('fg_sicbo_auth', '1');
-          sessionStorage.setItem('fg_sicbo_user', u);
-          localStorage.setItem('fg_sicbo_last_user', u);
-        } catch (_) { /* ignore */ }
-        setTimeout(() => { location.href = NEXT; }, 280);
-      });
-    })();
+        enterAs(j.user.user, j.user);
+      } catch (_) {
+        showErr(loginErr, '网络异常，请稍后重试');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '登录并进入';
+      }
+    });
+
+    document.getElementById('regPane').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showErr(regErr, '');
+      const payload = {
+        action: 'register',
+        user: (document.getElementById('regUser').value || '').trim(),
+        password: (document.getElementById('regPass').value || '').trim(),
+        nick: (document.getElementById('regNick').value || '').trim(),
+        contactType: 'whatsapp',
+        contact: (regContact.value || '').trim(),
+        email: (document.getElementById('regEmail').value || '').trim(),
+        referrerCode: (document.getElementById('regRef').value || '').trim(),
+      };
+      if (!payload.referrerCode) {
+        showErr(regErr, '必须填写推荐人推荐码');
+        return;
+      }
+      const btn = document.getElementById('btnReg');
+      btn.disabled = true;
+      btn.textContent = '注册中…';
+      try {
+        const r = await fetch(AUTH_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const j = await r.json();
+        if (!j || !j.ok) {
+          showErr(regErr, (j && j.error) || '注册失败');
+          return;
+        }
+        enterAs(j.user.user, j.user);
+      } catch (_) {
+        showErr(regErr, '网络异常，请稍后重试');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '注册并进入';
+      }
+    });
+  })();
   </script>
 </body>
 </html>

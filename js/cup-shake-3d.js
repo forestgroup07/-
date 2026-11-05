@@ -41,15 +41,21 @@ function easeOutCubic(t) {
 
 async function mountCupShake3D(canvas, opts = {}) {
   const assetBase = opts.assetBase || 'assets/dice';
+  const lite = !!opts.lite;
+  const faceTpl = opts.faceTpl || 'die-face-{n}.png';
+  const faceVer = opts.faceVer || FACE_VER;
+  const latheSeg = lite ? 48 : 96;
+  const sphereW = lite ? 32 : 64;
+  const sphereH = lite ? 24 : 48;
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true,
+    antialias: !lite,
     alpha: true,
     premultipliedAlpha: false,
     preserveDrawingBuffer: true,
   });
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, lite ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
@@ -171,13 +177,13 @@ async function mountCupShake3D(canvas, opts = {}) {
   }
   // 顶点合到轴心，真正封口成自然半圆弧
   profile.push(new THREE.Vector2(0.001, rimY + H + R));
-  const glass = new THREE.Mesh(new THREE.LatheGeometry(profile, 96), glassMat);
+  const glass = new THREE.Mesh(new THREE.LatheGeometry(profile, latheSeg), glassMat);
   cupRoot.add(glass);
   // 独立半球顶：轮廓更圆，避免看起来像平切横线
   const domeMat = glassMat.clone();
   domeMat.opacity = 0.32;
   const domeCap = new THREE.Mesh(
-    new THREE.SphereGeometry(R, 64, 48, 0, Math.PI * 2, 0, Math.PI / 2),
+    new THREE.SphereGeometry(R, sphereW, sphereH, 0, Math.PI * 2, 0, Math.PI / 2),
     domeMat
   );
   domeCap.position.y = rimY + H;
@@ -185,7 +191,7 @@ async function mountCupShake3D(canvas, opts = {}) {
 
   // 底口嵌在铬座上的银环（顶上不加细环线）
   const mouth = new THREE.Mesh(
-    new THREE.TorusGeometry(R, 0.011, 10, 64),
+    new THREE.TorusGeometry(R, 0.011, 10, lite ? 32 : 64),
     chromeMat
   );
   mouth.rotation.x = Math.PI / 2;
@@ -197,7 +203,12 @@ async function mountCupShake3D(canvas, opts = {}) {
     [1, 2, 3, 4, 5, 6].map(
       (i) =>
         new Promise((res, rej) =>
-          loader.load(`${assetBase}/die-face-${i}.png?v=${FACE_VER}`, (t) => res(t), undefined, rej)
+          loader.load(
+            `${assetBase}/${faceTpl.replace('{n}', String(i))}?v=${faceVer}`,
+            (t) => res(t),
+            undefined,
+            rej
+          )
         )
     )
   );
@@ -451,6 +462,13 @@ async function boot() {
   const canvas = document.getElementById('cup3dCanvas');
   const layer = document.getElementById('cup3dLayer');
   if (!canvas) return;
+  const lite = canvas.dataset.lite === '1';
+  const mountOpts = {
+    lite,
+    faceTpl: canvas.dataset.faceTpl || undefined,
+    faceVer: canvas.dataset.faceVer || undefined,
+    assetBase: canvas.dataset.assetBase || undefined,
+  };
   try {
     // measure against video-well even while hidden
     if (layer) {
@@ -458,7 +476,7 @@ async function boot() {
       layer.style.opacity = '0';
       layer.style.display = 'block';
     }
-    const api = await mountCupShake3D(canvas);
+    const api = await mountCupShake3D(canvas, mountOpts);
     window.CupShake3D = {
       ready: true,
       async play(faces) {
@@ -489,16 +507,22 @@ async function boot() {
       layer.setAttribute('aria-hidden', 'false');
       api.resize();
     }
+    try {
+      window.dispatchEvent(new CustomEvent('cup3d-ready'));
+    } catch (_) {}
     // 抽样：画布是否真有像素（排查全透明）
     try {
       const u = canvas.toDataURL('image/png');
-      console.log('[CupShake3D] ready', { dataUrlLen: u.length });
+      console.log('[CupShake3D] ready', { dataUrlLen: u.length, lite });
     } catch (e) {
-      console.log('[CupShake3D] ready');
+      console.log('[CupShake3D] ready', { lite });
     }
   } catch (e) {
     console.error('[CupShake3D] failed', e);
     window.CupShake3D = { ready: false, play: async () => {}, hide() {}, error: String(e) };
+    try {
+      window.dispatchEvent(new CustomEvent('cup3d-failed'));
+    } catch (_) {}
   }
 }
 

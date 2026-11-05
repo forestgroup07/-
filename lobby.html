@@ -67,6 +67,16 @@
       border-radius: 4px;
       padding: .2rem .45rem;
     }
+    .ref-code {
+      font-size: .72rem;
+      color: var(--gold2);
+      border: 1px solid rgba(212,176,106,.35);
+      border-radius: 4px;
+      padding: .2rem .5rem;
+      letter-spacing: .04em;
+      white-space: nowrap;
+      cursor: pointer;
+    }
     .icon-btn {
       width: 30px; height: 30px;
       border: 0; border-radius: 6px;
@@ -191,12 +201,12 @@
       height: 118px;
       background:
         linear-gradient(180deg, transparent 40%, rgba(0,0,0,.75)),
-        url("assets/lobby-thumb.webp?v=v1.0.28") center / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.0.30") center / cover no-repeat;
     }
     .card.featured .thumb {
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
-        url("assets/lobby-thumb.webp?v=v1.0.28") center 30% / cover no-repeat;
+        url("assets/lobby-thumb.webp?v=v1.0.30") center 30% / cover no-repeat;
     }
     .card .meta {
       padding: .65rem .75rem .75rem;
@@ -245,8 +255,9 @@
   <div class="app">
     <header class="top">
       <div class="top-left">
-        <div class="user"><span class="avatar" id="lobbyAvatar">A</span><span id="lobbyUser">asdg</span></div>
+        <div class="user"><span class="avatar" id="lobbyAvatar">F</span><span id="lobbyUser">forest</span></div>
         <div class="bal"><span class="chip-ico"></span><span id="lobbyBal">2,000.00</span></div>
+        <div class="ref-code" id="lobbyRef" title="我的推荐码">推荐码 —</div>
         <div class="limit">10 - 5,000</div>
       </div>
       <div class="top-right">
@@ -284,7 +295,16 @@
 
   <script>
     (function () {
-      const GAME = 'game.html?v=v1.0.28';
+      const GAME_PC = 'game.html?v=v1.2.1';
+      const GAME_M = 'game-m.html?v=1.2.7';
+      function isMobileClient() {
+        try {
+          if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
+          if (window.matchMedia && window.matchMedia('(max-width: 820px)').matches) return true;
+        } catch (_) {}
+        return false;
+      }
+      const GAME = isMobileClient() ? GAME_M : GAME_PC;
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -314,7 +334,7 @@
       }
       try {
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
-          location.replace('index.html?v=v1.0.28');
+          location.replace('index.html?v=v1.0.35');
           return;
         }
         let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
@@ -330,13 +350,34 @@
         const nameEl = document.getElementById('lobbyUser');
         const av = document.getElementById('lobbyAvatar');
         const balEl = document.getElementById('lobbyBal');
+        const refEl = document.getElementById('lobbyRef');
         if (nameEl) nameEl.textContent = u;
-        if (av) av.textContent = (u.charAt(0) || 'A').toUpperCase();
+        if (av) av.textContent = (u.charAt(0) || 'F').toUpperCase();
         if (balEl) {
           balEl.textContent = loadBal(u).toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });
+        }
+        let code = String(u || '').toUpperCase();
+        try {
+          const raw = sessionStorage.getItem('fg_sicbo_profile');
+          if (raw) {
+            const p = JSON.parse(raw);
+            if (p && p.referralCode) code = String(p.referralCode).toUpperCase();
+            if (p && p.nick && nameEl) nameEl.textContent = p.nick;
+          }
+        } catch (_) {}
+        if (refEl) {
+          refEl.textContent = '推荐码 ' + (code || '—');
+          refEl.onclick = () => {
+            const link = location.origin + '/index.html?v=v1.0.35&ref=' + encodeURIComponent(code);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(link).then(() => alert('已复制邀请链接')).catch(() => prompt('邀请链接', link));
+            } else {
+              prompt('邀请链接', link);
+            }
+          };
         }
       }
       paintUserBar();
@@ -407,7 +448,8 @@
           sessionStorage.removeItem('fg_sicbo_auth');
           sessionStorage.removeItem('fg_sicbo_user');
         } catch (_) {}
-        location.href = 'index.html?v=v1.0.28';
+        try { sessionStorage.removeItem('fg_sicbo_profile'); } catch (_) {}
+        location.href = 'index.html?v=v1.0.35';
       });
 
       paint();
