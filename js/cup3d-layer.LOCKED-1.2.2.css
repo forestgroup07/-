@@ -1,0 +1,29 @@
+/* LOCKED cup 1.2.2 — 层铺满 + SCALE2.55；圆角方骰+上下跳落定锁面；do not overwrite */
+.cup3d-layer {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 50;
+      transform: translateX(-50%);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease;
+      overflow: visible;
+    }
+.cup3d-layer.is-on {
+      opacity: 1;
+      visibility: visible;
+    }
+#cup3dCanvas,
+.godot-cup-frame {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
+      background: transparent !important;
+      color-scheme: normal;
+}

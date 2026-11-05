@@ -1505,10 +1505,9 @@
       object-position: center top;
       display: block;
       background: #0a0608;
-      /* 静图微动：近似呼吸/轻微摆动（真 Live2D 需 .moc3 模型） */
       transform-origin: 50% 85%;
       will-change: transform;
-      animation: beautyBreathe 4.8s ease-in-out infinite;
+      animation: beautySwayL 4.8s ease-in-out infinite;
     }
     .side-beauty-l {
       left: 0;
@@ -1537,7 +1536,7 @@
 
     .cup3d-layer {
       position: absolute;
-      /* LOCKED-1.1.5：满画布+SCALE2.55，黑底座离红底边有缝、整座露全；勿改 */
+      /* LOCKED-1.2.2：满画布+SCALE2.55；圆角方骰版；勿改盅位 */
       left: 50%;
       top: 0;
       bottom: 0;
@@ -2808,9 +2807,9 @@
         <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.0" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
-      <!-- 框外两侧：卡通美女 -->
-      <img class="side-beauty side-beauty-l" src="assets/eu-concept/beauty-side-l.png?v=v1.2.1d" alt="" draggable="false" />
-      <img class="side-beauty side-beauty-r" src="assets/eu-concept/beauty-side-r.png?v=v1.2.1d" alt="" draggable="false" />
+      <!-- 框外两侧：欧洲风静图 + CSS 微晃 -->
+      <img class="side-beauty side-beauty-l" src="assets/eu-concept/beauty-side-l.png?v=v1.2.1p" alt="" draggable="false" />
+      <img class="side-beauty side-beauty-r" src="assets/eu-concept/beauty-side-r.png?v=v1.2.1p" alt="" draggable="false" />
 
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
@@ -3571,15 +3570,16 @@
   <script type="importmap">
   {
     "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.2.7"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.2.2"></script>
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script>
     (async function () {
-      const V = 'v1.2.1b';
+      const V = '1.2.2';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -4315,8 +4315,9 @@
       const MUSIC_TRACK_KEY = 'fg_sicbo_music_track::' + ACCOUNT_ID.trim().toLowerCase();
       let musicMuted = false;
       try { musicMuted = localStorage.getItem(MUSIC_MUTE_KEY) === '1'; } catch (_) {}
+      /* 喇叭：每次进桌默认开声，不恢复上次红叉；背景音乐仍可记住关闭 */
       let soundMutedInit = false;
-      try { soundMutedInit = localStorage.getItem(SOUND_MUTE_KEY) === '1'; } catch (_) {}
+      try { localStorage.removeItem(SOUND_MUTE_KEY); } catch (_) {}
       let musicVol = 70;
       try {
         const v = Number(localStorage.getItem(MUSIC_VOL_KEY));
@@ -5612,8 +5613,8 @@
         return `chips/chip-${n}.webp?v=${V}`;
       }
 
-      let welcomed = false;
       let voiceKickBusy = false;
+      let joinedLiveHall = false; // 首次进桌：接入进行中的大厅，不从个人欢迎重开
       const unlockWaiters = [];
 
       function sleep(ms) {
@@ -5634,25 +5635,13 @@
         const q = unlockWaiters.splice(0);
         q.forEach((fn) => { try { fn(); } catch (_) { /* ignore */ } });
       }
-      /** 欢迎/开始下注：不阻塞倒计时；失败留待下一次手势重试 */
-      async function kickTableVoice(gen) {
+      /** 大厅「开始下注」口播：不播个人欢迎；不阻塞倒计时 */
+      async function kickStartBetVoice(gen) {
         if (voiceKickBusy || Voice.dead || Voice.muted) return;
         voiceKickBusy = true;
         try {
-          if (!welcomed) {
-            if (gen != null && !stillThisRound(gen)) return;
-            const okWelcome = await Voice.speak('欢迎进入骰宝游戏');
-            if (gen != null && !stillThisRound(gen)) return;
-            if (okWelcome) {
-              await sleep(280);
-              if (gen != null && !stillThisRound(gen)) return;
-              const okStart = await Voice.speak('开始下注');
-              if (okStart) welcomed = true;
-            }
-          } else {
-            if (gen != null && !stillThisRound(gen)) return;
-            await Voice.speak('开始下注');
-          }
+          if (gen != null && !stillThisRound(gen)) return;
+          await Voice.speak('开始下注');
         } finally {
           voiceKickBusy = false;
         }
@@ -5669,7 +5658,18 @@
         hideResult();
         setBettingOpen(true);
         showStopBet(false);
-        setTimerDisplay(BET_SECS);
+
+        /*
+         * 几百人大厅：第一次进桌接到「正在进行」的一局（随机剩余秒），
+         * 不播「欢迎进入骰宝」、也不从开局重念「开始下注」。
+         * 之后每局正常满秒开局才播「开始下注」。
+         */
+        const midJoin = !joinedLiveHall;
+        joinedLiveHall = true;
+        const startSec = midJoin
+          ? Math.max(4, Math.min(BET_SECS - 1, 4 + ((Math.random() * (BET_SECS - 4)) | 0)))
+          : BET_SECS;
+        setTimerDisplay(startSec);
 
         const bail = () => {
           if (gen !== roundGen) return;
@@ -5678,12 +5678,11 @@
           if (gen === roundGen) roundStarted = false;
         };
 
-        // 进桌即倒数；口播尽量立刻播，被浏览器拦则等首次手势补播（绝不挡倒计时）
         Voice.unlock();
         notifyAudioReady();
-        kickTableVoice(gen);
+        if (!midJoin) kickStartBetVoice(gen);
 
-        for (let t = BET_SECS; t >= 1; t--) {
+        for (let t = startSec; t >= 1; t--) {
           if (!stillThisRound(gen)) { bail(); return; }
           setTimerDisplay(t);
           if (t <= 10) Voice.bombTick();
@@ -5737,15 +5736,12 @@
         if (stillThisRound(gen)) runRound();
       }
 
-      // 进桌尝试自动解锁；若被策略拦截，首次点按再解锁并补播欢迎
+      // 进桌尝试自动解锁；被策略拦时首次点按只解锁接大厅当前声音，不重播欢迎/不开新局叙事
       Voice.init();
       try { Voice.unlock(); } catch (_) { /* ignore */ }
       document.addEventListener('pointerdown', () => {
         Voice.unlock();
         notifyAudioReady();
-        if (!welcomed && bettingOpen && roundStarted) {
-          kickTableVoice(roundGen);
-        }
         if (!roundStarted) runRound();
       }, { passive: true });
       // 关页：丢弃未确定选盘；仅「已确定」注码收官结算；再静音
@@ -6080,7 +6076,10 @@
       }
       function setVoiceMuted(on) {
         Voice.setMuted(!!on);
-        try { localStorage.setItem(SOUND_MUTE_KEY, on ? '1' : '0'); } catch (_) {}
+        /* 喇叭只管女声/滴答；背景音乐由音符单独开关。不写入 localStorage：刷新后喇叭默认开 */
+        if (on) {
+          try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_) {}
+        }
         paintSoundMuteUi();
       }
       function applyBgmVolume() {
@@ -6298,11 +6297,12 @@
         Voice.unlock();
         const nextMute = !musicMuted;
         setMusicMuted(nextMute);
-        if (nextMute) showMusicTip(true);
-        else {
+        if (nextMute) {
+          showMusicTip(true);
+        } else {
           showMusicTip(false);
           setMusicPanel(true);
-          if (bgmEl.paused) playBgmAt(musicTrackIdx, true);
+          playBgmAt(musicTrackIdx, true);
         }
       });
       soundHot.addEventListener('mouseenter', () => showSoundTip(true));

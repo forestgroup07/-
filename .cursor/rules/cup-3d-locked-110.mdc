@@ -1,0 +1,19 @@
+# 3D 骰盅锁定版本
+
+## 当前确认版 v1.2.2（绝不可改错）
+用户确认存版：圆角方骰 + 白点、盅/骰原地上下跳（稍高）、由快到慢、落地锁面不翻。盅位仍 `CUP_SCALE=2.55`，层铺满 video-well。
+
+- `js/cup-shake-3d.LOCKED-1.2.2.js`
+- `js/cup3d-layer.LOCKED-1.2.2.css`
+- 对照图：`assets/LOCKED-cup-1.2.2.jpg`
+- 验收：`https://forestgroup.ai/game.html?v=1.2.2`
+- `VERSION`=1.2.2
+
+**禁止**：擅自改 `CUP_SCALE` / `.cup3d-layer` 宽高 / 相机；禁止用更早锁定版覆盖本版。
+改跳动/其它功能时只动对应参数，盅尺寸与定位一律以 LOCKED-1.2.2 为准。
+
+## 更早备份（勿覆盖）
+- `js/cup-shake-3d.LOCKED-1.1.5.js` / `assets/LOCKED-cup-1.1.5.jpg`
+- `js/cup-shake-3d.LOCKED-1.1.4.js` / `assets/LOCKED-cup-1.1.4.jpg`（大玻璃罩满框）
+- `js/cup-shake-3d.LOCKED-1.1.2.js` / `assets/LOCKED-cup-1.1.2.jpg`
+- `js/cup-shake-3d.LOCKED-1.0.0.js` / `assets/LOCKED-cup-1.0.0.jpg`
