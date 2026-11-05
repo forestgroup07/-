@@ -53,6 +53,19 @@ function user_path($user) {
   return data_dir() . '/' . $user . '.json';
 }
 
+function legacy_accounts_dir() {
+  $dir = '/www/wwwroot/forestgroup.ai/data/sicbo-accounts';
+  if (!is_dir($dir)) {
+    $dir = dirname(__DIR__) . '/data/sicbo-accounts';
+  }
+  return $dir;
+}
+
+function legacy_account_exists($user) {
+  $path = legacy_accounts_dir() . '/' . $user . '.json';
+  return is_file($path);
+}
+
 function sanitize_user($u) {
   $u = strtolower(trim((string)$u));
   $u = preg_replace('/[^a-z0-9_]/', '', $u);
@@ -200,6 +213,35 @@ if ($action === 'login') {
   $pass = (string)($body['password'] ?? '');
   if ($user === '' || $pass === '') bad(400, '请输入账号和密码');
   $doc = load_user($user);
+
+  /* 旧桌账号只在 sicbo-accounts，无登录库：首次登录用本次密码建档，保留余额/注单 */
+  if ((!$doc || empty($doc['passHash'])) && legacy_account_exists($user)) {
+    $doc = [
+      'user' => $user,
+      'passHash' => password_hash($pass, PASSWORD_DEFAULT),
+      'nick' => $user,
+      'contactType' => 'whatsapp',
+      'contact' => '',
+      'phone' => '',
+      'whatsapp' => '',
+      'telegram' => '',
+      'email' => '',
+      'referralCode' => strtoupper($user),
+      'referrerId' => 'forest',
+      'isRoot' => false,
+      'legacyMigrated' => true,
+      'createdAt' => (int)round(microtime(true) * 1000),
+    ];
+    save_user($doc);
+    $codes = load_codes();
+    $myCode = strtoupper($user);
+    if (!isset($codes[$myCode])) {
+      $codes[$myCode] = $user;
+      save_codes($codes);
+    }
+    ok(['user' => public_user($doc), 'legacyMigrated' => true]);
+  }
+
   if (!$doc || empty($doc['passHash'])) bad(401, '账号或密码错误');
   if (!password_verify($pass, $doc['passHash'])) bad(401, '账号或密码错误');
   ok(['user' => public_user($doc)]);

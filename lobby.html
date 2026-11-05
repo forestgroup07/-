@@ -296,7 +296,7 @@
   <script>
     (function () {
       const GAME_PC = 'game.html?v=v1.2.1';
-      const GAME_M = 'game-m.html?v=1.2.7';
+      const GAME_M = 'game-m.html?v=1.2.1';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -306,6 +306,7 @@
       }
       const GAME = isMobileClient() ? GAME_M : GAME_PC;
       const START_BAL = 2000;
+      const ACCOUNT_API = 'api/sicbo-account.php';
       function currentUser() {
         try {
           const u = (sessionStorage.getItem('fg_sicbo_user')
@@ -330,6 +331,27 @@
           return Number.isFinite(n) && n >= 0 ? n : START_BAL;
         } catch (_) {
           return START_BAL;
+        }
+      }
+      function saveBalLocal(user, n) {
+        const v = String(Math.max(0, Math.round(Number(n) || 0)));
+        try {
+          localStorage.setItem(balKeyFor(user), v);
+          localStorage.setItem('fg_sicbo_balance', v);
+          localStorage.setItem('fg_sicbo_last_user', user);
+        } catch (_) {}
+      }
+      async function syncBalFromServer(user) {
+        try {
+          const r = await fetch(ACCOUNT_API + '?user=' + encodeURIComponent(user), { cache: 'no-store' });
+          const j = await r.json();
+          if (!j || !j.ok || !j.data) return null;
+          if (j.data.balance == null) return null;
+          const n = Math.max(0, Math.round(Number(j.data.balance)) || 0);
+          saveBalLocal(user, n);
+          return n;
+        } catch (_) {
+          return null;
         }
       }
       try {
@@ -381,8 +403,17 @@
         }
       }
       paintUserBar();
+      (async () => {
+        const u = currentUser();
+        const n = await syncBalFromServer(u);
+        if (n != null) paintUserBar();
+      })();
       document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) paintUserBar();
+        if (document.hidden) return;
+        paintUserBar();
+        syncBalFromServer(currentUser()).then((n) => {
+          if (n != null) paintUserBar();
+        });
       });
 
       const tables = [
