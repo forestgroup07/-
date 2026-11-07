@@ -144,10 +144,21 @@
     .chip-btn.on::after { opacity: 1; transform: translateX(-50%) scale(1); }
     .chip-btn.on.up img { transform: translateY(-22%); }
 
+    /* 与骰宝同款：滑入时裁切线外第 5 枚待命，肉眼始终 4 枚 */
+    .chip-viewport {
+      position: absolute;
+      inset: 0;
+      z-index: 32;
+      pointer-events: none;
+      overflow: visible;
+      clip-path: inset(4% 26% 58% 5%);
+    }
+    .chip-viewport .chip-btn { pointer-events: auto; }
     #chip-a { left: 8.592%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
     #chip-b { left: 24.683%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
     #chip-c { left: 40.775%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
     #chip-d { left: 56.459%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
+    .chip-btn.chip-ghost { z-index: 31; pointer-events: none; }
 
     .chip-arrow {
       position: absolute; z-index: 80; padding: 0; margin: 0; border: 0;
@@ -278,7 +289,7 @@
 <body>
   <div class="frame">
     <div class="stage" id="stage">
-      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.2c" alt="" width="2284" height="1468" draggable="false" />
+      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.3" alt="" width="2284" height="1468" draggable="false" />
 
       <div id="nums" aria-label="数字盘"></div>
       <div class="dozen-row" aria-label="打">
@@ -302,7 +313,7 @@
       </div>
 
       <div class="sicbo-dock" id="sicboDock">
-        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.2" alt="" draggable="false" />
+        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.3" alt="" draggable="false" />
 
         <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
         <div class="chip-cover" id="cover-b" aria-hidden="true"></div>
@@ -312,18 +323,20 @@
         <button class="chip-arrow" id="arrow-l" type="button" aria-label="筹码向左">
           <img src="chips/arrow-left.png?v=v1.0.30u" alt="" draggable="false" />
         </button>
-        <button class="chip-btn" id="chip-a" type="button" aria-label="筹码10">
-          <img src="chips/chip-10.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
-        </button>
-        <button class="chip-btn" id="chip-b" type="button" aria-label="筹码20">
-          <img src="chips/chip-20.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
-        </button>
-        <button class="chip-btn" id="chip-c" type="button" aria-label="筹码50">
-          <img src="chips/chip-50.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
-        </button>
-        <button class="chip-btn" id="chip-d" type="button" aria-label="筹码100">
-          <img src="chips/chip-100.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
-        </button>
+        <div class="chip-viewport" id="chipViewport">
+          <button class="chip-btn" id="chip-a" type="button" aria-label="筹码10">
+            <img src="chips/chip-10.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
+          </button>
+          <button class="chip-btn" id="chip-b" type="button" aria-label="筹码20">
+            <img src="chips/chip-20.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
+          </button>
+          <button class="chip-btn" id="chip-c" type="button" aria-label="筹码50">
+            <img src="chips/chip-50.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
+          </button>
+          <button class="chip-btn" id="chip-d" type="button" aria-label="筹码100">
+            <img src="chips/chip-100.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
+          </button>
+        </div>
         <button class="chip-arrow" id="arrow-r" type="button" aria-label="筹码向右">
           <img src="chips/arrow-right.png?v=v1.0.30u" alt="" draggable="false" />
         </button>
@@ -413,9 +426,14 @@
 
   <script>
     (function () {
-      const V = '1.0.2';
+      const V = '1.0.3';
+      /* 与骰宝 game.html 同一套面额顺序 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
+      const SLOT_LEFT = [8.592, 24.683, 40.775, 56.459];
+      const GAP = SLOT_LEFT[1] - SLOT_LEFT[0];
+      const CHIP_TOP = 11.91;
+      const CHIP_W = 11.899;
       const TABLE_MAX = 5000;
       const START_BAL = 2000;
       const BAL_KEY = 'fg_roulette_bal';
@@ -431,6 +449,7 @@
       let pendingStake = 0;
       let bettingOpen = true;
       let soundMuted = false;
+      let busy = false;
       const bets = Object.create(null);
 
       try {
@@ -439,6 +458,8 @@
         if (Number.isFinite(n)) balance = n;
       } catch (_) {}
 
+      const dock = document.getElementById('sicboDock');
+      const viewport = document.getElementById('chipViewport');
       const chips = [
         document.getElementById('chip-a'),
         document.getElementById('chip-b'),
@@ -522,19 +543,75 @@
           selectDenom(n, btn);
         });
       });
-      function slide(dir) {
+      function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+      async function slide(dir) {
+        if (busy) return;
         const next = start + dir;
         if (next < 0 || next > DENOMS.length - VISIBLE) return;
-        start = next;
-        paintChips();
-        if (selected != null) {
-          const btn = chips.find((b) => Number(b.dataset.value) === selected);
-          if (btn) { clearSelectVisual(); btn.classList.add('on', 'up'); }
-          else { selected = null; clearSelectVisual(); }
+        busy = true;
+        playClick();
+        try {
+          clearSelectVisual();
+          const entering = dir > 0 ? DENOMS[start + VISIBLE] : DENOMS[start - 1];
+          const ghost = document.createElement('button');
+          ghost.className = 'chip-btn chip-ghost';
+          ghost.type = 'button';
+          ghost.tabIndex = -1;
+          const gImg = document.createElement('img');
+          gImg.src = srcFor(entering);
+          gImg.alt = '';
+          gImg.draggable = false;
+          ghost.appendChild(gImg);
+          ghost.style.left = (dir > 0
+            ? SLOT_LEFT[VISIBLE - 1] + GAP
+            : SLOT_LEFT[0] - GAP) + '%';
+          ghost.style.top = CHIP_TOP + '%';
+          ghost.style.width = CHIP_W + '%';
+          ghost.style.aspectRatio = '1';
+          viewport.appendChild(ghost);
+
+          const gapPx = (GAP / 100) * dock.clientWidth;
+          const dx = dir > 0 ? -gapPx : gapPx;
+          const movers = [...chips, ghost];
+          void ghost.offsetWidth;
+          movers.forEach((el) => {
+            el.style.transition = 'transform var(--chip-slide)';
+            el.style.transform = `translateX(${dx}px)`;
+          });
+          await sleep(400);
+          start = next;
+          movers.forEach((el) => {
+            el.style.transition = 'none';
+            el.style.transform = '';
+          });
+          ghost.remove();
+          paintChips();
+          void chips[0].offsetWidth;
+          chips.forEach((el) => { el.style.transition = ''; });
+          if (selected != null) {
+            const btn = chips.find((b) => Number(b.dataset.value) === selected);
+            if (btn) {
+              btn.classList.add('on');
+              requestAnimationFrame(() => btn.classList.add('up'));
+            } else {
+              selected = null;
+            }
+          }
+        } catch (_) {
+          start = Math.max(0, Math.min(DENOMS.length - VISIBLE, start + dir));
+          paintChips();
+        } finally {
+          busy = false;
         }
       }
-      arrowL.addEventListener('click', (e) => { e.preventDefault(); if (start > 0) { slide(-1); playClick(); } });
-      arrowR.addEventListener('click', (e) => { e.preventDefault(); if (start < DENOMS.length - VISIBLE) { slide(1); playClick(); } });
+      arrowL.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (start > 0) slide(-1);
+      });
+      arrowR.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (start < DENOMS.length - VISIBLE) slide(1);
+      });
 
       function confirmBet() {
         if (!bettingOpen) return false;
@@ -878,6 +955,9 @@
       });
 
       setBalance(balance);
+      const warmChips = () => { DENOMS.forEach((n) => { const i = new Image(); i.src = srcFor(n); }); };
+      if ('requestIdleCallback' in window) requestIdleCallback(warmChips, { timeout: 2500 });
+      else setTimeout(warmChips, 1200);
       paintChips();
     })();
   </script>
