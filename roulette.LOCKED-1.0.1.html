@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>輪盤 R501</title>
+  <style>
+    :root {
+      --sw: 2284;
+      --sh: 1468;
+      --chip-slide: .38s cubic-bezier(.25,.7,.2,1);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; width: 100%; height: 100%; overflow: hidden;
+      background: #000;
+      font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      user-select: none;
+    }
+    .frame {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: #000;
+    }
+    .stage {
+      position: relative;
+      width: min(100vw, calc(100vh * var(--sw) / var(--sh)));
+      height: min(100vh, calc(100vw * var(--sh) / var(--sw)));
+      overflow: hidden;
+      background: #000;
+    }
+    .stage .bg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: fill; pointer-events: none; display: block; z-index: 1;
+    }
+
+    .hit {
+      position: absolute; z-index: 40; margin: 0; padding: 0; border: 0;
+      background: transparent; cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+      -webkit-tap-highlight-color: transparent;
+      outline: none; color: transparent; font-size: 0; line-height: 0;
+      overflow: hidden; box-shadow: none;
+    }
+    .hit:focus, .hit:hover, .hit:active, .hit.is-on {
+      outline: none; background: transparent; box-shadow: none;
+    }
+    .hit::before, .hit::after { content: none !important; display: none !important; }
+
+    #nums {
+      position: absolute; left: 7.2%; top: 51.8%; width: 70.5%; height: 24.6%;
+      z-index: 35; display: grid;
+      grid-template-columns: 5.2% repeat(12, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 0.35% 0.28%; pointer-events: none;
+    }
+    #nums .hit { position: relative; width: 100%; height: 100%; pointer-events: auto; }
+    #nums .zero { grid-row: 1 / span 3; grid-column: 1; }
+    .dozen-row {
+      position: absolute; left: 12.6%; top: 76.8%; width: 65%; height: 3.4%;
+      z-index: 40; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4%;
+    }
+    .dozen-row .hit { position: relative; width: 100%; height: 100%; }
+    .even-row {
+      position: absolute; left: 12.6%; top: 80.6%; width: 65%; height: 3.2%;
+      z-index: 40; display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.35%;
+    }
+    .even-row .hit { position: relative; width: 100%; height: 100%; }
+    .french {
+      position: absolute; left: 79.6%; top: 50.6%; width: 18.6%; height: 33.2%;
+      z-index: 40; display: grid; grid-template-rows: repeat(4, 1fr);
+      gap: 1.2%; padding: 2% 3%;
+    }
+    .french .hit { position: relative; width: 100%; height: 100%; border-radius: 10px; }
+
+    /* 黑底已按底格烤进 pc-full-ref；dock 用同一套舞台坐标对齐，禁止再靠 aspect-ratio 硬扯 */
+    /* CTRL-BASEGRID: 1530,1210 → 2282,1466 @ 2284×1468；不盖 紅黑/熱門/冷門；左棕条已涂黑 */
+    .sicbo-dock {
+      position: absolute;
+      left: 66.9877%;
+      top: 82.4251%;
+      width: 32.9247%;
+      height: 17.4387%;
+      right: auto;
+      bottom: auto;
+      z-index: 60;
+      background: #000;
+      overflow: visible;
+    }
+    .sicbo-dock-bg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: fill; pointer-events: none; display: block; z-index: 1;
+    }
+    .sicbo-dock .layer { position: absolute; z-index: 2; }
+
+    .chip-cover {
+      position: absolute; z-index: 30; border-radius: 50%;
+      background: #000; pointer-events: none;
+    }
+    #cover-a { left: 8.136%; top: 10.955%; width: 12.87%; aspect-ratio: 1; }
+    #cover-b { left: 24.231%; top: 10.955%; width: 12.87%; aspect-ratio: 1; }
+    #cover-c { left: 40.325%; top: 10.955%; width: 12.87%; aspect-ratio: 1; }
+    #cover-d { left: 56.006%; top: 10.955%; width: 12.87%; aspect-ratio: 1; }
+
+    .chip-btn {
+      position: absolute; z-index: 32; padding: 0; margin: 0; border: 0;
+      background: transparent; cursor: pointer; border-radius: 50%;
+      line-height: 0; overflow: visible; outline: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform var(--chip-slide); will-change: transform;
+    }
+    .chip-btn:focus, .chip-btn:focus-visible { outline: none !important; }
+    .chip-btn::after {
+      content: ""; position: absolute; left: 50%; bottom: 0;
+      width: 112%; height: 32%; transform: translateX(-50%) scale(0.55);
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,1) 0%, rgba(255,236,170,.95) 28%, rgba(255,255,255,.45) 52%, rgba(255,255,255,0) 72%);
+      box-shadow: 0 0 10px 3px rgba(255,255,255,.55), 0 0 22px 6px rgba(255,230,140,.35);
+      opacity: 0; pointer-events: none; z-index: 0;
+      transition: opacity .16s ease, transform .2s cubic-bezier(.2,.8,.2,1);
+    }
+    .chip-btn::before {
+      content: ""; position: absolute; left: 50%; bottom: 10%;
+      width: 86%; height: 140%; transform: translateX(-50%) scaleY(0.35);
+      transform-origin: 50% 100%;
+      background:
+        repeating-linear-gradient(90deg, transparent 0, transparent 9%, rgba(255,255,255,.34) 9%, rgba(255,255,255,.34) 13%, transparent 13%, transparent 22%),
+        linear-gradient(to top, rgba(255,255,255,.55) 0%, rgba(255,245,200,.28) 38%, rgba(255,255,255,0) 78%);
+      -webkit-mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 100%);
+      mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 100%);
+      opacity: 0; pointer-events: none; z-index: 0; filter: blur(0.4px);
+      transition: opacity .16s ease, transform .2s cubic-bezier(.2,.8,.2,1);
+    }
+    .chip-btn img {
+      position: relative; z-index: 1; width: 100%; height: 100%; display: block;
+      border-radius: 50%; pointer-events: none; transform: translateY(0);
+      transition: transform .2s cubic-bezier(.2,.8,.2,1);
+    }
+    .chip-btn.on { z-index: 90; }
+    .chip-btn.on img {
+      filter: drop-shadow(0 8px 6px rgba(0,0,0,.45)) drop-shadow(0 0 4px rgba(255,255,255,.5));
+    }
+    .chip-btn.on::before { opacity: 1; transform: translateX(-50%) scaleY(1); }
+    .chip-btn.on::after { opacity: 1; transform: translateX(-50%) scale(1); }
+    .chip-btn.on.up img { transform: translateY(-22%); }
+
+    #chip-a { left: 8.592%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
+    #chip-b { left: 24.683%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
+    #chip-c { left: 40.775%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
+    #chip-d { left: 56.459%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
+
+    .chip-arrow {
+      position: absolute; z-index: 80; padding: 0; margin: 0; border: 0;
+      background: transparent; cursor: pointer; line-height: 0; outline: none;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent; transition: opacity .15s ease;
+    }
+    .chip-arrow:focus, .chip-arrow:focus-visible { outline: none !important; }
+    .chip-arrow img { width: 55%; height: auto; pointer-events: none; display: block; }
+    .chip-arrow.is-dim { opacity: .34; cursor: default; }
+    #arrow-l { left: 3.994%; top: 14.888%; width: 4.586%; height: 18.82%; }
+    #arrow-r { left: 92.751%; top: 13.202%; width: 6.509%; height: 24.157%; }
+    #arrow-r img { display: none; }
+
+    .btn-act {
+      position: absolute; z-index: 130; margin: 0; padding: 0; border: 0;
+      background: transparent; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; border-radius: 0.35em;
+    }
+    .btn-act:focus, .btn-act:focus-visible { outline: none; }
+    #btnRepeat  { left: 4.527%; top: 47.753%; width: 22.308%; height: 24.719%; }
+    #btnConfirm { left: 32.396%; top: 47.753%; width: 22.456%; height: 24.719%; }
+    #btnCancel  { left: 60.385%; top: 47.753%; width: 22.456%; height: 24.719%; }
+
+    .fs-wrap, .music-wrap, .sound-wrap, .vsrc-wrap {
+      position: absolute; z-index: 80; aspect-ratio: 1; height: auto;
+      transform: translate(-50%, -50%);
+    }
+    .fs-wrap { left: 5.82%; top: 87.697%; width: 5.68%; }
+    .music-wrap { left: 18.491%; top: 87.697%; width: 5.68%; }
+    .sound-wrap { left: 26.441%; top: 87.697%; width: 5.68%; }
+    .vsrc-wrap { top: 89.045%; width: 5.178%; z-index: 140; }
+    .vsrc-wrap[data-vsrc="refresh"] { left: 50.849%; }
+    .vsrc-wrap[data-vsrc="1"] { left: 59.908%; }
+    .vsrc-wrap[data-vsrc="2"] { left: 68.225%; }
+    .vsrc-wrap[data-vsrc="3"] { left: 76.811%; }
+    .vsrc-wrap[data-vsrc="4"] { left: 85.26%; }
+
+    .fs-exit {
+      position: absolute; inset: 0; z-index: 1; display: none;
+      align-items: center; justify-content: center; pointer-events: none;
+      border-radius: 3px; background: #0a0a0a;
+    }
+    .fs-wrap.is-fs .fs-exit { display: flex; }
+    .fs-exit svg { width: 92%; height: 92%; display: block; }
+    .fs-hot, .music-hot, .sound-hot, .vsrc-hot {
+      position: absolute; inset: 0; z-index: 2; margin: 0; padding: 0; border: 0;
+      background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .fs-hot:focus, .music-hot:focus, .sound-hot:focus, .vsrc-hot:focus { outline: none; }
+
+    .music-face {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      pointer-events: none; z-index: 1;
+    }
+    .music-face svg { width: 88%; height: 88%; display: block; filter: drop-shadow(0 1px 1px rgba(0,0,0,.55)); }
+    .music-mute, .sound-mute {
+      position: absolute; inset: 0; z-index: 3; pointer-events: none;
+      display: none; align-items: center; justify-content: center;
+    }
+    .music-mute.show, .sound-mute.show { display: flex; }
+    .music-mute svg, .sound-mute svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+    .vsrc-face {
+      position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center;
+      pointer-events: none; border-radius: 50%; background: #050505; color: #e6dcc8;
+      border: 1.5px solid currentColor; box-sizing: border-box;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 16 / var(--sw));
+      font-weight: 600; line-height: 1;
+    }
+    .vsrc-wrap.is-on .vsrc-face { color: #2dff88; }
+    .vsrc-wrap[data-vsrc="refresh"] .vsrc-face { display: none; }
+
+    .music-panel {
+      position: absolute; right: 2%; bottom: 105%; width: min(92%, 320px);
+      z-index: 200; display: none; flex-direction: column; gap: 0.45em;
+      padding: 0.7em 0.75em 0.65em; border-radius: 0.7em;
+      background: rgba(18, 22, 20, 0.92);
+      border: 1px solid rgba(232, 199, 106, 0.22);
+      box-shadow: 0 10px 28px rgba(0,0,0,.45);
+      color: #f0e6c8; pointer-events: auto;
+    }
+    .music-panel.show { display: flex; }
+    .music-panel-head {
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+      gap: 0.55em; padding-bottom: 0.35em; border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .music-vol-btn, .music-mode-btn {
+      width: 1.7em; height: 1.7em; border: 0; padding: 0; background: transparent;
+      color: #e8c76a; cursor: pointer; display: grid; place-items: center; border-radius: 999px;
+    }
+    .music-vol-btn svg, .music-mode-btn svg { width: 1.15em; height: 1.15em; display: block; }
+    .music-vol-btn.is-off { color: #9aa3a0; opacity: .75; }
+    .music-vol-range {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 0.22em; border-radius: 999px;
+      background: linear-gradient(90deg, #e8c76a var(--vol, 70%), rgba(255,255,255,.18) var(--vol, 70%));
+      outline: none; cursor: pointer;
+    }
+    .music-vol-range::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 0.85em; height: 0.85em; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fff6d8, #e0c07a 60%, #b88945); border: 0;
+    }
+    .music-track-list { max-height: 11.5em; overflow-y: auto; }
+    .music-track {
+      display: block; width: 100%; text-align: left; border: 0; background: transparent;
+      color: rgba(240,230,200,.88); font-size: 13px; line-height: 1.55;
+      padding: 0.38em 0.55em; border-radius: 0.35em; cursor: pointer;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .music-track:hover { background: rgba(232,199,106,.12); }
+    .music-track.is-on {
+      background: linear-gradient(90deg, rgba(232,199,106,.38), rgba(232,199,106,.02));
+      color: #ffe9b0; font-weight: 600;
+    }
+
+    .toast-msg {
+      position: absolute; left: 50%; top: 48%; transform: translate(-50%,-50%) scale(.92);
+      z-index: 230; padding: 0.45em 1.1em; border-radius: 0.3em;
+      background: rgba(0,0,0,.75); border: 1px solid rgba(255,220,140,.5);
+      color: #ffe9b0; font-weight: 700; letter-spacing: .06em; opacity: 0; pointer-events: none;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 28 / var(--sw));
+      transition: opacity .18s ease, transform .18s ease; white-space: nowrap;
+    }
+    .toast-msg.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    .toast-msg.success { color: #b8ffc4; border-color: rgba(120,255,160,.55); }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <div class="stage" id="stage">
+      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.1" alt="" width="2284" height="1468" draggable="false" />
+
+      <div id="nums" aria-label="数字盘"></div>
+      <div class="dozen-row" aria-label="打">
+        <button type="button" class="hit" data-bet="d1" aria-label="1-12"></button>
+        <button type="button" class="hit" data-bet="d2" aria-label="13-24"></button>
+        <button type="button" class="hit" data-bet="d3" aria-label="25-36"></button>
+      </div>
+      <div class="even-row" aria-label="外注">
+        <button type="button" class="hit" data-bet="small" aria-label="小"></button>
+        <button type="button" class="hit" data-bet="even" aria-label="双"></button>
+        <button type="button" class="hit" data-bet="red" aria-label="红"></button>
+        <button type="button" class="hit" data-bet="black" aria-label="黑"></button>
+        <button type="button" class="hit" data-bet="odd" aria-label="单"></button>
+        <button type="button" class="hit" data-bet="big" aria-label="大"></button>
+      </div>
+      <div class="french" aria-label="法式">
+        <button type="button" class="hit" data-bet="tier" aria-label="轮盘下角注"></button>
+        <button type="button" class="hit" data-bet="orphelins" aria-label="轮上孤注"></button>
+        <button type="button" class="hit" data-bet="voisins" aria-label="零旁注上角"></button>
+        <button type="button" class="hit" data-bet="zero-game" aria-label="轮上零旁"></button>
+      </div>
+
+      <div class="sicbo-dock" id="sicboDock">
+        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.1" alt="" draggable="false" />
+
+        <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
+        <div class="chip-cover" id="cover-b" aria-hidden="true"></div>
+        <div class="chip-cover" id="cover-c" aria-hidden="true"></div>
+        <div class="chip-cover" id="cover-d" aria-hidden="true"></div>
+
+        <button class="chip-arrow" id="arrow-l" type="button" aria-label="筹码向左">
+          <img src="chips/arrow-left.png?v=v1.0.30u" alt="" draggable="false" />
+        </button>
+        <button class="chip-btn" id="chip-a" type="button" aria-label="筹码10">
+          <img src="chips/chip-10.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
+        </button>
+        <button class="chip-btn" id="chip-b" type="button" aria-label="筹码20">
+          <img src="chips/chip-20.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
+        </button>
+        <button class="chip-btn" id="chip-c" type="button" aria-label="筹码50">
+          <img src="chips/chip-50.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
+        </button>
+        <button class="chip-btn" id="chip-d" type="button" aria-label="筹码100">
+          <img src="chips/chip-100.webp?v=v1.0.30u" alt="" decoding="async" draggable="false" />
+        </button>
+        <button class="chip-arrow" id="arrow-r" type="button" aria-label="筹码向右">
+          <img src="chips/arrow-right.png?v=v1.0.30u" alt="" draggable="false" />
+        </button>
+
+        <button class="btn-act" id="btnRepeat" type="button" aria-label="重复下注"></button>
+        <button class="btn-act" id="btnConfirm" type="button" aria-label="确定"></button>
+        <button class="btn-act" id="btnCancel" type="button" aria-label="取消"></button>
+
+        <div class="fs-wrap" id="fsWrap">
+          <div class="fs-exit" id="fsExit" aria-hidden="true">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <rect x="12" y="6.5" width="18.5" height="18.5" rx="1.6" fill="none" stroke="#ece6da" stroke-width="2.15"/>
+              <rect x="9" y="14" width="18.5" height="18.5" rx="1.6" fill="#0a0a0a" stroke="#ece6da" stroke-width="2.15"/>
+            </svg>
+          </div>
+          <button class="fs-hot" id="fsHot" type="button" aria-label="全屏" aria-pressed="false"></button>
+        </div>
+
+        <div class="music-wrap" id="musicWrap">
+          <div class="music-face" aria-hidden="true">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="musicNoteGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#f6e7c2"/>
+                  <stop offset="55%" stop-color="#e0c07a"/>
+                  <stop offset="100%" stop-color="#b88945"/>
+                </linearGradient>
+              </defs>
+              <ellipse cx="14.5" cy="28.5" rx="6.2" ry="4.6" fill="url(#musicNoteGrad)" transform="rotate(-18 14.5 28.5)"/>
+              <rect x="19.2" y="8" width="2.6" height="21" rx="0.8" fill="url(#musicNoteGrad)"/>
+              <path d="M21.8 8.2c4.2 1.2 7.6 3.4 9.2 6.2.4.7-.3 1.4-1 1.1-2.2-1-4.6-2.1-8.2-2.8V8.2z" fill="url(#musicNoteGrad)"/>
+            </svg>
+          </div>
+          <button class="music-hot" id="musicHot" type="button" aria-label="音乐" aria-pressed="false"></button>
+          <div class="music-mute" id="musicMute" aria-hidden="true">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="15.5" fill="none" stroke="#e53935" stroke-width="3.2"/>
+              <line x1="9.5" y1="9.5" x2="30.5" y2="30.5" stroke="#e53935" stroke-width="3.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="music-panel" id="musicPanel" role="dialog" aria-label="音乐列表" aria-hidden="true">
+            <div class="music-panel-head">
+              <button type="button" class="music-vol-btn" id="musicVolBtn" aria-label="音乐开关">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.3-3.9v7.8a4.5 4.5 0 0 0 2.3-3.9z"/><path fill="currentColor" d="M16.5 3.2v2.1a7.5 7.5 0 0 1 0 13.4v2.1a9.5 9.5 0 0 0 0-17.6z"/></svg>
+              </button>
+              <input class="music-vol-range" id="musicVolRange" type="range" min="0" max="100" value="70" aria-label="音量" />
+              <button type="button" class="music-mode-btn" id="musicModeBtn" data-mode="list" aria-label="列表循环"></button>
+            </div>
+            <div class="music-track-list" id="musicTrackList"></div>
+          </div>
+        </div>
+
+        <div class="sound-wrap" id="soundWrap">
+          <button class="sound-hot" id="soundHot" type="button" aria-label="声效" aria-pressed="false"></button>
+          <div class="sound-mute" id="soundMute" aria-hidden="true">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="15.5" fill="none" stroke="#e53935" stroke-width="3.2"/>
+              <line x1="9.5" y1="9.5" x2="30.5" y2="30.5" stroke="#e53935" stroke-width="3.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="vsrc-wrap" data-vsrc="refresh">
+          <button class="vsrc-hot" id="vsrcRefreshHot" type="button" aria-label="刷新" data-vsrc="refresh"></button>
+        </div>
+        <div class="vsrc-wrap" data-vsrc="1">
+          <div class="vsrc-face" aria-hidden="true">1</div>
+          <button class="vsrc-hot" type="button" aria-label="线路1" data-vsrc="1"></button>
+        </div>
+        <div class="vsrc-wrap is-on" data-vsrc="2">
+          <div class="vsrc-face" aria-hidden="true">2</div>
+          <button class="vsrc-hot" type="button" aria-label="线路2" data-vsrc="2" aria-pressed="true"></button>
+        </div>
+        <div class="vsrc-wrap" data-vsrc="3">
+          <div class="vsrc-face" aria-hidden="true">3</div>
+          <button class="vsrc-hot" type="button" aria-label="线路3" data-vsrc="3"></button>
+        </div>
+        <div class="vsrc-wrap" data-vsrc="4">
+          <div class="vsrc-face" aria-hidden="true">4</div>
+          <button class="vsrc-hot" type="button" aria-label="线路4" data-vsrc="4"></button>
+        </div>
+      </div>
+
+      <div class="toast-msg" id="toastMsg" role="status"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const V = '1.0.1';
+      const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+      const VISIBLE = 4;
+      const TABLE_MAX = 5000;
+      const START_BAL = 2000;
+      const BAL_KEY = 'fg_roulette_bal';
+      const MUSIC_MUTE_KEY = 'fg_roulette_music_mute';
+      const MUSIC_VOL_KEY = 'fg_roulette_music_vol';
+      const MUSIC_MODE_KEY = 'fg_roulette_music_mode';
+      const MUSIC_TRACK_KEY = 'fg_roulette_music_track';
+
+      let start = 0;
+      let selected = null;
+      let balance = START_BAL;
+      let pendingMarket = null;
+      let pendingStake = 0;
+      let bettingOpen = true;
+      let soundMuted = false;
+      const bets = Object.create(null);
+
+      try {
+        const raw = localStorage.getItem(BAL_KEY);
+        const n = Number(raw);
+        if (Number.isFinite(n)) balance = n;
+      } catch (_) {}
+
+      const chips = [
+        document.getElementById('chip-a'),
+        document.getElementById('chip-b'),
+        document.getElementById('chip-c'),
+        document.getElementById('chip-d'),
+      ];
+      const arrowL = document.getElementById('arrow-l');
+      const arrowR = document.getElementById('arrow-r');
+      const btnRepeat = document.getElementById('btnRepeat');
+      const btnConfirm = document.getElementById('btnConfirm');
+      const btnCancel = document.getElementById('btnCancel');
+      const toastEl = document.getElementById('toastMsg');
+      const sfxClick = new Audio('audio/key-click.mp3?v=' + V);
+      sfxClick.preload = 'auto';
+
+      let toastTimer = 0;
+      function showToast(text, ms, kind) {
+        toastEl.textContent = text;
+        toastEl.classList.toggle('success', kind === 'success');
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms || 1200);
+      }
+      function playClick() {
+        if (soundMuted) return;
+        try {
+          sfxClick.pause();
+          sfxClick.currentTime = 0;
+          sfxClick.volume = 0.7;
+          const p = sfxClick.play();
+          if (p && p.catch) p.catch(() => {});
+        } catch (_) {}
+      }
+      function saveBal() {
+        try { localStorage.setItem(BAL_KEY, String(balance)); } catch (_) {}
+      }
+      function setBalance(n) {
+        balance = Math.max(0, Math.round(n * 100) / 100);
+        saveBal();
+      }
+      function srcFor(n) { return `chips/chip-${n}.webp?v=v1.0.30u`; }
+      function visibleDenoms() { return DENOMS.slice(start, start + VISIBLE); }
+      function syncArrows() {
+        const atStart = start <= 0;
+        const atEnd = start >= DENOMS.length - VISIBLE;
+        arrowL.classList.toggle('is-dim', atStart);
+        arrowR.classList.toggle('is-dim', atEnd);
+      }
+      function clearSelectVisual() {
+        chips.forEach((b) => b.classList.remove('on', 'up'));
+      }
+      function paintChips() {
+        const list = visibleDenoms();
+        chips.forEach((btn, i) => {
+          const n = list[i];
+          const img = btn.querySelector('img');
+          if (img.getAttribute('src') !== srcFor(n)) img.src = srcFor(n);
+          btn.dataset.value = String(n);
+          btn.setAttribute('aria-label', `筹码${n}`);
+          const on = selected === n;
+          btn.classList.toggle('on', on);
+          btn.classList.toggle('up', on);
+        });
+        syncArrows();
+      }
+      function selectDenom(n, btn) {
+        selected = n;
+        clearSelectVisual();
+        btn.classList.add('on');
+        requestAnimationFrame(() => requestAnimationFrame(() => btn.classList.add('up')));
+        playClick();
+      }
+
+      chips.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          if (!bettingOpen) return;
+          const n = Number(btn.dataset.value);
+          if (!Number.isFinite(n) || n <= 0) return;
+          if (balance < n) { showToast('积分不足', 1200); return; }
+          selectDenom(n, btn);
+        });
+      });
+      function slide(dir) {
+        const next = start + dir;
+        if (next < 0 || next > DENOMS.length - VISIBLE) return;
+        start = next;
+        paintChips();
+        if (selected != null) {
+          const btn = chips.find((b) => Number(b.dataset.value) === selected);
+          if (btn) { clearSelectVisual(); btn.classList.add('on', 'up'); }
+          else { selected = null; clearSelectVisual(); }
+        }
+      }
+      arrowL.addEventListener('click', (e) => { e.preventDefault(); if (start > 0) { slide(-1); playClick(); } });
+      arrowR.addEventListener('click', (e) => { e.preventDefault(); if (start < DENOMS.length - VISIBLE) { slide(1); playClick(); } });
+
+      function confirmBet() {
+        if (!bettingOpen) return false;
+        if (selected == null) { showToast('请先选择筹码', 1200); return false; }
+        if (!pendingMarket || pendingStake <= 0) { showToast('请先选择下注位置', 1200); return false; }
+        if (balance < pendingStake) { showToast('积分不足', 1200); return false; }
+        playClick();
+        setBalance(balance - pendingStake);
+        bets[pendingMarket] = (bets[pendingMarket] || 0) + pendingStake;
+        pendingMarket = null; pendingStake = 0;
+        showToast('下注成功', 1800, 'success');
+        return true;
+      }
+      function repeatBet() {
+        if (!bettingOpen) return;
+        playClick();
+        if (!pendingMarket || pendingStake <= 0) { showToast('请先选筹码并点盘口', 1400); return; }
+        const next = pendingStake * 2;
+        if (balance < next) { showToast('积分不足，无法加倍', 1400); return; }
+        if (next > TABLE_MAX) { showToast('超过限红', 1400); return; }
+        pendingStake = next;
+        showToast(`加倍 ${pendingStake}`, 1000);
+      }
+      function cancelBet() {
+        if (!bettingOpen) { showToast('已停止下注，无法取消', 1200); return; }
+        playClick();
+        if (!pendingMarket && pendingStake <= 0) { showToast('没有可取消的选择', 1000); return; }
+        pendingMarket = null; pendingStake = 0;
+        showToast('已取消', 1000);
+      }
+      btnConfirm.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); confirmBet(); });
+      btnCancel.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); cancelBet(); });
+      btnRepeat.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); repeatBet(); });
+
+      /* 数字盘 */
+      const nums = document.getElementById('nums');
+      const order = [];
+      for (let col = 1; col <= 12; col++) order.push(col * 3, col * 3 - 1, col * 3 - 2);
+      const zero = document.createElement('button');
+      zero.type = 'button'; zero.className = 'hit zero'; zero.dataset.bet = 'n0';
+      zero.setAttribute('aria-label', '0'); nums.appendChild(zero);
+      for (let i = 0; i < 36; i++) {
+        const n = order[i];
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'hit'; b.dataset.bet = 'n' + n;
+        b.setAttribute('aria-label', String(n));
+        b.style.gridColumn = String(2 + Math.floor(i / 3));
+        b.style.gridRow = String((i % 3) + 1);
+        nums.appendChild(b);
+      }
+      let lastZoneBetAt = 0, lastZoneBetKey = '';
+      document.querySelectorAll('[data-bet]').forEach((zone) => {
+        const key = zone.dataset.bet;
+        if (key) bets[key] = bets[key] || 0;
+        zone.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          if (!bettingOpen) return;
+          if (selected == null) { showToast('请先选择筹码', 1200); return; }
+          const now = Date.now();
+          if (key === lastZoneBetKey && now - lastZoneBetAt < 450) return;
+          lastZoneBetAt = now; lastZoneBetKey = key;
+          const next = Number(selected);
+          if (!next || balance < next) { showToast('积分不足', 1200); return; }
+          pendingMarket = key; pendingStake = next;
+          playClick();
+          showToast(`已选 ${key} · ${next}`, 900);
+        });
+      });
+
+      /* 全屏 */
+      const fsWrap = document.getElementById('fsWrap');
+      const fsHot = document.getElementById('fsHot');
+      function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+      function paintFsUi() {
+        const on = isFs();
+        fsWrap.classList.toggle('is-fs', on);
+        fsHot.setAttribute('aria-pressed', on ? 'true' : 'false');
+        fsHot.setAttribute('aria-label', on ? '退出全屏' : '全屏');
+      }
+      fsHot.addEventListener('click', (e) => {
+        e.preventDefault();
+        const el = document.documentElement;
+        if (isFs()) {
+          const x = document.exitFullscreen || document.webkitExitFullscreen;
+          if (x) x.call(document);
+        } else {
+          const x = el.requestFullscreen || el.webkitRequestFullscreen;
+          if (x) x.call(el);
+        }
+      });
+      document.addEventListener('fullscreenchange', paintFsUi);
+      document.addEventListener('webkitfullscreenchange', paintFsUi);
+      paintFsUi();
+
+      /* 声效静音 */
+      const soundHot = document.getElementById('soundHot');
+      const soundMute = document.getElementById('soundMute');
+      function paintSoundMuteUi() {
+        soundMute.classList.toggle('show', soundMuted);
+        soundHot.setAttribute('aria-pressed', soundMuted ? 'true' : 'false');
+        soundHot.setAttribute('aria-label', soundMuted ? '取消静音' : '声效');
+      }
+      soundHot.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        soundMuted = !soundMuted;
+        paintSoundMuteUi();
+      });
+      paintSoundMuteUi();
+
+      /* 音乐：骰宝同款歌单/面板 */
+      const BGM_TRACKS = [
+        { id: 'samadhi', title: '《Samadhi》— saregama', file: 'audio/bgm/samadhi.mp3' },
+        { id: 'addicted', title: '《Addicted》— David Krystal', file: 'audio/bgm/addicted.mp3' },
+        { id: 'maple-leaves', title: '《Maple Leaves》', file: 'audio/bgm/maple-leaves.mp3' },
+        { id: 'bossa-jazz', title: '《Bossa Jazz》— david', file: 'audio/bgm/bossa-jazz.mp3' },
+        { id: 'mediterranean-nostalgia', title: '《Mediterranean nostalgia》— Luis Zunel', file: 'audio/bgm/mediterranean-nostalgia.mp3' },
+        { id: 'prelude-in-c', title: '《Prelude in C》— Alex Davletshin', file: 'audio/bgm/prelude-in-c.mp3' },
+        { id: 'space-jam', title: '《Space Jam》— Zaranka', file: 'audio/bgm/space-jam.mp3' },
+        { id: 'capricerie-no5', title: '《Capricerie No.5》— Daniel Bautista', file: 'audio/bgm/capricerie-no5.mp3' },
+        { id: 'you-freak-me-out', title: '《You Freak Me Out Sometimes》— Tony Petersen', file: 'audio/bgm/you-freak-me-out.mp3' },
+        { id: 'dance-all-night', title: '《Dance All Night》— Bessonn&sa', file: 'audio/bgm/dance-all-night.mp3' },
+      ];
+      let musicMuted = false;
+      let musicVol = 70;
+      let musicMode = 'list';
+      let musicTrackIdx = 0;
+      let musicPanelOpen = false;
+      let bgmWantPlay = true;
+      try { musicMuted = localStorage.getItem(MUSIC_MUTE_KEY) === '1'; } catch (_) {}
+      try {
+        const v = Number(localStorage.getItem(MUSIC_VOL_KEY));
+        if (Number.isFinite(v)) musicVol = Math.max(0, Math.min(100, v));
+      } catch (_) {}
+      try {
+        const m = localStorage.getItem(MUSIC_MODE_KEY);
+        if (m === 'list' || m === 'one' || m === 'shuffle') musicMode = m;
+      } catch (_) {}
+      try {
+        const savedId = localStorage.getItem(MUSIC_TRACK_KEY);
+        const found = BGM_TRACKS.findIndex((t) => t.id === savedId);
+        if (found >= 0) musicTrackIdx = found;
+      } catch (_) {}
+
+      const musicHot = document.getElementById('musicHot');
+      const musicMute = document.getElementById('musicMute');
+      const musicPanel = document.getElementById('musicPanel');
+      const musicTrackList = document.getElementById('musicTrackList');
+      const musicVolBtn = document.getElementById('musicVolBtn');
+      const musicVolRange = document.getElementById('musicVolRange');
+      const musicModeBtn = document.getElementById('musicModeBtn');
+      const bgmEl = new Audio();
+      bgmEl.preload = 'none';
+      bgmEl.loop = false;
+
+      function paintMusicMuteUi() {
+        musicMute.classList.toggle('show', musicMuted);
+        musicHot.setAttribute('aria-pressed', musicMuted ? 'true' : 'false');
+        musicHot.setAttribute('aria-label', musicMuted ? '打开音乐' : '关闭音乐');
+        if (musicVolBtn) musicVolBtn.classList.toggle('is-off', musicMuted || musicVol <= 0);
+      }
+      function applyBgmVolume() {
+        bgmEl.volume = musicMuted ? 0 : Math.max(0, Math.min(1, musicVol / 100));
+        if (musicVolRange) {
+          musicVolRange.value = String(musicVol);
+          musicVolRange.style.setProperty('--vol', musicVol + '%');
+        }
+      }
+      function paintTrackList() {
+        musicTrackList.innerHTML = '';
+        BGM_TRACKS.forEach((t, i) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'music-track' + (i === musicTrackIdx ? ' is-on' : '');
+          btn.textContent = t.title;
+          btn.addEventListener('click', (ev) => {
+            ev.preventDefault(); ev.stopPropagation();
+            playBgmAt(i, true);
+          });
+          musicTrackList.appendChild(btn);
+        });
+      }
+      function nextBgmIndex(from) {
+        if (musicMode === 'one') return from;
+        if (musicMode === 'shuffle') {
+          if (BGM_TRACKS.length <= 1) return 0;
+          let n = from;
+          while (n === from) n = Math.floor(Math.random() * BGM_TRACKS.length);
+          return n;
+        }
+        return (from + 1) % BGM_TRACKS.length;
+      }
+      function paintMusicModeBtn() {
+        const meta = {
+          list: { label: '列表循环', svg: '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M17 1l4 4-4 4"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 11V9a4 4 0 0 1 4-4h14"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M7 23l-4-4 4-4"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M21 13v2a4 4 0 0 1-4 4H3"/>' },
+          one: { label: '单曲循环', svg: '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M17 1l4 4-4 4"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 11V9a4 4 0 0 1 4-4h14"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M7 23l-4-4 4-4"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="12" y="15.2" text-anchor="middle" fill="currentColor" font-size="8" font-weight="700">1</text>' },
+          shuffle: { label: '随机播放', svg: '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M16 3h5v5M4 20l16-16M21 16v5h-5M15 15l6 6M4 4l5 5"/>' },
+        };
+        const m = meta[musicMode] || meta.list;
+        musicModeBtn.dataset.mode = musicMode;
+        musicModeBtn.setAttribute('aria-label', m.label);
+        musicModeBtn.innerHTML = '<svg viewBox="0 0 24 24">' + m.svg + '</svg>';
+      }
+      function ensureAudibleVolume() {
+        if (musicVol > 0) return;
+        musicVol = 70;
+        try { localStorage.setItem(MUSIC_VOL_KEY, '70'); } catch (_) {}
+      }
+      async function playBgmAt(idx, userGesture) {
+        musicTrackIdx = Math.max(0, Math.min(BGM_TRACKS.length - 1, idx | 0));
+        try { localStorage.setItem(MUSIC_TRACK_KEY, BGM_TRACKS[musicTrackIdx].id); } catch (_) {}
+        paintTrackList();
+        bgmWantPlay = true;
+        if (userGesture) {
+          ensureAudibleVolume();
+          if (musicMuted) {
+            musicMuted = false;
+            try { localStorage.setItem(MUSIC_MUTE_KEY, '0'); } catch (_) {}
+            paintMusicMuteUi();
+          }
+        } else if (musicMuted) {
+          applyBgmVolume();
+          return;
+        }
+        try {
+          const track = BGM_TRACKS[musicTrackIdx];
+          const want = track.file + '?v=' + V;
+          if (!bgmEl.src || bgmEl.src.indexOf(track.file) === -1) bgmEl.src = want;
+          applyBgmVolume();
+          bgmEl.currentTime = 0;
+          const p = bgmEl.play();
+          if (p && p.catch) await p.catch(() => {});
+        } catch (_) {}
+      }
+      function setMusicMuted(on) {
+        musicMuted = !!on;
+        try { localStorage.setItem(MUSIC_MUTE_KEY, musicMuted ? '1' : '0'); } catch (_) {}
+        if (!musicMuted) ensureAudibleVolume();
+        applyBgmVolume();
+        paintMusicMuteUi();
+        if (musicMuted) {
+          try { bgmEl.pause(); } catch (_) {}
+          setMusicPanel(false);
+        } else if (bgmWantPlay) {
+          playBgmAt(musicTrackIdx, true);
+        }
+      }
+      function setMusicPanel(open) {
+        musicPanelOpen = !!open;
+        musicPanel.classList.toggle('show', musicPanelOpen);
+        musicPanel.setAttribute('aria-hidden', musicPanelOpen ? 'false' : 'true');
+        if (musicPanelOpen) paintTrackList();
+      }
+      let musicHoverTimer = 0;
+      function musicHoverIn() {
+        clearTimeout(musicHoverTimer);
+        if (musicMuted) setMusicPanel(false);
+        else {
+          setMusicPanel(true);
+          if (bgmEl.paused) playBgmAt(musicTrackIdx, true);
+        }
+      }
+      function musicHoverOut() {
+        clearTimeout(musicHoverTimer);
+        musicHoverTimer = setTimeout(() => setMusicPanel(false), 240);
+      }
+      bgmEl.addEventListener('ended', () => {
+        if (musicMuted) return;
+        if (musicMode === 'one') {
+          try { bgmEl.currentTime = 0; const p = bgmEl.play(); if (p && p.catch) p.catch(() => {}); } catch (_) {}
+          return;
+        }
+        playBgmAt(nextBgmIndex(musicTrackIdx), false);
+      });
+      musicVolRange.addEventListener('input', (e) => {
+        e.stopPropagation();
+        musicVol = Number(musicVolRange.value) || 0;
+        try { localStorage.setItem(MUSIC_VOL_KEY, String(musicVol)); } catch (_) {}
+        if (musicVol <= 0) setMusicMuted(true);
+        else {
+          if (musicMuted) musicMuted = false;
+          try { localStorage.setItem(MUSIC_MUTE_KEY, '0'); } catch (_) {}
+          applyBgmVolume(); paintMusicMuteUi();
+          if (bgmWantPlay && bgmEl.paused) playBgmAt(musicTrackIdx, true);
+        }
+      });
+      musicVolBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); setMusicMuted(!musicMuted); });
+      musicModeBtn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        musicMode = musicMode === 'list' ? 'one' : musicMode === 'one' ? 'shuffle' : 'list';
+        try { localStorage.setItem(MUSIC_MODE_KEY, musicMode); } catch (_) {}
+        paintMusicModeBtn();
+        showToast(musicMode === 'list' ? '列表循环' : musicMode === 'one' ? '单曲循环' : '随机播放', 1000);
+      });
+      musicPanel.addEventListener('click', (e) => e.stopPropagation());
+      musicPanel.addEventListener('mouseenter', () => clearTimeout(musicHoverTimer));
+      musicPanel.addEventListener('mouseleave', musicHoverOut);
+      musicHot.addEventListener('mouseenter', musicHoverIn);
+      musicHot.addEventListener('mouseleave', musicHoverOut);
+      musicHot.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const nextMute = !musicMuted;
+        setMusicMuted(nextMute);
+        if (!nextMute) {
+          setMusicPanel(true);
+          playBgmAt(musicTrackIdx, true);
+        }
+      });
+      applyBgmVolume();
+      paintTrackList();
+      paintMusicModeBtn();
+      paintMusicMuteUi();
+      if (musicMuted) { try { bgmEl.pause(); } catch (_) {} }
+
+      /* 刷新 / 线路 */
+      let vsrcLine = '2';
+      document.querySelectorAll('.vsrc-hot').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          const id = btn.getAttribute('data-vsrc');
+          if (id === 'refresh') {
+            playClick();
+            showToast('已刷新', 800);
+            return;
+          }
+          vsrcLine = id;
+          document.querySelectorAll('.vsrc-wrap[data-vsrc]').forEach((w) => {
+            const wid = w.getAttribute('data-vsrc');
+            if (wid === 'refresh') return;
+            const on = wid === id;
+            w.classList.toggle('is-on', on);
+            const hot = w.querySelector('.vsrc-hot');
+            if (hot) hot.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
+          playClick();
+          showToast('线路 ' + id, 800);
+        });
+      });
+
+      document.addEventListener('click', () => {
+        if (musicPanelOpen) setMusicPanel(false);
+      });
+
+      setBalance(balance);
+      paintChips();
+    })();
+  </script>
+</body>
+</html>
