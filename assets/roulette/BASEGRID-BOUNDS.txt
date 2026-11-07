@@ -1,0 +1,4 @@
+METHOD=keep-original-felt-only-black-screen
+NO_PAINTED_STRIP=1
+KEEP_BELOW=718
+TRACK_LEFT=1836

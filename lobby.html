@@ -208,6 +208,11 @@
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
         url("assets/lobby-thumb.webp?v=v1.0.30") center 30% / cover no-repeat;
     }
+    .card.roulette .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        url("assets/roulette/pc-full-ref.jpg?v=60") center 20% / cover no-repeat;
+    }
     .card .meta {
       padding: .65rem .75rem .75rem;
     }
@@ -297,6 +302,7 @@
     (function () {
       const GAME_PC = 'game.html?v=v1.2.1';
       const GAME_M = 'game-m.html?v=1.2.1';
+      const ROULETTE = 'roulette.html?v=1.0.0';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -419,6 +425,7 @@
       const tables = [
         { id: 'S601', name: '骰寶 S601', kind: 'sicbo', featured: true, sec: 22 },
         { id: 'S602', name: '骰寶 S602', kind: 'sicbo', featured: true, sec: 18 },
+        { id: 'R501', name: '輪盤 R501', kind: 'roulette', featured: true, sec: 20 },
         { id: 'F701', name: '魚蝦蟹 F701', kind: 'other', sec: 15 },
         { id: 'BB701', name: '牛牛 BB701', kind: 'other', sec: 16 },
         { id: 'W701', name: '三公 W701', kind: 'other', sec: 12 },
@@ -433,28 +440,38 @@
       function enterSicbo() {
         location.href = GAME;
       }
+      function enterRoulette() {
+        location.href = ROULETTE;
+      }
 
       function paint() {
         const list = tables.filter((t) => {
-          if (cat === 'hot') return t.featured || t.kind === 'sicbo';
+          if (cat === 'hot') return t.featured || t.kind === 'sicbo' || t.kind === 'roulette';
           if (cat === 'all') return true;
           if (cat === 'sicbo') return t.kind === 'sicbo';
           if (cat === 'baccarat') return t.kind === 'baccarat';
+          if (cat === 'wheel') return t.kind === 'roulette';
           return t.kind === 'other' || t.kind === cat;
         });
         grid.innerHTML = '';
         list.forEach((t) => {
           const btn = document.createElement('button');
           btn.type = 'button';
-          btn.className = 'card' + (t.featured ? ' featured' : '');
+          btn.className = 'card'
+            + (t.featured ? ' featured' : '')
+            + (t.kind === 'roulette' ? ' roulette' : '');
+          const sub = t.kind === 'sicbo'
+            ? '點擊進入骰寶桌'
+            : (t.kind === 'roulette' ? '點擊進入輪盤桌' : '演示桌 · 暫未開放');
           btn.innerHTML =
             '<span class="timer">' + t.sec + 's</span>' +
             '<div class="thumb"></div>' +
             '<div class="meta"><div class="name">' + t.name + '</div>' +
-            '<div class="sub">' + (t.kind === 'sicbo' ? '點擊進入骰寶桌' : '演示桌 · 暫未開放') + '</div></div>';
+            '<div class="sub">' + sub + '</div></div>';
           btn.addEventListener('click', () => {
             if (t.kind === 'sicbo') enterSicbo();
-            else alert('演示版请点击「骰寶」进入');
+            else if (t.kind === 'roulette') enterRoulette();
+            else alert('演示版请点击「骰寶」或「輪盤」进入');
           });
           grid.appendChild(btn);
         });
