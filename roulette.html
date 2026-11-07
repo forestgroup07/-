@@ -74,13 +74,13 @@
     .french .hit { position: relative; width: 100%; height: 100%; border-radius: 10px; }
 
     /* 黑底已按底格烤进 pc-full-ref；dock 用同一套舞台坐标对齐，禁止再靠 aspect-ratio 硬扯 */
-    /* CTRL-BASEGRID: 1530,1210 → 2282,1466 @ 2284×1468；不盖 紅黑/熱門/冷門；左棕条已涂黑 */
+    /* CTRL-BASEGRID: 1524,1216 → 2282,1466 @ 2284×1468；左移1mm、顶压矮1mm，贴齐底黑 */
     .sicbo-dock {
       position: absolute;
-      left: 66.9877%;
-      top: 82.4251%;
-      width: 32.9247%;
-      height: 17.4387%;
+      left: 66.7250%;
+      top: 82.8338%;
+      width: 33.1874%;
+      height: 17.0300%;
       right: auto;
       bottom: auto;
       z-index: 60;
@@ -278,7 +278,7 @@
 <body>
   <div class="frame">
     <div class="stage" id="stage">
-      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.1" alt="" width="2284" height="1468" draggable="false" />
+      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.2b" alt="" width="2284" height="1468" draggable="false" />
 
       <div id="nums" aria-label="数字盘"></div>
       <div class="dozen-row" aria-label="打">
@@ -302,7 +302,7 @@
       </div>
 
       <div class="sicbo-dock" id="sicboDock">
-        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.1" alt="" draggable="false" />
+        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.2" alt="" draggable="false" />
 
         <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
         <div class="chip-cover" id="cover-b" aria-hidden="true"></div>
@@ -413,7 +413,7 @@
 
   <script>
     (function () {
-      const V = '1.0.1';
+      const V = '1.0.2';
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
       const TABLE_MAX = 5000;

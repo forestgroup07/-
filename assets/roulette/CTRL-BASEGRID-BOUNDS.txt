@@ -1,10 +1,10 @@
-X0=1530
-Y0=1210
+X0=1524
+Y0=1216
 X1=2282
 Y1=1466
-LEFT_PCT=66.9877
-TOP_PCT=82.4251
-WIDTH_PCT=32.9247
-HEIGHT_PCT=17.4387
+LEFT_PCT=66.7250
+TOP_PCT=82.8338
+WIDTH_PCT=33.1874
+HEIGHT_PCT=17.0300
 STRIP=assets/roulette/sicbo-ctrl-strip.png
-NOTE=left-brown-edge-blacked; shorter+lefter
+NOTE=1mm-left+1mm-shorter from 1.0.1
