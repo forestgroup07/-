@@ -144,14 +144,14 @@
     .chip-btn.on::after { opacity: 1; transform: translateX(-50%) scale(1); }
     .chip-btn.on.up img { transform: translateY(-22%); }
 
-    /* 与骰宝同款：滑入时裁切线外第 5 枚待命，肉眼始终 4 枚 */
+    /* 只裁左右进出的第5枚；上下留足整圆+抬起，禁止再裁筹码上下 */
     .chip-viewport {
       position: absolute;
       inset: 0;
       z-index: 32;
       pointer-events: none;
       overflow: visible;
-      clip-path: inset(4% 26% 58% 5%);
+      clip-path: inset(2% 24% 42% 3%);
     }
     .chip-viewport .chip-btn { pointer-events: auto; }
     #chip-a { left: 8.592%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
@@ -289,7 +289,7 @@
 <body>
   <div class="frame">
     <div class="stage" id="stage">
-      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.3" alt="" width="2284" height="1468" draggable="false" />
+      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.3d" alt="" width="2284" height="1468" draggable="false" />
 
       <div id="nums" aria-label="数字盘"></div>
       <div class="dozen-row" aria-label="打">
@@ -313,7 +313,7 @@
       </div>
 
       <div class="sicbo-dock" id="sicboDock">
-        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.3" alt="" draggable="false" />
+        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.3d" alt="" draggable="false" />
 
         <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
         <div class="chip-cover" id="cover-b" aria-hidden="true"></div>
@@ -427,7 +427,7 @@
   <script>
     (function () {
       const V = '1.0.3';
-      /* 与骰宝 game.html 同一套面额顺序 */
+      /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
       const SLOT_LEFT = [8.592, 24.683, 40.775, 56.459];
