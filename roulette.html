@@ -42,36 +42,150 @@
       outline: none; color: transparent; font-size: 0; line-height: 0;
       overflow: hidden; box-shadow: none;
     }
-    .hit:focus, .hit:hover, .hit:active, .hit.is-on {
-      outline: none; background: transparent; box-shadow: none;
+    .hit:focus, .hit:hover, .hit:active {
+      outline: none; box-shadow: none;
     }
+    /* 默认关掉伪元素；数字盘/长条/滚道底格单独打开 */
     .hit::before, .hit::after { content: none !important; display: none !important; }
 
+    /*
+      骰宝同款逻辑：
+      1) 底图烤好的红/黑/0 就是底格；
+      2) 每格热区按底图像素绝对定位，严丝合缝；
+      3) 点一下只亮那一个数字（黄脸同色 bet-face）。
+    */
     #nums {
-      position: absolute; left: 7.2%; top: 51.8%; width: 70.5%; height: 24.6%;
-      z-index: 35; display: grid;
-      grid-template-columns: 5.2% repeat(12, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      gap: 0.35% 0.28%; pointer-events: none;
+      position: absolute; inset: 0;
+      z-index: 35; pointer-events: none;
     }
-    #nums .hit { position: relative; width: 100%; height: 100%; pointer-events: auto; }
-    #nums .zero { grid-row: 1 / span 3; grid-column: 1; }
-    .dozen-row {
-      position: absolute; left: 12.6%; top: 76.8%; width: 65%; height: 3.4%;
-      z-index: 40; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4%;
+    #nums .hit {
+      position: absolute; pointer-events: auto;
+      border-radius: 12%;
+      display: flex; align-items: center; justify-content: center;
+      color: transparent;
+      font-size: clamp(11px, 1.35vw, 22px);
+      line-height: 1;
+      font-weight: 800;
+      font-family: "Avenir Next", "Segoe UI", "PingFang TC", sans-serif;
+      z-index: 1;
+      overflow: hidden;
     }
-    .dozen-row .hit { position: relative; width: 100%; height: 100%; }
-    .even-row {
-      position: absolute; left: 12.6%; top: 80.6%; width: 65%; height: 3.2%;
-      z-index: 40; display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.35%;
+    /* 0 格：竖长圆角胶囊，与底图绿格同宽 */
+    #nums .zero {
+      border-radius: 18% / 5%;
     }
-    .even-row .hit { position: relative; width: 100%; height: 100%; }
+    /* 骰宝 .bet-face / .has-bet 同色 */
+    #nums .hit::before,
+    #outside .hit::before,
+    .french .hit::before,
+    #trackNums .hit::before {
+      content: "" !important;
+      display: block !important;
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: transparent;
+      pointer-events: none;
+      z-index: 0;
+      transition: background .12s ease, box-shadow .12s ease;
+    }
+    #nums .hit.is-lit::before,
+    #outside .hit.is-lit::before,
+    .french .hit.is-lit::before,
+    #trackNums .hit.is-lit::before {
+      /* 半透明黄脸：底图号码/文字/菱形要从黄上透出 */
+      background: rgba(232, 196, 48, 0.52) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(120,80,0,.16);
+    }
+    /*
+      未点亮 / 点亮：字都透明，只靠底图透出；筹码另压上。
+    */
+    #nums .hit,
+    #trackNums .hit {
+      color: transparent;
+      font-size: clamp(11px, 1.35vw, 22px);
+      line-height: 1;
+      font-weight: 800;
+      font-family: "Avenir Next", "Segoe UI", "PingFang TC", sans-serif;
+    }
+    #nums .hit.is-lit,
+    #trackNums .hit.is-lit {
+      color: transparent !important;
+      z-index: 2;
+    }
+    #trackNums .hit.is-lit {
+      font-size: clamp(8px, 0.85vw, 14px) !important;
+    }
+    /* 盘上落注筹码：与骰宝同一屏幕尺寸（52/2188 舞台公式） */
+    .hit .bet-chip {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: calc(min(100vw, 100vh * 2188 / 1393) * 52 / 2188);
+      height: auto;
+      max-width: none;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 3;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55));
+    }
+    #nums .zero .bet-chip,
+    #trackNums .hit .bet-chip {
+      width: calc(min(100vw, 100vh * 2188 / 1393) * 52 / 2188);
+    }
+    /* 打/外注：与数字盘同款，按底图像素绝对定位，严丝合缝 */
+    #outside {
+      position: absolute; inset: 0;
+      z-index: 35; pointer-events: none;
+    }
+    #outside .hit {
+      position: absolute; pointer-events: auto;
+      /* 与底图圆角胶囊同曲率（约 12px @ 2284 宽） */
+      border-radius: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 12 / var(--sw));
+      overflow: hidden;
+      z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      /* 字始终透明：点亮靠半透明黄 + 底图透出 */
+      color: transparent;
+      font-weight: 800;
+      font-family: "Avenir Next", "Segoe UI", "PingFang TC", sans-serif;
+      line-height: 1;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 28 / var(--sw));
+      letter-spacing: 0.04em;
+    }
+    #outside .hit.is-lit {
+      color: transparent !important;
+      z-index: 2;
+    }
     .french {
       position: absolute; left: 79.6%; top: 50.6%; width: 18.6%; height: 33.2%;
       z-index: 40; display: grid; grid-template-rows: repeat(4, 1fr);
       gap: 1.2%; padding: 2% 3%;
     }
     .french .hit { position: relative; width: 100%; height: 100%; border-radius: 10px; }
+    /* 右侧滚道：按底图像素绝对热区（与主键盘同款半透明黄） */
+    #trackNums {
+      position: absolute; inset: 0;
+      z-index: 42; pointer-events: none;
+    }
+    #trackNums .hit {
+      position: absolute; pointer-events: auto;
+      border-radius: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 8 / var(--sw));
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      color: transparent;
+      font-weight: 800;
+      z-index: 1;
+    }
+    #trackNums .hit.has-mask {
+      border-radius: 0;
+      -webkit-mask-source-type: alpha;
+      mask-mode: alpha;
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+    }
 
     /* 黑底已按底格烤进 pc-full-ref；dock 用同一套舞台坐标对齐，禁止再靠 aspect-ratio 硬扯 */
     /* CTRL-BASEGRID: 1524,1216 → 2282,1466 @ 2284×1468；左移1mm、顶压矮1mm，贴齐底黑 */
@@ -289,31 +403,20 @@
 <body>
   <div class="frame">
     <div class="stage" id="stage">
-      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.3d" alt="" width="2284" height="1468" draggable="false" />
+      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.27" alt="" width="2284" height="1468" draggable="false" />
 
       <div id="nums" aria-label="数字盘"></div>
-      <div class="dozen-row" aria-label="打">
-        <button type="button" class="hit" data-bet="d1" aria-label="1-12"></button>
-        <button type="button" class="hit" data-bet="d2" aria-label="13-24"></button>
-        <button type="button" class="hit" data-bet="d3" aria-label="25-36"></button>
-      </div>
-      <div class="even-row" aria-label="外注">
-        <button type="button" class="hit" data-bet="small" aria-label="小"></button>
-        <button type="button" class="hit" data-bet="even" aria-label="双"></button>
-        <button type="button" class="hit" data-bet="red" aria-label="红"></button>
-        <button type="button" class="hit" data-bet="black" aria-label="黑"></button>
-        <button type="button" class="hit" data-bet="odd" aria-label="单"></button>
-        <button type="button" class="hit" data-bet="big" aria-label="大"></button>
-      </div>
+      <div id="outside" aria-label="打与外注"></div>
       <div class="french" aria-label="法式">
         <button type="button" class="hit" data-bet="tier" aria-label="轮盘下角注"></button>
         <button type="button" class="hit" data-bet="orphelins" aria-label="轮上孤注"></button>
         <button type="button" class="hit" data-bet="voisins" aria-label="零旁注上角"></button>
         <button type="button" class="hit" data-bet="zero-game" aria-label="轮上零旁"></button>
       </div>
+      <div id="trackNums" aria-label="滚道"></div>
 
       <div class="sicbo-dock" id="sicboDock">
-        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.3d" alt="" draggable="false" />
+        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.27" alt="" draggable="false" />
 
         <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
         <div class="chip-cover" id="cover-b" aria-hidden="true"></div>
@@ -426,7 +529,7 @@
 
   <script>
     (function () {
-      const V = '1.0.3';
+      const V = '1.0.5';
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
@@ -501,6 +604,15 @@
         saveBal();
       }
       function srcFor(n) { return `chips/chip-${n}.webp?v=v1.0.30u`; }
+      /** 按注额选筹码图（骰宝同款） */
+      function chipArtFor(stake) {
+        let d = DENOMS[0];
+        for (const n of DENOMS) {
+          if (n <= stake) d = n;
+          else break;
+        }
+        return d;
+      }
       function visibleDenoms() { return DENOMS.slice(start, start + VISIBLE); }
       function syncArrows() {
         const atStart = start <= 0;
@@ -622,6 +734,7 @@
         setBalance(balance - pendingStake);
         bets[pendingMarket] = (bets[pendingMarket] || 0) + pendingStake;
         pendingMarket = null; pendingStake = 0;
+        paintLit();
         showToast('下注成功', 1800, 'success');
         return true;
       }
@@ -640,28 +753,223 @@
         playClick();
         if (!pendingMarket && pendingStake <= 0) { showToast('没有可取消的选择', 1000); return; }
         pendingMarket = null; pendingStake = 0;
+        paintLit();
         showToast('已取消', 1000);
       }
       btnConfirm.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); confirmBet(); });
       btnCancel.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); cancelBet(); });
       btnRepeat.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); repeatBet(); });
 
-      /* 数字盘 */
+      /* 数字盘：按底图像素绝对定位，点一下只出一个号 */
+      const RED = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+      const NUM_CELLS = {
+        /* 整格实测：左圆角≈13 → 右缝≈133，顶底与 3/1 齐；勿裁成右半截 */
+        0: { left:'0.5692%', top:'48.842%', width:'5.2539%', height:'17.6431%' },
+        1: { left:'6.0858%', top:'60.8992%', width:'5.3415%', height:'5.5177%' },
+        2: { left:'6.0858%', top:'54.9046%', width:'5.3415%', height:'5.5177%' },
+        3: { left:'6.0858%', top:'48.842%', width:'5.3415%', height:'5.5177%' },
+        4: { left:'11.6462%', top:'60.9673%', width:'5.3415%', height:'5.5177%' },
+        5: { left:'11.6462%', top:'54.9046%', width:'5.2977%', height:'5.5177%' },
+        6: { left:'11.6462%', top:'48.9101%', width:'5.3415%', height:'5.5177%' },
+        7: { left:'17.1629%', top:'60.8992%', width:'5.3415%', height:'5.5177%' },
+        8: { left:'17.1629%', top:'54.9046%', width:'5.3415%', height:'5.5177%' },
+        9: { left:'17.1629%', top:'48.9101%', width:'5.3415%', height:'5.4496%' },
+        10: { left:'22.7233%', top:'60.9673%', width:'5.3415%', height:'5.5177%' },
+        11: { left:'22.7233%', top:'54.9046%', width:'5.3415%', height:'5.5177%' },
+        12: { left:'22.7233%', top:'48.9101%', width:'5.3415%', height:'5.5177%' },
+        13: { left:'28.2837%', top:'60.9673%', width:'5.3415%', height:'5.5177%' },
+        14: { left:'28.2837%', top:'54.9046%', width:'5.2977%', height:'5.5177%' },
+        15: { left:'28.2837%', top:'48.9101%', width:'5.3415%', height:'5.5177%' },
+        16: { left:'33.8004%', top:'60.8992%', width:'5.3415%', height:'5.5177%' },
+        17: { left:'33.8004%', top:'54.9046%', width:'5.3415%', height:'5.5177%' },
+        18: { left:'33.8004%', top:'48.842%', width:'5.3415%', height:'5.5177%' },
+        19: { left:'39.3608%', top:'60.8992%', width:'5.2977%', height:'5.5177%' },
+        20: { left:'39.3608%', top:'54.9046%', width:'5.3415%', height:'5.5177%' },
+        21: { left:'39.3608%', top:'48.842%', width:'5.2977%', height:'5.5177%' },
+        22: { left:'44.8774%', top:'60.9673%', width:'5.3415%', height:'5.5177%' },
+        23: { left:'44.8774%', top:'54.9046%', width:'5.3415%', height:'5.5177%' },
+        24: { left:'44.8774%', top:'48.842%', width:'5.3415%', height:'5.5858%' },
+        25: { left:'50.4378%', top:'60.8992%', width:'5.2977%', height:'5.5177%' },
+        26: { left:'50.4378%', top:'54.9046%', width:'5.3415%', height:'5.5177%' },
+        27: { left:'50.4378%', top:'48.842%', width:'5.2977%', height:'5.5177%' },
+        28: { left:'55.9982%', top:'60.9673%', width:'5.3415%', height:'5.5177%' },
+        29: { left:'55.9545%', top:'54.9046%', width:'5.3853%', height:'5.5177%' },
+        30: { left:'55.9545%', top:'48.842%', width:'5.3415%', height:'5.5858%' },
+        31: { left:'61.5149%', top:'60.9673%', width:'5.3415%', height:'5.5177%' },
+        32: { left:'61.5149%', top:'54.9046%', width:'5.3415%', height:'5.5177%' },
+        33: { left:'61.5149%', top:'48.842%', width:'5.3415%', height:'5.5858%' },
+        34: { left:'67.0753%', top:'60.8992%', width:'5.2977%', height:'5.5177%' },
+        35: { left:'67.0753%', top:'54.9046%', width:'5.3415%', height:'5.5177%' },
+        36: { left:'67.0315%', top:'48.842%', width:'5.3415%', height:'5.5177%' },
+      };
       const nums = document.getElementById('nums');
-      const order = [];
-      for (let col = 1; col <= 12; col++) order.push(col * 3, col * 3 - 1, col * 3 - 2);
-      const zero = document.createElement('button');
-      zero.type = 'button'; zero.className = 'hit zero'; zero.dataset.bet = 'n0';
-      zero.setAttribute('aria-label', '0'); nums.appendChild(zero);
-      for (let i = 0; i < 36; i++) {
-        const n = order[i];
+      Object.keys(NUM_CELLS).forEach((key) => {
+        const n = Number(key);
+        const box = NUM_CELLS[n];
         const b = document.createElement('button');
-        b.type = 'button'; b.className = 'hit'; b.dataset.bet = 'n' + n;
+        b.type = 'button';
+        b.className = 'hit' + (n === 0 ? ' zero' : '');
+        b.dataset.bet = 'n' + n;
         b.setAttribute('aria-label', String(n));
-        b.style.gridColumn = String(2 + Math.floor(i / 3));
-        b.style.gridRow = String((i % 3) + 1);
+        b.textContent = String(n);
+        b.style.left = box.left;
+        b.style.top = box.top;
+        b.style.width = box.width;
+        b.style.height = box.height;
         nums.appendChild(b);
+      });
+
+      /* 打 / 外注：底图像素绝对定位（与数字盘同逻辑） */
+      /* 沟槽分割实测（2284×1468）：贴齐底图圆角格，不吃缝、不露边 */
+      const OUTSIDE_CELLS = {
+        d1:    { left:'6.0858%', top:'66.8937%', width:'22.0228%', height:'5.4496%', label:'1-12', text:'1 - 12' },
+        d2:    { left:'28.1961%', top:'66.8937%', width:'22.0665%', height:'5.4496%', label:'13-24', text:'13 - 24' },
+        d3:    { left:'50.4378%', top:'66.8937%', width:'22.0228%', height:'5.4496%', label:'25-36', text:'25 - 36' },
+        small: { left:'6.0420%', top:'72.8202%', width:'10.9457%', height:'5.4496%', label:'小', text:'小' },
+        even:  { left:'17.2067%', top:'72.8202%', width:'10.9457%', height:'5.4496%', label:'双', text:'雙' },
+        red:   { left:'28.2399%', top:'72.8202%', width:'10.9019%', height:'5.4496%', label:'红', text:'◆' },
+        black: { left:'39.3608%', top:'72.8202%', width:'10.9019%', height:'5.4496%', label:'黑', text:'◆' },
+        odd:   { left:'50.3940%', top:'72.8202%', width:'10.9019%', height:'5.4496%', label:'单', text:'單' },
+        big:   { left:'61.5587%', top:'72.8202%', width:'10.9019%', height:'5.4496%', label:'大', text:'大' },
+      };
+      const outside = document.getElementById('outside');
+      Object.keys(OUTSIDE_CELLS).forEach((key) => {
+        const box = OUTSIDE_CELLS[key];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'hit';
+        b.dataset.bet = key;
+        b.setAttribute('aria-label', box.label);
+        b.textContent = box.text;
+        b.style.left = box.left;
+        b.style.top = box.top;
+        b.style.width = box.width;
+        b.style.height = box.height;
+        outside.appendChild(b);
+      });
+
+      /* 整圈跑道 0–36：欧式轮序绝对热区贴底图；与主键盘同 data-bet → paintLit 同步亮 */
+      const TRACK_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+      const TRACK_CELLS = {
+        0: { left:'90.324%', top:'69.9591%', width:'3.4588%', height:'8.2425%', mask:'assets/roulette/track-masks/n0.png' },
+        32: { left:'79.8599%', top:'65.3951%', width:'3.8967%', height:'6.4033%', mask:'assets/roulette/track-masks/n32.png' },
+        15: { left:'79.1594%', top:'63.079%', width:'5.4729%', height:'15.1226%', mask:'assets/roulette/track-masks/n15.png' },
+        19: { left:'79.1156%', top:'57.4251%', width:'4.6848%', height:'11.921%', mask:'assets/roulette/track-masks/n19.png' },
+        4: { left:'79.1156%', top:'54.2234%', width:'3.9842%', height:'8.2425%', mask:'assets/roulette/track-masks/n4.png' },
+        21: { left:'79.7285%', top:'52.7248%', width:'2.9772%', height:'2.7929%', mask:'assets/roulette/track-masks/n21.png' },
+        2: { left:'79.1156%', top:'48.6376%', width:'3.9842%', height:'5.7902%', mask:'assets/roulette/track-masks/n2.png' },
+        25: { left:'79.1156%', top:'45.7084%', width:'8.2312%', height:'4.6322%', mask:'assets/roulette/track-masks/n25.png' },
+        17: { left:'78.7215%', top:'42.1662%', width:'6.4361%', height:'4.0872%', mask:'assets/roulette/track-masks/n17.png' },
+        34: { left:'77.0578%', top:'35.218%', width:'6.042%', height:'8.1063%', mask:'assets/roulette/track-masks/n34.png' },
+        6: { left:'77.0578%', top:'28.7466%', width:'6.1734%', height:'11.3079%', mask:'assets/roulette/track-masks/n6.png' },
+        27: { left:'79.6848%', top:'33.7193%', width:'3.0648%', height:'2.9292%', mask:'assets/roulette/track-masks/n27.png' },
+        13: { left:'80.7793%', top:'28.7466%', width:'2.2767%', height:'5.9946%', mask:'assets/roulette/track-masks/n13.png' },
+        36: { left:'79.5534%', top:'23.5014%', width:'3.5464%', height:'5.9264%', mask:'assets/roulette/track-masks/n36.png' },
+        11: { left:'84.5447%', top:'24.2507%', width:'1.2697%', height:'2.0436%', mask:'assets/roulette/track-masks/n11.png' },
+        30: { left:'79.7285%', top:'19.1417%', width:'3.634%', height:'5.0409%', mask:'assets/roulette/track-masks/n30.png' },
+        8: { left:'80.3415%', top:'13.2153%', width:'5.2102%', height:'8.0381%', mask:'assets/roulette/track-masks/n8.png' },
+        23: { left:'84.1068%', top:'12.2616%', width:'3.8529%', height:'5.3134%', mask:'assets/roulette/track-masks/n23.png' },
+        10: { left:'88.6602%', top:'11.5804%', width:'3.5026%', height:'6.6757%', mask:'assets/roulette/track-masks/n10.png' },
+        5: { left:'90.8494%', top:'14.1008%', width:'4.4221%', height:'6.6757%', mask:'assets/roulette/track-masks/n5.png' },
+        24: { left:'92.3818%', top:'18.5286%', width:'4.4221%', height:'6.5395%', mask:'assets/roulette/track-masks/n24.png' },
+        16: { left:'93.4326%', top:'24.3188%', width:'3.0648%', height:'2.9292%', mask:'assets/roulette/track-masks/n16.png' },
+        33: { left:'93.0823%', top:'26.4986%', width:'3.8529%', height:'3.8828%', mask:'assets/roulette/track-masks/n33.png' },
+        1: { left:'93.3888%', top:'30.5858%', width:'3.1086%', height:'2.9292%', mask:'assets/roulette/track-masks/n1.png' },
+        20: { left:'93.0823%', top:'31.6757%', width:'3.6778%', height:'5.654%', mask:'assets/roulette/track-masks/n20.png' },
+        14: { left:'93.3888%', top:'36.8529%', width:'3.1086%', height:'2.9973%', mask:'assets/roulette/track-masks/n14.png' },
+        31: { left:'93.0823%', top:'37.6022%', width:'3.6778%', height:'4.9728%', mask:'assets/roulette/track-masks/n31.png' },
+        9: { left:'93.3888%', top:'43.2561%', width:'3.0648%', height:'2.7929%', mask:'assets/roulette/track-masks/n9.png' },
+        22: { left:'88.704%', top:'45.2316%', width:'8.3625%', height:'4.2916%', mask:'assets/roulette/track-masks/n22.png' },
+        18: { left:'93.0823%', top:'48.2289%', width:'3.9842%', height:'5.3815%', mask:'assets/roulette/track-masks/n18.png' },
+        29: { left:'93.0823%', top:'50.9537%', width:'3.9842%', height:'6.1308%', mask:'assets/roulette/track-masks/n29.png' },
+        7: { left:'93.4326%', top:'55.9264%', width:'2.9772%', height:'2.7929%', mask:'assets/roulette/track-masks/n7.png' },
+        28: { left:'93.0823%', top:'56.1308%', width:'3.9842%', height:'8.9918%', mask:'assets/roulette/track-masks/n28.png' },
+        12: { left:'89.8424%', top:'59.673%', width:'7.2242%', height:'8.3106%', mask:'assets/roulette/track-masks/n12.png' },
+        35: { left:'92.2942%', top:'64.4414%', width:'4.7723%', height:'11.5804%', mask:'assets/roulette/track-masks/n35.png' },
+        3: { left:'89.6673%', top:'69.7548%', width:'4.8161%', height:'6.6076%', mask:'assets/roulette/track-masks/n3.png' },
+        26: { left:'86.2522%', top:'70.9809%', width:'5.5166%', height:'7.2207%', mask:'assets/roulette/track-masks/n26.png' },
+      };
+      const trackNums = document.getElementById('trackNums');
+      TRACK_ORDER.forEach((n) => {
+        const box = TRACK_CELLS[n];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'hit';
+        b.dataset.bet = 'n' + n;
+        b.dataset.track = '1';
+        b.setAttribute('aria-label', '滚道' + n);
+        b.textContent = String(n);
+        b.style.left = box.left;
+        b.style.top = box.top;
+        b.style.width = box.width;
+        b.style.height = box.height;
+        if (box.mask) {
+          const mu = box.mask + '?v=' + V;
+          b.classList.add('has-mask');
+          b.style.webkitMaskImage = 'url(' + mu + ')';
+          b.style.maskImage = 'url(' + mu + ')';
+          b.style.webkitMaskSize = '100% 100%';
+          b.style.maskSize = '100% 100%';
+          b.style.webkitMaskRepeat = 'no-repeat';
+          b.style.maskRepeat = 'no-repeat';
+          b.style.borderRadius = '0';
+        }
+        if (box.clip) {
+          b.style.clipPath = box.clip;
+          b.style.webkitClipPath = box.clip;
+          b.style.borderRadius = '0';
+        }
+        trackNums.appendChild(b);
+      });
+      const FRENCH = {
+        tier: new Set([27,13,36,11,30,8,23,10,5,24,16,33]),
+        orphelins: new Set([1,20,14,31,9,17,34,6]),
+        voisins: new Set([22,18,29,7,28,12,35,3,26,0,32,15,19,4,21,2,25]),
+        'zero-game': new Set([12,35,3,26,0,32,15]),
+      };
+      function numFromKey(key) {
+        if (!key || key[0] !== 'n') return null;
+        const n = Number(key.slice(1));
+        return Number.isFinite(n) ? n : null;
       }
+      function activeBetKeys() {
+        const keys = new Set();
+        if (pendingMarket) keys.add(pendingMarket);
+        Object.keys(bets).forEach((k) => { if (bets[k] > 0) keys.add(k); });
+        return keys;
+      }
+      function chipHostFor(key) {
+        const inNums = document.querySelector('#nums [data-bet="' + key + '"]');
+        if (inNums) return inNums;
+        const main = document.querySelector('[data-bet="' + key + '"]:not([data-track])');
+        return main || document.querySelector('[data-bet="' + key + '"]');
+      }
+      function paintBoardChips() {
+        document.querySelectorAll('.hit .bet-chip').forEach((el) => el.remove());
+        const lit = activeBetKeys();
+        lit.forEach((key) => {
+          const host = chipHostFor(key);
+          if (!host) return;
+          let stake = bets[key] || 0;
+          if (key === pendingMarket && pendingStake > 0) stake = pendingStake;
+          if (stake <= 0) return;
+          const chip = document.createElement('img');
+          chip.className = 'bet-chip';
+          chip.alt = '';
+          chip.draggable = false;
+          chip.src = srcFor(chipArtFor(stake));
+          host.appendChild(chip);
+        });
+      }
+      function paintLit() {
+        /* 点一下：黄脸 + 原白号显出 + 筹码压上 */
+        const lit = activeBetKeys();
+        document.querySelectorAll('[data-bet]').forEach((el) => {
+          el.classList.toggle('is-lit', lit.has(el.dataset.bet));
+        });
+        paintBoardChips();
+      }
+
       let lastZoneBetAt = 0, lastZoneBetKey = '';
       document.querySelectorAll('[data-bet]').forEach((zone) => {
         const key = zone.dataset.bet;
@@ -676,10 +984,11 @@
           const next = Number(selected);
           if (!next || balance < next) { showToast('积分不足', 1200); return; }
           pendingMarket = key; pendingStake = next;
+          paintLit();
           playClick();
-          showToast(`已选 ${key} · ${next}`, 900);
         });
       });
+      paintLit();
 
       /* 全屏 */
       const fsWrap = document.getElementById('fsWrap');
