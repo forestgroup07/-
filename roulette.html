@@ -534,7 +534,7 @@
 
   <script>
     (function () {
-      const V = '1.0.7';
+      const V = '1.0.8';
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
@@ -856,8 +856,8 @@
       /* 整圈跑道 0–36：欧式轮序绝对热区贴底图；与主键盘同 data-bet → paintLit 同步亮 */
       const TRACK_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
       const TRACK_CELLS = {
-        0: { left:'82.8809%', top:'70.7766%', width:'3.5464%', height:'5.8583%', mask:'assets/roulette/track-masks/n0.png' },
-        32: { left:'79.7723%', top:'65.2589%', width:'3.9842%', height:'6.5395%', mask:'assets/roulette/track-masks/n32.png' },
+        0: { left:'82.6182%', top:'70.5722%', width:'4.0718%', height:'6.3351%', mask:'assets/roulette/track-masks/n0.png' },
+        32: { left:'79.6848%', top:'65.1226%', width:'4.1594%', height:'6.8801%', mask:'assets/roulette/track-masks/n32.png' },
         15: { cx:'81.2172%', cy:'63.5899%', w:'3.0648%', h:'2.9291%', rot:0 },
         19: { cx:'81.2172%', cy:'60.4564%', w:'3.0648%', h:'2.9291%', rot:0 },
         4: { cx:'81.2172%', cy:'57.3229%', w:'3.0648%', h:'2.9291%', rot:0 },
@@ -890,9 +890,9 @@
         7: { cx:'94.9212%', cy:'57.2888%', w:'3.0648%', h:'2.861%', rot:0 },
         28: { cx:'94.9431%', cy:'60.4564%', w:'3.1086%', h:'2.9291%', rot:0 },
         12: { cx:'94.9212%', cy:'63.5899%', w:'3.0648%', h:'2.9291%', rot:0 },
-        35: { left:'92.338%', top:'65.2589%', width:'3.9405%', height:'6.4033%', mask:'assets/roulette/track-masks/n35.png' },
+        35: { left:'92.2504%', top:'65.0545%', width:'4.1156%', height:'6.8801%', mask:'assets/roulette/track-masks/n35.png' },
         3: { left:'89.6673%', top:'69.6185%', width:'4.8161%', height:'6.812%', mask:'assets/roulette/track-masks/n3.png' },
-        26: { left:'86.2522%', top:'72.2752%', width:'3.8529%', height:'5.0409%', mask:'assets/roulette/track-masks/n26.png' },
+        26: { left:'85.8581%', top:'72.139%', width:'4.4221%', height:'5.2452%', mask:'assets/roulette/track-masks/n26.png' },
       };
       const trackNums = document.getElementById('trackNums');
       TRACK_ORDER.forEach((n) => {
