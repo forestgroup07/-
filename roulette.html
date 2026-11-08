@@ -34,6 +34,188 @@
       object-fit: fill; pointer-events: none; display: block; z-index: 1;
     }
 
+    /* 骰宝同款倒计时：戴帽美女与轮盘之间上方 */
+    .timer {
+      --p: 1;
+      position: absolute;
+      left: 18.4%;
+      top: 2.6%;
+      width: 6.8%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      z-index: 70;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background: rgb(22, 34, 16);
+      color: #6fff9a;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 900;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 40 / var(--sw));
+      line-height: 1;
+      text-shadow: 0 1px 2px rgba(0,0,0,.65);
+      box-shadow: 0 4px 14px rgba(0,0,0,.35);
+    }
+    .timer::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(#6fff9a calc(var(--p) * 1turn), rgba(40,55,35,.75) 0);
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
+              mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
+      pointer-events: none;
+    }
+    .timer > span { position: relative; z-index: 1; }
+    .timer.danger { color: #ff3b3b; }
+    .timer.danger::before {
+      background: conic-gradient(#ff3b3b calc(var(--p) * 1turn), rgba(60,20,20,.75) 0);
+    }
+
+    /* 立体可旋转轮盘：盖住底图烤盘，透视倾侧 + 旋转 */
+    .wheel-3d {
+      position: absolute;
+      left: 26.0946%;
+      top: -3.0654%;
+      width: 28.9842%;
+      height: 45.0954%;
+      z-index: 25;
+      pointer-events: none;
+    }
+    .wheel-3d-cover {
+      position: absolute;
+      inset: 2.2%;
+      border-radius: 50%;
+      /* 从轮盘本体实测木色同化 */
+      background: radial-gradient(circle at 42% 38%, #8a4a32 0%, #713726 42%, #4e2418 100%);
+      z-index: 0;
+    }
+    .wheel-3d-bowl {
+      position: absolute;
+      inset: 0;
+      /* 正对观众：不倾斜 */
+      transform: none;
+      border-radius: 50%;
+      z-index: 1;
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,.4));
+    }
+    .wheel-3d-disc {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: contain;
+      display: block;
+      transform: rotate(0deg);
+      will-change: transform;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .wheel-3d-disc.is-idle {
+      animation: wheel-idle-cw 22s linear infinite;
+    }
+    @keyframes wheel-idle-cw {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .wheel-3d-shine {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 2;
+      background: linear-gradient(145deg, rgba(255,255,255,.18) 0%, transparent 38%, transparent 62%, rgba(0,0,0,.28) 100%);
+      mix-blend-mode: soft-light;
+    }
+    /* 小球：数字外圈逆时针快跑 */
+    .wheel-ball-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+    .wheel-ball-layer.show { opacity: 1; }
+    .wheel-ball-arm {
+      position: absolute;
+      inset: 0;
+      transform: rotate(0deg);
+      will-change: transform;
+      transform-origin: 50% 50%;
+    }
+    .wheel-ball {
+      position: absolute;
+      left: 50%;
+      /* 数字外圈 */
+      top: 7.8%;
+      width: 3.8%;
+      height: 3.8%;
+      min-width: 9px;
+      min-height: 9px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #fff 0%, #d8d8d8 38%, #7a7a7a 78%, #2a2a2a 100%);
+      box-shadow: 0 1px 2px rgba(0,0,0,.55), inset 0 1px 1px rgba(255,255,255,.55);
+    }
+    /* 右侧开奖条：与左侧计时器左右对称 */
+    .result-board {
+      position: absolute;
+      left: 74.8%;
+      top: 2.6%;
+      width: 6.8%;
+      z-index: 70;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.28em;
+      padding: 0.55em 0.35em 0.7em;
+      box-sizing: border-box;
+      border-radius: 0.55em;
+      background: rgba(20, 22, 28, 0.55);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      font-weight: 700;
+      line-height: 1.15;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-4px);
+      transition: opacity .22s ease, transform .22s ease, visibility .22s;
+    }
+    .result-board.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .result-board .rb-num {
+      width: 78%;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.28em;
+      border: 2px solid #e6c84a;
+      font-size: 1.55em;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45);
+      margin-bottom: 0.15em;
+    }
+    .result-board .rb-num.is-red { background: #c62828; }
+    .result-board .rb-num.is-black { background: #1a1a1a; }
+    .result-board .rb-num.is-green { background: #1b7a3a; }
+    .result-board .rb-parity.is-odd { color: #4ea1ff; }
+    .result-board .rb-parity.is-even { color: #ff5a5a; }
+    .result-board .rb-size.is-big { color: #ff5a5a; }
+    .result-board .rb-size.is-small { color: #4ea1ff; }
+    .result-board .rb-range,
+    .result-board .rb-dozen { color: #f2f2f2; font-weight: 600; font-size: 0.92em; }
+
     .hit {
       position: absolute; z-index: 40; margin: 0; padding: 0; border: 0;
       background: transparent; cursor: pointer;
@@ -427,6 +609,33 @@
     }
     .toast-msg.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
     .toast-msg.success { color: #b8ffc4; border-color: rgba(120,255,160,.55); }
+    .stop-bet {
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%) scale(.96);
+      z-index: 90;
+      padding: 0.55em 1.25em;
+      border-radius: 0.2em;
+      background: rgba(0,0,0,.62);
+      border: 1px solid rgba(255,220,140,.45);
+      color: #ffe29a;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 52 / var(--sw));
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .25s ease, transform .25s ease, visibility .25s;
+      text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    }
+    .stop-bet.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+    }
 
     /* 账号/余额/注金：只显示、不可输入（跟骰宝同款） */
     .account-name,
@@ -902,7 +1111,27 @@
 <body>
   <div class="frame">
     <div class="stage" id="stage">
-      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.1.2" alt="" width="2284" height="1468" draggable="false" />
+      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.1.3" alt="" width="2284" height="1468" draggable="false" />
+      <div class="wheel-3d" id="wheel3d" aria-hidden="true">
+        <div class="wheel-3d-cover"></div>
+        <div class="wheel-3d-bowl" id="wheelBowl">
+          <img class="wheel-3d-disc" id="wheelDisc" src="assets/roulette/wheel-disc.png?v=1.1.3" alt="" draggable="false" width="666" height="666" />
+          <div class="wheel-ball-layer" id="wheelBallLayer" aria-hidden="true">
+            <div class="wheel-ball-arm" id="wheelBallArm">
+              <div class="wheel-ball" id="wheelBall"></div>
+            </div>
+          </div>
+          <div class="wheel-3d-shine" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="timer" id="timer" style="--p:1" aria-live="polite"><span id="timerNum">30</span></div>
+      <div class="result-board" id="resultBoard" aria-live="polite" hidden>
+        <div class="rb-num is-red" id="rbNum">18</div>
+        <div class="rb-parity is-even" id="rbParity">雙</div>
+        <div class="rb-size is-small" id="rbSize">小</div>
+        <div class="rb-range" id="rbRange">1-18</div>
+        <div class="rb-dozen" id="rbDozen">第二打</div>
+      </div>
       <button class="account-hot" id="accountHot" type="button" aria-label="账号" aria-describedby="accountTip"></button>
       <div class="account-name" id="accountName" aria-label="账号">—</div>
       <div class="account-tip" id="accountTip" role="tooltip">
@@ -1086,12 +1315,18 @@
       </div>
 
       <div class="toast-msg" id="toastMsg" role="status"></div>
+      <div class="stop-bet" id="stopBet" aria-live="polite">停止下注</div>
+      <audio id="voWelcome" preload="auto" playsinline></audio>
+      <audio id="voStartBet" preload="auto" playsinline></audio>
+      <audio id="voRoundOpen" preload="auto" playsinline></audio>
+      <audio id="voStopBet" preload="auto" playsinline></audio>
     </div>
   </div>
 
   <script>
     (async function () {
-      const V = '1.1.2';
+      const V = '1.1.3';
+      const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
@@ -2231,6 +2466,346 @@
       if ('requestIdleCallback' in window) requestIdleCallback(warmChips, { timeout: 2500 });
       else setTimeout(warmChips, 1200);
       paintChips();
+
+      /* —— 骰宝同款：女声口播 + 30 秒计时 + 立体轮盘 —— */
+      const timerEl = document.getElementById('timer');
+      const timerNum = document.getElementById('timerNum');
+      const stopBetEl = document.getElementById('stopBet');
+      const resultBoard = document.getElementById('resultBoard');
+      const rbNum = document.getElementById('rbNum');
+      const rbParity = document.getElementById('rbParity');
+      const rbSize = document.getElementById('rbSize');
+      const rbRange = document.getElementById('rbRange');
+      const rbDozen = document.getElementById('rbDozen');
+      const wheelDisc = document.getElementById('wheelDisc');
+      const wheelBallLayer = document.getElementById('wheelBallLayer');
+      const wheelBallArm = document.getElementById('wheelBallArm');
+      /* 欧式轮盘顺时针口袋顺序（从 0 起）；CSS rotate 正方向=顺时针 */
+      const EU_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+      const SLOT = 360 / 37;
+      const RED_SET = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+      let wheelAngle = 0;
+      let ballAngle = 0;
+      let roundGen = 0;
+      let welcomePlayed = false;
+      let voiceUnlocked = false;
+      let idleBaseAngle = 0;
+      let idleStartedAt = 0;
+
+      const Voice = {
+        clips: {
+          welcome: 'audio/welcome-roulette.mp3?v=' + V,
+          startBet: 'audio/start-bet.mp3?v=' + V,
+          roundOpen: 'audio/round-open-bet.mp3?v=' + V,
+          stopBet: 'audio/stop-bet.mp3?v=' + V,
+        },
+        players: {
+          welcome: document.getElementById('voWelcome'),
+          startBet: document.getElementById('voStartBet'),
+          roundOpen: document.getElementById('voRoundOpen'),
+          stopBet: document.getElementById('voStopBet'),
+        },
+        clipFor: {
+          '欢迎进入轮盘游戏': 'welcome',
+          '开始下注': 'startBet',
+          '已开局请下注': 'roundOpen',
+          '停止下注': 'stopBet',
+        },
+        _chain: Promise.resolve(),
+        init() {
+          Object.keys(this.players).forEach((k) => {
+            const el = this.players[k];
+            if (!el) return;
+            el.src = this.clips[k];
+            el.preload = 'auto';
+            el.volume = 1;
+            try { el.load(); } catch (_) {}
+          });
+        },
+        unlock() {
+          voiceUnlocked = true;
+          Object.keys(this.players).forEach((k) => {
+            const el = this.players[k];
+            if (!el) return;
+            try {
+              el.muted = false;
+              el.volume = 1;
+              const p = el.play();
+              if (p && typeof p.then === 'function') {
+                p.then(() => { try { el.pause(); el.currentTime = 0; } catch (_) {} }).catch(() => {});
+              }
+            } catch (_) {}
+          });
+        },
+        playEl(el) {
+          return new Promise((resolve) => {
+            if (!el || soundMuted) { resolve(false); return; }
+            let done = false;
+            const finish = (ok) => {
+              if (done) return;
+              done = true;
+              try { el.onended = null; el.onerror = null; } catch (_) {}
+              resolve(!!ok);
+            };
+            try {
+              el.pause();
+              el.currentTime = 0;
+              el.muted = false;
+              el.volume = 1;
+              el.onended = () => finish(true);
+              el.onerror = () => finish(false);
+              const p = el.play();
+              if (p && typeof p.catch === 'function') p.catch(() => finish(false));
+              setTimeout(() => finish(false), 8000);
+            } catch (_) {
+              finish(false);
+            }
+          });
+        },
+        speak(text) {
+          const run = async () => {
+            if (soundMuted) return false;
+            const key = this.clipFor[text];
+            const el = key && this.players[key];
+            if (!el) return false;
+            Object.keys(this.players).forEach((k) => {
+              const other = this.players[k];
+              if (!other || other === el) return;
+              try { other.pause(); other.currentTime = 0; } catch (_) {}
+            });
+            return await this.playEl(el);
+          };
+          const prev = this._chain;
+          let release;
+          this._chain = new Promise((r) => { release = r; });
+          return prev.catch(() => {}).then(run).finally(() => release());
+        },
+      };
+      Voice.init();
+
+      function setTimerDisplay(sec) {
+        if (!timerEl || !timerNum) return;
+        const p = Math.max(0, Math.min(1, sec / BET_SECS));
+        timerEl.style.setProperty('--p', String(p));
+        timerNum.textContent = String(sec);
+        timerEl.classList.toggle('danger', sec > 0 && sec <= 10);
+        if (sec <= 0) timerEl.classList.add('danger');
+      }
+
+      function showStopBet(show) {
+        if (stopBetEl) stopBetEl.classList.toggle('show', !!show);
+      }
+
+      function readCssRotate(el) {
+        if (!el) return 0;
+        const t = getComputedStyle(el).transform;
+        if (!t || t === 'none') return 0;
+        const m = t.match(/matrix\(([^)]+)\)/);
+        if (m) {
+          const p = m[1].split(',').map(Number);
+          return Math.atan2(p[1], p[0]) * 180 / Math.PI;
+        }
+        const m3 = t.match(/matrix3d\(([^)]+)\)/);
+        if (m3) {
+          const p = m3[1].split(',').map(Number);
+          return Math.atan2(p[1], p[0]) * 180 / Math.PI;
+        }
+        return 0;
+      }
+
+      function normDeg(d) {
+        return ((d % 360) + 360) % 360;
+      }
+
+      function pocketAngle(n) {
+        const i = EU_ORDER.indexOf(n);
+        return (i < 0 ? 0 : i) * SLOT;
+      }
+
+      function startIdleSpin() {
+        if (!wheelDisc) return;
+        wheelDisc.style.transition = 'none';
+        idleBaseAngle = normDeg(wheelAngle);
+        wheelDisc.style.transform = 'rotate(' + idleBaseAngle + 'deg)';
+        idleStartedAt = performance.now();
+        /* 用 animation 匀速顺时针；结束后用 matrix 读当前角 */
+        wheelDisc.style.animation = 'none';
+        void wheelDisc.offsetWidth;
+        wheelDisc.style.animation = 'wheel-idle-cw 22s linear infinite';
+        wheelDisc.style.animationDelay = (-(idleBaseAngle / 360) * 22) + 's';
+        wheelDisc.classList.add('is-idle');
+      }
+
+      function stopIdleSpinCapture() {
+        if (!wheelDisc) return normDeg(wheelAngle);
+        const ang = normDeg(readCssRotate(wheelDisc));
+        wheelDisc.classList.remove('is-idle');
+        wheelDisc.style.animation = 'none';
+        wheelDisc.style.transition = 'none';
+        wheelAngle = ang;
+        wheelDisc.style.transform = 'rotate(' + wheelAngle + 'deg)';
+        return wheelAngle;
+      }
+
+      function setWheelAngle(deg, ms) {
+        if (!wheelDisc) return;
+        wheelAngle = deg;
+        wheelDisc.style.transition = ms > 0
+          ? 'transform ' + ms + 'ms cubic-bezier(.08,.72,.12,1)'
+          : 'none';
+        wheelDisc.style.transform = 'rotate(' + wheelAngle + 'deg)';
+      }
+
+      function setBallAngle(deg, ms) {
+        if (!wheelBallArm) return;
+        ballAngle = deg;
+        wheelBallArm.style.transition = ms > 0
+          ? 'transform ' + ms + 'ms cubic-bezier(.05,.75,.12,1)'
+          : 'none';
+        wheelBallArm.style.transform = 'rotate(' + ballAngle + 'deg)';
+      }
+
+      function showBall(show) {
+        if (!wheelBallLayer) return;
+        wheelBallLayer.classList.toggle('show', !!show);
+      }
+
+      function hideResultBoard() {
+        if (!resultBoard) return;
+        resultBoard.classList.remove('show');
+        resultBoard.hidden = true;
+      }
+
+      function paintResultBoard(n) {
+        if (!resultBoard) return;
+        const isZero = n === 0;
+        const isRed = RED_SET.has(n);
+        rbNum.textContent = String(n);
+        rbNum.className = 'rb-num ' + (isZero ? 'is-green' : (isRed ? 'is-red' : 'is-black'));
+        if (isZero) {
+          rbParity.textContent = '-';
+          rbParity.className = 'rb-parity';
+          rbSize.textContent = '-';
+          rbSize.className = 'rb-size';
+          rbRange.textContent = '-';
+          rbDozen.textContent = '-';
+        } else {
+          const even = n % 2 === 0;
+          rbParity.textContent = even ? '雙' : '單';
+          rbParity.className = 'rb-parity ' + (even ? 'is-even' : 'is-odd');
+          const small = n <= 18;
+          rbSize.textContent = small ? '小' : '大';
+          rbSize.className = 'rb-size ' + (small ? 'is-small' : 'is-big');
+          rbRange.textContent = small ? '1-18' : '19-36';
+          rbDozen.textContent = n <= 12 ? '第一打' : (n <= 24 ? '第二打' : '第三打');
+        }
+        resultBoard.hidden = false;
+        resultBoard.classList.add('show');
+      }
+
+      /**
+       * 停注后：小球逆时针外圈快跑 ~5 秒，轮盘仍慢顺时针，随后一起停在开奖号。
+       * 球停在盘面「顶部」标记位，轮盘转到使该号对准球。
+       */
+      function runBallAndWheelStop(winNum) {
+        const dur = 5000;
+        const w0 = stopIdleSpinCapture();
+        showBall(true);
+        const b0 = normDeg(ballAngle || -90);
+        setBallAngle(b0, 0);
+
+        /* 终点：球停在顶部附近；轮盘使 winNum 口袋转到球下 */
+        const marker = -90; /* 12 点方向 */
+        const pocket = pocketAngle(winNum);
+        /* 球相对轮盘：ballWorld - wheel = pocket + offset；取 ball 停在 marker */
+        const wheelTargetLocal = normDeg(marker - pocket);
+        /* 轮盘继续顺时针多转几圈后落到目标 */
+        let wDelta = normDeg(wheelTargetLocal - normDeg(w0));
+        if (wDelta < 80) wDelta += 360;
+        wDelta += 360 * (1 + Math.floor(Math.random() * 2));
+        const w1 = w0 + wDelta;
+
+        /* 球逆时针快跑多圈后停到 marker（相对世界/碗坐标） */
+        let bDelta = normDeg(b0 - marker); /* 逆时针走到 marker 的最短？ */
+        /* 强制逆时针：角度减小 */
+        if (bDelta < 1) bDelta = 360;
+        bDelta += 360 * (6 + Math.floor(Math.random() * 3));
+        const b1 = b0 - bDelta;
+
+        setWheelAngle(w1, dur);
+        setBallAngle(b1, dur);
+        wheelAngle = normDeg(w1);
+        ballAngle = normDeg(b1);
+
+        return sleep(dur + 60).then(() => {
+          setWheelAngle(wheelAngle, 0);
+          setBallAngle(ballAngle, 0);
+        });
+      }
+
+      async function playWelcomeOnce() {
+        if (welcomePlayed || soundMuted) return;
+        welcomePlayed = true;
+        await Voice.speak('欢迎进入轮盘游戏');
+      }
+
+      async function kickRoundOpenVoice() {
+        if (soundMuted) return;
+        await Voice.speak('已开局请下注');
+      }
+
+      async function runBetRounds() {
+        setTimerDisplay(BET_SECS);
+        setWheelAngle(wheelAngle, 0);
+        hideResultBoard();
+        showBall(false);
+        let first = true;
+        while (true) {
+          const gen = ++roundGen;
+          showStopBet(false);
+          hideResultBoard();
+          showBall(false);
+          if (first) {
+            first = false;
+            await playWelcomeOnce();
+            if (gen !== roundGen) return;
+          }
+          await kickRoundOpenVoice();
+          if (gen !== roundGen) return;
+          /* 倒计时开始：轮盘匀速顺时针慢转 */
+          startIdleSpin();
+          for (let t = BET_SECS; t >= 1; t--) {
+            if (gen !== roundGen) return;
+            setTimerDisplay(t);
+            await sleep(1000);
+          }
+          if (gen !== roundGen) return;
+          setTimerDisplay(0);
+          showStopBet(true);
+          await Voice.speak('停止下注');
+          if (gen !== roundGen) return;
+          await sleep(400);
+          showStopBet(false);
+          const winNum = (Math.random() * 37) | 0;
+          await runBallAndWheelStop(winNum);
+          if (gen !== roundGen) return;
+          paintResultBoard(winNum);
+          await sleep(3200);
+          if (gen !== roundGen) return;
+          hideResultBoard();
+          showBall(false);
+          await sleep(600);
+        }
+      }
+
+      const unlockOnce = () => {
+        if (voiceUnlocked) return;
+        Voice.unlock();
+      };
+      document.addEventListener('pointerdown', unlockOnce, { once: true, capture: true });
+      document.addEventListener('keydown', unlockOnce, { once: true, capture: true });
+
+      runBetRounds();
     })();
   </script>
 </body>
