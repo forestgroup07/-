@@ -428,7 +428,7 @@
     .toast-msg.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
     .toast-msg.success { color: #b8ffc4; border-color: rgba(120,255,160,.55); }
 
-    /* 账号/余额/注金：可输入，但外观跟以前底图死字一样——无边框、无凹槽 */
+    /* 账号/余额/注金：只显示、不可输入（跟骰宝同款） */
     .account-name,
     .bal,
     .stake-amt {
@@ -438,12 +438,9 @@
       margin: 0;
       padding: 0;
       border: 0;
-      border-radius: 0;
       background: transparent;
-      outline: none;
-      box-shadow: none;
-      -webkit-appearance: none;
-      appearance: none;
+      display: flex;
+      align-items: center;
       font-family: Arial, Helvetica, "PingFang TC", sans-serif;
       font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 19 / var(--sw));
       font-weight: 700;
@@ -452,48 +449,528 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: clip;
-      pointer-events: auto;
-      cursor: text;
-      caret-color: #e8fff6;
-    }
-    .account-name:focus,
-    .bal:focus,
-    .stake-amt:focus {
-      outline: none;
-      border: 0;
-      box-shadow: none;
-      background: transparent;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .account-name {
       left: 40.35%; top: 79.88%;
       width: 3.40%; height: 1.70%;
       color: #d1e4e0;
-      text-align: left;
+      justify-content: flex-start;
+    }
+    /* 账号胶囊热区：悬停显示暱稱/賬號（距离跟骰宝同款） */
+    .account-hot {
+      position: absolute;
+      left: 37.39%;
+      top: 79.22%;
+      width: 6.52%;
+      height: 3.00%;
+      z-index: 57;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: default;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 999px;
+    }
+    .account-hot:focus,
+    .account-hot:focus-visible { outline: none; }
+    .account-tip {
+      position: absolute;
+      left: 40.65%;
+      bottom: 21.50%;
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      min-width: 14.2%;
+      padding: 0.55em 0.75em 0.55em 0.55em;
+      border-radius: 0.55em;
+      background: rgba(0, 0, 0, 0.92);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      line-height: 1.35;
+      display: none;
+      align-items: center;
+      gap: 0.55em;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .account-tip.show {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .account-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.42em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.45em solid transparent;
+      border-right: 0.45em solid transparent;
+      border-top: 0.48em solid rgba(0, 0, 0, 0.92);
+    }
+    .account-tip-avatar {
+      flex: 0 0 auto;
+      width: 2.35em;
+      height: 2.35em;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #e8d4a8 0%, #c9a978 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .account-tip-avatar svg {
+      width: 68%;
+      height: 68%;
+      display: block;
+    }
+    .account-tip-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.12em;
+      white-space: nowrap;
+      font-weight: 500;
+      letter-spacing: 0.02em;
     }
     .bal {
       left: 50.90%; top: 79.88%;
       width: 3.70%; height: 1.70%;
       color: #cedd85;
-      text-align: left;
+      justify-content: flex-start;
       transition: color .2s ease;
     }
     .bal.flash-up { color: #7dff9f; }
     .bal.flash-down { color: #ffb4b4; }
+    /* 余额胶囊热区：悬停显示「賬戶餘額」 */
+    .bal-hot {
+      position: absolute;
+      left: 45.14%;
+      top: 79.22%;
+      width: 9.63%;
+      height: 3.00%;
+      z-index: 57;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: default;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 999px;
+    }
+    .bal-hot:focus,
+    .bal-hot:focus-visible { outline: none; }
+    .bal-tip {
+      position: absolute;
+      left: 49.955%;
+      /* 相对余额胶囊再下移约 2mm（舞台比例 ≈0.85%） */
+      bottom: 21.50%;
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      padding: 0.42em 0.85em;
+      border-radius: 0.55em;
+      background: rgba(0, 0, 0, 0.92);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .bal-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .bal-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.42em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.45em solid transparent;
+      border-right: 0.45em solid transparent;
+      border-top: 0.48em solid rgba(0, 0, 0, 0.92);
+    }
     .stake-amt {
       left: 57.95%; top: 79.88%;
       width: 1.70%; height: 1.70%;
       color: #d1e4e0;
+      justify-content: center;
+    }
+    /* 注金胶囊：点上箭头弹出玩法/下注/輸贏 */
+    .stake-hot {
+      position: absolute;
+      left: 56.00%;
+      top: 79.22%;
+      width: 6.00%;
+      height: 3.00%;
+      z-index: 57;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: default;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 999px;
+    }
+    .stake-hot:focus,
+    .stake-hot:focus-visible { outline: none; }
+    /* 悬停注金胶囊：小提示「下注總額」 */
+    .stake-amt-tip {
+      position: absolute;
+      left: 59.00%;
+      bottom: 21.50%;
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      padding: 0.42em 0.85em;
+      border-radius: 0.55em;
+      background: rgba(0, 0, 0, 0.92);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .stake-amt-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .stake-amt-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.42em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.45em solid transparent;
+      border-right: 0.45em solid transparent;
+      border-top: 0.48em solid rgba(0, 0, 0, 0.92);
+    }
+    .stake-tip {
+      position: absolute;
+      left: 33.2%;
+      bottom: 21.50%;
+      width: 29.6%;
+      z-index: 120;
+      padding: 0.55em 0.7em 0.65em;
+      border-radius: 0.7em;
+      background: rgba(0, 0, 0, 0.78);
+      color: #f3f3f3;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      line-height: 1.45;
+      display: none;
+      flex-direction: column;
+      gap: 0.15em;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(4px);
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+      pointer-events: auto;
+    }
+    .stake-tip.show {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .stake-tip::after {
+      content: "";
+      position: absolute;
+      left: 87.1%;
+      bottom: -0.45em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.48em solid transparent;
+      border-right: 0.48em solid transparent;
+      border-top: 0.5em solid rgba(0, 0, 0, 0.78);
+    }
+    .stake-tip-head,
+    .stake-tip-row {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 1fr;
+      align-items: center;
+      column-gap: 0.4em;
+      min-height: 1.35em;
+    }
+    .stake-tip-head {
+      color: #d8c39a;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding-bottom: 0.2em;
+      margin-bottom: 0.1em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .stake-tip-head span:nth-child(2),
+    .stake-tip-head span:nth-child(3),
+    .stake-tip-row span:nth-child(2),
+    .stake-tip-row span:nth-child(3) {
       text-align: center;
     }
+    .stake-tip-row span:first-child {
+      color: #f0f0f0;
+      font-weight: 500;
+    }
+    .stake-tip-row.is-total {
+      margin-top: 0.15em;
+      padding-top: 0.25em;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      font-weight: 700;
+    }
+    .stake-tip-row .is-win { color: #7dff9f; }
+    .stake-tip-row .is-lose { color: #ff8d8d; }
+    .stake-tip-row .is-flat { color: #c8d09b; }
+    /* 限红胶囊：盖住底图 20-5000，悬停出玩法/彩池限红 */
+    .limit-hot {
+      position: absolute;
+      left: 76.01%;
+      top: 79.22%;
+      width: 8.98%;
+      height: 3.00%;
+      z-index: 57;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: default;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 999px;
+    }
+    .limit-hot:focus,
+    .limit-hot:focus-visible { outline: none; }
+    .limit-label {
+      position: absolute;
+      left: 78.35%;
+      top: 79.88%;
+      width: 5.20%;
+      height: 1.70%;
+      z-index: 58;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background: #0a1f1a;
+      color: #f2f2f2;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 16 / var(--sw));
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+      border-radius: 0.15em;
+    }
+    .limit-tip {
+      position: absolute;
+      left: 36.5%;
+      /* 底边贴限红胶囊上方，去掉多出来的一截底边 */
+      bottom: 22.8%;
+      width: 49%;
+      max-height: 62%;
+      z-index: 120;
+      padding: 0.8em 1em 0.55em;
+      border-radius: 0.7em;
+      background: rgba(0, 0, 0, 0.82);
+      color: #f2f2f2;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      line-height: 1.55;
+      display: none;
+      flex-direction: column;
+      gap: 0.45em;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(4px);
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+      pointer-events: auto;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+    }
+    .limit-tip.show {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .limit-tip::after {
+      content: "";
+      position: absolute;
+      left: 91.9%;
+      bottom: -0.45em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.48em solid transparent;
+      border-right: 0.48em solid transparent;
+      border-top: 0.5em solid rgba(0, 0, 0, 0.82);
+    }
+    .limit-tip-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.1em;
+      align-items: start;
+    }
+    .limit-tip-col-title {
+      text-align: center;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding-bottom: 0.4em;
+      margin-bottom: 0.35em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 1.05em;
+    }
+    .limit-tip-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.65em;
+      padding: 0.22em 0;
+      white-space: nowrap;
+    }
+    .limit-tip-row .k { color: #f0f0f0; }
+    .limit-tip-row .v { color: #e8e8e8; font-variant-numeric: tabular-nums; }
+    /* 点盘口后：黑框在 0/3/6 上方留空，框身加高不挤 */
+    .bet-tip {
+      position: absolute;
+      /* 对齐 0→3→6：left=0格左边，宽到6格右边 */
+      left: 0.5692%;
+      width: 16.4185%;
+      /* 键盘顶 48.842%；再上移留缝，框加高 */
+      top: 38.85%;
+      height: 9.35%;
+      z-index: 92;
+      display: none;
+      /* 底边多留空：限红一行离黄框更开 */
+      padding: 0.72em 0.85em 1.05em;
+      box-sizing: border-box;
+      background: #000;
+      border: 2px solid #e6c84a;
+      color: #e6c84a;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      font-weight: 600;
+      line-height: 1.62;
+      letter-spacing: 0.02em;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .bet-tip.show { display: block; }
+    .bet-tip .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1.1em;
+    }
+    .bet-tip .k { opacity: 0.95; }
+    .bet-tip .v { font-weight: 700; }
   </style>
 </head>
 <body>
   <div class="frame">
     <div class="stage" id="stage">
-      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.1.5a" alt="" width="2284" height="1468" draggable="false" />
-      <input class="account-name" id="accountName" type="text" value="" maxlength="16" autocomplete="off" spellcheck="false" aria-label="账号" />
-      <input class="bal" id="bal" type="text" value="0.00" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="余额" />
-      <input class="stake-amt" id="stakeAmt" type="text" value="0" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="本局注金" />
+      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.1.2" alt="" width="2284" height="1468" draggable="false" />
+      <button class="account-hot" id="accountHot" type="button" aria-label="账号" aria-describedby="accountTip"></button>
+      <div class="account-name" id="accountName" aria-label="账号">—</div>
+      <div class="account-tip" id="accountTip" role="tooltip">
+        <div class="account-tip-avatar" aria-hidden="true">
+          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="24" r="14" fill="#6b4a2e"/>
+            <ellipse cx="32" cy="56" rx="22" ry="18" fill="#6b4a2e"/>
+          </svg>
+        </div>
+        <div class="account-tip-meta">
+          <div>暱稱: <span id="accountNick">—</span></div>
+          <div>賬號: <span id="accountId">—</span></div>
+        </div>
+      </div>
+      <button class="bal-hot" id="balHot" type="button" aria-label="账户余额" aria-describedby="balTip"></button>
+      <div class="bal" id="bal" aria-label="余额">0.00</div>
+      <div class="bal-tip" id="balTip" role="tooltip">賬戶餘額</div>
+      <button class="stake-hot" id="stakeHot" type="button" aria-label="本局注金" aria-expanded="false" aria-controls="stakeAmtTip stakeTip"></button>
+      <div class="stake-amt" id="stakeAmt" aria-label="本局注金">0</div>
+      <div class="stake-amt-tip" id="stakeAmtTip" role="tooltip">下注總額</div>
+      <div class="stake-tip" id="stakeTip" role="dialog" aria-label="本局下注">
+        <div class="stake-tip-head">
+          <span>玩法</span><span>下注</span><span>輸贏</span>
+        </div>
+        <div class="stake-tip-row" data-stake-key="red"><span>紅</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="black"><span>黑</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="big"><span>大</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="small"><span>小</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="odd"><span>單</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="even"><span>雙</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row is-total" data-stake-key="total"><span>總計:</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+      </div>
+      <button class="limit-hot" id="limitHot" type="button" aria-label="限红" aria-expanded="false" aria-controls="limitTip"></button>
+      <div class="limit-label" aria-hidden="true">10 - 5,000</div>
+      <div class="limit-tip" id="limitTip" role="dialog" aria-label="限红说明">
+        <div class="limit-tip-cols">
+          <div>
+            <div class="limit-tip-col-title">玩法限紅</div>
+            <div class="limit-tip-row"><span class="k">直注</span><span class="v">1 - 142</span></div>
+            <div class="limit-tip-row"><span class="k">分注</span><span class="v">2 - 294</span></div>
+            <div class="limit-tip-row"><span class="k">街注</span><span class="v">2 - 454</span></div>
+            <div class="limit-tip-row"><span class="k">角注</span><span class="v">3 - 625</span></div>
+            <div class="limit-tip-row"><span class="k">列 1/2/3</span><span class="v">10 - 2,500</span></div>
+            <div class="limit-tip-row"><span class="k">打 1/2/3</span><span class="v">10 - 2,500</span></div>
+            <div class="limit-tip-row"><span class="k">紅/黑</span><span class="v">10 - 5,000</span></div>
+            <div class="limit-tip-row"><span class="k">大/小</span><span class="v">10 - 5,000</span></div>
+            <div class="limit-tip-row"><span class="k">單/雙</span><span class="v">10 - 5,000</span></div>
+          </div>
+          <div>
+            <div class="limit-tip-col-title">彩池限紅</div>
+            <div class="limit-tip-row"><span class="k">直注总额限红</span><span class="v">5,000</span></div>
+            <div class="limit-tip-row"><span class="k">分注总额限红</span><span class="v">10,000</span></div>
+            <div class="limit-tip-row"><span class="k">街注总额限红</span><span class="v">15,000</span></div>
+            <div class="limit-tip-row"><span class="k">角注总额限红</span><span class="v">20,000</span></div>
+            <div class="limit-tip-row"><span class="k">列总额限红</span><span class="v">75,000</span></div>
+            <div class="limit-tip-row"><span class="k">打总额限红</span><span class="v">75,000</span></div>
+            <div class="limit-tip-row"><span class="k">紅/黑差额限红</span><span class="v">1.20M</span></div>
+            <div class="limit-tip-row"><span class="k">大/小差额限红</span><span class="v">1.20M</span></div>
+            <div class="limit-tip-row"><span class="k">單/雙差额限红</span><span class="v">1.20M</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bet-tip" id="betTip" role="status" aria-live="polite" hidden>
+        <div class="row"><span class="k">玩法</span><span class="v" id="betTipName">—</span></div>
+        <div class="row"><span class="k">赔率</span><span class="v" id="betTipOdds">—</span></div>
+        <div class="row"><span class="k">限红</span><span class="v" id="betTipLimit">—</span></div>
+      </div>
 
       <div id="nums" aria-label="数字盘"></div>
       <div id="outside" aria-label="打与外注"></div>
@@ -614,7 +1091,7 @@
 
   <script>
     (async function () {
-      const V = '1.1.1';
+      const V = '1.1.2';
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
@@ -635,12 +1112,12 @@
           return 'asdg';
         }
       }
-      let ACCOUNT_ID = currentUser();
+      const ACCOUNT_ID = currentUser();
       const ACCOUNT_API = 'api/sicbo-account.php';
       function balKeyFor(user) {
         return 'fg_sicbo_bal::' + String(user || 'asdg').trim().toLowerCase();
       }
-      let BAL_KEY = balKeyFor(ACCOUNT_ID);
+      const BAL_KEY = balKeyFor(ACCOUNT_ID);
       try {
         sessionStorage.setItem('fg_sicbo_user', ACCOUNT_ID);
         localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
@@ -720,19 +1197,156 @@
         } catch (_) {}
       }
       const accountNameEl = document.getElementById('accountName');
+      const accountHot = document.getElementById('accountHot');
+      const accountTip = document.getElementById('accountTip');
+      const accountNickEl = document.getElementById('accountNick');
+      const accountIdEl = document.getElementById('accountId');
       const balEl = document.getElementById('bal');
+      const balHot = document.getElementById('balHot');
+      const balTip = document.getElementById('balTip');
       const stakeAmtEl = document.getElementById('stakeAmt');
-      let stakeEditLock = false;
+      const stakeHot = document.getElementById('stakeHot');
+      const stakeAmtTip = document.getElementById('stakeAmtTip');
+      const stakeTip = document.getElementById('stakeTip');
+      const limitHot = document.getElementById('limitHot');
+      const limitTip = document.getElementById('limitTip');
+      const STAKE_PANEL_KEYS = ['red', 'black', 'big', 'small', 'odd', 'even'];
+      const lastPnl = Object.create(null);
+      function closeHudTips() {
+        if (accountTip) accountTip.classList.remove('show');
+        if (accountHot) accountHot.setAttribute('aria-expanded', 'false');
+        if (balTip) balTip.classList.remove('show');
+        if (balHot) balHot.setAttribute('aria-expanded', 'false');
+        if (stakeAmtTip) stakeAmtTip.classList.remove('show');
+        if (stakeTip) stakeTip.classList.remove('show');
+        if (stakeHot) stakeHot.setAttribute('aria-expanded', 'false');
+        if (limitTip) limitTip.classList.remove('show');
+        if (limitHot) limitHot.setAttribute('aria-expanded', 'false');
+      }
+      function setAccountTip(open) {
+        if (!accountTip) return;
+        if (open) closeHudTips();
+        accountTip.classList.toggle('show', !!open);
+        if (accountHot) accountHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      function setBalTip(open) {
+        if (!balTip) return;
+        if (open) closeHudTips();
+        balTip.classList.toggle('show', !!open);
+        if (balHot) balHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      function setLimitTip(open) {
+        if (!limitTip) return;
+        if (open) closeHudTips();
+        limitTip.classList.toggle('show', !!open);
+        if (limitHot) limitHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      function fmtStakeCell(n) {
+        const v = Math.max(0, Math.round(Number(n) || 0));
+        return v > 0 ? String(v) : '-';
+      }
+      function fmtPnlCell(n) {
+        if (n == null || !Number.isFinite(n)) return { text: '-', cls: 'is-flat' };
+        if (n > 0) return { text: '+' + String(Math.round(n)), cls: 'is-win' };
+        if (n < 0) return { text: String(Math.round(n)), cls: 'is-lose' };
+        return { text: '0', cls: 'is-flat' };
+      }
+      function paintStakePanel() {
+        if (!stakeTip) return;
+        let betTotal = 0;
+        let pnlTotal = 0;
+        let pnlAny = false;
+        STAKE_PANEL_KEYS.forEach((key) => {
+          const row = stakeTip.querySelector('[data-stake-key="' + key + '"]');
+          if (!row) return;
+          const stake = bets[key] || 0;
+          betTotal += stake;
+          row.querySelector('[data-col="bet"]').textContent = fmtStakeCell(stake);
+          const pnl = lastPnl[key];
+          const cell = row.querySelector('[data-col="pnl"]');
+          const fmt = fmtPnlCell(pnl);
+          cell.textContent = fmt.text;
+          cell.className = fmt.cls;
+          if (pnl != null && Number.isFinite(pnl)) {
+            pnlAny = true;
+            pnlTotal += pnl;
+          }
+        });
+        const totalRow = stakeTip.querySelector('[data-stake-key="total"]');
+        if (totalRow) {
+          totalRow.querySelector('[data-col="bet"]').textContent = fmtStakeCell(betTotal);
+          const cell = totalRow.querySelector('[data-col="pnl"]');
+          const fmt = pnlAny ? fmtPnlCell(pnlTotal) : fmtPnlCell(null);
+          cell.textContent = fmt.text;
+          cell.className = fmt.cls;
+        }
+      }
+      function setStakeAmtTip(open) {
+        if (!stakeAmtTip) return;
+        /* 大黑框打开时不抢悬停小提示 */
+        if (open && stakeTip && stakeTip.classList.contains('show')) return;
+        if (open) {
+          if (accountTip) accountTip.classList.remove('show');
+          if (balTip) balTip.classList.remove('show');
+          if (limitTip) limitTip.classList.remove('show');
+        }
+        stakeAmtTip.classList.toggle('show', !!open);
+      }
+      function setStakeTip(open) {
+        if (!stakeTip) return;
+        if (open) {
+          closeHudTips();
+          paintStakePanel();
+        }
+        stakeTip.classList.toggle('show', !!open);
+        if (stakeHot) stakeHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      if (accountHot) {
+        accountHot.addEventListener('pointerenter', () => setAccountTip(true));
+        accountHot.addEventListener('pointerleave', () => setAccountTip(false));
+      }
+      if (balHot) {
+        balHot.addEventListener('pointerenter', () => setBalTip(true));
+        balHot.addEventListener('pointerleave', () => setBalTip(false));
+      }
+      if (stakeHot) {
+        stakeHot.addEventListener('pointerenter', () => setStakeAmtTip(true));
+        stakeHot.addEventListener('pointerleave', () => setStakeAmtTip(false));
+        stakeHot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const open = !(stakeTip && stakeTip.classList.contains('show'));
+          setStakeTip(open);
+        });
+      }
+      if (stakeTip) {
+        stakeTip.addEventListener('click', (e) => e.stopPropagation());
+      }
+      document.addEventListener('click', () => {
+        if (stakeTip && stakeTip.classList.contains('show')) setStakeTip(false);
+      });
+      if (limitHot) {
+        limitHot.addEventListener('pointerenter', () => setLimitTip(true));
+        limitHot.addEventListener('pointerleave', (e) => {
+          const to = e.relatedTarget;
+          if (to && limitTip && (to === limitTip || limitTip.contains(to))) return;
+          setLimitTip(false);
+        });
+      }
+      if (limitTip) {
+        limitTip.addEventListener('pointerenter', () => setLimitTip(true));
+        limitTip.addEventListener('pointerleave', (e) => {
+          const to = e.relatedTarget;
+          if (to && limitHot && (to === limitHot || limitHot.contains(to))) return;
+          setLimitTip(false);
+        });
+      }
       function fmtBal(n) {
         /* 跟底图 820.00 同款：两位小数、无千分位 */
         return (Math.max(0, Math.round(Number(n) || 0))).toFixed(2);
       }
       function fmtStake(n) {
         return String(Math.max(0, Math.round(Number(n) || 0)));
-      }
-      function parseMoney(raw) {
-        const n = Number(String(raw || '').replace(/,/g, '').trim());
-        return Number.isFinite(n) ? n : NaN;
       }
       async function postAccountPatch(partial) {
         try {
@@ -771,9 +1385,9 @@
         scheduleServerSave({ balance: Math.max(0, Math.round(balance)) });
       }
       function paintAccount() {
-        if (accountNameEl && document.activeElement !== accountNameEl) {
-          accountNameEl.value = ACCOUNT_ID;
-        }
+        if (accountNameEl) accountNameEl.textContent = ACCOUNT_ID;
+        if (accountNickEl) accountNickEl.textContent = ACCOUNT_ID;
+        if (accountIdEl) accountIdEl.textContent = ACCOUNT_ID;
       }
       function currentStakeTotal() {
         let total = pendingStake || 0;
@@ -781,15 +1395,15 @@
         return total;
       }
       function paintStake() {
-        if (!stakeAmtEl || stakeEditLock || document.activeElement === stakeAmtEl) return;
-        stakeAmtEl.value = fmtStake(currentStakeTotal());
+        if (stakeAmtEl) stakeAmtEl.textContent = fmtStake(currentStakeTotal());
+        paintStakePanel();
       }
       function setBalance(n, flash) {
         const prev = balance;
         balance = Math.max(0, Math.round(Number(n) || 0));
         saveBal();
-        if (balEl && document.activeElement !== balEl) {
-          balEl.value = fmtBal(balance);
+        if (balEl) {
+          balEl.textContent = fmtBal(balance);
           if (flash && balance !== prev) {
             balEl.classList.remove('flash-up', 'flash-down');
             void balEl.offsetWidth;
@@ -823,97 +1437,6 @@
           return false;
         }
       }
-      async function switchAccount(nextUser) {
-        const u = String(nextUser || '').trim() || 'asdg';
-        ACCOUNT_ID = u;
-        BAL_KEY = balKeyFor(ACCOUNT_ID);
-        try {
-          sessionStorage.setItem('fg_sicbo_user', ACCOUNT_ID);
-          localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
-        } catch (_) {}
-        balance = loadSavedBalance();
-        serverReady = false;
-        paintAccount();
-        await hydrateAccountFromServer();
-        setBalance(balance);
-        showToast('账号 ' + ACCOUNT_ID, 1000);
-      }
-      function commitAccountInput() {
-        const next = String(accountNameEl.value || '').trim();
-        if (!next) {
-          paintAccount();
-          return;
-        }
-        if (next === ACCOUNT_ID) {
-          paintAccount();
-          return;
-        }
-        switchAccount(next);
-      }
-      function commitBalInput() {
-        const n = parseMoney(balEl.value);
-        if (!Number.isFinite(n) || n < 0) {
-          balEl.value = fmtBal(balance);
-          showToast('余额无效', 1000);
-          return;
-        }
-        setBalance(n, true);
-        balEl.value = fmtBal(balance);
-        showToast('余额已更新', 900, 'success');
-      }
-      function commitStakeInput() {
-        const n = parseMoney(stakeAmtEl.value);
-        if (!Number.isFinite(n) || n < 0) {
-          stakeEditLock = false;
-          paintStake();
-          showToast('注金无效', 1000);
-          return;
-        }
-        const v = Math.max(0, Math.round(n));
-        if (v > TABLE_MAX) {
-          stakeEditLock = false;
-          paintStake();
-          showToast('超过限红', 1000);
-          return;
-        }
-        if (!bettingOpen) {
-          stakeEditLock = false;
-          paintStake();
-          showToast('已停止下注', 1000);
-          return;
-        }
-        /* 有待确认盘口时改 pending；否则只改显示（下次点盘口仍用筹码面额） */
-        if (pendingMarket) {
-          if (balance < v) {
-            stakeEditLock = false;
-            paintStake();
-            showToast('积分不足', 1000);
-            return;
-          }
-          pendingStake = v;
-        }
-        stakeEditLock = false;
-        stakeAmtEl.value = fmtStake(pendingMarket ? pendingStake : currentStakeTotal());
-        if (pendingMarket) {
-          paintLit();
-          showToast('注金 ' + pendingStake, 800);
-        } else {
-          paintStake();
-        }
-      }
-      accountNameEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); accountNameEl.blur(); }
-      });
-      accountNameEl.addEventListener('blur', commitAccountInput);
-      balEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); balEl.blur(); }
-      });
-      balEl.addEventListener('blur', commitBalInput);
-      stakeAmtEl.addEventListener('focus', () => { stakeEditLock = true; });
-      stakeAmtEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); stakeAmtEl.blur(); }
-      });
-      stakeAmtEl.addEventListener('blur', commitStakeInput);
       function srcFor(n) { return `chips/chip-${n}.webp?v=v1.0.30u`; }
       /** 按注额选筹码图（骰宝同款） */
       function chipArtFor(stake) {
@@ -1281,7 +1804,66 @@
         col2: new Set([2,5,8,11,14,17,20,23,26,29,32,35]),
         col1: new Set([1,4,7,10,13,16,19,22,25,28,31,34]),
       };
-      const GROUP_NUMS = Object.assign({}, FRENCH, COLUMNS);
+      /* 外注/打：点「单」等要连带主键盘+跑道对应号全亮 */
+      const OUTSIDE_GROUPS = {
+        d1: new Set([1,2,3,4,5,6,7,8,9,10,11,12]),
+        d2: new Set([13,14,15,16,17,18,19,20,21,22,23,24]),
+        d3: new Set([25,26,27,28,29,30,31,32,33,34,35,36]),
+        small: new Set([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]),
+        big: new Set([19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36]),
+        even: new Set([2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36]),
+        odd: new Set([1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35]),
+        red: new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]),
+        black: new Set([2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35]),
+      };
+      const GROUP_NUMS = Object.assign({}, FRENCH, COLUMNS, OUTSIDE_GROUPS);
+
+      const BET_LIMIT_TXT = '10 - 5,000';
+      const MARKET_INFO = {
+        odd: { name: '单', odds: '1:1' },
+        even: { name: '双', odds: '1:1' },
+        small: { name: '小', odds: '1:1' },
+        big: { name: '大', odds: '1:1' },
+        red: { name: '红', odds: '1:1' },
+        black: { name: '黑', odds: '1:1' },
+        d1: { name: '1-12', odds: '2:1' },
+        d2: { name: '13-24', odds: '2:1' },
+        d3: { name: '25-36', odds: '2:1' },
+        col1: { name: '第一列', odds: '2:1' },
+        col2: { name: '第二列', odds: '2:1' },
+        col3: { name: '第三列', odds: '2:1' },
+        tier: { name: '轮盘下角注', odds: '按注型' },
+        orphelins: { name: '轮上孤注', odds: '按注型' },
+        voisins: { name: '零旁注', odds: '按注型' },
+        'zero-game': { name: '轮上零旁', odds: '按注型' },
+      };
+      function marketInfoFor(key) {
+        if (!key) return null;
+        if (MARKET_INFO[key]) return Object.assign({ limit: BET_LIMIT_TXT }, MARKET_INFO[key]);
+        const n = numFromKey(key);
+        if (n != null) return { name: String(n), odds: '35:1', limit: BET_LIMIT_TXT };
+        return { name: key, odds: '—', limit: BET_LIMIT_TXT };
+      }
+      const betTipEl = document.getElementById('betTip');
+      const betTipName = document.getElementById('betTipName');
+      const betTipOdds = document.getElementById('betTipOdds');
+      const betTipLimit = document.getElementById('betTipLimit');
+      function paintBetTip() {
+        const key = pendingMarket || hoverMarket || null;
+        const info = marketInfoFor(key);
+        if (!info || !betTipEl) {
+          if (betTipEl) {
+            betTipEl.classList.remove('show');
+            betTipEl.hidden = true;
+          }
+          return;
+        }
+        betTipName.textContent = info.name;
+        betTipOdds.textContent = info.odds;
+        betTipLimit.textContent = info.limit;
+        betTipEl.hidden = false;
+        betTipEl.classList.add('show');
+      }
 
       function numFromKey(key) {
         if (!key || key[0] !== 'n') return null;
@@ -1324,7 +1906,7 @@
         set.forEach((n) => expanded.add('n' + n));
       }
       function paintLit() {
-        /* 下注亮 + 悬停预览：列/法式连带主键盘与跑道对应号；号格几何不改 */
+        /* 下注亮 + 悬停预览：外注/列/法式连带主键盘与跑道对应号全亮 */
         const lit = activeBetKeys();
         const expanded = new Set(lit);
         lit.forEach((key) => expandGroup(expanded, key));
@@ -1336,6 +1918,7 @@
           el.classList.toggle('is-lit', expanded.has(el.dataset.bet));
         });
         paintBoardChips();
+        paintBetTip();
       }
 
       let lastZoneBetAt = 0, lastZoneBetKey = '';
