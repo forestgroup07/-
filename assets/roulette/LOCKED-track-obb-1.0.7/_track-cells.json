@@ -1,0 +1,40 @@
+{
+  "pct": {
+    "32": {
+      "left": "79.7723%",
+      "top": "65.2589%",
+      "width": "3.9842%",
+      "height": "6.5395%",
+      "mask": "assets/roulette/track-masks/n32.png"
+    },
+    "0": {
+      "left": "82.8809%",
+      "top": "70.7766%",
+      "width": "3.5464%",
+      "height": "5.8583%",
+      "mask": "assets/roulette/track-masks/n0.png"
+    },
+    "26": {
+      "left": "86.2522%",
+      "top": "72.2752%",
+      "width": "3.8529%",
+      "height": "5.0409%",
+      "mask": "assets/roulette/track-masks/n26.png"
+    },
+    "3": {
+      "left": "89.6673%",
+      "top": "69.6185%",
+      "width": "4.8161%",
+      "height": "6.812%",
+      "mask": "assets/roulette/track-masks/n3.png"
+    },
+    "35": {
+      "left": "92.338%",
+      "top": "65.2589%",
+      "width": "3.9405%",
+      "height": "6.4033%",
+      "mask": "assets/roulette/track-masks/n35.png"
+    }
+  },
+  "version": "1.0.7"
+}
