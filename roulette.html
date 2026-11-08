@@ -169,12 +169,26 @@
       color: transparent !important;
       z-index: 2;
     }
+    /* 中间四个法式：主键盘同款绝对热区贴底图槽；周边号格不动 */
     .french {
-      position: absolute; left: 79.6%; top: 50.6%; width: 18.6%; height: 33.2%;
-      z-index: 40; display: grid; grid-template-rows: repeat(4, 1fr);
-      gap: 1.2%; padding: 2% 3%;
+      position: absolute; inset: 0;
+      z-index: 40; pointer-events: none;
     }
-    .french .hit { position: relative; width: 100%; height: 100%; border-radius: 10px; }
+    .french .hit {
+      position: absolute; pointer-events: auto;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      color: transparent;
+      z-index: 1;
+      border-radius: 0;
+    }
+    .french .hit.has-mask {
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+    }
+    .french .hit.is-lit { z-index: 2; }
     /* 右侧滚道：按底图像素绝对热区（与主键盘同款半透明黄） */
     #trackNums {
       position: absolute; inset: 0;
@@ -412,12 +426,7 @@
 
       <div id="nums" aria-label="数字盘"></div>
       <div id="outside" aria-label="打与外注"></div>
-      <div class="french" aria-label="法式">
-        <button type="button" class="hit" data-bet="tier" aria-label="轮盘下角注"></button>
-        <button type="button" class="hit" data-bet="orphelins" aria-label="轮上孤注"></button>
-        <button type="button" class="hit" data-bet="voisins" aria-label="零旁注上角"></button>
-        <button type="button" class="hit" data-bet="zero-game" aria-label="轮上零旁"></button>
-      </div>
+      <div class="french" id="french" aria-label="法式"></div>
       <div id="trackNums" aria-label="滚道"></div>
 
       <div class="sicbo-dock" id="sicboDock">
@@ -534,7 +543,7 @@
 
   <script>
     (function () {
-      const V = '1.0.8';
+      const V = '1.0.9';
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
@@ -929,6 +938,35 @@
         }
         trackNums.appendChild(b);
       });
+      /* 中间四键：主键盘同款绝对框 + 底图槽蒙版；TRACK 号格冻结 1.0.8 */
+      const FRENCH_CELLS = {
+        tier: { left:'83.1436%', top:'17.3706%', width:'9.8511%', height:'18.8011%', mask:'assets/roulette/track-masks/french-tier.png', label:'轮盘下角注' },
+        orphelins: { left:'83.1436%', top:'30.5177%', width:'9.8511%', height:'15.0545%', mask:'assets/roulette/track-masks/french-orphelins.png', label:'轮上孤注' },
+        voisins: { left:'83.1436%', top:'46.3215%', width:'9.8949%', height:'15.2589%', mask:'assets/roulette/track-masks/french-voisins.png', label:'零旁注上角' },
+        'zero-game': { left:'83.1874%', top:'62.2616%', width:'9.8511%', height:'9.4005%', mask:'assets/roulette/track-masks/french-zero-game.png', label:'轮上零旁' },
+      };
+      const frenchRoot = document.getElementById('french');
+      Object.keys(FRENCH_CELLS).forEach((key) => {
+        const box = FRENCH_CELLS[key];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'hit has-mask';
+        b.dataset.bet = key;
+        b.setAttribute('aria-label', box.label);
+        b.style.left = box.left;
+        b.style.top = box.top;
+        b.style.width = box.width;
+        b.style.height = box.height;
+        const maskUrl = 'url(' + box.mask + '?v=' + V + ')';
+        b.style.webkitMaskImage = maskUrl;
+        b.style.maskImage = maskUrl;
+        b.style.webkitMaskSize = '100% 100%';
+        b.style.maskSize = '100% 100%';
+        b.style.webkitMaskRepeat = 'no-repeat';
+        b.style.maskRepeat = 'no-repeat';
+        frenchRoot.appendChild(b);
+      });
+
       const FRENCH = {
         tier: new Set([27,13,36,11,30,8,23,10,5,24,16,33]),
         orphelins: new Set([1,20,14,31,9,17,34,6]),
@@ -970,10 +1008,16 @@
         });
       }
       function paintLit() {
-        /* 点一下：黄脸 + 原白号显出 + 筹码压上 */
+        /* 中间法式与对应号码一起亮；号码底格保持 1.0.8 干净，不改框/蒙版 */
         const lit = activeBetKeys();
+        const expanded = new Set(lit);
+        lit.forEach((key) => {
+          const set = FRENCH[key];
+          if (!set) return;
+          set.forEach((n) => expanded.add('n' + n));
+        });
         document.querySelectorAll('[data-bet]').forEach((el) => {
-          el.classList.toggle('is-lit', lit.has(el.dataset.bet));
+          el.classList.toggle('is-lit', expanded.has(el.dataset.bet));
         });
         paintBoardChips();
       }
