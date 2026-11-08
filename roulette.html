@@ -427,12 +427,73 @@
     }
     .toast-msg.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
     .toast-msg.success { color: #b8ffc4; border-color: rgba(120,255,160,.55); }
+
+    /* 账号/余额/注金：可输入，但外观跟以前底图死字一样——无边框、无凹槽 */
+    .account-name,
+    .bal,
+    .stake-amt {
+      position: absolute;
+      z-index: 56;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      outline: none;
+      box-shadow: none;
+      -webkit-appearance: none;
+      appearance: none;
+      font-family: Arial, Helvetica, "PingFang TC", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 19 / var(--sw));
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
+      pointer-events: auto;
+      cursor: text;
+      caret-color: #e8fff6;
+    }
+    .account-name:focus,
+    .bal:focus,
+    .stake-amt:focus {
+      outline: none;
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+    .account-name {
+      left: 40.35%; top: 79.88%;
+      width: 3.40%; height: 1.70%;
+      color: #d1e4e0;
+      text-align: left;
+    }
+    .bal {
+      left: 50.90%; top: 79.88%;
+      width: 3.70%; height: 1.70%;
+      color: #cedd85;
+      text-align: left;
+      transition: color .2s ease;
+    }
+    .bal.flash-up { color: #7dff9f; }
+    .bal.flash-down { color: #ffb4b4; }
+    .stake-amt {
+      left: 57.95%; top: 79.88%;
+      width: 1.70%; height: 1.70%;
+      color: #d1e4e0;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div class="frame">
     <div class="stage" id="stage">
-      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.0.27" alt="" width="2284" height="1468" draggable="false" />
+      <img class="bg" src="assets/roulette/pc-full-ref.png?v=1.1.5a" alt="" width="2284" height="1468" draggable="false" />
+      <input class="account-name" id="accountName" type="text" value="" maxlength="16" autocomplete="off" spellcheck="false" aria-label="账号" />
+      <input class="bal" id="bal" type="text" value="0.00" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="余额" />
+      <input class="stake-amt" id="stakeAmt" type="text" value="0" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="本局注金" />
 
       <div id="nums" aria-label="数字盘"></div>
       <div id="outside" aria-label="打与外注"></div>
@@ -552,8 +613,8 @@
   </div>
 
   <script>
-    (function () {
-      const V = '1.1.0';
+    (async function () {
+      const V = '1.1.1';
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
@@ -563,7 +624,27 @@
       const CHIP_W = 11.899;
       const TABLE_MAX = 5000;
       const START_BAL = 2000;
-      const BAL_KEY = 'fg_roulette_bal';
+      /* 跟骰宝同一账号/余额：进哪个号就显示哪个号，各游戏共用 */
+      function currentUser() {
+        try {
+          const u = (sessionStorage.getItem('fg_sicbo_user')
+            || localStorage.getItem('fg_sicbo_last_user')
+            || 'asdg').trim();
+          return u || 'asdg';
+        } catch (_) {
+          return 'asdg';
+        }
+      }
+      let ACCOUNT_ID = currentUser();
+      const ACCOUNT_API = 'api/sicbo-account.php';
+      function balKeyFor(user) {
+        return 'fg_sicbo_bal::' + String(user || 'asdg').trim().toLowerCase();
+      }
+      let BAL_KEY = balKeyFor(ACCOUNT_ID);
+      try {
+        sessionStorage.setItem('fg_sicbo_user', ACCOUNT_ID);
+        localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
+      } catch (_) {}
       const MUSIC_MUTE_KEY = 'fg_roulette_music_mute';
       const MUSIC_VOL_KEY = 'fg_roulette_music_vol';
       const MUSIC_MODE_KEY = 'fg_roulette_music_mode';
@@ -571,19 +652,37 @@
 
       let start = 0;
       let selected = null;
-      let balance = START_BAL;
       let pendingMarket = null;
       let pendingStake = 0;
       let bettingOpen = true;
       let soundMuted = false;
       let busy = false;
+      let serverReady = false;
+      let serverSyncTimer = 0;
       const bets = Object.create(null);
 
-      try {
-        const raw = localStorage.getItem(BAL_KEY);
-        const n = Number(raw);
-        if (Number.isFinite(n)) balance = n;
-      } catch (_) {}
+      function loadSavedBalance() {
+        try {
+          let raw = localStorage.getItem(BAL_KEY);
+          if (raw == null || raw === '') {
+            const legacy = localStorage.getItem('fg_sicbo_balance');
+            if (legacy != null && legacy !== '') {
+              raw = legacy;
+              localStorage.setItem(BAL_KEY, String(Math.max(0, Math.round(Number(legacy)) || 0)));
+            }
+          }
+          if (raw == null || raw === '') {
+            const rouletteLegacy = localStorage.getItem('fg_roulette_bal');
+            if (rouletteLegacy != null && rouletteLegacy !== '') raw = rouletteLegacy;
+          }
+          if (raw == null || raw === '') return START_BAL;
+          const n = Math.round(Number(raw));
+          return Number.isFinite(n) && n >= 0 ? n : START_BAL;
+        } catch (_) {
+          return START_BAL;
+        }
+      }
+      let balance = loadSavedBalance();
 
       const dock = document.getElementById('sicboDock');
       const viewport = document.getElementById('chipViewport');
@@ -620,13 +719,201 @@
           if (p && p.catch) p.catch(() => {});
         } catch (_) {}
       }
+      const accountNameEl = document.getElementById('accountName');
+      const balEl = document.getElementById('bal');
+      const stakeAmtEl = document.getElementById('stakeAmt');
+      let stakeEditLock = false;
+      function fmtBal(n) {
+        /* 跟底图 820.00 同款：两位小数、无千分位 */
+        return (Math.max(0, Math.round(Number(n) || 0))).toFixed(2);
+      }
+      function fmtStake(n) {
+        return String(Math.max(0, Math.round(Number(n) || 0)));
+      }
+      function parseMoney(raw) {
+        const n = Number(String(raw || '').replace(/,/g, '').trim());
+        return Number.isFinite(n) ? n : NaN;
+      }
+      async function postAccountPatch(partial) {
+        try {
+          const body = Object.assign({ user: ACCOUNT_ID }, partial || {});
+          const r = await fetch(ACCOUNT_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            cache: 'no-store',
+          });
+          if (!r.ok) return null;
+          const j = await r.json();
+          return j && j.ok ? j.data : null;
+        } catch (_) {
+          return null;
+        }
+      }
+      function scheduleServerSave(partial) {
+        if (!serverReady) return;
+        window.__fgSicboServerPatch = Object.assign(window.__fgSicboServerPatch || {}, partial || {});
+        if (serverSyncTimer) clearTimeout(serverSyncTimer);
+        serverSyncTimer = setTimeout(() => {
+          const patch = window.__fgSicboServerPatch || {};
+          window.__fgSicboServerPatch = {};
+          serverSyncTimer = 0;
+          postAccountPatch(patch);
+        }, 280);
+      }
       function saveBal() {
-        try { localStorage.setItem(BAL_KEY, String(balance)); } catch (_) {}
+        const v = String(Math.max(0, Math.round(balance)));
+        try {
+          localStorage.setItem(BAL_KEY, v);
+          localStorage.setItem('fg_sicbo_balance', v);
+          localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
+        } catch (_) {}
+        scheduleServerSave({ balance: Math.max(0, Math.round(balance)) });
       }
-      function setBalance(n) {
-        balance = Math.max(0, Math.round(n * 100) / 100);
+      function paintAccount() {
+        if (accountNameEl && document.activeElement !== accountNameEl) {
+          accountNameEl.value = ACCOUNT_ID;
+        }
+      }
+      function currentStakeTotal() {
+        let total = pendingStake || 0;
+        Object.keys(bets).forEach((k) => { total += Number(bets[k]) || 0; });
+        return total;
+      }
+      function paintStake() {
+        if (!stakeAmtEl || stakeEditLock || document.activeElement === stakeAmtEl) return;
+        stakeAmtEl.value = fmtStake(currentStakeTotal());
+      }
+      function setBalance(n, flash) {
+        const prev = balance;
+        balance = Math.max(0, Math.round(Number(n) || 0));
         saveBal();
+        if (balEl && document.activeElement !== balEl) {
+          balEl.value = fmtBal(balance);
+          if (flash && balance !== prev) {
+            balEl.classList.remove('flash-up', 'flash-down');
+            void balEl.offsetWidth;
+            balEl.classList.add(balance > prev ? 'flash-up' : 'flash-down');
+            setTimeout(() => balEl.classList.remove('flash-up', 'flash-down'), 500);
+          }
+        }
+        paintStake();
       }
+      async function hydrateAccountFromServer() {
+        try {
+          const r = await fetch(ACCOUNT_API + '?user=' + encodeURIComponent(ACCOUNT_ID), { cache: 'no-store' });
+          if (!r.ok) throw new Error('http');
+          const j = await r.json();
+          if (!j || !j.ok || !j.data) throw new Error('bad');
+          const d = j.data;
+          const hasServer = (d.updatedAt | 0) > 0 || (d.balance != null && d.balance !== START_BAL);
+          if (!hasServer) {
+            await postAccountPatch({ balance });
+          } else if (d.balance != null) {
+            balance = Math.max(0, Math.round(Number(d.balance)) || 0);
+            try {
+              localStorage.setItem(BAL_KEY, String(balance));
+              localStorage.setItem('fg_sicbo_balance', String(balance));
+            } catch (_) {}
+          }
+          serverReady = true;
+          return true;
+        } catch (_) {
+          serverReady = false;
+          return false;
+        }
+      }
+      async function switchAccount(nextUser) {
+        const u = String(nextUser || '').trim() || 'asdg';
+        ACCOUNT_ID = u;
+        BAL_KEY = balKeyFor(ACCOUNT_ID);
+        try {
+          sessionStorage.setItem('fg_sicbo_user', ACCOUNT_ID);
+          localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
+        } catch (_) {}
+        balance = loadSavedBalance();
+        serverReady = false;
+        paintAccount();
+        await hydrateAccountFromServer();
+        setBalance(balance);
+        showToast('账号 ' + ACCOUNT_ID, 1000);
+      }
+      function commitAccountInput() {
+        const next = String(accountNameEl.value || '').trim();
+        if (!next) {
+          paintAccount();
+          return;
+        }
+        if (next === ACCOUNT_ID) {
+          paintAccount();
+          return;
+        }
+        switchAccount(next);
+      }
+      function commitBalInput() {
+        const n = parseMoney(balEl.value);
+        if (!Number.isFinite(n) || n < 0) {
+          balEl.value = fmtBal(balance);
+          showToast('余额无效', 1000);
+          return;
+        }
+        setBalance(n, true);
+        balEl.value = fmtBal(balance);
+        showToast('余额已更新', 900, 'success');
+      }
+      function commitStakeInput() {
+        const n = parseMoney(stakeAmtEl.value);
+        if (!Number.isFinite(n) || n < 0) {
+          stakeEditLock = false;
+          paintStake();
+          showToast('注金无效', 1000);
+          return;
+        }
+        const v = Math.max(0, Math.round(n));
+        if (v > TABLE_MAX) {
+          stakeEditLock = false;
+          paintStake();
+          showToast('超过限红', 1000);
+          return;
+        }
+        if (!bettingOpen) {
+          stakeEditLock = false;
+          paintStake();
+          showToast('已停止下注', 1000);
+          return;
+        }
+        /* 有待确认盘口时改 pending；否则只改显示（下次点盘口仍用筹码面额） */
+        if (pendingMarket) {
+          if (balance < v) {
+            stakeEditLock = false;
+            paintStake();
+            showToast('积分不足', 1000);
+            return;
+          }
+          pendingStake = v;
+        }
+        stakeEditLock = false;
+        stakeAmtEl.value = fmtStake(pendingMarket ? pendingStake : currentStakeTotal());
+        if (pendingMarket) {
+          paintLit();
+          showToast('注金 ' + pendingStake, 800);
+        } else {
+          paintStake();
+        }
+      }
+      accountNameEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); accountNameEl.blur(); }
+      });
+      accountNameEl.addEventListener('blur', commitAccountInput);
+      balEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); balEl.blur(); }
+      });
+      balEl.addEventListener('blur', commitBalInput);
+      stakeAmtEl.addEventListener('focus', () => { stakeEditLock = true; });
+      stakeAmtEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); stakeAmtEl.blur(); }
+      });
+      stakeAmtEl.addEventListener('blur', commitStakeInput);
       function srcFor(n) { return `chips/chip-${n}.webp?v=v1.0.30u`; }
       /** 按注额选筹码图（骰宝同款） */
       function chipArtFor(stake) {
@@ -759,6 +1046,7 @@
         bets[pendingMarket] = (bets[pendingMarket] || 0) + pendingStake;
         pendingMarket = null; pendingStake = 0;
         paintLit();
+        paintStake();
         showToast('下注成功', 1800, 'success');
         return true;
       }
@@ -770,6 +1058,7 @@
         if (balance < next) { showToast('积分不足，无法加倍', 1400); return; }
         if (next > TABLE_MAX) { showToast('超过限红', 1400); return; }
         pendingStake = next;
+        paintStake();
         showToast(`加倍 ${pendingStake}`, 1000);
       }
       function cancelBet() {
@@ -778,6 +1067,7 @@
         if (!pendingMarket && pendingStake <= 0) { showToast('没有可取消的选择', 1000); return; }
         pendingMarket = null; pendingStake = 0;
         paintLit();
+        paintStake();
         showToast('已取消', 1000);
       }
       btnConfirm.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); confirmBet(); });
@@ -1063,6 +1353,7 @@
           if (!next || balance < next) { showToast('积分不足', 1200); return; }
           pendingMarket = key; pendingStake = next;
           paintLit();
+          paintStake();
           playClick();
         });
         zone.addEventListener('pointerenter', () => {
@@ -1349,7 +1640,10 @@
         if (musicPanelOpen) setMusicPanel(false);
       });
 
+      paintAccount();
+      await hydrateAccountFromServer();
       setBalance(balance);
+      paintStake();
       const warmChips = () => { DENOMS.forEach((n) => { const i = new Image(); i.src = srcFor(n); }); };
       if ('requestIdleCallback' in window) requestIdleCallback(warmChips, { timeout: 2500 });
       else setTimeout(warmChips, 1200);
