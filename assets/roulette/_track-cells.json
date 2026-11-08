@@ -1,569 +1,522 @@
 {
-  "wheel": [
-    0,
-    32,
-    15,
-    19,
-    4,
-    21,
-    2,
-    25,
-    17,
-    34,
-    6,
-    27,
-    13,
-    36,
-    11,
-    30,
-    8,
-    23,
-    10,
-    5,
-    24,
-    16,
-    33,
-    1,
-    20,
-    14,
-    31,
-    9,
-    22,
-    18,
-    29,
-    7,
-    28,
-    12,
-    35,
-    3,
-    26
-  ],
   "pct": [
     {
-      "n": 0,
-      "left": 90.324,
-      "top": 69.9591,
-      "width": 3.4588,
-      "height": 8.2425,
-      "mask": "assets/roulette/track-masks/n0.png",
+      "left": 83.7566,
+      "top": 71.6621,
+      "width": 2.5394,
+      "height": 4.4959,
       "px": [
-        2063,
-        1027,
-        2142,
-        1148
-      ]
-    },
-    {
-      "n": 32,
-      "left": 79.8599,
-      "top": 65.3951,
-      "width": 3.8967,
-      "height": 6.4033,
-      "mask": "assets/roulette/track-masks/n32.png",
-      "px": [
-        1824,
-        960,
         1913,
-        1054
-      ]
-    },
-    {
-      "n": 15,
-      "left": 79.1594,
-      "top": 63.079,
-      "width": 5.4729,
-      "height": 15.1226,
-      "mask": "assets/roulette/track-masks/n15.png",
-      "px": [
-        1808,
-        926,
-        1933,
-        1148
-      ]
-    },
-    {
-      "n": 19,
-      "left": 79.1156,
-      "top": 57.4251,
-      "width": 4.6848,
-      "height": 11.921,
-      "mask": "assets/roulette/track-masks/n19.png",
-      "px": [
-        1807,
-        843,
-        1914,
-        1018
-      ]
-    },
-    {
-      "n": 4,
-      "left": 79.1156,
-      "top": 54.2234,
-      "width": 3.9842,
-      "height": 8.2425,
-      "mask": "assets/roulette/track-masks/n4.png",
-      "px": [
-        1807,
-        796,
-        1898,
-        917
-      ]
-    },
-    {
-      "n": 21,
-      "left": 79.7285,
-      "top": 52.7248,
-      "width": 2.9772,
-      "height": 2.7929,
-      "mask": "assets/roulette/track-masks/n21.png",
-      "px": [
-        1821,
-        774,
-        1889,
-        815
-      ]
-    },
-    {
-      "n": 2,
-      "left": 79.1156,
-      "top": 48.6376,
-      "width": 3.9842,
-      "height": 5.7902,
-      "mask": "assets/roulette/track-masks/n2.png",
-      "px": [
-        1807,
-        714,
-        1898,
-        799
-      ]
-    },
-    {
-      "n": 25,
-      "left": 79.1156,
-      "top": 45.7084,
-      "width": 8.2312,
-      "height": 4.6322,
-      "mask": "assets/roulette/track-masks/n25.png",
-      "px": [
-        1807,
-        671,
-        1995,
-        739
-      ]
-    },
-    {
-      "n": 17,
-      "left": 78.7215,
-      "top": 42.1662,
-      "width": 6.4361,
-      "height": 4.0872,
-      "mask": "assets/roulette/track-masks/n17.png",
-      "px": [
-        1798,
-        619,
-        1945,
-        679
-      ]
-    },
-    {
-      "n": 34,
-      "left": 77.0578,
-      "top": 35.218,
-      "width": 6.042,
-      "height": 8.1063,
-      "mask": "assets/roulette/track-masks/n34.png",
-      "px": [
-        1760,
-        517,
-        1898,
-        636
-      ]
-    },
-    {
-      "n": 6,
-      "left": 77.0578,
-      "top": 28.7466,
-      "width": 6.1734,
-      "height": 11.3079,
-      "mask": "assets/roulette/track-masks/n6.png",
-      "px": [
-        1760,
-        422,
-        1901,
-        588
-      ]
-    },
-    {
-      "n": 27,
-      "left": 79.6848,
-      "top": 33.7193,
-      "width": 3.0648,
-      "height": 2.9292,
-      "mask": "assets/roulette/track-masks/n27.png",
-      "px": [
-        1820,
-        495,
-        1890,
-        538
-      ]
-    },
-    {
-      "n": 13,
-      "left": 80.7793,
-      "top": 28.7466,
-      "width": 2.2767,
-      "height": 5.9946,
-      "mask": "assets/roulette/track-masks/n13.png",
-      "px": [
-        1845,
-        422,
-        1897,
-        510
-      ]
-    },
-    {
-      "n": 36,
-      "left": 79.5534,
-      "top": 23.5014,
-      "width": 3.5464,
-      "height": 5.9264,
-      "mask": "assets/roulette/track-masks/n36.png",
-      "px": [
-        1817,
-        345,
-        1898,
-        432
-      ]
-    },
-    {
-      "n": 11,
-      "left": 84.5447,
-      "top": 24.2507,
-      "width": 1.2697,
-      "height": 2.0436,
-      "mask": "assets/roulette/track-masks/n11.png",
-      "px": [
-        1931,
-        356,
-        1960,
-        386
-      ]
-    },
-    {
-      "n": 30,
-      "left": 79.7285,
-      "top": 19.1417,
-      "width": 3.634,
-      "height": 5.0409,
-      "mask": "assets/roulette/track-masks/n30.png",
-      "px": [
-        1821,
-        281,
-        1904,
-        355
-      ]
-    },
-    {
-      "n": 8,
-      "left": 80.3415,
-      "top": 13.2153,
-      "width": 5.2102,
-      "height": 8.0381,
-      "mask": "assets/roulette/track-masks/n8.png",
-      "px": [
-        1835,
-        194,
-        1954,
-        312
+        1052,
+        1971,
+        1118
       ],
-      "geo": {
-        "cx": 1996.3643220984673,
-        "cy": 353.37675908558407,
-        "Ri": 102.98938988277317,
-        "Ro": 175.17375189503295,
-        "a_lo": -2.701587941736905,
-        "a_hi": -2.0267952374289027
-      }
+      "mask": "assets/roulette/track-masks/n0.png",
+      "n": 0
     },
     {
-      "n": 23,
-      "left": 84.1068,
-      "top": 12.2616,
-      "width": 3.8529,
-      "height": 5.3134,
-      "mask": "assets/roulette/track-masks/n23.png",
+      "left": 93.5201,
+      "top": 30.654,
+      "width": 2.8459,
+      "height": 2.7929,
       "px": [
-        1921,
-        180,
-        2009,
-        258
-      ]
-    },
-    {
-      "n": 10,
-      "left": 88.6602,
-      "top": 11.5804,
-      "width": 3.5026,
-      "height": 6.6757,
-      "mask": "assets/roulette/track-masks/n10.png",
-      "px": [
-        2025,
-        170,
-        2105,
-        268
-      ]
-    },
-    {
-      "n": 5,
-      "left": 90.8494,
-      "top": 14.1008,
-      "width": 4.4221,
-      "height": 6.6757,
-      "mask": "assets/roulette/track-masks/n5.png",
-      "px": [
-        2075,
-        207,
-        2176,
-        305
-      ]
-    },
-    {
-      "n": 24,
-      "left": 92.3818,
-      "top": 18.5286,
-      "width": 4.4221,
-      "height": 6.5395,
-      "mask": "assets/roulette/track-masks/n24.png",
-      "px": [
-        2110,
-        272,
-        2211,
-        368
-      ]
-    },
-    {
-      "n": 16,
-      "left": 93.4326,
-      "top": 24.3188,
-      "width": 3.0648,
-      "height": 2.9292,
-      "mask": "assets/roulette/track-masks/n16.png",
-      "px": [
-        2134,
-        357,
-        2204,
-        400
-      ]
-    },
-    {
-      "n": 33,
-      "left": 93.0823,
-      "top": 26.4986,
-      "width": 3.8529,
-      "height": 3.8828,
-      "mask": "assets/roulette/track-masks/n33.png",
-      "px": [
-        2126,
-        389,
-        2214,
-        446
-      ]
-    },
-    {
-      "n": 1,
-      "left": 93.3888,
-      "top": 30.5858,
-      "width": 3.1086,
-      "height": 2.9292,
+        2136,
+        450,
+        2201,
+        491
+      ],
       "mask": "assets/roulette/track-masks/n1.png",
-      "px": [
-        2133,
-        449,
-        2204,
-        492
-      ]
+      "n": 1
     },
     {
-      "n": 20,
-      "left": 93.0823,
-      "top": 31.6757,
-      "width": 3.6778,
-      "height": 5.654,
-      "mask": "assets/roulette/track-masks/n20.png",
-      "px": [
-        2126,
-        465,
-        2210,
-        548
-      ]
-    },
-    {
-      "n": 14,
-      "left": 93.3888,
-      "top": 36.8529,
-      "width": 3.1086,
-      "height": 2.9973,
-      "mask": "assets/roulette/track-masks/n14.png",
-      "px": [
-        2133,
-        541,
-        2204,
-        585
-      ]
-    },
-    {
-      "n": 31,
-      "left": 93.0823,
-      "top": 37.6022,
-      "width": 3.6778,
-      "height": 4.9728,
-      "mask": "assets/roulette/track-masks/n31.png",
-      "px": [
-        2126,
-        552,
-        2210,
-        625
-      ]
-    },
-    {
-      "n": 9,
-      "left": 93.3888,
-      "top": 43.2561,
-      "width": 3.0648,
+      "left": 79.8161,
+      "top": 49.5913,
+      "width": 2.8459,
       "height": 2.7929,
-      "mask": "assets/roulette/track-masks/n9.png",
       "px": [
-        2133,
-        635,
-        2203,
-        676
-      ]
+        1823,
+        728,
+        1888,
+        769
+      ],
+      "mask": "assets/roulette/track-masks/n2.png",
+      "n": 2
     },
     {
-      "n": 22,
-      "left": 88.704,
-      "top": 45.2316,
-      "width": 8.3625,
-      "height": 4.2916,
-      "mask": "assets/roulette/track-masks/n22.png",
-      "px": [
-        2026,
-        664,
-        2217,
-        727
-      ]
-    },
-    {
-      "n": 18,
-      "left": 93.0823,
-      "top": 48.2289,
+      "left": 90.0613,
+      "top": 70.1635,
       "width": 3.9842,
-      "height": 5.3815,
-      "mask": "assets/roulette/track-masks/n18.png",
+      "height": 5.5858,
       "px": [
-        2126,
-        708,
-        2217,
-        787
-      ]
-    },
-    {
-      "n": 29,
-      "left": 93.0823,
-      "top": 50.9537,
-      "width": 3.9842,
-      "height": 6.1308,
-      "mask": "assets/roulette/track-masks/n29.png",
-      "px": [
-        2126,
-        748,
-        2217,
-        838
-      ]
-    },
-    {
-      "n": 7,
-      "left": 93.4326,
-      "top": 55.9264,
-      "width": 2.9772,
-      "height": 2.7929,
-      "mask": "assets/roulette/track-masks/n7.png",
-      "px": [
-        2134,
-        821,
-        2202,
-        862
-      ]
-    },
-    {
-      "n": 28,
-      "left": 93.0823,
-      "top": 56.1308,
-      "width": 3.9842,
-      "height": 8.9918,
-      "mask": "assets/roulette/track-masks/n28.png",
-      "px": [
-        2126,
-        824,
-        2217,
-        956
-      ]
-    },
-    {
-      "n": 12,
-      "left": 89.8424,
-      "top": 59.673,
-      "width": 7.2242,
-      "height": 8.3106,
-      "mask": "assets/roulette/track-masks/n12.png",
-      "px": [
-        2052,
-        876,
-        2217,
-        998
-      ]
-    },
-    {
-      "n": 35,
-      "left": 92.2942,
-      "top": 64.4414,
-      "width": 4.7723,
-      "height": 11.5804,
-      "mask": "assets/roulette/track-masks/n35.png",
-      "px": [
-        2108,
-        946,
-        2217,
-        1116
-      ]
-    },
-    {
-      "n": 3,
-      "left": 89.6673,
-      "top": 69.7548,
-      "width": 4.8161,
-      "height": 6.6076,
+        2057,
+        1030,
+        2148,
+        1112
+      ],
       "mask": "assets/roulette/track-masks/n3.png",
-      "px": [
-        2048,
-        1024,
-        2158,
-        1121
-      ]
+      "n": 3
     },
     {
-      "n": 26,
-      "left": 86.2522,
-      "top": 70.9809,
-      "width": 5.5166,
-      "height": 7.2207,
-      "mask": "assets/roulette/track-masks/n26.png",
+      "left": 79.8161,
+      "top": 55.9264,
+      "width": 2.8459,
+      "height": 2.7929,
       "px": [
-        1970,
-        1042,
-        2096,
-        1148
-      ]
+        1823,
+        821,
+        1888,
+        862
+      ],
+      "mask": "assets/roulette/track-masks/n4.png",
+      "n": 4
+    },
+    {
+      "left": 90.7618,
+      "top": 14.3052,
+      "width": 4.3345,
+      "height": 6.6757,
+      "px": [
+        2073,
+        210,
+        2172,
+        308
+      ],
+      "mask": "assets/roulette/track-masks/n5.png",
+      "n": 5
+    },
+    {
+      "left": 79.8161,
+      "top": 37.0572,
+      "width": 2.8021,
+      "height": 2.6567,
+      "px": [
+        1823,
+        544,
+        1887,
+        583
+      ],
+      "mask": "assets/roulette/track-masks/n6.png",
+      "n": 6
+    },
+    {
+      "left": 93.5201,
+      "top": 55.9264,
+      "width": 2.8021,
+      "height": 2.7248,
+      "px": [
+        2136,
+        821,
+        2200,
+        861
+      ],
+      "mask": "assets/roulette/track-masks/n7.png",
+      "n": 7
+    },
+    {
+      "left": 81.1296,
+      "top": 14.3733,
+      "width": 4.1594,
+      "height": 6.4033,
+      "px": [
+        1853,
+        211,
+        1948,
+        305
+      ],
+      "mask": "assets/roulette/track-masks/n8.png",
+      "n": 8
+    },
+    {
+      "left": 93.5201,
+      "top": 43.2561,
+      "width": 2.8459,
+      "height": 2.7929,
+      "px": [
+        2136,
+        635,
+        2201,
+        676
+      ],
+      "mask": "assets/roulette/track-masks/n9.png",
+      "n": 9
+    },
+    {
+      "left": 87.9597,
+      "top": 12.2616,
+      "width": 3.6778,
+      "height": 5.2452,
+      "px": [
+        2009,
+        180,
+        2093,
+        257
+      ],
+      "mask": "assets/roulette/track-masks/n10.png",
+      "n": 10
+    },
+    {
+      "left": 79.8161,
+      "top": 24.3869,
+      "width": 2.8021,
+      "height": 2.7248,
+      "px": [
+        1823,
+        358,
+        1887,
+        398
+      ],
+      "mask": "assets/roulette/track-masks/n11.png",
+      "n": 11
+    },
+    {
+      "left": 93.5639,
+      "top": 62.2616,
+      "width": 2.7583,
+      "height": 2.6567,
+      "px": [
+        2137,
+        914,
+        2200,
+        953
+      ],
+      "mask": "assets/roulette/track-masks/n12.png",
+      "n": 12
+    },
+    {
+      "left": 79.8161,
+      "top": 30.7902,
+      "width": 2.8021,
+      "height": 2.5886,
+      "px": [
+        1823,
+        452,
+        1887,
+        490
+      ],
+      "mask": "assets/roulette/track-masks/n13.png",
+      "n": 13
+    },
+    {
+      "left": 93.4764,
+      "top": 36.9891,
+      "width": 2.8897,
+      "height": 2.7929,
+      "px": [
+        2135,
+        543,
+        2201,
+        584
+      ],
+      "mask": "assets/roulette/track-masks/n14.png",
+      "n": 14
+    },
+    {
+      "left": 79.8161,
+      "top": 62.2616,
+      "width": 2.8021,
+      "height": 2.7248,
+      "px": [
+        1823,
+        914,
+        1887,
+        954
+      ],
+      "mask": "assets/roulette/track-masks/n15.png",
+      "n": 15
+    },
+    {
+      "left": 93.5201,
+      "top": 24.3869,
+      "width": 2.8459,
+      "height": 2.7929,
+      "px": [
+        2136,
+        358,
+        2201,
+        399
+      ],
+      "mask": "assets/roulette/track-masks/n16.png",
+      "n": 16
+    },
+    {
+      "left": 79.8161,
+      "top": 43.3243,
+      "width": 2.8021,
+      "height": 2.7248,
+      "px": [
+        1823,
+        636,
+        1887,
+        676
+      ],
+      "mask": "assets/roulette/track-masks/n17.png",
+      "n": 17
+    },
+    {
+      "left": 93.5201,
+      "top": 49.5913,
+      "width": 2.8021,
+      "height": 2.7929,
+      "px": [
+        2136,
+        728,
+        2200,
+        769
+      ],
+      "mask": "assets/roulette/track-masks/n18.png",
+      "n": 18
+    },
+    {
+      "left": 79.8161,
+      "top": 59.0599,
+      "width": 2.8459,
+      "height": 2.7248,
+      "px": [
+        1823,
+        867,
+        1888,
+        907
+      ],
+      "mask": "assets/roulette/track-masks/n19.png",
+      "n": 19
+    },
+    {
+      "left": 93.5201,
+      "top": 33.8556,
+      "width": 2.8021,
+      "height": 2.7248,
+      "px": [
+        2136,
+        497,
+        2200,
+        537
+      ],
+      "mask": "assets/roulette/track-masks/n20.png",
+      "n": 20
+    },
+    {
+      "left": 79.8161,
+      "top": 52.7929,
+      "width": 2.8021,
+      "height": 2.7248,
+      "px": [
+        1823,
+        775,
+        1887,
+        815
+      ],
+      "mask": "assets/roulette/track-masks/n21.png",
+      "n": 21
+    },
+    {
+      "left": 93.4764,
+      "top": 46.3896,
+      "width": 2.9335,
+      "height": 2.3161,
+      "px": [
+        2135,
+        681,
+        2202,
+        715
+      ],
+      "mask": "assets/roulette/track-masks/n22.png",
+      "n": 22
+    },
+    {
+      "left": 84.3695,
+      "top": 12.1935,
+      "width": 3.8091,
+      "height": 5.4496,
+      "px": [
+        1927,
+        179,
+        2014,
+        259
+      ],
+      "mask": "assets/roulette/track-masks/n23.png",
+      "n": 23
+    },
+    {
+      "left": 92.9072,
+      "top": 19.5504,
+      "width": 3.3713,
+      "height": 5.0409,
+      "px": [
+        2122,
+        287,
+        2199,
+        361
+      ],
+      "mask": "assets/roulette/track-masks/n24.png",
+      "n": 24
+    },
+    {
+      "left": 79.8161,
+      "top": 46.4578,
+      "width": 2.8459,
+      "height": 2.7248,
+      "px": [
+        1823,
+        682,
+        1888,
+        722
+      ],
+      "mask": "assets/roulette/track-masks/n25.png",
+      "n": 25
+    },
+    {
+      "left": 87.0841,
+      "top": 72.6158,
+      "width": 2.8021,
+      "height": 4.2234,
+      "px": [
+        1989,
+        1066,
+        2053,
+        1128
+      ],
+      "mask": "assets/roulette/track-masks/n26.png",
+      "n": 26
+    },
+    {
+      "left": 79.8161,
+      "top": 33.8556,
+      "width": 2.8459,
+      "height": 2.7248,
+      "px": [
+        1823,
+        497,
+        1888,
+        537
+      ],
+      "mask": "assets/roulette/track-masks/n27.png",
+      "n": 27
+    },
+    {
+      "left": 93.4764,
+      "top": 59.0599,
+      "width": 2.9335,
+      "height": 2.7929,
+      "px": [
+        2135,
+        867,
+        2202,
+        908
+      ],
+      "mask": "assets/roulette/track-masks/n28.png",
+      "n": 28
+    },
+    {
+      "left": 93.4764,
+      "top": 52.7248,
+      "width": 2.8897,
+      "height": 2.861,
+      "px": [
+        2135,
+        774,
+        2201,
+        816
+      ],
+      "mask": "assets/roulette/track-masks/n29.png",
+      "n": 29
+    },
+    {
+      "left": 79.8161,
+      "top": 19.4823,
+      "width": 3.4151,
+      "height": 5.1771,
+      "px": [
+        1823,
+        286,
+        1901,
+        362
+      ],
+      "mask": "assets/roulette/track-masks/n30.png",
+      "n": 30
+    },
+    {
+      "left": 93.5201,
+      "top": 40.1907,
+      "width": 2.7583,
+      "height": 2.6567,
+      "px": [
+        2136,
+        590,
+        2199,
+        629
+      ],
+      "mask": "assets/roulette/track-masks/n31.png",
+      "n": 31
+    },
+    {
+      "left": 79.7723,
+      "top": 65.2589,
+      "width": 3.7215,
+      "height": 5.9946,
+      "px": [
+        1822,
+        958,
+        1907,
+        1046
+      ],
+      "mask": "assets/roulette/track-masks/n32.png",
+      "n": 32
+    },
+    {
+      "left": 93.5201,
+      "top": 27.5886,
+      "width": 2.8021,
+      "height": 2.6567,
+      "px": [
+        2136,
+        405,
+        2200,
+        444
+      ],
+      "mask": "assets/roulette/track-masks/n33.png",
+      "n": 33
+    },
+    {
+      "left": 79.8161,
+      "top": 40.1226,
+      "width": 2.8459,
+      "height": 2.7929,
+      "px": [
+        1823,
+        589,
+        1888,
+        630
+      ],
+      "mask": "assets/roulette/track-masks/n34.png",
+      "n": 34
+    },
+    {
+      "left": 92.6445,
+      "top": 65.1907,
+      "width": 3.8091,
+      "height": 6.1308,
+      "px": [
+        2116,
+        957,
+        2203,
+        1047
+      ],
+      "mask": "assets/roulette/track-masks/n35.png",
+      "n": 35
+    },
+    {
+      "left": 79.7723,
+      "top": 27.4523,
+      "width": 2.8897,
+      "height": 2.861,
+      "px": [
+        1822,
+        403,
+        1888,
+        445
+      ],
+      "mask": "assets/roulette/track-masks/n36.png",
+      "n": 36
     }
   ]
 }

@@ -1,0 +1,335 @@
+{
+  "0": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n0.png",
+    "cx": 1930.0,
+    "cy": 1078.5,
+    "w": 98,
+    "h": 95,
+    "rot": 0.0
+  },
+  "32": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n32.png",
+    "cx": 1868.0,
+    "cy": 1008.5,
+    "w": 102,
+    "h": 105,
+    "rot": 0.0
+  },
+  "15": {
+    "cx": 1855.0,
+    "cy": 933.5,
+    "w": 68,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "19": {
+    "cx": 1855.0,
+    "cy": 887.5,
+    "w": 68,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "4": {
+    "cx": 1855.0,
+    "cy": 841.5,
+    "w": 68,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "21": {
+    "cx": 1855.0,
+    "cy": 795.0,
+    "w": 68,
+    "h": 40,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "2": {
+    "cx": 1855.0,
+    "cy": 748.5,
+    "w": 68,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "25": {
+    "cx": 1855.0,
+    "cy": 702.0,
+    "w": 68,
+    "h": 40,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "17": {
+    "cx": 1854.5,
+    "cy": 656.5,
+    "w": 69,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "34": {
+    "cx": 1855.0,
+    "cy": 609.5,
+    "w": 68,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "6": {
+    "cx": 1855.0,
+    "cy": 563.0,
+    "w": 70,
+    "h": 40,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "27": {
+    "cx": 1855.5,
+    "cy": 517.0,
+    "w": 69,
+    "h": 42,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "13": {
+    "cx": 1855.0,
+    "cy": 471.0,
+    "w": 66,
+    "h": 38,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "36": {
+    "cx": 1855.0,
+    "cy": 424.0,
+    "w": 70,
+    "h": 42,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "11": {
+    "cx": 1855.0,
+    "cy": 378.0,
+    "w": 68,
+    "h": 40,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "30": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n30.png",
+    "cx": 1844.0,
+    "cy": 306.5,
+    "w": 124,
+    "h": 99,
+    "rot": 0.0
+  },
+  "8": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n8.png",
+    "cx": 1898.5,
+    "cy": 254.0,
+    "w": 101,
+    "h": 102,
+    "rot": 0.0
+  },
+  "23": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n23.png",
+    "cx": 1964.5,
+    "cy": 220.0,
+    "w": 95,
+    "h": 88,
+    "rot": 0.0
+  },
+  "10": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n10.png",
+    "cx": 2058.0,
+    "cy": 220.5,
+    "w": 92,
+    "h": 85,
+    "rot": 0.0
+  },
+  "5": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n5.png",
+    "cx": 2123.5,
+    "cy": 254.0,
+    "w": 105,
+    "h": 104,
+    "rot": 0.0
+  },
+  "24": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n24.png",
+    "cx": 2159.5,
+    "cy": 316.0,
+    "w": 85,
+    "h": 80,
+    "rot": 0.0
+  },
+  "16": {
+    "cx": 2168.5,
+    "cy": 378.5,
+    "w": 69,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "33": {
+    "cx": 2168.5,
+    "cy": 424.5,
+    "w": 69,
+    "h": 39,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "1": {
+    "cx": 2168.0,
+    "cy": 470.0,
+    "w": 70,
+    "h": 42,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "20": {
+    "cx": 2168.0,
+    "cy": 517.0,
+    "w": 68,
+    "h": 40,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "14": {
+    "cx": 2168.0,
+    "cy": 563.5,
+    "w": 70,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "31": {
+    "cx": 2168.0,
+    "cy": 609.5,
+    "w": 66,
+    "h": 39,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "9": {
+    "cx": 2168.0,
+    "cy": 655.5,
+    "w": 68,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "22": {
+    "cx": 2168.5,
+    "cy": 702.0,
+    "w": 69,
+    "h": 42,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "18": {
+    "cx": 2168.0,
+    "cy": 748.5,
+    "w": 68,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "29": {
+    "cx": 2169.0,
+    "cy": 795.0,
+    "w": 70,
+    "h": 42,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "7": {
+    "cx": 2168.0,
+    "cy": 841.0,
+    "w": 68,
+    "h": 40,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "28": {
+    "cx": 2168.5,
+    "cy": 887.5,
+    "w": 69,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "12": {
+    "cx": 2168.0,
+    "cy": 933.5,
+    "w": 68,
+    "h": 41,
+    "rot": 0.0,
+    "kind": "str",
+    "mask": null
+  },
+  "35": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n35.png",
+    "cx": 2154.0,
+    "cy": 1010.0,
+    "w": 102,
+    "h": 102,
+    "rot": 0.0
+  },
+  "3": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n3.png",
+    "cx": 2104.0,
+    "cy": 1070.5,
+    "w": 112,
+    "h": 105,
+    "rot": 0.0
+  },
+  "26": {
+    "kind": "arc",
+    "mask": "assets/roulette/track-masks/n26.png",
+    "cx": 2024.0,
+    "cy": 1095.5,
+    "w": 80,
+    "h": 77,
+    "rot": 0.0
+  }
+}
