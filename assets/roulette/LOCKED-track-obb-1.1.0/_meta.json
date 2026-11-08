@@ -1,0 +1,10 @@
+{
+  "V": "1.1.0",
+  "note": "1.0.9 track lit + french middle-four + column hover sync; ghost-glyph fix",
+  "features": [
+    "track-1.0.9",
+    "french-absolute",
+    "col-hover",
+    "no-track-ghost-text"
+  ]
+}

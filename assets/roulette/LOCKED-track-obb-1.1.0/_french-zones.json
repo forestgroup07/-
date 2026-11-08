@@ -1,0 +1,62 @@
+{
+  "tier": {
+    "key": "tier",
+    "left": 83.1436,
+    "top": 17.3706,
+    "width": 9.8511,
+    "height": 18.8011,
+    "px": [
+      1899,
+      255,
+      2124,
+      531
+    ],
+    "mask": "assets/roulette/track-masks/french-tier.png",
+    "label": "轮盘下角注"
+  },
+  "orphelins": {
+    "key": "orphelins",
+    "left": 83.1436,
+    "top": 30.5177,
+    "width": 9.8511,
+    "height": 15.0545,
+    "px": [
+      1899,
+      448,
+      2124,
+      669
+    ],
+    "mask": "assets/roulette/track-masks/french-orphelins.png",
+    "label": "轮上孤注"
+  },
+  "voisins": {
+    "key": "voisins",
+    "left": 83.1436,
+    "top": 46.3215,
+    "width": 9.8949,
+    "height": 15.2589,
+    "px": [
+      1899,
+      680,
+      2125,
+      904
+    ],
+    "mask": "assets/roulette/track-masks/french-voisins.png",
+    "label": "零旁注上角"
+  },
+  "zero-game": {
+    "key": "zero-game",
+    "left": 83.1874,
+    "top": 62.2616,
+    "width": 9.8511,
+    "height": 9.4005,
+    "px": [
+      1900,
+      914,
+      2125,
+      1052
+    ],
+    "mask": "assets/roulette/track-masks/french-zero-game.png",
+    "label": "轮上零旁"
+  }
+}

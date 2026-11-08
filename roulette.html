@@ -109,6 +109,10 @@
       overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       color: transparent;
+      -webkit-text-fill-color: transparent;
+      font-size: 0;
+      line-height: 0;
+      text-shadow: none;
       font-weight: 800;
       z-index: 1;
       transform-origin: center center;
@@ -122,11 +126,13 @@
     }
     #nums .hit.is-lit,
     #trackNums .hit.is-lit {
+      /* 变亮只靠 ::before 黄脸；禁止撑开字号叠出第二层号码（会变形/重影） */
       color: transparent !important;
+      -webkit-text-fill-color: transparent !important;
+      font-size: 0 !important;
+      line-height: 0 !important;
+      text-shadow: none !important;
       z-index: 2;
-    }
-    #trackNums .hit.is-lit {
-      font-size: clamp(8px, 0.85vw, 14px) !important;
     }
     /* 盘上落注筹码：与骰宝同一屏幕尺寸（52/2188 舞台公式） */
     .hit .bet-chip {
@@ -201,6 +207,10 @@
       overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       color: transparent;
+      -webkit-text-fill-color: transparent;
+      font-size: 0;
+      line-height: 0;
+      text-shadow: none;
       font-weight: 800;
       z-index: 1;
       transform-origin: center center;
@@ -543,7 +553,7 @@
 
   <script>
     (function () {
-      const V = '1.0.9';
+      const V = '1.1.0';
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
@@ -845,6 +855,9 @@
         black: { left:'39.3608%', top:'72.8202%', width:'10.9019%', height:'5.4496%', label:'黑', text:'◆' },
         odd:   { left:'50.3940%', top:'72.8202%', width:'10.9019%', height:'5.4496%', label:'单', text:'單' },
         big:   { left:'61.5587%', top:'72.8202%', width:'10.9019%', height:'5.4496%', label:'大', text:'大' },
+        col3:  { left:'72.55%', top:'48.842%', width:'4.90%', height:'5.5177%', label:'第三列', text:'第三列' },
+        col2:  { left:'72.55%', top:'54.9046%', width:'4.90%', height:'5.5177%', label:'第二列', text:'第二列' },
+        col1:  { left:'72.55%', top:'60.8992%', width:'4.90%', height:'5.5177%', label:'第一列', text:'第一列' },
       };
       const outside = document.getElementById('outside');
       Object.keys(OUTSIDE_CELLS).forEach((key) => {
@@ -973,6 +986,13 @@
         voisins: new Set([22,18,29,7,28,12,35,3,26,0,32,15,19,4,21,2,25]),
         'zero-game': new Set([12,35,3,26,0,32,15]),
       };
+      const COLUMNS = {
+        col3: new Set([3,6,9,12,15,18,21,24,27,30,33,36]),
+        col2: new Set([2,5,8,11,14,17,20,23,26,29,32,35]),
+        col1: new Set([1,4,7,10,13,16,19,22,25,28,31,34]),
+      };
+      const GROUP_NUMS = Object.assign({}, FRENCH, COLUMNS);
+
       function numFromKey(key) {
         if (!key || key[0] !== 'n') return null;
         const n = Number(key.slice(1));
@@ -1007,15 +1027,21 @@
           host.appendChild(chip);
         });
       }
+      let hoverMarket = null;
+      function expandGroup(expanded, key) {
+        const set = GROUP_NUMS[key];
+        if (!set) return;
+        set.forEach((n) => expanded.add('n' + n));
+      }
       function paintLit() {
-        /* 中间法式与对应号码一起亮；号码底格保持 1.0.8 干净，不改框/蒙版 */
+        /* 下注亮 + 悬停预览：列/法式连带主键盘与跑道对应号；号格几何不改 */
         const lit = activeBetKeys();
         const expanded = new Set(lit);
-        lit.forEach((key) => {
-          const set = FRENCH[key];
-          if (!set) return;
-          set.forEach((n) => expanded.add('n' + n));
-        });
+        lit.forEach((key) => expandGroup(expanded, key));
+        if (hoverMarket) {
+          expanded.add(hoverMarket);
+          expandGroup(expanded, hoverMarket);
+        }
         document.querySelectorAll('[data-bet]').forEach((el) => {
           el.classList.toggle('is-lit', expanded.has(el.dataset.bet));
         });
@@ -1038,6 +1064,14 @@
           pendingMarket = key; pendingStake = next;
           paintLit();
           playClick();
+        });
+        zone.addEventListener('pointerenter', () => {
+          hoverMarket = key;
+          paintLit();
+        });
+        zone.addEventListener('pointerleave', () => {
+          if (hoverMarket === key) hoverMarket = null;
+          paintLit();
         });
       });
       paintLit();
