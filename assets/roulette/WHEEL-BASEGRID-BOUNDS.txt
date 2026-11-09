@@ -1,0 +1,18 @@
+METHOD=keyboard-track-absolute-px
+STAGE=2284x1468
+CX=918.2211
+CY=284.8970
+R=349.0000
+X0=569.2211
+Y0=-64.1030
+X1=1267.2211
+Y1=633.8970
+LEFT_PCT=24.9221
+TOP_PCT=-4.3667
+WIDTH_PCT=30.5604
+ORIG_HUB=408.4105,293.0516
+ORIG_R=291.0000
+RINGS_PCT={"hub": 20.27, "pockets": 81.1, "nums": 96.56, "outer": 100.0}
+WHEEL_POCKET_DIST=31.7
+WHEEL_POCKET_H=17.7
+NOTE=center=bg hub abs px; box from felt-boundary median R; disc hub-centered
