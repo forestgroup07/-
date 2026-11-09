@@ -1,0 +1,15 @@
+roulette v1.1.24 lock (2026-11-09)
+
+Frozen without user written consent:
+- history board (bead / big-road / hot-cold stats; empty until 10 results; red-blue panels)
+- sicbo-dock chips + MAX (+1mm up vs frames)
+- files: roulette.html, lobby ROULETTE ?v=1.1.24, assets/roulette/VERSION
+- strip: assets/roulette/sicbo-ctrl-strip.png
+
+Snapshots:
+- roulette.LOCKED-1.1.24.html
+- assets/roulette/LOCKED-sicbo-ctrl-strip-1.1.24.png
+- assets/roulette/LOCKED-VERSION-1.1.24.txt
+- assets/roulette/LOCKED-history-board-1.1.24.json
+- assets/roulette/LOCKED-history-board-cells-1.1.24.json
+- .cursor/rules/roulette-frozen-1.1.24.mdc

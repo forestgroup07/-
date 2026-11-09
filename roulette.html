@@ -559,10 +559,11 @@
       position: absolute; z-index: 30; border-radius: 50%;
       background: #000; pointer-events: none;
     }
-    #cover-a { left: 8.136%; top: 10.955%; width: 12.87%; aspect-ratio: 1; }
-    #cover-b { left: 24.231%; top: 10.955%; width: 12.87%; aspect-ratio: 1; }
-    #cover-c { left: 40.325%; top: 10.955%; width: 12.87%; aspect-ratio: 1; }
-    #cover-d { left: 56.006%; top: 10.955%; width: 12.87%; aspect-ratio: 1; }
+    /* 筹码整体上移 1mm（相对 dock：≈1.92%），与下方三框拉开间距 */
+    #cover-a { left: 8.136%; top: 9.035%; width: 12.87%; aspect-ratio: 1; }
+    #cover-b { left: 24.231%; top: 9.035%; width: 12.87%; aspect-ratio: 1; }
+    #cover-c { left: 40.325%; top: 9.035%; width: 12.87%; aspect-ratio: 1; }
+    #cover-d { left: 56.006%; top: 9.035%; width: 12.87%; aspect-ratio: 1; }
 
     .chip-btn {
       position: absolute; z-index: 32; padding: 0; margin: 0; border: 0;
@@ -616,10 +617,10 @@
       clip-path: inset(2% 24% 42% 3%);
     }
     .chip-viewport .chip-btn { pointer-events: auto; }
-    #chip-a { left: 8.592%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
-    #chip-b { left: 24.683%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
-    #chip-c { left: 40.775%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
-    #chip-d { left: 56.459%; top: 11.91%; width: 11.899%; aspect-ratio: 1; }
+    #chip-a { left: 8.592%; top: 9.99%; width: 11.899%; aspect-ratio: 1; }
+    #chip-b { left: 24.683%; top: 9.99%; width: 11.899%; aspect-ratio: 1; }
+    #chip-c { left: 40.775%; top: 9.99%; width: 11.899%; aspect-ratio: 1; }
+    #chip-d { left: 56.459%; top: 9.99%; width: 11.899%; aspect-ratio: 1; }
     .chip-btn.chip-ghost { z-index: 31; pointer-events: none; }
 
     .chip-arrow {
@@ -631,8 +632,8 @@
     .chip-arrow:focus, .chip-arrow:focus-visible { outline: none !important; }
     .chip-arrow img { width: 55%; height: auto; pointer-events: none; display: block; }
     .chip-arrow.is-dim { opacity: .34; cursor: default; }
-    #arrow-l { left: 3.994%; top: 14.888%; width: 4.586%; height: 18.82%; }
-    #arrow-r { left: 92.751%; top: 13.202%; width: 6.509%; height: 24.157%; }
+    #arrow-l { left: 3.994%; top: 12.968%; width: 4.586%; height: 18.82%; }
+    #arrow-r { left: 92.751%; top: 11.282%; width: 6.509%; height: 24.157%; }
     #arrow-r img { display: none; }
 
     .btn-act {
@@ -1243,6 +1244,184 @@
     }
     .bet-tip .k { opacity: 0.95; }
     .bet-tip .v { font-weight: 700; }
+
+    /* 底部开奖记录：主键盘同款绝对%底格（珠盘/大路/切换/熱冷） */
+    #historyBoard {
+      position: absolute;
+      inset: 0;
+      z-index: 34;
+      pointer-events: none;
+    }
+    #historyBoard .hist-panel {
+      position: absolute;
+      pointer-events: none;
+      box-sizing: border-box;
+    }
+    /* 珠盘：全竖格（只竖线分列）；先铺底格再贴号 */
+    #historyBoard .hist-panel.bead-bg {
+      background-color: #070707;
+      background-image: repeating-linear-gradient(
+        90deg,
+        transparent 0,
+        transparent calc(10% - 1px),
+        rgba(255, 255, 255, 0.22) calc(10% - 1px),
+        rgba(255, 255, 255, 0.22) 10%
+      );
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    }
+    #historyBoard .hist-panel.road-bg {
+      background: #ffffff;
+      box-shadow: inset 0 0 0 1px #9a9a9a;
+    }
+    #historyBoard .hist-panel.hot-bg {
+      background:
+        linear-gradient(135deg, rgba(0,0,0,.18) 25%, transparent 25%) -6px 0 / 12px 12px,
+        linear-gradient(225deg, rgba(0,0,0,.18) 25%, transparent 25%) -6px 0 / 12px 12px,
+        linear-gradient(315deg, rgba(0,0,0,.18) 25%, transparent 25%) 0 0 / 12px 12px,
+        linear-gradient(45deg, rgba(0,0,0,.18) 25%, transparent 25%) 0 0 / 12px 12px,
+        linear-gradient(180deg, #e53935 0%, #c62828 40%, #8e0000 100%);
+      border-radius: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 8 / var(--sw));
+      border: 1px solid rgba(230, 200, 140, 0.55);
+      overflow: hidden;
+    }
+    #historyBoard .hist-panel.cold-bg {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.10) 25%, transparent 25%) -6px 0 / 12px 12px,
+        linear-gradient(225deg, rgba(255,255,255,.10) 25%, transparent 25%) -6px 0 / 12px 12px,
+        linear-gradient(315deg, rgba(255,255,255,.10) 25%, transparent 25%) 0 0 / 12px 12px,
+        linear-gradient(45deg, rgba(255,255,255,.10) 25%, transparent 25%) 0 0 / 12px 12px,
+        linear-gradient(180deg, #42a5f5 0%, #1e88e5 40%, #0d47a1 100%);
+      border-radius: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 8 / var(--sw));
+      border: 1px solid rgba(230, 200, 140, 0.55);
+      overflow: hidden;
+    }
+    #historyBoard .hist-panel-title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 22%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.28em;
+      color: #fff;
+      font-weight: 600;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 26 / var(--sw));
+      font-family: "PingFang TC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+      letter-spacing: 0.12em;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      pointer-events: none;
+    }
+    #historyBoard .hist-panel-title .ico {
+      font-size: 0.95em;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+    #historyBoard .hist-panel.hot-bg .hist-panel-title {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0.12));
+    }
+    #historyBoard .hist-panel.cold-bg .hist-panel-title {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0.14));
+    }
+    #historyBoard .hist-hit {
+      position: absolute;
+      pointer-events: auto;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-sizing: border-box;
+      background: transparent;
+      color: transparent;
+      font-size: 0;
+      line-height: 0;
+      overflow: hidden;
+      cursor: default;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #historyBoard .hist-hit.hist-tab {
+      border-radius: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 6 / var(--sw));
+      cursor: pointer;
+    }
+    #historyBoard .hist-hit.hist-tab.is-on {
+      box-shadow: inset 0 0 0 1px rgba(232, 200, 120, 0.55);
+      background: linear-gradient(180deg, rgba(255, 240, 200, 0.22), rgba(0, 0, 0, 0.05));
+    }
+    /* 珠盘底格格线已在 panel；空位透明，有号才贴彩圆 */
+    #historyBoard .hist-hit.hist-bead {
+      border-radius: 50%;
+      background: transparent;
+      border: 0;
+    }
+    #historyBoard .hist-hit.hist-bead.has-num {
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 26 / var(--sw));
+      font-weight: 800;
+      line-height: 1;
+      font-family: "Avenir Next", "Segoe UI", "PingFang TC", sans-serif;
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      box-sizing: border-box;
+      transform: scale(0.86);
+      transform-origin: center center;
+    }
+    #historyBoard .hist-hit.hist-bead.has-num.is-red { background: #c62828; }
+    #historyBoard .hist-hit.hist-bead.has-num.is-black { background: #1a1a1a; }
+    #historyBoard .hist-hit.hist-bead.has-num.is-green { background: #1b7a3a; }
+    /* 熱門/冷門：对标圆号——白描边彩圆，字约占圆径 62% */
+    #historyBoard .hist-hit.hist-hot,
+    #historyBoard .hist-hit.hist-cold {
+      border-radius: 50%;
+      background: transparent;
+      border: 0;
+      aspect-ratio: 1 / 1;
+    }
+    #historyBoard .hist-hit.hist-hot.has-num,
+    #historyBoard .hist-hit.hist-cold.has-num {
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+      /* 字高 ≈ 圆径 × 0.62；圆径取 stage 宽向 % */
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 1.9866 / 100 * 0.62);
+      font-weight: 600;
+      line-height: 1;
+      font-family: "Helvetica Neue", "Avenir Next", "Segoe UI", "PingFang TC", sans-serif;
+      letter-spacing: -0.04em;
+      border: 1.5px solid #fff;
+      box-sizing: border-box;
+      text-shadow: none;
+    }
+    #historyBoard .hist-hit.hist-hot.has-num.is-red,
+    #historyBoard .hist-hit.hist-cold.has-num.is-red { background: #d32f2f; }
+    #historyBoard .hist-hit.hist-hot.has-num.is-black,
+    #historyBoard .hist-hit.hist-cold.has-num.is-black { background: #0d0d0d; }
+    #historyBoard .hist-hit.hist-hot.has-num.is-green,
+    #historyBoard .hist-hit.hist-cold.has-num.is-green { background: #2e7d32; }
+    /* 大路：白格+清晰灰线 */
+    #historyBoard .hist-hit.hist-road {
+      border-radius: 0;
+      background: #fff;
+      border: 1px solid #8f8f8f;
+      box-shadow: inset 0 0 0 0.5px #c0c0c0;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 24 / var(--sw));
+      font-weight: 800;
+      line-height: 1;
+      font-family: "PingFang TC", "Microsoft YaHei", sans-serif;
+    }
+    #historyBoard .hist-hit.hist-road.is-red { color: #c62828; -webkit-text-fill-color: #c62828; background: #fff; }
+    #historyBoard .hist-hit.hist-road.is-black { color: #111; -webkit-text-fill-color: #111; background: #fff; }
+    #historyBoard .hist-hit.hist-road.is-green { color: #1b7a3a; -webkit-text-fill-color: #1b7a3a; background: #fff; }
+    #historyBoard .hist-hit.hist-road.is-big,
+    #historyBoard .hist-hit.hist-road.is-odd,
+    #historyBoard .hist-hit.hist-road.is-d3 { color: #c62828; -webkit-text-fill-color: #c62828; background: #fff; }
+    #historyBoard .hist-hit.hist-road.is-small,
+    #historyBoard .hist-hit.hist-road.is-even,
+    #historyBoard .hist-hit.hist-road.is-d1 { color: #1e6fff; -webkit-text-fill-color: #1e6fff; background: #fff; }
+    #historyBoard .hist-hit.hist-road.is-d2 { color: #222; -webkit-text-fill-color: #222; background: #fff; }
+    #historyBoard .hist-hit.hist-bead.is-new {
+      box-shadow: 0 0 0 2px #e6c84a;
+    }
   </style>
 </head>
 <body>
@@ -1355,9 +1534,10 @@
       <div id="outside" aria-label="打与外注"></div>
       <div class="french" id="french" aria-label="法式"></div>
       <div id="trackNums" aria-label="滚道"></div>
+      <div id="historyBoard" aria-label="开奖记录底格" aria-hidden="true"></div>
 
       <div class="sicbo-dock" id="sicboDock">
-        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.0.27" alt="" draggable="false" />
+        <img class="sicbo-dock-bg" src="assets/roulette/sicbo-ctrl-strip.png?v=1.1.24" alt="" draggable="false" />
 
         <div class="chip-cover" id="cover-a" aria-hidden="true"></div>
         <div class="chip-cover" id="cover-b" aria-hidden="true"></div>
@@ -1475,14 +1655,14 @@
 
   <script>
     (async function () {
-      const V = '1.1.9';
+      const V = '1.1.24';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
       const VISIBLE = 4;
       const SLOT_LEFT = [8.592, 24.683, 40.775, 56.459];
       const GAP = SLOT_LEFT[1] - SLOT_LEFT[0];
-      const CHIP_TOP = 11.91;
+      const CHIP_TOP = 9.99;
       const CHIP_W = 11.899;
       const TABLE_MAX = 5000;
       const START_BAL = 2000;
@@ -2041,6 +2221,275 @@
         b.style.height = box.height;
         nums.appendChild(b);
       });
+
+      /* 底部开奖记录底格：主键盘同款绝对%（珠盘/大路/紅黑切换/熱門冷門） */
+      const HISTORY_BOARD = {"bead": [{"id": "b0_0", "left": "-0.5254%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 0, "row": 0}, {"id": "b0_1", "left": "-0.5254%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 0, "row": 1}, {"id": "b0_2", "left": "-0.5254%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 0, "row": 2}, {"id": "b0_3", "left": "-0.5254%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 0, "row": 3}, {"id": "b0_4", "left": "-0.5254%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 0, "row": 4}, {"id": "b0_5", "left": "-0.5254%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 0, "row": 5}, {"id": "b1_0", "left": "2.5832%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 1, "row": 0}, {"id": "b1_1", "left": "2.5832%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 1, "row": 1}, {"id": "b1_2", "left": "2.5832%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 1, "row": 2}, {"id": "b1_3", "left": "2.5832%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 1, "row": 3}, {"id": "b1_4", "left": "2.5832%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 1, "row": 4}, {"id": "b1_5", "left": "2.5832%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 1, "row": 5}, {"id": "b2_0", "left": "5.5604%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 2, "row": 0}, {"id": "b2_1", "left": "5.5604%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 2, "row": 1}, {"id": "b2_2", "left": "5.5604%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 2, "row": 2}, {"id": "b2_3", "left": "5.5604%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 2, "row": 3}, {"id": "b2_4", "left": "5.5604%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 2, "row": 4}, {"id": "b2_5", "left": "5.5604%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 2, "row": 5}, {"id": "b3_0", "left": "8.5814%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 3, "row": 0}, {"id": "b3_1", "left": "8.5814%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 3, "row": 1}, {"id": "b3_2", "left": "8.5814%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 3, "row": 2}, {"id": "b3_3", "left": "8.5814%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 3, "row": 3}, {"id": "b3_4", "left": "8.5814%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 3, "row": 4}, {"id": "b3_5", "left": "8.5814%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 3, "row": 5}, {"id": "b4_0", "left": "11.8651%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 4, "row": 0}, {"id": "b4_1", "left": "11.8651%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 4, "row": 1}, {"id": "b4_2", "left": "11.8651%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 4, "row": 2}, {"id": "b4_3", "left": "11.8651%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 4, "row": 3}, {"id": "b4_4", "left": "11.8651%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 4, "row": 4}, {"id": "b4_5", "left": "11.8651%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 4, "row": 5}, {"id": "b5_0", "left": "14.6673%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 5, "row": 0}, {"id": "b5_1", "left": "14.6673%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 5, "row": 1}, {"id": "b5_2", "left": "14.6673%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 5, "row": 2}, {"id": "b5_3", "left": "14.6673%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 5, "row": 3}, {"id": "b5_4", "left": "14.6673%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 5, "row": 4}, {"id": "b5_5", "left": "14.6673%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 5, "row": 5}, {"id": "b6_0", "left": "17.9947%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 6, "row": 0}, {"id": "b6_1", "left": "17.9947%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 6, "row": 1}, {"id": "b6_2", "left": "17.9947%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 6, "row": 2}, {"id": "b6_3", "left": "17.9947%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 6, "row": 3}, {"id": "b6_4", "left": "17.9947%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 6, "row": 4}, {"id": "b6_5", "left": "17.9947%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 6, "row": 5}, {"id": "b7_0", "left": "20.7968%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 7, "row": 0}, {"id": "b7_1", "left": "20.7968%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 7, "row": 1}, {"id": "b7_2", "left": "20.7968%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 7, "row": 2}, {"id": "b7_3", "left": "20.7968%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 7, "row": 3}, {"id": "b7_4", "left": "20.7968%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 7, "row": 4}, {"id": "b7_5", "left": "20.7968%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 7, "row": 5}, {"id": "b8_0", "left": "23.8179%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 8, "row": 0}, {"id": "b8_1", "left": "23.8179%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 8, "row": 1}, {"id": "b8_2", "left": "23.8179%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 8, "row": 2}, {"id": "b8_3", "left": "23.8179%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 8, "row": 3}, {"id": "b8_4", "left": "23.8179%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 8, "row": 4}, {"id": "b8_5", "left": "23.8179%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 8, "row": 5}, {"id": "b9_0", "left": "26.8389%", "top": "82.5658%", "width": "2.627%", "height": "2.5341%", "col": 9, "row": 0}, {"id": "b9_1", "left": "26.8389%", "top": "85.3815%", "width": "2.627%", "height": "2.5341%", "col": 9, "row": 1}, {"id": "b9_2", "left": "26.8389%", "top": "88.1971%", "width": "2.627%", "height": "2.5341%", "col": 9, "row": 2}, {"id": "b9_3", "left": "26.8389%", "top": "91.0127%", "width": "2.627%", "height": "2.5341%", "col": 9, "row": 3}, {"id": "b9_4", "left": "26.8389%", "top": "93.8283%", "width": "2.627%", "height": "2.5341%", "col": 9, "row": 4}, {"id": "b9_5", "left": "26.8389%", "top": "96.644%", "width": "2.627%", "height": "2.5341%", "col": 9, "row": 5}], "road": [{"id": "r0_0", "left": "31.3485%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 0, "row": 0}, {"id": "r0_1", "left": "31.3485%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 0, "row": 1}, {"id": "r0_2", "left": "31.3485%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 0, "row": 2}, {"id": "r0_3", "left": "31.3485%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 0, "row": 3}, {"id": "r0_4", "left": "31.3485%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 0, "row": 4}, {"id": "r0_5", "left": "31.3485%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 0, "row": 5}, {"id": "r1_0", "left": "33.1582%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 1, "row": 0}, {"id": "r1_1", "left": "33.1582%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 1, "row": 1}, {"id": "r1_2", "left": "33.1582%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 1, "row": 2}, {"id": "r1_3", "left": "33.1582%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 1, "row": 3}, {"id": "r1_4", "left": "33.1582%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 1, "row": 4}, {"id": "r1_5", "left": "33.1582%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 1, "row": 5}, {"id": "r2_0", "left": "34.9679%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 2, "row": 0}, {"id": "r2_1", "left": "34.9679%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 2, "row": 1}, {"id": "r2_2", "left": "34.9679%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 2, "row": 2}, {"id": "r2_3", "left": "34.9679%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 2, "row": 3}, {"id": "r2_4", "left": "34.9679%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 2, "row": 4}, {"id": "r2_5", "left": "34.9679%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 2, "row": 5}, {"id": "r3_0", "left": "36.7776%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 3, "row": 0}, {"id": "r3_1", "left": "36.7776%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 3, "row": 1}, {"id": "r3_2", "left": "36.7776%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 3, "row": 2}, {"id": "r3_3", "left": "36.7776%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 3, "row": 3}, {"id": "r3_4", "left": "36.7776%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 3, "row": 4}, {"id": "r3_5", "left": "36.7776%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 3, "row": 5}, {"id": "r4_0", "left": "38.5873%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 4, "row": 0}, {"id": "r4_1", "left": "38.5873%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 4, "row": 1}, {"id": "r4_2", "left": "38.5873%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 4, "row": 2}, {"id": "r4_3", "left": "38.5873%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 4, "row": 3}, {"id": "r4_4", "left": "38.5873%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 4, "row": 4}, {"id": "r4_5", "left": "38.5873%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 4, "row": 5}, {"id": "r5_0", "left": "40.397%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 5, "row": 0}, {"id": "r5_1", "left": "40.397%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 5, "row": 1}, {"id": "r5_2", "left": "40.397%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 5, "row": 2}, {"id": "r5_3", "left": "40.397%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 5, "row": 3}, {"id": "r5_4", "left": "40.397%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 5, "row": 4}, {"id": "r5_5", "left": "40.397%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 5, "row": 5}, {"id": "r6_0", "left": "42.2067%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 6, "row": 0}, {"id": "r6_1", "left": "42.2067%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 6, "row": 1}, {"id": "r6_2", "left": "42.2067%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 6, "row": 2}, {"id": "r6_3", "left": "42.2067%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 6, "row": 3}, {"id": "r6_4", "left": "42.2067%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 6, "row": 4}, {"id": "r6_5", "left": "42.2067%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 6, "row": 5}, {"id": "r7_0", "left": "44.0163%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 7, "row": 0}, {"id": "r7_1", "left": "44.0163%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 7, "row": 1}, {"id": "r7_2", "left": "44.0163%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 7, "row": 2}, {"id": "r7_3", "left": "44.0163%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 7, "row": 3}, {"id": "r7_4", "left": "44.0163%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 7, "row": 4}, {"id": "r7_5", "left": "44.0163%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 7, "row": 5}, {"id": "r8_0", "left": "45.826%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 8, "row": 0}, {"id": "r8_1", "left": "45.826%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 8, "row": 1}, {"id": "r8_2", "left": "45.826%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 8, "row": 2}, {"id": "r8_3", "left": "45.826%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 8, "row": 3}, {"id": "r8_4", "left": "45.826%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 8, "row": 4}, {"id": "r8_5", "left": "45.826%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 8, "row": 5}, {"id": "r9_0", "left": "47.6357%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 9, "row": 0}, {"id": "r9_1", "left": "47.6357%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 9, "row": 1}, {"id": "r9_2", "left": "47.6357%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 9, "row": 2}, {"id": "r9_3", "left": "47.6357%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 9, "row": 3}, {"id": "r9_4", "left": "47.6357%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 9, "row": 4}, {"id": "r9_5", "left": "47.6357%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 9, "row": 5}, {"id": "r10_0", "left": "49.4454%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 10, "row": 0}, {"id": "r10_1", "left": "49.4454%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 10, "row": 1}, {"id": "r10_2", "left": "49.4454%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 10, "row": 2}, {"id": "r10_3", "left": "49.4454%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 10, "row": 3}, {"id": "r10_4", "left": "49.4454%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 10, "row": 4}, {"id": "r10_5", "left": "49.4454%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 10, "row": 5}, {"id": "r11_0", "left": "51.2551%", "top": "82.97%", "width": "1.8097%", "height": "2.7475%", "col": 11, "row": 0}, {"id": "r11_1", "left": "51.2551%", "top": "85.7175%", "width": "1.8097%", "height": "2.7475%", "col": 11, "row": 1}, {"id": "r11_2", "left": "51.2551%", "top": "88.465%", "width": "1.8097%", "height": "2.7475%", "col": 11, "row": 2}, {"id": "r11_3", "left": "51.2551%", "top": "91.2125%", "width": "1.8097%", "height": "2.7475%", "col": 11, "row": 3}, {"id": "r11_4", "left": "51.2551%", "top": "93.96%", "width": "1.8097%", "height": "2.7475%", "col": 11, "row": 4}, {"id": "r11_5", "left": "51.2551%", "top": "96.7075%", "width": "1.8097%", "height": "2.7475%", "col": 11, "row": 5}], "tabs": [{"id": "rb", "label": "紅/黑", "left": "53.1524%", "top": "82.97%", "width": "6.3047%", "height": "4.1213%"}, {"id": "bs", "label": "大/小", "left": "53.1524%", "top": "87.0913%", "width": "6.3047%", "height": "4.1213%"}, {"id": "oe", "label": "單/雙", "left": "53.1524%", "top": "91.2125%", "width": "6.3047%", "height": "4.1213%"}, {"id": "dc", "label": "打/列", "left": "53.1524%", "top": "95.3338%", "width": "6.3047%", "height": "4.1213%"}], "hot": [{"id": "hot0_0", "left": "59.6322%", "top": "85.2861%", "width": "3.3275%", "height": "2.7248%", "col": 0, "row": 0}, {"id": "hot0_1", "left": "59.6322%", "top": "88.2834%", "width": "3.3275%", "height": "2.7248%", "col": 0, "row": 1}, {"id": "hot1_0", "left": "63.1349%", "top": "85.2861%", "width": "3.3275%", "height": "2.7248%", "col": 1, "row": 0}, {"id": "hot1_1", "left": "63.1349%", "top": "88.2834%", "width": "3.3275%", "height": "2.7248%", "col": 1, "row": 1}], "cold": [{"id": "cold0_0", "left": "59.6322%", "top": "93.5286%", "width": "3.3275%", "height": "2.7589%", "col": 0, "row": 0}, {"id": "cold0_1", "left": "59.6322%", "top": "96.5599%", "width": "3.3275%", "height": "2.7589%", "col": 0, "row": 1}, {"id": "cold1_0", "left": "63.1349%", "top": "93.5286%", "width": "3.3275%", "height": "2.7589%", "col": 1, "row": 0}, {"id": "cold1_1", "left": "63.1349%", "top": "96.5599%", "width": "3.3275%", "height": "2.7589%", "col": 1, "row": 1}]};
+      const historyBoard = document.getElementById('historyBoard');
+      const HIST_BEAD_COLS = 10;
+      const HIST_BEAD_ROWS = 6;
+      const HIST_ROAD_COLS = 12;
+      const HIST_ROAD_ROWS = 6;
+      const HIST_CAP = HIST_BEAD_COLS * HIST_BEAD_ROWS;
+      const histBeadEls = [];
+      const histRoadEls = [];
+      const histHotEls = [];
+      const histColdEls = [];
+      const histTabEls = {};
+      let histResults = [];
+      let histRoadMode = 'rb';
+      let histFlashTimer = 0;
+
+      function histColorClass(n) {
+        if (n === 0) return 'is-green';
+        return RED.has(n) ? 'is-red' : 'is-black';
+      }
+      function histRoadOutcome(n, mode) {
+        if (n === 0) return { text: '零', cls: 'is-green', key: '零' };
+        if (mode === 'rb') {
+          return RED.has(n)
+            ? { text: '紅', cls: 'is-red', key: '紅' }
+            : { text: '黑', cls: 'is-black', key: '黑' };
+        }
+        if (mode === 'bs') {
+          return n >= 19
+            ? { text: '大', cls: 'is-big', key: '大' }
+            : { text: '小', cls: 'is-small', key: '小' };
+        }
+        if (mode === 'oe') {
+          return (n % 2 === 1)
+            ? { text: '單', cls: 'is-odd', key: '單' }
+            : { text: '雙', cls: 'is-even', key: '雙' };
+        }
+        if (n <= 12) return { text: '1打', cls: 'is-d1', key: '1打' };
+        if (n <= 24) return { text: '2打', cls: 'is-d2', key: '2打' };
+        return { text: '3打', cls: 'is-d3', key: '3打' };
+      }
+      function buildBigRoad(results, mode) {
+        const cols = HIST_ROAD_COLS;
+        const rows = HIST_ROAD_ROWS;
+        const grid = Array.from({ length: cols }, () => Array(rows).fill(null));
+        let col = 0;
+        let row = 0;
+        let lastKey = null;
+        const shiftLeft = () => {
+          for (let c = 0; c < cols - 1; c++) grid[c] = grid[c + 1].slice();
+          grid[cols - 1] = Array(rows).fill(null);
+          col = Math.max(0, col - 1);
+        };
+        results.forEach((n) => {
+          const o = histRoadOutcome(n, mode);
+          if (lastKey == null) {
+            grid[0][0] = o;
+            lastKey = o.key;
+            col = 0;
+            row = 0;
+            return;
+          }
+          if (o.key === lastKey) {
+            if (row + 1 < rows) {
+              row += 1;
+              grid[col][row] = o;
+            } else {
+              col += 1;
+              if (col >= cols) { shiftLeft(); col = cols - 1; }
+              grid[col][row] = o;
+            }
+          } else {
+            col += 1;
+            row = 0;
+            if (col >= cols) { shiftLeft(); col = cols - 1; }
+            grid[col][row] = o;
+            lastKey = o.key;
+          }
+        });
+        return grid;
+      }
+      function paintHistoryBoard() {
+        if (!historyBoard) return;
+        const shown = histResults.slice(-HIST_CAP);
+        histBeadEls.forEach((el) => {
+          el.textContent = '';
+          el.classList.remove('has-num', 'is-red', 'is-black', 'is-green', 'is-new');
+        });
+        shown.forEach((n, i) => {
+          const col = Math.floor(i / HIST_BEAD_ROWS);
+          const row = i % HIST_BEAD_ROWS;
+          const el = histBeadEls[col * HIST_BEAD_ROWS + row];
+          if (!el) return;
+          el.textContent = String(n);
+          el.classList.add('has-num', histColorClass(n));
+          if (i === shown.length - 1) el.classList.add('is-new');
+        });
+
+        const road = buildBigRoad(histResults, histRoadMode);
+        histRoadEls.forEach((el) => {
+          el.textContent = '';
+          el.className = 'hist-hit hist-road';
+        });
+        for (let c = 0; c < HIST_ROAD_COLS; c++) {
+          for (let r = 0; r < HIST_ROAD_ROWS; r++) {
+            const o = road[c][r];
+            const el = histRoadEls[c * HIST_ROAD_ROWS + r];
+            if (!el || !o) continue;
+            el.textContent = o.text;
+            el.classList.add(o.cls);
+          }
+        }
+
+        Object.keys(histTabEls).forEach((k) => {
+          histTabEls[k].classList.toggle('is-on', k === histRoadMode);
+        });
+
+        const paint2x2 = (arr, els) => {
+          els.forEach((el) => {
+            el.textContent = '';
+            el.classList.remove('has-num', 'is-red', 'is-black', 'is-green');
+          });
+          const byCR = {};
+          els.forEach((el) => { byCR[el.dataset.col + '_' + el.dataset.row] = el; });
+          [['0', '0'], ['1', '0'], ['0', '1'], ['1', '1']].forEach((cr, i) => {
+            const item = arr[i];
+            const el = byCR[cr[0] + '_' + cr[1]];
+            if (!el || !item) return;
+            el.textContent = String(item.n);
+            el.classList.add('has-num', histColorClass(item.n));
+          });
+        };
+        /* 未满 10 局不统计；满 10 局后：出现次数最高 4 个熱門、最低 4 个冷門 */
+        if (histResults.length < 10) {
+          paint2x2([null, null, null, null], histHotEls);
+          paint2x2([null, null, null, null], histColdEls);
+        } else {
+          const freq = Array.from({ length: 37 }, () => 0);
+          histResults.forEach((n) => { if (n >= 0 && n <= 36) freq[n] += 1; });
+          const ranked = [];
+          for (let n = 0; n <= 36; n++) ranked.push({ n: n, c: freq[n] });
+          const hot = ranked.slice().sort((a, b) => b.c - a.c || a.n - b.n).filter((x) => x.c > 0).slice(0, 4);
+          while (hot.length < 4) hot.push(null);
+          const cold = ranked.slice().sort((a, b) => a.c - b.c || a.n - b.n).slice(0, 4);
+          paint2x2(hot, histHotEls);
+          paint2x2(cold, histColdEls);
+        }
+      }
+      function pushHistoryResult(n) {
+        const num = Number(n);
+        if (!Number.isFinite(num) || num < 0 || num > 36) return;
+        histResults.push(num);
+        if (histResults.length > 300) histResults = histResults.slice(-300);
+        paintHistoryBoard();
+        clearTimeout(histFlashTimer);
+        histFlashTimer = setTimeout(() => {
+          histBeadEls.forEach((el) => el.classList.remove('is-new'));
+        }, 2200);
+      }
+
+      (function bakeHistoryBoard() {
+        if (!historyBoard) return;
+        historyBoard.innerHTML = '';
+        historyBoard.setAttribute('aria-hidden', 'false');
+        /* 黑版面：下移 2mm、左移 3mm；底边再剪高 1mm（≈4.8px/mm） */
+        const BEAD_DX = -(3 * 4.8) / 2284 * 100; /* -3mm */
+        const BEAD_DY = (2 * 4.8) / 1468 * 100;  /* +2mm */
+        const BEAD_DH = -(1 * 4.8) / 1468 * 100; /* 高度 -1mm */
+        const beadPanel = document.createElement('div');
+        beadPanel.className = 'hist-panel bead-bg';
+        beadPanel.style.left = (0.35 + BEAD_DX).toFixed(4) + '%';
+        beadPanel.style.top = (82.43 + BEAD_DY).toFixed(4) + '%';
+        beadPanel.style.width = '30.7%';
+        beadPanel.style.height = (16.9 + BEAD_DH).toFixed(4) + '%';
+        historyBoard.appendChild(beadPanel);
+        const roadPanel = document.createElement('div');
+        roadPanel.className = 'hist-panel road-bg';
+        roadPanel.style.left = '31.35%';
+        roadPanel.style.top = '82.97%';
+        roadPanel.style.width = '21.72%';
+        roadPanel.style.height = '16.48%';
+        historyBoard.appendChild(roadPanel);
+        /* 紅藍圖（熱門/冷門）整组左移 1.0mm（相对原位） */
+        const HC_DX = -(1.0 * 4.8) / 2284 * 100;
+        const hotPanel = document.createElement('div');
+        hotPanel.className = 'hist-panel hot-bg';
+        hotPanel.style.left = (59.5447 + HC_DX).toFixed(4) + '%';
+        hotPanel.style.top = '82.97%';
+        hotPanel.style.width = '7.0053%';
+        hotPanel.style.height = '8.2425%';
+        hotPanel.innerHTML = '<span class="hist-panel-title"><span class="ico" aria-hidden="true">🔥</span>熱門</span>';
+        historyBoard.appendChild(hotPanel);
+        const coldPanel = document.createElement('div');
+        coldPanel.className = 'hist-panel cold-bg';
+        coldPanel.style.left = (59.5447 + HC_DX).toFixed(4) + '%';
+        coldPanel.style.top = '91.2125%';
+        coldPanel.style.width = '7.0053%';
+        coldPanel.style.height = '8.2425%';
+        coldPanel.innerHTML = '<span class="hist-panel-title"><span class="ico" aria-hidden="true">❄️</span>冷門</span>';
+        historyBoard.appendChild(coldPanel);
+
+        function addHit(box, kind, label) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'hist-hit hist-' + kind;
+          b.dataset.hist = box.id || (kind + '-' + (box.col != null ? box.col + '-' + box.row : label || ''));
+          b.dataset.histKind = kind;
+          if (box.col != null) b.dataset.col = String(box.col);
+          if (box.row != null) b.dataset.row = String(box.row);
+          b.setAttribute('aria-label', label || box.id || kind);
+          b.style.left = box.left;
+          b.style.top = box.top;
+          b.style.width = box.width;
+          b.style.height = box.height;
+          historyBoard.appendChild(b);
+          return b;
+        }
+        HISTORY_BOARD.bead.slice().sort((a, b) => a.col - b.col || a.row - b.row)
+          .forEach((c) => {
+            const box = Object.assign({}, c, {
+              left: (parseFloat(c.left) + BEAD_DX).toFixed(4) + '%',
+              top: (parseFloat(c.top) + BEAD_DY).toFixed(4) + '%',
+            });
+            histBeadEls.push(addHit(box, 'bead', '珠盘' + c.col + '-' + c.row));
+          });
+        HISTORY_BOARD.road.slice().sort((a, b) => a.col - b.col || a.row - b.row)
+          .forEach((c) => histRoadEls.push(addHit(c, 'road', '大路' + c.col + '-' + c.row)));
+        HISTORY_BOARD.tabs.forEach((c) => {
+          const el = addHit(c, 'tab', c.label);
+          histTabEls[c.id] = el;
+          el.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            histRoadMode = c.id;
+            paintHistoryBoard();
+          });
+        });
+        const HOT_LAYOUT = [{"col": 0, "row": 0, "left": "60.9812%", "top": "84.7834%", "width": "1.9866%", "height": "3.0909%"}, {"col": 1, "row": 0, "left": "63.1268%", "top": "84.7834%", "width": "1.9866%", "height": "3.0909%"}, {"col": 0, "row": 1, "left": "60.9812%", "top": "88.1216%", "width": "1.9866%", "height": "3.0909%"}, {"col": 1, "row": 1, "left": "63.1268%", "top": "88.1216%", "width": "1.9866%", "height": "3.0909%"}];
+        const COLD_LAYOUT = [{"col": 0, "row": 0, "left": "60.9812%", "top": "93.0259%", "width": "1.9866%", "height": "3.0909%"}, {"col": 1, "row": 0, "left": "63.1268%", "top": "93.0259%", "width": "1.9866%", "height": "3.0909%"}, {"col": 0, "row": 1, "left": "60.9812%", "top": "96.3641%", "width": "1.9866%", "height": "3.0909%"}, {"col": 1, "row": 1, "left": "63.1268%", "top": "96.3641%", "width": "1.9866%", "height": "3.0909%"}];
+        HOT_LAYOUT.slice().sort((a, b) => a.col - b.col || a.row - b.row).forEach((c, i) => {
+          const src = HISTORY_BOARD.hot.find((x) => x.col === c.col && x.row === c.row) || HISTORY_BOARD.hot[i];
+          const box = Object.assign({}, src, {
+            left: (parseFloat(c.left) + HC_DX).toFixed(4) + '%',
+            top: c.top,
+            width: c.width,
+            height: c.height,
+            col: c.col,
+            row: c.row,
+            id: 'hot' + c.col + '_' + c.row
+          });
+          histHotEls.push(addHit(box, 'hot', '熱門' + c.col + '-' + c.row));
+        });
+        COLD_LAYOUT.slice().sort((a, b) => a.col - b.col || a.row - b.row).forEach((c, i) => {
+          const src = HISTORY_BOARD.cold.find((x) => x.col === c.col && x.row === c.row) || HISTORY_BOARD.cold[i];
+          const box = Object.assign({}, src, {
+            left: (parseFloat(c.left) + HC_DX).toFixed(4) + '%',
+            top: c.top,
+            width: c.width,
+            height: c.height,
+            col: c.col,
+            row: c.row,
+            id: 'cold' + c.col + '_' + c.row
+          });
+          histColdEls.push(addHit(box, 'cold', '冷門' + c.col + '-' + c.row));
+        });
+        paintHistoryBoard();
+      })();
 
       /* 打 / 外注：底图像素绝对定位（与数字盘同逻辑） */
       /* 沟槽分割实测（2284×1468）：贴齐底图圆角格，不吃缝、不露边 */
@@ -3152,6 +3601,7 @@
 
       function announceWinNumber(n) {
         paintResultBoard(n);
+        pushHistoryResult(n);
         const railP = rollHistoryRailBall(n);
         let voiceP = Promise.resolve(false);
         if (!Voice.isOff()) {
