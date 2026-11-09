@@ -1,0 +1,11 @@
+METHOD=keyboard-track-absolute-pct + EU_ORDER on disc
+SOURCE=LOCKED-wheel-disc-1.1.6.png (appearance unchanged)
+RULE=European single-zero: one ball → one pocket → one number (0-36)
+CONVENTION=angle 0=east, +CW (CSS left+=cos, top+=sin)
+ZERO_CENTER_DEG=113.5
+SLOT_DEG=9.72972973
+WHEEL_POCKET_DIST=31.7
+WHEEL_POCKET_W=4.2
+WHEEL_POCKET_H=17.7
+JSON=assets/roulette/wheel-bases/pocket-cells.json
+NOTE=transparent hit cells only; no disc/visual rewrite

@@ -201,21 +201,21 @@
     .wheel-ball {
       position: absolute;
       left: 50%;
-      /* 贴数字圈外沿（约 r75% → top 12.5%） */
-      top: 12.5%;
-      width: 3.6%;
-      height: 3.6%;
-      min-width: 9px;
-      min-height: 9px;
+      /* 默认落在数字圈内侧；每局 JS 会微随机 top，停点不固定 */
+      top: 14.5%;
+      width: 2.55%;
+      height: 2.55%;
+      min-width: 7px;
+      min-height: 7px;
       transform: translate(-50%, -50%);
       border-radius: 50%;
       background: radial-gradient(circle at 32% 28%, #fff 0%, #d8d8d8 38%, #7a7a7a 78%, #2a2a2a 100%);
       box-shadow: 0 1px 2px rgba(0,0,0,.55), inset 0 1px 1px rgba(255,255,255,.55);
     }
-    /* 右侧开奖条：与左侧计时器左右对称 */
+    /* 开奖条：扇美女左侧（轮盘与右侧美女之间），勿放美女右侧 */
     .result-board {
       position: absolute;
-      left: 74.8%;
+      left: 57.2%;
       top: 2.6%;
       width: 6.8%;
       z-index: 70;
@@ -269,6 +269,89 @@
     .result-board .rb-size.is-small { color: #4ea1ff; }
     .result-board .rb-range,
     .result-board .rb-dozen { color: #f2f2f2; font-weight: 600; font-size: 0.92em; }
+
+    /* 滑道长洞：原尺寸底格（主键盘/跑道同法）；开奖号变立体球滚到头 */
+    #historyRailWipe14 {
+      position: absolute;
+      inset: 0;
+      z-index: 54;
+      pointer-events: none;
+      background: url("assets/roulette/wheel-bases/history-rail-wipe14.png?v=1.1.7") center / 100% 100% no-repeat;
+    }
+    #historyRail {
+      position: absolute;
+      left: 24.387%;
+      top: 43.4605%;
+      width: 28.7653%;
+      height: 2.9973%;
+      z-index: 55;
+      pointer-events: none;
+      border-radius: 999px;
+      overflow: visible;
+      box-sizing: border-box;
+      background: url("assets/roulette/wheel-bases/history-rail-hole.png?v=1.1.7") center / 100% 100% no-repeat;
+    }
+    #historyRailHits {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+    /* 底格热区透明：通道外观是完整长洞，不画椭圆坑 */
+    #historyRailHits .rail-hit {
+      position: absolute;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-sizing: border-box;
+      pointer-events: none;
+      background: transparent;
+    }
+    /* 立体红球：相对原 14 再大一倍；字号对齐主键盘数字观感 */
+    #historyRailBall {
+      position: absolute;
+      left: 25.03%;
+      top: 44.96%;
+      width: 4.856%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      min-width: 36px;
+      min-height: 36px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 56;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 30% 26%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 28%),
+        radial-gradient(circle at 50% 55%, #ff5252 0%, #e53935 38%, #c62828 62%, #7f0000 100%);
+      box-shadow:
+        0 4px 8px rgba(0,0,0,.5),
+        0 1px 0 rgba(255,255,255,.22) inset,
+        0 -2px 4px rgba(0,0,0,.35) inset;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 800;
+      /* 主键盘号面量级（舞台约 36px） */
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 36 / var(--sw));
+      line-height: 1;
+      text-shadow: 0 1px 2px rgba(0,0,0,.55);
+      opacity: 0;
+      visibility: hidden;
+      will-change: left, transform;
+    }
+    #historyRailBall.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    #historyRailBall.is-rolling {
+      animation: history-rail-ball-spin 1.35s linear;
+    }
+    @keyframes history-rail-ball-spin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(1080deg); }
+    }
 
     .hit {
       position: absolute; z-index: 40; margin: 0; padding: 0; border: 0;
@@ -1187,6 +1270,11 @@
         </div>
       </div>
       <div class="timer" id="timer" style="--p:1" aria-live="polite"><span id="timerNum">30</span></div>
+      <div id="historyRailWipe14" aria-hidden="true"></div>
+      <div id="historyRail" aria-label="开奖号码长洞" aria-hidden="true">
+        <div id="historyRailHits"></div>
+      </div>
+      <div id="historyRailBall" aria-hidden="true">0</div>
       <div class="result-board" id="resultBoard" aria-live="polite" hidden>
         <div class="rb-num is-red" id="rbNum">18</div>
         <div class="rb-parity is-even" id="rbParity">雙</div>
@@ -1387,7 +1475,7 @@
 
   <script>
     (async function () {
-      const V = '1.1.6';
+      const V = '1.1.7';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -2603,19 +2691,22 @@
       const wheelPocketHits = document.getElementById('wheelPocketHits');
       const wheelBallLayer = document.getElementById('wheelBallLayer');
       const wheelBallArm = document.getElementById('wheelBallArm');
-      /* 欧式轮盘顺时针口袋顺序（从 0 起）；CSS rotate 正方向=顺时针 */
+      /* 欧式单零：每局小球只落入 1 个口袋 → 只开出 1 个数字（0–36） */
       const EU_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
       const SLOT = 360 / 37;
       const RED_SET = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
       /*
-        四层等距底格半径（相对盘面半径）：
-        绿白 25% / 红黑外沿 50% / 数字外沿 75% / 外围 100%
-        口袋热区落在红黑–数字之间（约 r=62.5%），技术同滚道直格。
+        口袋数字底格（主键盘/跑道同款绝对 %）：
+        在 LOCKED-wheel-disc 上校准绿 0 中心角 → EU_ORDER 顺时针一格一号；
+        只做识别，不改盘面外观。
+        约定：0°=正东，正角=顺时针（left+=cos, top+=sin）；与 CSS 一致。
       */
-      /* 口袋中心距盘心：62.5%×半径 = 31.25% 盒宽（主键盘同款 % 定位） */
+      const ZERO_CENTER_DEG = 113.5; /* 底图绿 0 口袋中心（色样 37/37 对齐） */
       const WHEEL_POCKET_DIST = 31.7;
       const WHEEL_POCKET_W = 4.2;
       const WHEEL_POCKET_H = 17.7;
+      /* 球臂 CSS rotate(0)=12 点；几何角 = css - 90 */
+      const BALL_CSS_TO_GEOM = 90;
       let wheelAngle = 0;
       let ballAngle = 0;
       let roundGen = 0;
@@ -2769,25 +2860,49 @@
 
       function pocketAngle(n) {
         const i = EU_ORDER.indexOf(n);
-        /* 口袋中心角：与热区 rotate 同一套（格中心） */
-        return (i < 0 ? 0 : i) * SLOT + SLOT / 2;
+        /* 口袋中心几何角：底图校准 ZERO_CENTER + 格序×SLOT */
+        return ZERO_CENTER_DEG + (i < 0 ? 0 : i) * SLOT;
+      }
+
+      function angDist(a, b) {
+        const d = Math.abs(normDeg(a) - normDeg(b)) % 360;
+        return d > 180 ? 360 - d : d;
+      }
+
+      /** 球臂 CSS 角 → 盘面几何角（0=东，+顺时针） */
+      function ballGeomFromCss(cssDeg) {
+        return normDeg(cssDeg - BALL_CSS_TO_GEOM);
       }
 
       /**
-       * 主键盘/滚道同款：中心绝对定位 + 宽高% + translate + rotate，贴底图口袋。
-       * 四层圆圈底格只做等距参照；号码以底图为准，热区严丝合缝。
+       * 落点识别：球相对转盘的几何角 → 最近口袋底格 → 唯一开奖号。
+       * 欧式规则：一球一格，一个数字。
+       */
+      function recognizeLandedNumber() {
+        const local = normDeg(ballGeomFromCss(ballAngle) - wheelAngle);
+        let bestI = 0;
+        let bestD = 1e9;
+        for (let i = 0; i < EU_ORDER.length; i++) {
+          const d = angDist(local, ZERO_CENTER_DEG + i * SLOT);
+          if (d < bestD) { bestD = d; bestI = i; }
+        }
+        return EU_ORDER[bestI];
+      }
+
+      /**
+       * 主键盘/滚道同款：中心绝对定位 + 宽高% + translate + rotate，贴底图口袋数字。
+       * 热区透明，只供系统识别，不改外观。
        */
       function buildWheelPocketHits() {
         if (!wheelPocketHits) return;
         wheelPocketHits.innerHTML = '';
         EU_ORDER.forEach((n, i) => {
-          const rot = i * SLOT + SLOT / 2;
+          const rot = ZERO_CENTER_DEG + i * SLOT;
           const rad = rot * Math.PI / 180;
           const b = document.createElement('div');
           b.className = 'hit';
           b.dataset.wheelPocket = String(n);
           b.setAttribute('aria-label', '轮盘' + n);
-          /* 同滚道直格：left/top 百分比贴底图 + translate 居中 + rotate 贴径向 */
           b.style.left = (50 + WHEEL_POCKET_DIST * Math.cos(rad)) + '%';
           b.style.top = (50 + WHEEL_POCKET_DIST * Math.sin(rad)) + '%';
           b.style.width = WHEEL_POCKET_W + '%';
@@ -2797,6 +2912,97 @@
         });
       }
       buildWheelPocketHits();
+
+      /* 长洞原尺寸底格（557–1214）；开奖号变球后从左洞口滚到右头 */
+      const HISTORY_RAIL = { left: 24.387, top: 43.4605, width: 28.7653, height: 2.9973 };
+      const HISTORY_RAIL_CELLS = [];
+      (function bakeHistoryRailCells() {
+        const padX = 10 / 2284 * 100;
+        const innerW = HISTORY_RAIL.width - padX * 2;
+        const cellW = innerW / 37;
+        const cup = Math.min(cellW * 0.85, HISTORY_RAIL.height * 0.92);
+        const cy = HISTORY_RAIL.top + HISTORY_RAIL.height / 2;
+        for (let n = 0; n < 37; n++) {
+          const cx = HISTORY_RAIL.left + padX + n * cellW + cellW / 2;
+          HISTORY_RAIL_CELLS.push({
+            n: n,
+            cx: cx,
+            cy: cy,
+            left: cx - cup / 2,
+            top: cy - cup / 2,
+            width: cup,
+            height: cup,
+          });
+        }
+      })();
+
+      const historyRailHits = document.getElementById('historyRailHits');
+      const historyRailBall = document.getElementById('historyRailBall');
+
+      function buildHistoryRailHits() {
+        if (!historyRailHits) return;
+        historyRailHits.innerHTML = '';
+        HISTORY_RAIL_CELLS.forEach((c) => {
+          const b = document.createElement('div');
+          b.className = 'rail-hit';
+          b.dataset.railNum = String(c.n);
+          b.setAttribute('aria-label', '长洞格' + c.n);
+          b.style.left = ((c.left - HISTORY_RAIL.left) / HISTORY_RAIL.width * 100) + '%';
+          b.style.top = ((c.top - HISTORY_RAIL.top) / HISTORY_RAIL.height * 100) + '%';
+          b.style.width = (c.width / HISTORY_RAIL.width * 100) + '%';
+          b.style.height = (c.height / HISTORY_RAIL.height * 100) + '%';
+          historyRailHits.appendChild(b);
+        });
+      }
+      buildHistoryRailHits();
+
+      /** 开奖号变成立体红球，沿长洞从左滚到头（右端） */
+      function rollHistoryRailBall(n) {
+        if (!historyRailBall) return Promise.resolve();
+        const start = HISTORY_RAIL_CELLS[0];
+        const end = HISTORY_RAIL_CELLS[HISTORY_RAIL_CELLS.length - 1];
+        if (!start || !end) return Promise.resolve();
+        historyRailBall.textContent = String(n);
+        historyRailBall.classList.add('show');
+        historyRailBall.classList.remove('is-rolling');
+        historyRailBall.style.transition = 'none';
+        historyRailBall.style.left = start.cx.toFixed(3) + '%';
+        historyRailBall.style.top = start.cy.toFixed(3) + '%';
+        historyRailBall.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+        void historyRailBall.offsetWidth;
+        historyRailBall.classList.add('is-rolling');
+        /* 与转盘小白球同理：实体球位移 + 自转，不是扁号码平移 */
+        historyRailBall.style.transition = 'left 1.35s cubic-bezier(.05,.75,.12,1), top 1.35s cubic-bezier(.05,.75,.12,1)';
+        historyRailBall.style.left = end.cx.toFixed(3) + '%';
+        historyRailBall.style.top = end.cy.toFixed(3) + '%';
+        return sleep(1400).then(() => {
+          historyRailBall.classList.remove('is-rolling');
+          historyRailBall.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+        });
+      }
+
+      function announceWinNumber(n) {
+        paintResultBoard(n);
+        const railP = rollHistoryRailBall(n);
+        let voiceP = Promise.resolve(false);
+        if (!Voice.isOff()) {
+          try {
+            if (typeof speechSynthesis !== 'undefined') {
+              speechSynthesis.cancel();
+              const u = new SpeechSynthesisUtterance(String(n));
+              u.lang = 'zh-CN';
+              u.rate = 0.92;
+              voiceP = new Promise((resolve) => {
+                u.onend = () => resolve(true);
+                u.onerror = () => resolve(false);
+                speechSynthesis.speak(u);
+                setTimeout(() => resolve(false), 4000);
+              });
+            }
+          } catch (_) {}
+        }
+        return Promise.all([railP, voiceP]).then((r) => r[1]);
+      }
 
       function startIdleSpin() {
         if (!wheelSpin) return;
@@ -2879,40 +3085,46 @@
       }
 
       /**
-       * 停注后：小球逆时针外圈快跑 ~5 秒，轮盘仍慢顺时针，随后一起停在开奖号。
-       * 球停在盘面「顶部」标记位，轮盘转到使该号对准球。
+       * 停注后：小球逆时针外圈快跑 ~5 秒，轮盘仍慢顺时针，随后停进目标口袋。
+       * 每局随机停点方位（不固定 12 点）+ 口袋内轻微偏角；几何对准保证落在该号格内。
        */
       function runBallAndWheelStop(winNum) {
         const dur = 5000;
         const w0 = stopIdleSpinCapture();
         showBall(true);
-        const b0 = normDeg(ballAngle || -90);
+        const ballEl = document.getElementById('wheelBall');
+        /* 径向微随机：仍在数字圈～口袋带内 */
+        if (ballEl) {
+          const topPct = 13.2 + Math.random() * 3.6; /* ~13.2%–16.8% */
+          ballEl.style.top = topPct.toFixed(2) + '%';
+        }
+        const b0 = normDeg(ballAngle || 0);
         setBallAngle(b0, 0);
 
-        /* 终点：球停在顶部附近；轮盘使 winNum 口袋转到球下 */
-        const marker = -90; /* 12 点方向 */
-        const pocket = pocketAngle(winNum);
-        /* 球相对轮盘：ballWorld - wheel = pocket + offset；取 ball 停在 marker */
-        const wheelTargetLocal = normDeg(marker - pocket);
-        /* 轮盘继续顺时针多转几圈后落到目标 */
+        /* 随机屏幕停点 + 格内偏角（|jitter| < SLOT/2，不会跨格） */
+        const markerCss = Math.random() * 360;
+        const jitter = (Math.random() - 0.5) * (SLOT * 0.55);
+        const markerGeom = ballGeomFromCss(markerCss);
+        const pocket = pocketAngle(winNum) + jitter;
+        const wheelTargetLocal = normDeg(markerGeom - pocket);
         let wDelta = normDeg(wheelTargetLocal - normDeg(w0));
         if (wDelta < 80) wDelta += 360;
         wDelta += 360 * (1 + Math.floor(Math.random() * 2));
         const w1 = w0 + wDelta;
 
-        /* 球逆时针快跑多圈后停到 marker（相对世界/碗坐标） */
-        let bDelta = normDeg(b0 - marker); /* 逆时针走到 marker 的最短？ */
-        /* 强制逆时针：角度减小 */
+        /* 球逆时针快跑多圈后停到本局随机方位 */
+        let bDelta = normDeg(b0 - markerCss);
         if (bDelta < 1) bDelta = 360;
         bDelta += 360 * (6 + Math.floor(Math.random() * 3));
         const b1 = b0 - bDelta;
 
         setWheelAngle(w1, dur);
         setBallAngle(b1, dur);
-        wheelAngle = normDeg(w1);
-        ballAngle = normDeg(b1);
 
         return sleep(dur + 60).then(() => {
+          /* 以实际 CSS 角为准再锁死，保证识别=真实落点 */
+          wheelAngle = normDeg(readCssRotate(wheelSpin));
+          ballAngle = normDeg(readCssRotate(wheelBallArm));
           setWheelAngle(wheelAngle, 0);
           setBallAngle(ballAngle, 0);
         });
@@ -2962,11 +3174,16 @@
           if (gen !== roundGen) return;
           await sleep(400);
           showStopBet(false);
-          const winNum = (Math.random() * 37) | 0;
-          await runBallAndWheelStop(winNum);
+          /* 随机唯一目标号 → 落到该口袋（方位每局不同）→ 按真实落点识别并只报该号 */
+          const targetNum = (Math.random() * 37) | 0;
+          await runBallAndWheelStop(targetNum);
           if (gen !== roundGen) return;
-          paintResultBoard(winNum);
-          await sleep(3200);
+          const winNum = recognizeLandedNumber();
+          /* 中奖号 = 落点识别号（与报号同一来源） */
+          await announceWinNumber(winNum);
+          if (gen !== roundGen) return;
+          /* 开奖条多停 5 秒（原 ~2.8s → ~7.8s） */
+          await sleep(7800);
           if (gen !== roundGen) return;
           hideResultBoard();
           showBall(false);

@@ -1,0 +1,7 @@
+VERSION=1.1.7
+SCOPE=roulette history long-hole rail + pocket number basegrid + result board
+HOLE=assets/roulette/LOCKED-history-rail-hole-1.1.7.png
+WIPE=assets/roulette/LOCKED-history-rail-wipe14-1.1.7.png
+CELLS=assets/roulette/LOCKED-history-rail-1.1.7.json
+HTML=roulette.LOCKED-1.1.7.html
+NOTE=complete channel; 2x red ball; roll to end; static 14 wiped
