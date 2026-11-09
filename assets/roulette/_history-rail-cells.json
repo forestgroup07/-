@@ -1,6 +1,6 @@
 {
   "method": "keyboard-track-absolute-px long-hole",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "rail": {
     "left": 23.7741,
     "top": 43.3243,
@@ -16,7 +16,7 @@
   "hole": "assets/roulette/wheel-bases/history-rail-hole.png",
   "wipe14": "assets/roulette/wheel-bases/history-rail-wipe14.png",
   "padX_pct": 0.437828,
-  "note": "black deep groove widened to cover green under-strip; roll-to-end ball",
+  "note": "black deep groove widened to cover green under-strip; roll-to-end ball; + inside-bet edge hotspots (line/split/straight) on number keys",
   "cells": [
     {
       "n": 0,

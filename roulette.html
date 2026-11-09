@@ -1475,7 +1475,7 @@
 
   <script>
     (async function () {
-      const V = '1.1.8';
+      const V = '1.1.9';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -2205,6 +2205,13 @@
       const GROUP_NUMS = Object.assign({}, FRENCH, COLUMNS, OUTSIDE_GROUPS);
 
       const BET_LIMIT_TXT = '10 - 5,000';
+      const INSIDE_LIMIT = {
+        straight: '1 - 142',
+        split: '2 - 294',
+        street: '2 - 454',
+        corner: '3 - 625',
+        line: '4 - 1,000',
+      };
       const MARKET_INFO = {
         odd: { name: '单', odds: '1:1' },
         even: { name: '双', odds: '1:1' },
@@ -2223,11 +2230,125 @@
         voisins: { name: '零旁注', odds: '按注型' },
         'zero-game': { name: '轮上零旁', odds: '按注型' },
       };
+      /* 主键盘边线热区：上边线交接=線注6；格边中缝=分注2；格心=直注1 */
+      const EDGE_BAND = 0.24;
+      function numLeft(n) { return n >= 4 ? n - 3 : null; }
+      function numRight(n) { return n <= 33 ? n + 3 : null; }
+      function numUp(n) { return (n % 3 === 0) ? null : n + 1; }
+      function numDown(n) { return (n % 3 === 1) ? null : n - 1; }
+      function sixLineAtTopJunction(n) {
+        /* 顶行（3/6/…/36）左边线交接：两街共六号，如 36→31..36 */
+        if (n < 3 || n % 3 !== 0) return null;
+        const rightStreet = n - 2; /* 34 for 36 */
+        const leftStreet = rightStreet - 3;
+        if (leftStreet < 1) return null;
+        return [leftStreet, leftStreet + 1, leftStreet + 2, rightStreet, rightStreet + 1, rightStreet + 2];
+      }
+      function insideBetKey(kind, nums) {
+        const sorted = nums.slice().sort((a, b) => a - b);
+        return kind + ':' + sorted.join('-');
+      }
+      function parseInsideBetKey(key) {
+        if (!key || key.indexOf(':') < 0) return null;
+        const i = key.indexOf(':');
+        const kind = key.slice(0, i);
+        const nums = key.slice(i + 1).split('-').map(Number).filter((n) => Number.isFinite(n));
+        if (!nums.length) return null;
+        return { kind, nums };
+      }
+      function resolveInsideBet(n, lx, ly) {
+        if (n === 0) {
+          /* 0：右缘分注 0+邻号；右下/右上角街注或角注简化为分注/街注 */
+          const onR = lx >= 1 - EDGE_BAND;
+          const onT = ly < EDGE_BAND;
+          const onB = ly >= 1 - EDGE_BAND;
+          if (onR && onT) return { kind: 'street', nums: [0, 2, 3], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+          if (onR && onB) return { kind: 'street', nums: [0, 1, 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+          if (onR && ly < 0.38) return { kind: 'split', nums: [0, 3], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          if (onR && ly > 0.62) return { kind: 'split', nums: [0, 1], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          if (onR) return { kind: 'split', nums: [0, 2], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          return { kind: 'straight', nums: [0], name: '直注', odds: '1:35', limit: INSIDE_LIMIT.straight };
+        }
+        const onL = lx < EDGE_BAND;
+        const onR = lx >= 1 - EDGE_BAND;
+        const onT = ly < EDGE_BAND;
+        const onB = ly >= 1 - EDGE_BAND;
+        /* 顶行上边线 + 左边交接 → 線注六号（例：36 顶边交接 = 31-36） */
+        if (onT && onL) {
+          const six = sixLineAtTopJunction(n);
+          if (six) {
+            return { kind: 'line', nums: six, name: '線注', odds: '1:5', limit: INSIDE_LIMIT.line };
+          }
+        }
+        /* 四角：角注四号 */
+        if (onT && onL) {
+          const L = numLeft(n); const U = numUp(n);
+          if (L != null && U != null) {
+            const UL = numUp(L);
+            if (UL != null) return { kind: 'corner', nums: [n, L, U, UL], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
+          }
+        }
+        if (onT && onR) {
+          const R = numRight(n); const U = numUp(n);
+          if (R != null && U != null) {
+            const UR = numUp(R);
+            if (UR != null) return { kind: 'corner', nums: [n, R, U, UR], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
+          }
+        }
+        if (onB && onL) {
+          const L = numLeft(n); const D = numDown(n);
+          if (L != null && D != null) {
+            const DL = numDown(L);
+            if (DL != null) return { kind: 'corner', nums: [n, L, D, DL], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
+          }
+        }
+        if (onB && onR) {
+          const R = numRight(n); const D = numDown(n);
+          if (R != null && D != null) {
+            const DR = numDown(R);
+            if (DR != null) return { kind: 'corner', nums: [n, R, D, DR], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
+          }
+        }
+        /* 边中缝 → 分注两号 */
+        if (onL && !onT && !onB) {
+          const L = numLeft(n);
+          if (L != null) return { kind: 'split', nums: [n, L], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+        }
+        if (onR && !onT && !onB) {
+          const R = numRight(n);
+          if (R != null) return { kind: 'split', nums: [n, R], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+        }
+        if (onT && !onL && !onR) {
+          const U = numUp(n);
+          if (U != null) return { kind: 'split', nums: [n, U], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          /* 顶行顶边中：街注三号 */
+          const base = n - 2;
+          return { kind: 'street', nums: [base, base + 1, base + 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+        }
+        if (onB && !onL && !onR) {
+          const D = numDown(n);
+          if (D != null) return { kind: 'split', nums: [n, D], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          const base = n;
+          return { kind: 'street', nums: [base, base + 1, base + 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+        }
+        return { kind: 'straight', nums: [n], name: '直注', odds: '1:35', limit: INSIDE_LIMIT.straight };
+      }
       function marketInfoFor(key) {
         if (!key) return null;
         if (MARKET_INFO[key]) return Object.assign({ limit: BET_LIMIT_TXT }, MARKET_INFO[key]);
+        const inside = parseInsideBetKey(key);
+        if (inside) {
+          const meta = {
+            straight: { name: '直注', odds: '1:35', limit: INSIDE_LIMIT.straight },
+            split: { name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split },
+            street: { name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street },
+            corner: { name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner },
+            line: { name: '線注', odds: '1:5', limit: INSIDE_LIMIT.line },
+          }[inside.kind];
+          if (meta) return meta;
+        }
         const n = numFromKey(key);
-        if (n != null) return { name: String(n), odds: '35:1', limit: BET_LIMIT_TXT };
+        if (n != null) return { name: '直注', odds: '1:35', limit: INSIDE_LIMIT.straight };
         return { name: key, odds: '—', limit: BET_LIMIT_TXT };
       }
       const betTipEl = document.getElementById('betTip');
@@ -2263,6 +2384,12 @@
         return keys;
       }
       function chipHostFor(key) {
+        const inside = parseInsideBetKey(key);
+        if (inside && inside.nums.length) {
+          const hostN = inside.nums[inside.nums.length - 1];
+          const el = document.querySelector('#nums [data-bet="n' + hostN + '"]');
+          if (el) return el;
+        }
         const inNums = document.querySelector('#nums [data-bet="' + key + '"]');
         if (inNums) return inNums;
         const main = document.querySelector('[data-bet="' + key + '"]:not([data-track])');
@@ -2287,15 +2414,23 @@
       }
       let hoverMarket = null;
       function expandGroup(expanded, key) {
+        const inside = parseInsideBetKey(key);
+        if (inside) {
+          inside.nums.forEach((n) => expanded.add('n' + n));
+          return;
+        }
         const set = GROUP_NUMS[key];
         if (!set) return;
         set.forEach((n) => expanded.add('n' + n));
       }
       function paintLit() {
-        /* 下注亮 + 悬停预览：外注/列/法式连带主键盘与跑道对应号全亮 */
+        /* 下注亮 + 悬停预览：外注/列/法式 + 内注边线多号同亮 */
         const lit = activeBetKeys();
-        const expanded = new Set(lit);
-        lit.forEach((key) => expandGroup(expanded, key));
+        const expanded = new Set();
+        lit.forEach((key) => {
+          expanded.add(key);
+          expandGroup(expanded, key);
+        });
         if (hoverMarket) {
           expanded.add(hoverMarket);
           expandGroup(expanded, hoverMarket);
@@ -2307,32 +2442,66 @@
         paintBetTip();
       }
 
+      function applyInsideHover(zone, ev) {
+        const n = numFromKey(zone.dataset.bet);
+        if (n == null) return null;
+        const rect = zone.getBoundingClientRect();
+        const lx = rect.width ? (ev.clientX - rect.left) / rect.width : 0.5;
+        const ly = rect.height ? (ev.clientY - rect.top) / rect.height : 0.5;
+        const hit = resolveInsideBet(n, Math.max(0, Math.min(1, lx)), Math.max(0, Math.min(1, ly)));
+        const key = insideBetKey(hit.kind, hit.nums);
+        hoverMarket = key;
+        paintLit();
+        return key;
+      }
+
       let lastZoneBetAt = 0, lastZoneBetKey = '';
       document.querySelectorAll('[data-bet]').forEach((zone) => {
         const key = zone.dataset.bet;
         if (key) bets[key] = bets[key] || 0;
+        const isNumCell = !!(key && key[0] === 'n' && numFromKey(key) != null && !zone.dataset.track);
         zone.addEventListener('click', (e) => {
           e.preventDefault(); e.stopPropagation();
           if (!bettingOpen) return;
           if (selected == null) { showToast('请先选择筹码', 1200); return; }
+          let betKey = key;
+          if (isNumCell) {
+            betKey = applyInsideHover(zone, e) || key;
+          }
           const now = Date.now();
-          if (key === lastZoneBetKey && now - lastZoneBetAt < 450) return;
-          lastZoneBetAt = now; lastZoneBetKey = key;
+          if (betKey === lastZoneBetKey && now - lastZoneBetAt < 450) return;
+          lastZoneBetAt = now; lastZoneBetKey = betKey;
           const next = Number(selected);
           if (!next || balance < next) { showToast('积分不足', 1200); return; }
-          pendingMarket = key; pendingStake = next;
+          pendingMarket = betKey; pendingStake = next;
+          if (!Object.prototype.hasOwnProperty.call(bets, betKey)) bets[betKey] = 0;
           paintLit();
           paintStake();
           playClick();
         });
-        zone.addEventListener('pointerenter', () => {
-          hoverMarket = key;
-          paintLit();
-        });
-        zone.addEventListener('pointerleave', () => {
-          if (hoverMarket === key) hoverMarket = null;
-          paintLit();
-        });
+        if (isNumCell) {
+          zone.addEventListener('pointerenter', (ev) => { applyInsideHover(zone, ev); });
+          zone.addEventListener('pointermove', (ev) => { applyInsideHover(zone, ev); });
+          zone.addEventListener('pointerleave', () => {
+            if (hoverMarket && (hoverMarket[0] === 'n' || hoverMarket.indexOf(':') >= 0)) {
+              /* 仅清当前内注悬停 */
+              const n = numFromKey(key);
+              const inside = parseInsideBetKey(hoverMarket);
+              if (inside && n != null && inside.nums.indexOf(n) >= 0) hoverMarket = null;
+              else if (hoverMarket === key) hoverMarket = null;
+            }
+            paintLit();
+          });
+        } else {
+          zone.addEventListener('pointerenter', () => {
+            hoverMarket = key;
+            paintLit();
+          });
+          zone.addEventListener('pointerleave', () => {
+            if (hoverMarket === key) hoverMarket = null;
+            paintLit();
+          });
+        }
       });
       paintLit();
 

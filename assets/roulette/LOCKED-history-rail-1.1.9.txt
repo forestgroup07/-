@@ -1,0 +1,7 @@
+VERSION=1.1.9
+SCOPE=roulette number-key inside-bet edge hotspots (線注6 / 分注2 / 直注1 / 角注 / 街注) + prior long-hole rail + pocket basegrid
+HOLE=assets/roulette/LOCKED-history-rail-hole-1.1.9.png
+WIPE=assets/roulette/LOCKED-history-rail-wipe14-1.1.9.png
+CELLS=assets/roulette/LOCKED-history-rail-1.1.9.json
+HTML=roulette.LOCKED-1.1.9.html
+NOTE=user accepted number-key edge betting; side text squares / history road not in this lock
