@@ -302,7 +302,169 @@
     (function () {
       const GAME_PC = 'game.html?v=1.2.3';
       const GAME_M = 'game-m.html?v=1.2.1';
-      const ROULETTE = 'roulette.html?v=1.1.8"timer">' + t.sec + 's</span>' +
+      const ROULETTE = 'roulette.html?v=1.1.8';
+      function isMobileClient() {
+        try {
+          if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
+          if (window.matchMedia && window.matchMedia('(max-width: 820px)').matches) return true;
+        } catch (_) {}
+        return false;
+      }
+      const GAME = isMobileClient() ? GAME_M : GAME_PC;
+      const START_BAL = 2000;
+      const ACCOUNT_API = 'api/sicbo-account.php';
+      function currentUser() {
+        try {
+          const u = (sessionStorage.getItem('fg_sicbo_user')
+            || localStorage.getItem('fg_sicbo_last_user')
+            || 'asdg').trim();
+          return u || 'asdg';
+        } catch (_) {
+          return 'asdg';
+        }
+      }
+      function balKeyFor(user) {
+        return 'fg_sicbo_bal::' + String(user || 'asdg').trim().toLowerCase();
+      }
+      function loadBal(user) {
+        try {
+          let raw = localStorage.getItem(balKeyFor(user));
+          if (raw == null || raw === '') {
+            raw = localStorage.getItem('fg_sicbo_balance');
+          }
+          if (raw == null || raw === '') return START_BAL;
+          const n = Math.round(Number(raw));
+          return Number.isFinite(n) && n >= 0 ? n : START_BAL;
+        } catch (_) {
+          return START_BAL;
+        }
+      }
+      function saveBalLocal(user, n) {
+        const v = String(Math.max(0, Math.round(Number(n) || 0)));
+        try {
+          localStorage.setItem(balKeyFor(user), v);
+          localStorage.setItem('fg_sicbo_balance', v);
+          localStorage.setItem('fg_sicbo_last_user', user);
+        } catch (_) {}
+      }
+      async function syncBalFromServer(user) {
+        try {
+          const r = await fetch(ACCOUNT_API + '?user=' + encodeURIComponent(user), { cache: 'no-store' });
+          const j = await r.json();
+          if (!j || !j.ok || !j.data) return null;
+          if (j.data.balance == null) return null;
+          const n = Math.max(0, Math.round(Number(j.data.balance)) || 0);
+          saveBalLocal(user, n);
+          return n;
+        } catch (_) {
+          return null;
+        }
+      }
+      try {
+        if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
+          location.replace('index.html?v=v1.0.35');
+          return;
+        }
+        let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
+        if (!u) {
+          u = currentUser();
+          sessionStorage.setItem('fg_sicbo_user', u);
+          localStorage.setItem('fg_sicbo_last_user', u);
+        }
+      } catch (_) { /* ignore */ }
+
+      function paintUserBar() {
+        const u = currentUser();
+        const nameEl = document.getElementById('lobbyUser');
+        const av = document.getElementById('lobbyAvatar');
+        const balEl = document.getElementById('lobbyBal');
+        const refEl = document.getElementById('lobbyRef');
+        if (nameEl) nameEl.textContent = u;
+        if (av) av.textContent = (u.charAt(0) || 'F').toUpperCase();
+        if (balEl) {
+          balEl.textContent = loadBal(u).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        }
+        let code = String(u || '').toUpperCase();
+        try {
+          const raw = sessionStorage.getItem('fg_sicbo_profile');
+          if (raw) {
+            const p = JSON.parse(raw);
+            if (p && p.referralCode) code = String(p.referralCode).toUpperCase();
+            if (p && p.nick && nameEl) nameEl.textContent = p.nick;
+          }
+        } catch (_) {}
+        if (refEl) {
+          refEl.textContent = '推荐码 ' + (code || '—');
+          refEl.onclick = () => {
+            const link = location.origin + '/index.html?v=v1.0.35&ref=' + encodeURIComponent(code);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(link).then(() => alert('已复制邀请链接')).catch(() => prompt('邀请链接', link));
+            } else {
+              prompt('邀请链接', link);
+            }
+          };
+        }
+      }
+      paintUserBar();
+      (async () => {
+        const u = currentUser();
+        const n = await syncBalFromServer(u);
+        if (n != null) paintUserBar();
+      })();
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) return;
+        paintUserBar();
+        syncBalFromServer(currentUser()).then((n) => {
+          if (n != null) paintUserBar();
+        });
+      });
+
+      const tables = [
+        { id: 'S601', name: '骰寶 S601', kind: 'sicbo', featured: true, sec: 22 },
+        { id: 'S602', name: '骰寶 S602', kind: 'sicbo', featured: true, sec: 18 },
+        { id: 'R501', name: '輪盤 R501', kind: 'roulette', featured: true, sec: 20 },
+        { id: 'F701', name: '魚蝦蟹 F701', kind: 'other', sec: 15 },
+        { id: 'BB701', name: '牛牛 BB701', kind: 'other', sec: 16 },
+        { id: 'W701', name: '三公 W701', kind: 'other', sec: 12 },
+        { id: 'D801', name: '龍虎 D801', kind: 'other', sec: 14 },
+        { id: 'B601', name: '百家樂 B601', kind: 'baccarat', sec: 20 },
+        { id: 'B501', name: '百家樂 B501', kind: 'baccarat', sec: 11 },
+      ];
+
+      const grid = document.getElementById('grid');
+      let cat = 'hot';
+
+      function enterSicbo() {
+        location.href = GAME;
+      }
+      function enterRoulette() {
+        location.href = ROULETTE;
+      }
+
+      function paint() {
+        const list = tables.filter((t) => {
+          if (cat === 'hot') return t.featured || t.kind === 'sicbo' || t.kind === 'roulette';
+          if (cat === 'all') return true;
+          if (cat === 'sicbo') return t.kind === 'sicbo';
+          if (cat === 'baccarat') return t.kind === 'baccarat';
+          if (cat === 'wheel') return t.kind === 'roulette';
+          return t.kind === 'other' || t.kind === cat;
+        });
+        grid.innerHTML = '';
+        list.forEach((t) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'card'
+            + (t.featured ? ' featured' : '')
+            + (t.kind === 'roulette' ? ' roulette' : '');
+          const sub = t.kind === 'sicbo'
+            ? '點擊進入骰寶桌'
+            : (t.kind === 'roulette' ? '點擊進入輪盤桌' : '演示桌 · 暫未開放');
+          btn.innerHTML =
+            '<span class="timer">' + t.sec + 's</span>' +
             '<div class="thumb"></div>' +
             '<div class="meta"><div class="name">' + t.name + '</div>' +
             '<div class="sub">' + sub + '</div></div>';
