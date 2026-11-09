@@ -78,8 +78,10 @@
       position: absolute;
       left: 26.0946%;
       top: -3.0654%;
+      /* 只锁宽度 + 正方比，避免舞台比例微调把外圈拉成椭圆 */
       width: 28.9842%;
-      height: 45.0954%;
+      height: auto;
+      aspect-ratio: 1 / 1;
       z-index: 25;
       pointer-events: none;
     }
@@ -97,41 +99,97 @@
       /* 正对观众：不倾斜 */
       transform: none;
       border-radius: 50%;
+      overflow: hidden;
       z-index: 1;
       filter: drop-shadow(0 10px 16px rgba(0,0,0,.4));
     }
-    .wheel-3d-disc {
-      width: 100%;
-      height: 100%;
+    /*
+      轮盘底格 = 主键盘同款技术：
+      1) 底图烤好的盘面就是底格；
+      2) 四层同心圆 + 37 口袋热区按百分比绝对定位，严丝合缝；
+      3) 弧格用「中心 + 宽高 + rotate」，与滚道直格同一套。
+    */
+    .wheel-spin {
+      position: absolute;
+      inset: 0;
       border-radius: 50%;
-      object-fit: contain;
-      display: block;
       transform: rotate(0deg);
+      transform-origin: 50% 50%;
       will-change: transform;
-      user-select: none;
-      -webkit-user-drag: none;
     }
-    .wheel-3d-disc.is-idle {
+    .wheel-spin.is-idle {
       animation: wheel-idle-cw 22s linear infinite;
     }
     @keyframes wheel-idle-cw {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
+    .wheel-3d-disc {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      z-index: 3;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+    /* 四层等距同心圆底格：半径 25%/50%/75%/100% → 宽高同百分比（与容器直径比） */
+    .wheel-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border-radius: 50%;
+      box-sizing: border-box;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 2;
+      border: 0 solid transparent;
+    }
+    .wheel-ring-hub { width: 25%; height: 25%; }      /* 绿白圈 */
+    .wheel-ring-pockets { width: 50%; height: 50%; }  /* 红黑格外沿 */
+    .wheel-ring-nums { width: 75%; height: 75%; }     /* 数字圈外沿 */
+    .wheel-ring-outer { width: 100%; height: 100%; }  /* 外围大圈 */
+    #wheelPocketHits {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+    #wheelPocketHits .hit {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      pointer-events: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: transparent;
+      font-size: 0;
+      line-height: 0;
+      overflow: hidden;
+      /* 与主键盘/滚道直格同款圆角观感 */
+      border-radius: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 9 / var(--sw));
+      transform-origin: center center;
+      z-index: 1;
+    }
     .wheel-3d-shine {
       position: absolute;
       inset: 0;
       border-radius: 50%;
       pointer-events: none;
-      z-index: 2;
-      background: linear-gradient(145deg, rgba(255,255,255,.18) 0%, transparent 38%, transparent 62%, rgba(0,0,0,.28) 100%);
+      z-index: 5;
+      background: linear-gradient(145deg, rgba(255,255,255,.16) 0%, transparent 38%, transparent 62%, rgba(0,0,0,.26) 100%);
       mix-blend-mode: soft-light;
     }
-    /* 小球：数字外圈逆时针快跑 */
     .wheel-ball-layer {
       position: absolute;
       inset: 0;
-      z-index: 3;
+      z-index: 6;
       pointer-events: none;
       opacity: 0;
       transition: opacity .2s ease;
@@ -147,10 +205,10 @@
     .wheel-ball {
       position: absolute;
       left: 50%;
-      /* 数字外圈 */
-      top: 7.8%;
-      width: 3.8%;
-      height: 3.8%;
+      /* 贴数字圈外沿（约 r75% → top 12.5%） */
+      top: 12.5%;
+      width: 3.6%;
+      height: 3.6%;
       min-width: 9px;
       min-height: 9px;
       transform: translate(-50%, -50%);
@@ -1115,7 +1173,15 @@
       <div class="wheel-3d" id="wheel3d" aria-hidden="true">
         <div class="wheel-3d-cover"></div>
         <div class="wheel-3d-bowl" id="wheelBowl">
-          <img class="wheel-3d-disc" id="wheelDisc" src="assets/roulette/wheel-disc.png?v=1.1.3" alt="" draggable="false" width="666" height="666" />
+          <div class="wheel-spin" id="wheelSpin">
+            <img class="wheel-3d-disc" id="wheelDisc" src="assets/roulette/wheel-disc.png?v=1.15" alt="" draggable="false" width="666" height="666" />
+            <!-- 四层等距同心圆底格：主键盘同款绝对定位，贴底图 -->
+            <div class="wheel-ring wheel-ring-hub" id="wheelRingHub" aria-hidden="true"></div>
+            <div class="wheel-ring wheel-ring-pockets" id="wheelRingPockets" aria-hidden="true"></div>
+            <div class="wheel-ring wheel-ring-nums" id="wheelRingNums" aria-hidden="true"></div>
+            <div class="wheel-ring wheel-ring-outer" id="wheelRingOuter" aria-hidden="true"></div>
+            <div id="wheelPocketHits" aria-hidden="true"></div>
+          </div>
           <div class="wheel-ball-layer" id="wheelBallLayer" aria-hidden="true">
             <div class="wheel-ball-arm" id="wheelBallArm">
               <div class="wheel-ball" id="wheelBall"></div>
@@ -1325,7 +1391,7 @@
 
   <script>
     (async function () {
-      const V = '1.1.3';
+      const V = '1.15';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -1368,6 +1434,7 @@
       let pendingStake = 0;
       let bettingOpen = true;
       let soundMuted = false;
+      try { soundMuted = localStorage.getItem('fg_roulette_sound_mute') === '1'; } catch (_) {}
       let busy = false;
       let serverReady = false;
       let serverSyncTimer = 0;
@@ -2210,20 +2277,63 @@
       document.addEventListener('webkitfullscreenchange', paintFsUi);
       paintFsUi();
 
-      /* 声效静音 */
+      /* 喇叭/声效：关闭后立刻掐口播（含停止下注），绝不继续播 */
+      const soundWrap = document.getElementById('soundWrap');
       const soundHot = document.getElementById('soundHot');
       const soundMute = document.getElementById('soundMute');
-      function paintSoundMuteUi() {
-        soundMute.classList.toggle('show', soundMuted);
-        soundHot.setAttribute('aria-pressed', soundMuted ? 'true' : 'false');
-        soundHot.setAttribute('aria-label', soundMuted ? '取消静音' : '声效');
+      const VOICE_IDS = ['voWelcome', 'voStartBet', 'voRoundOpen', 'voStopBet'];
+      function stopAllSfx() {
+        try {
+          sfxClick.pause();
+          sfxClick.currentTime = 0;
+        } catch (_) {}
+        VOICE_IDS.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          try {
+            el.pause();
+            el.currentTime = 0;
+            el.muted = true;
+            el.volume = 0;
+          } catch (_) {}
+        });
+        try {
+          if (typeof Voice !== 'undefined' && Voice && Voice._chain) {
+            Voice._chain = Promise.resolve();
+          }
+        } catch (_) {}
       }
-      soundHot.addEventListener('click', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        soundMuted = !soundMuted;
+      function paintSoundMuteUi() {
+        if (soundMute) soundMute.classList.toggle('show', soundMuted);
+        if (soundHot) {
+          soundHot.setAttribute('aria-pressed', soundMuted ? 'true' : 'false');
+          soundHot.setAttribute('aria-label', soundMuted ? '取消静音' : '声效');
+        }
+      }
+      function setSoundMuted(on) {
+        soundMuted = !!on;
+        try { localStorage.setItem('fg_roulette_sound_mute', soundMuted ? '1' : '0'); } catch (_) {}
+        if (soundMuted) {
+          stopAllSfx();
+        } else {
+          VOICE_IDS.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            try { el.muted = false; el.volume = 1; } catch (_) {}
+          });
+        }
         paintSoundMuteUi();
-      });
+      }
+      function onSoundHotClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        setSoundMuted(!soundMuted);
+      }
+      /* 只绑外层，避免按钮+父级双击导致开了又关 */
+      if (soundWrap) soundWrap.addEventListener('click', onSoundHotClick);
+      else if (soundHot) soundHot.addEventListener('click', onSoundHotClick);
       paintSoundMuteUi();
+      if (soundMuted) stopAllSfx();
 
       /* 音乐：骰宝同款歌单/面板 */
       const BGM_TRACKS = [
@@ -2356,9 +2466,25 @@
         applyBgmVolume();
         paintMusicMuteUi();
         if (musicMuted) {
-          try { bgmEl.pause(); } catch (_) {}
+          bgmWantPlay = false;
+          soundMuted = true;
+          stopAllSfx();
+          paintSoundMuteUi();
+          try {
+            bgmEl.pause();
+            bgmEl.currentTime = 0;
+            bgmEl.volume = 0;
+          } catch (_) {}
           setMusicPanel(false);
-        } else if (bgmWantPlay) {
+        } else {
+          soundMuted = false;
+          VOICE_IDS.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            try { el.muted = false; el.volume = 1; } catch (_) {}
+          });
+          paintSoundMuteUi();
+          bgmWantPlay = true;
           playBgmAt(musicTrackIdx, true);
         }
       }
@@ -2477,13 +2603,23 @@
       const rbSize = document.getElementById('rbSize');
       const rbRange = document.getElementById('rbRange');
       const rbDozen = document.getElementById('rbDozen');
-      const wheelDisc = document.getElementById('wheelDisc');
+      const wheelSpin = document.getElementById('wheelSpin');
+      const wheelPocketHits = document.getElementById('wheelPocketHits');
       const wheelBallLayer = document.getElementById('wheelBallLayer');
       const wheelBallArm = document.getElementById('wheelBallArm');
       /* 欧式轮盘顺时针口袋顺序（从 0 起）；CSS rotate 正方向=顺时针 */
       const EU_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
       const SLOT = 360 / 37;
       const RED_SET = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+      /*
+        四层等距底格半径（相对盘面半径）：
+        绿白 25% / 红黑外沿 50% / 数字外沿 75% / 外围 100%
+        口袋热区落在红黑–数字之间（约 r=62.5%），技术同滚道直格。
+      */
+      /* 口袋中心距盘心：62.5%×半径 = 31.25% 盒宽（主键盘同款 % 定位） */
+      const WHEEL_POCKET_DIST = 31.25;
+      const WHEEL_POCKET_W = 4.2;
+      const WHEEL_POCKET_H = 11.5;
       let wheelAngle = 0;
       let ballAngle = 0;
       let roundGen = 0;
@@ -2524,6 +2660,10 @@
         },
         unlock() {
           voiceUnlocked = true;
+          if (this.isOff()) {
+            stopAllSfx();
+            return;
+          }
           Object.keys(this.players).forEach((k) => {
             const el = this.players[k];
             if (!el) return;
@@ -2537,9 +2677,12 @@
             } catch (_) {}
           });
         },
+        isOff() {
+          return !!(soundMuted || musicMuted);
+        },
         playEl(el) {
           return new Promise((resolve) => {
-            if (!el || soundMuted) { resolve(false); return; }
+            if (!el || this.isOff()) { resolve(false); return; }
             let done = false;
             const finish = (ok) => {
               if (done) return;
@@ -2550,13 +2693,23 @@
             try {
               el.pause();
               el.currentTime = 0;
+              if (this.isOff()) { finish(false); return; }
               el.muted = false;
               el.volume = 1;
               el.onended = () => finish(true);
               el.onerror = () => finish(false);
               const p = el.play();
               if (p && typeof p.catch === 'function') p.catch(() => finish(false));
-              setTimeout(() => finish(false), 8000);
+              /* 播放中若被静音，立刻掐掉 */
+              const watch = setInterval(() => {
+                if (done) { clearInterval(watch); return; }
+                if (this.isOff()) {
+                  clearInterval(watch);
+                  try { el.pause(); el.currentTime = 0; el.muted = true; el.volume = 0; } catch (_) {}
+                  finish(false);
+                }
+              }, 120);
+              setTimeout(() => { clearInterval(watch); finish(false); }, 8000);
             } catch (_) {
               finish(false);
             }
@@ -2564,7 +2717,7 @@
         },
         speak(text) {
           const run = async () => {
-            if (soundMuted) return false;
+            if (this.isOff()) return false;
             const key = this.clipFor[text];
             const el = key && this.players[key];
             if (!el) return false;
@@ -2573,6 +2726,7 @@
               if (!other || other === el) return;
               try { other.pause(); other.currentTime = 0; } catch (_) {}
             });
+            if (this.isOff()) return false;
             return await this.playEl(el);
           };
           const prev = this._chain;
@@ -2619,41 +2773,66 @@
 
       function pocketAngle(n) {
         const i = EU_ORDER.indexOf(n);
-        return (i < 0 ? 0 : i) * SLOT;
+        /* 口袋中心角：与热区 rotate 同一套（格中心） */
+        return (i < 0 ? 0 : i) * SLOT + SLOT / 2;
       }
 
+      /**
+       * 主键盘/滚道同款：中心绝对定位 + 宽高% + translate + rotate，贴底图口袋。
+       * 四层圆圈底格只做等距参照；号码以底图为准，热区严丝合缝。
+       */
+      function buildWheelPocketHits() {
+        if (!wheelPocketHits) return;
+        wheelPocketHits.innerHTML = '';
+        EU_ORDER.forEach((n, i) => {
+          const rot = i * SLOT + SLOT / 2;
+          const rad = rot * Math.PI / 180;
+          const b = document.createElement('div');
+          b.className = 'hit';
+          b.dataset.wheelPocket = String(n);
+          b.setAttribute('aria-label', '轮盘' + n);
+          /* 同滚道直格：left/top 百分比贴底图 + translate 居中 + rotate 贴径向 */
+          b.style.left = (50 + WHEEL_POCKET_DIST * Math.cos(rad)) + '%';
+          b.style.top = (50 + WHEEL_POCKET_DIST * Math.sin(rad)) + '%';
+          b.style.width = WHEEL_POCKET_W + '%';
+          b.style.height = WHEEL_POCKET_H + '%';
+          b.style.transform = 'translate(-50%, -50%) rotate(' + (rot + 90) + 'deg)';
+          wheelPocketHits.appendChild(b);
+        });
+      }
+      buildWheelPocketHits();
+
       function startIdleSpin() {
-        if (!wheelDisc) return;
-        wheelDisc.style.transition = 'none';
+        if (!wheelSpin) return;
+        wheelSpin.style.transition = 'none';
         idleBaseAngle = normDeg(wheelAngle);
-        wheelDisc.style.transform = 'rotate(' + idleBaseAngle + 'deg)';
+        wheelSpin.style.transform = 'rotate(' + idleBaseAngle + 'deg)';
         idleStartedAt = performance.now();
-        /* 用 animation 匀速顺时针；结束后用 matrix 读当前角 */
-        wheelDisc.style.animation = 'none';
-        void wheelDisc.offsetWidth;
-        wheelDisc.style.animation = 'wheel-idle-cw 22s linear infinite';
-        wheelDisc.style.animationDelay = (-(idleBaseAngle / 360) * 22) + 's';
-        wheelDisc.classList.add('is-idle');
+        wheelSpin.style.animation = 'none';
+        void wheelSpin.offsetWidth;
+        wheelSpin.style.animation = 'wheel-idle-cw 22s linear infinite';
+        wheelSpin.style.animationDelay = (-(idleBaseAngle / 360) * 22) + 's';
+        wheelSpin.classList.add('is-idle');
       }
 
       function stopIdleSpinCapture() {
-        if (!wheelDisc) return normDeg(wheelAngle);
-        const ang = normDeg(readCssRotate(wheelDisc));
-        wheelDisc.classList.remove('is-idle');
-        wheelDisc.style.animation = 'none';
-        wheelDisc.style.transition = 'none';
+        if (!wheelSpin) return normDeg(wheelAngle);
+        const ang = normDeg(readCssRotate(wheelSpin));
+        wheelSpin.classList.remove('is-idle');
+        wheelSpin.style.animation = 'none';
+        wheelSpin.style.transition = 'none';
         wheelAngle = ang;
-        wheelDisc.style.transform = 'rotate(' + wheelAngle + 'deg)';
+        wheelSpin.style.transform = 'rotate(' + wheelAngle + 'deg)';
         return wheelAngle;
       }
 
       function setWheelAngle(deg, ms) {
-        if (!wheelDisc) return;
+        if (!wheelSpin) return;
         wheelAngle = deg;
-        wheelDisc.style.transition = ms > 0
+        wheelSpin.style.transition = ms > 0
           ? 'transform ' + ms + 'ms cubic-bezier(.08,.72,.12,1)'
           : 'none';
-        wheelDisc.style.transform = 'rotate(' + wheelAngle + 'deg)';
+        wheelSpin.style.transform = 'rotate(' + wheelAngle + 'deg)';
       }
 
       function setBallAngle(deg, ms) {
@@ -2744,13 +2923,13 @@
       }
 
       async function playWelcomeOnce() {
-        if (welcomePlayed || soundMuted) return;
+        if (welcomePlayed || Voice.isOff()) return;
         welcomePlayed = true;
         await Voice.speak('欢迎进入轮盘游戏');
       }
 
       async function kickRoundOpenVoice() {
-        if (soundMuted) return;
+        if (Voice.isOff()) return;
         await Voice.speak('已开局请下注');
       }
 
@@ -2782,7 +2961,8 @@
           if (gen !== roundGen) return;
           setTimerDisplay(0);
           showStopBet(true);
-          await Voice.speak('停止下注');
+          if (!Voice.isOff()) await Voice.speak('停止下注');
+          else stopAllSfx();
           if (gen !== roundGen) return;
           await sleep(400);
           showStopBet(false);
