@@ -1,0 +1,7 @@
+VERSION=1.1.8
+SCOPE=roulette history long-hole rail (black deep groove covering under-strip) + pocket basegrid + result board
+HOLE=assets/roulette/LOCKED-history-rail-hole-1.1.8.png
+WIPE=assets/roulette/LOCKED-history-rail-wipe14-1.1.8.png
+CELLS=assets/roulette/LOCKED-history-rail-1.1.8.json
+HTML=roulette.LOCKED-1.1.8.html
+NOTE=from 1.1.7w: black deep groove widened/taller to cover dark-green under-strip; no green strip fill
