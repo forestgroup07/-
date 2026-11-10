@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.3.4" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.3.6" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.30" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=1.3.4" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=1.3.6" type="image/webp" />
   <style>
     :root {
       --stage-w: 2188;
@@ -1507,7 +1507,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/sum-atlas.webp?v=1.3.4");
+      background-image: url("assets/pair-dice/sum-atlas.webp?v=1.3.6");
       background-repeat: no-repeat;
       background-size: 1400% 100%;
     }
@@ -3056,7 +3056,7 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.3.4" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.3.6" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <!-- 框外两侧：欧洲风静图 + CSS 微晃 -->
@@ -3335,15 +3335,15 @@
         <div class="music-track-list" id="musicTrackList"></div>
       </div>
       <button class="btn-act" id="btnRepeat" type="button" aria-label="重复下注">
-        <img class="btn-act-lit" src="assets/act-btn-faces/repeat.png?v=1.3.4" alt="" draggable="false" decoding="async" aria-hidden="true" />
+        <img class="btn-act-lit" src="assets/act-btn-faces/repeat.png?v=1.3.6" alt="" draggable="false" decoding="async" aria-hidden="true" />
       </button>
       <button class="btn-act" id="btnConfirm" type="button" aria-label="确定">
-        <img class="btn-act-lit" src="assets/act-btn-faces/confirm.png?v=1.3.4" alt="" draggable="false" decoding="async" aria-hidden="true" />
+        <img class="btn-act-lit" src="assets/act-btn-faces/confirm.png?v=1.3.6" alt="" draggable="false" decoding="async" aria-hidden="true" />
       </button>
       <button class="btn-act" id="btnCancel" type="button" aria-label="取消">
-        <img class="btn-act-lit" src="assets/act-btn-faces/cancel.png?v=1.3.4" alt="" draggable="false" decoding="async" aria-hidden="true" />
+        <img class="btn-act-lit" src="assets/act-btn-faces/cancel.png?v=1.3.6" alt="" draggable="false" decoding="async" aria-hidden="true" />
       </button>
-      <img id="betKbdDim" src="assets/sicbo-bet-kbd-dim-mask.png?v=1.3.4" alt="" draggable="false" decoding="async" aria-hidden="true" width="2188" height="1393" />
+      <img id="betKbdDim" src="assets/sicbo-bet-kbd-dim-mask.png?v=1.3.6" alt="" draggable="false" decoding="async" aria-hidden="true" width="2188" height="1393" />
       <div class="toast-msg" id="toastMsg">下注成功</div>
       <div class="board-outcome" id="boardOutcome" aria-live="polite"></div>
       <div class="records-overlay" id="recordsOverlay" aria-hidden="true">
@@ -3852,7 +3852,7 @@
   <script src="js/fg-wallet.js?v=1.0.1"></script>
   <script>
     (async function () {
-      const V = '1.3.4';
+      const V = '1.3.6';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -4015,8 +4015,33 @@
       const recordsOverlay = document.getElementById('recordsOverlay');
       const recordsClose = document.getElementById('recordsClose');
       let recPage = 1;
-      const REC_PAGE_SIZE = 10;
+      let recPageSize = 10;
+      let recFitPass = 0;
       let recFilter = { round: '', order: '', from: 0, to: 0 };
+      /** 按表格可视高度铺满一页（不再死写 10 条） */
+      function measureRecPageSize() {
+        const wrap = document.querySelector('.records-table-wrap');
+        const table = document.querySelector('.records-table');
+        if (!wrap) return Math.max(8, recPageSize || 10);
+        const wrapH = wrap.clientHeight || 0;
+        if (wrapH < 40) return Math.max(8, recPageSize || 10);
+        let headH = 0;
+        const headRow = table && table.querySelector('thead tr');
+        if (headRow) headH = headRow.getBoundingClientRect().height || 0;
+        let rowH = 0;
+        const sample = table && table.querySelector('tbody tr:not(.records-empty)');
+        if (sample) rowH = sample.getBoundingClientRect().height || 0;
+        if (rowH < 8) {
+          const fs = parseFloat(getComputedStyle(table || wrap).fontSize) || 14;
+          rowH = fs * 2.55;
+        }
+        if (headH < 8) {
+          const fs = parseFloat(getComputedStyle(table || wrap).fontSize) || 14;
+          headH = fs * 2.7;
+        }
+        const n = Math.floor(Math.max(0, wrapH - headH - 2) / rowH);
+        return Math.max(8, n);
+      }
       function fmtRecTime(ts) {
         const d = new Date(ts);
         const p = (n) => String(n).padStart(2, '0');
@@ -4107,11 +4132,13 @@
         const nextBtn = document.getElementById('recNext');
         if (!body) return;
         const all = filteredBetLog();
-        const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
+        const nextSize = measureRecPageSize();
+        if (nextSize !== recPageSize) recPageSize = nextSize;
+        const pages = Math.max(1, Math.ceil(all.length / recPageSize) || 1);
         if (recPage > pages) recPage = pages;
         if (recPage < 1) recPage = 1;
-        const start = (recPage - 1) * REC_PAGE_SIZE;
-        const pageRows = all.slice(start, start + REC_PAGE_SIZE);
+        const start = (recPage - 1) * recPageSize;
+        const pageRows = all.slice(start, start + recPageSize);
         const filtered = !!(recFilter.round || recFilter.order || recFilter.from || recFilter.to);
         if (!pageRows.length) {
           const emptyText = filtered ? '該時段沒有符合條件的記錄' : '暫無投注記錄';
@@ -4160,6 +4187,19 @@
         if (pageLabel) pageLabel.textContent = `${recPage}/${pages}`;
         if (prevBtn) prevBtn.disabled = recPage <= 1;
         if (nextBtn) nextBtn.disabled = recPage >= pages;
+        /* 首屏估算后再按真实行高校正一次，避免死循环 */
+        if (recFitPass < 1) {
+          recFitPass = 1;
+          requestAnimationFrame(() => {
+            const fitted = measureRecPageSize();
+            if (fitted !== recPageSize) {
+              recPageSize = fitted;
+              paintRecords();
+            }
+          });
+        } else {
+          recFitPass = 0;
+        }
       }
       function openRecords() {
         if (recordTip) recordTip.classList.remove('show');
@@ -4169,9 +4209,14 @@
         syncRecFilterFromInputs();
         setRecQueryMsg('');
         recPage = 1;
-        paintRecords();
+        recFitPass = 0;
         recordsOverlay.classList.add('show');
         recordsOverlay.setAttribute('aria-hidden', 'false');
+        /* 先显示再量高度，才能铺满 */
+        requestAnimationFrame(() => {
+          recPageSize = measureRecPageSize();
+          paintRecords();
+        });
       }
       function closeRecords() {
         if (!recordsOverlay) return;
@@ -4273,8 +4318,16 @@
       });
       const recPrev = document.getElementById('recPrev');
       const recNext = document.getElementById('recNext');
-      if (recPrev) recPrev.addEventListener('click', () => { recPage -= 1; paintRecords(); });
-      if (recNext) recNext.addEventListener('click', () => { recPage += 1; paintRecords(); });
+      if (recPrev) recPrev.addEventListener('click', () => { recFitPass = 0; recPage -= 1; paintRecords(); });
+      if (recNext) recNext.addEventListener('click', () => { recFitPass = 0; recPage += 1; paintRecords(); });
+      window.addEventListener('resize', () => {
+        if (!recordsOverlay || !recordsOverlay.classList.contains('show')) return;
+        const fitted = measureRecPageSize();
+        if (fitted === recPageSize) return;
+        recPageSize = fitted;
+        recFitPass = 0;
+        paintRecords();
+      });
       if (helpHot && helpTip && helpWrap) {
         const showHelpTip = (on) => {
           helpTip.classList.toggle('show', on);
