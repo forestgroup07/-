@@ -1104,6 +1104,7 @@
       overflow: hidden;
     }
     #bet-big { --glyph: #ff8b7a; }
+    #bet-small { --glyph: #7eb8ff; } /* 与「单」同蓝，点选不变红 */
     #bet-odd { --glyph: #7eb8ff; }
     #bet-even { --glyph: #ff9aab; }
     #bet-wrap { --glyph: #9dffb0; }
@@ -1128,8 +1129,8 @@
       background: rgba(232, 196, 48, 0.96);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 0 rgba(120,80,0,.22);
     }
-    .bet-zone.is-key-on:not(#bet-odd),
-    .bet-zone.has-bet:not(#bet-odd) {
+    .bet-zone.is-key-on:not(#bet-odd):not(#bet-small),
+    .bet-zone.has-bet:not(#bet-odd):not(#bet-small) {
       --glyph: #dc2828;
     }
     /* 确定成功：全体键淡入淡出浅绿（约 2.55s） */
@@ -1356,8 +1357,6 @@
     .bet-zone.bet-pair#bet-d6 .bet-pair-art { background-position: 100% 0; }
     .bet-zone.bet-pair .bet-chip {
       top: 50%;
-      width: 46%;
-      max-width: 40px;
     }
     .bet-zone.bet-pair .bet-stake {
       top: 50%;
@@ -1421,37 +1420,23 @@
     .bet-zone.bet-sum#bet-s16 .bet-sum-art { background-position: 92.31% 0; }
     .bet-zone.bet-sum#bet-s17 .bet-sum-art { background-position: 100% 0; }
 
+    /* 盘上落注筹码：按舞台固定尺寸，不跟格子宽窄变大变小 */
     .bet-zone .bet-chip {
       position: absolute;
       left: 50%;
       top: 54%;
-      width: 26%;
-      max-width: 52px;
+      width: calc(min(100vw, 100vh * 2188 / 1393) * 52 / 2188);
+      height: auto;
+      max-width: none;
       transform: translate(-50%, -50%);
       pointer-events: none;
       z-index: 2;
       filter: drop-shadow(0 2px 3px rgba(0,0,0,.55));
     }
     /* 总注额盖在筹码正中，避免只看见筹码面额（如 10） */
+    /* 注额黑底数字已取消：点选/已注只显示筹码图 */
     .bet-zone .bet-stake {
-      position: absolute;
-      left: 50%;
-      top: 54%;
-      bottom: auto;
-      transform: translate(-50%, -50%);
-      z-index: 4;
-      min-width: 1.8em;
-      padding: 0.12em 0.42em;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.78);
-      color: #ffe9a8;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 26 / 2188);
-      font-weight: 800;
-      line-height: 1.15;
-      pointer-events: none;
-      text-shadow: 0 1px 2px rgba(0,0,0,.85);
-      white-space: nowrap;
+      display: none !important;
     }
     /* 兜底%：GRID 内缩键面；JS 精修 */
     #bet-small { left: 32.82%; top: 51.69%; width: 17.09%; height: 10.34%; }
@@ -2195,13 +2180,13 @@
       right: 0.8%;
       top: 0.8%;
       z-index: 2;
-      width: 28px;
-      height: 28px;
+      width: 36px;
+      height: 36px;
       border: 0;
       border-radius: 50%;
       background: rgba(80, 80, 80, 0.9);
       color: #f5f5f5;
-      font-size: 18px;
+      font-size: 24px;
       line-height: 1;
       cursor: pointer;
     }
@@ -2212,12 +2197,12 @@
       padding-right: 2.5em;
     }
     .records-tab {
-      padding: 0.35em 0.9em;
+      padding: 0.45em 1.05em;
       border-radius: 0.3em;
       border: 1px solid #555;
       background: #2a2a2a;
       color: #cfcfcf;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 18 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 26 / 2188);
       font-weight: 600;
       cursor: default;
     }
@@ -2230,12 +2215,12 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.45em 0.7em;
+      gap: 0.5em 0.8em;
       margin: 0 0 0.7em;
-      padding: 0.55em 0.7em;
+      padding: 0.65em 0.85em;
       background: #1a1a1a;
       border-radius: 0.25em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 16 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 24 / 2188);
     }
     .records-filters label {
       display: inline-flex;
@@ -2247,12 +2232,12 @@
     .records-filters input {
       width: 8.5em;
       max-width: 18vw;
-      height: 1.9em;
+      height: 2.05em;
       border: 1px solid #666;
       border-radius: 0.2em;
       background: #fff;
       color: #222;
-      padding: 0 0.4em;
+      padding: 0 0.45em;
       font-size: 1em;
       box-sizing: border-box;
     }
@@ -2263,7 +2248,7 @@
     }
     .records-query {
       margin-left: 0.35em;
-      padding: 0.35em 1.1em;
+      padding: 0.4em 1.2em;
       border: 0;
       border-radius: 0.25em;
       background: #d7c29a;
@@ -2286,7 +2271,7 @@
       width: 100%;
       margin: 0.15em 0 0;
       min-height: 1.2em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 16 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
       color: #f0c070;
       letter-spacing: 0.04em;
       pointer-events: none;
@@ -2303,7 +2288,7 @@
     .records-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 14 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
       white-space: nowrap;
     }
     .records-table th {
@@ -2312,13 +2297,13 @@
       background: #d7c29a;
       color: #2a1c0c;
       font-weight: 700;
-      padding: 0.55em 0.5em;
+      padding: 0.65em 0.55em;
       border: 1px solid #b79a6a;
       text-align: center;
       z-index: 1;
     }
     .records-table td {
-      padding: 0.5em 0.45em;
+      padding: 0.6em 0.5em;
       border: 1px solid #333;
       text-align: center;
       color: #ddd;
@@ -2328,9 +2313,12 @@
     .records-table .pnl-win { color: #3dce6a; font-weight: 700; }
     .records-table .pnl-lose { color: #e74c3c; font-weight: 700; }
     .records-table .st-ok { color: #3dce6a; }
+    .records-table .st-pending { color: #f0c070; }
     .records-empty td {
       padding: 2.5em 1em;
       color: #888;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 36 / 2188);
+      letter-spacing: 0.04em;
     }
     .records-foot {
       margin-top: 0.55em;
@@ -2338,7 +2326,7 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 0.6em 1.2em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 15 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 24 / 2188);
       color: #cfcfcf;
     }
     .records-sum span { margin-right: 0.9em; }
@@ -2350,13 +2338,14 @@
       gap: 0.35em;
     }
     .records-pager button {
-      min-width: 1.8em;
-      height: 1.8em;
+      min-width: 2em;
+      height: 2em;
       border: 1px solid #555;
       border-radius: 0.2em;
       background: #2a2a2a;
       color: #eee;
       cursor: pointer;
+      font-size: 1em;
     }
     .records-pager button:disabled {
       opacity: 0.4;
@@ -2398,7 +2387,7 @@
       border-radius: 50%;
       background: rgba(80, 50, 20, 0.85);
       color: #f5ecd8;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 28 / 2188);
       line-height: 1;
       cursor: pointer;
     }
@@ -2418,43 +2407,43 @@
       border: 1px solid #8a6a3a;
       background: #5c3d1f;
       color: #fff;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 24 / 2188);
       font-weight: 600;
       letter-spacing: 0.02em;
       white-space: nowrap;
     }
     .rules-title {
       margin: 0 0 0.85em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 42 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 54 / 2188);
       font-weight: 800;
       color: #3d2a14;
       letter-spacing: 0.02em;
     }
     .rules-h {
       margin: 1.05em 0 0.45em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 28 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 36 / 2188);
       font-weight: 800;
       color: #3d2a14;
     }
     .rules-sub {
       margin: 0.85em 0 0.35em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 30 / 2188);
       font-weight: 700;
       color: #3d2a14;
       max-width: 92%;
     }
     .rules-p {
       margin: 0 0 0.55em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
-      line-height: 1.65;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 30 / 2188);
+      line-height: 1.7;
       color: #3a2a18;
       max-width: 92%;
     }
     .rules-list {
       margin: 0.2em 0 0.6em;
       padding-left: 1.35em;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
-      line-height: 1.7;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 30 / 2188);
+      line-height: 1.75;
       color: #3a2a18;
       max-width: 92%;
       list-style: disc;
@@ -2465,8 +2454,8 @@
     }
     .rules-list li { margin: 0.15em 0; }
     .rules-table-wrap {
-      width: 92%;
-      max-width: 920px;
+      width: 96%;
+      max-width: 1100px;
       margin: 0.35em 0 1em;
       overflow: auto;
       border-radius: 0.25em;
@@ -2476,7 +2465,7 @@
     .rules-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 28 / 2188);
       color: #3a2a18;
     }
     .rules-table th,
@@ -3575,11 +3564,11 @@
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.2.2"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.2.2k"></script>
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script>
     (async function () {
-      const V = '1.2.2';
+      const V = '1.2.4';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -3653,6 +3642,40 @@
         const list = loadBetLog();
         for (let i = rows.length - 1; i >= 0; i--) list.unshift(rows[i]);
         saveBetLog(list);
+        refreshRecordsIfOpen();
+      }
+      let currentRoundId = '';
+      function ensureRoundId() {
+        if (!currentRoundId) {
+          const ts = Date.now();
+          currentRoundId = String(530000000 + (ts % 100000000));
+        }
+        return currentRoundId;
+      }
+      function refreshRecordsIfOpen() {
+        if (recordsOverlay && recordsOverlay.classList.contains('show')) {
+          try { paintRecords(); } catch (_) {}
+        }
+      }
+      function newBetId(ts, idx) {
+        return String(ts) + String(idx).padStart(2, '0') + String(Math.floor(Math.random() * 90) + 10);
+      }
+      function recordConfirmedBet(key, stake) {
+        const amt = Math.max(0, Math.round(Number(stake) || 0));
+        if (!key || amt <= 0) return;
+        const ts = Date.now();
+        pushBetRecords([{
+          betId: newBetId(ts, 0),
+          ts,
+          roundId: ensureRoundId(),
+          tableId: 'S601',
+          result: '',
+          market: BET_LABEL[key] || key,
+          key,
+          stake: amt,
+          pnl: 0,
+          status: 'open',
+        }]);
       }
       const OPEN_BETS_KEY = 'fg_sicbo_openbets::' + ACCOUNT_ID.trim().toLowerCase();
       async function postAccountPatch(partial) {
@@ -3825,8 +3848,12 @@
           body.innerHTML = `<tr class="records-empty"><td colspan="12">${emptyText}</td></tr>`;
         } else {
           body.innerHTML = pageRows.map((r) => {
+            const pending = r.status === 'open';
             const pnl = Number(r.pnl) || 0;
-            const pnlCls = pnl > 0 ? 'pnl-win' : (pnl < 0 ? 'pnl-lose' : '');
+            const pnlCls = pending ? '' : (pnl > 0 ? 'pnl-win' : (pnl < 0 ? 'pnl-lose' : ''));
+            const pnlText = pending ? '—' : String(pnl);
+            const stCls = pending ? 'st-pending' : 'st-ok';
+            const stText = pending ? '未結算' : '已結算';
             return `<tr>
               <td>${r.betId}</td>
               <td>${fmtRecTime(r.ts)}</td>
@@ -3834,19 +3861,21 @@
               <td>${r.roundId}</td>
               <td>骰寶</td>
               <td>${r.tableId || 'S601'}</td>
-              <td>${r.result || '—'}</td>
+              <td>${pending ? '—' : (r.result || '—')}</td>
               <td>${r.market || '—'}</td>
               <td>${r.stake}</td>
-              <td class="${pnlCls}">${pnl}</td>
-              <td>${r.stake}</td>
-              <td class="st-ok">已結算</td>
+              <td class="${pnlCls}">${pnlText}</td>
+              <td>${pending ? '—' : r.stake}</td>
+              <td class="${stCls}">${stText}</td>
             </tr>`;
           }).join('');
         }
+        const settledPage = pageRows.filter((r) => r.status !== 'open');
+        const settledAll = all.filter((r) => r.status !== 'open');
         const pageStake = pageRows.reduce((s, r) => s + (Number(r.stake) || 0), 0);
-        const pagePnl = pageRows.reduce((s, r) => s + (Number(r.pnl) || 0), 0);
+        const pagePnl = settledPage.reduce((s, r) => s + (Number(r.pnl) || 0), 0);
         const allStake = all.reduce((s, r) => s + (Number(r.stake) || 0), 0);
-        const allPnl = all.reduce((s, r) => s + (Number(r.pnl) || 0), 0);
+        const allPnl = settledAll.reduce((s, r) => s + (Number(r.pnl) || 0), 0);
         const pnlClass = (n) => (n > 0 ? 'pnl-win' : (n < 0 ? 'pnl-lose' : ''));
         if (sumEl) {
           sumEl.innerHTML =
@@ -4600,12 +4629,13 @@
         betZones.forEach((zone) => {
           const key = zone.dataset.bet;
           const stake = bets[key] || 0;
+          const pendingOn = key === pendingMarket && pendingStake > 0;
           zone.classList.toggle('has-bet', stake > 0);
+          /* 只要筹码图，不要黑底数字注额字 */
+          zone.querySelectorAll('.bet-stake').forEach((el) => el.remove());
           let chip = zone.querySelector('.bet-chip');
-          let amt = zone.querySelector('.bet-stake:not(.bet-pend)');
           if (stake <= 0) {
-            if (chip) chip.remove();
-            if (amt) amt.remove();
+            if (chip && !pendingOn) chip.remove();
             return;
           }
           const denom = chipArtFor(stake);
@@ -4617,15 +4647,10 @@
             chip.draggable = false;
             zone.appendChild(chip);
           }
-          const src = srcFor(denom);
-          if (chip.getAttribute('src') !== src) chip.src = src;
-          if (!amt) {
-            amt = document.createElement('span');
-            amt.className = 'bet-stake';
-            zone.appendChild(amt);
+          if (!pendingOn) {
+            const src = srcFor(denom);
+            if (chip.getAttribute('src') !== src) chip.src = src;
           }
-          // 必须显示累计总注，不能只显示筹码面额
-          amt.textContent = String(stake);
         });
         paintStakePanel();
       }
@@ -4646,19 +4671,29 @@
       }
       function paintPending() {
         betZones.forEach((z) => {
-          const on = z.dataset.bet === pendingMarket && pendingStake > 0;
+          const key = z.dataset.bet;
+          const on = key === pendingMarket && pendingStake > 0;
+          const stake = bets[key] || 0;
           z.classList.toggle('is-key-on', on);
-          let pend = z.querySelector('.bet-pend');
-          if (!on) {
-            if (pend) pend.remove();
-            return;
+          /* 点选后落筹码图，去掉黑底「20」字样 */
+          z.querySelectorAll('.bet-stake').forEach((el) => el.remove());
+          let chip = z.querySelector('.bet-chip');
+          if (on) {
+            if (!chip) {
+              chip = document.createElement('img');
+              chip.className = 'bet-chip';
+              chip.alt = '';
+              chip.draggable = false;
+              z.appendChild(chip);
+            }
+            const src = srcFor(chipArtFor(pendingStake));
+            if (chip.getAttribute('src') !== src) chip.src = src;
+          } else if (stake <= 0 && chip) {
+            chip.remove();
+          } else if (stake > 0 && chip) {
+            const src = srcFor(chipArtFor(stake));
+            if (chip.getAttribute('src') !== src) chip.src = src;
           }
-          if (!pend) {
-            pend = document.createElement('span');
-            pend.className = 'bet-stake bet-pend';
-            z.appendChild(pend);
-          }
-          pend.textContent = String(pendingStake);
         });
       }
       /** 确定成功：所有下注键全体淡入淡出浅绿 */
@@ -4820,18 +4855,58 @@
         paintStakePanel();
         if (settleLines.length) {
           const ts = Date.now();
-          const roundId = String(530000000 + (ts % 100000000));
+          const roundId = ensureRoundId();
           const resultStr = `${info.dice[0]}, ${info.dice[1]}, ${info.dice[2]}`;
-          pushBetRecords(settleLines.map((line, idx) => ({
-            betId: String(ts) + String(idx).padStart(2, '0') + String(Math.floor(Math.random() * 90) + 10),
-            ts,
-            roundId,
-            tableId: 'S601',
-            result: resultStr,
-            market: BET_LABEL[line.key] || line.key,
-            stake: line.stake,
-            pnl: line.pnl,
-          })));
+          const meta = {};
+          for (const line of settleLines) meta[line.key] = line;
+          const list = loadBetLog();
+          const openStakeByKey = {};
+          let touched = false;
+          for (let i = 0; i < list.length; i++) {
+            const r = list[i];
+            if (!r || r.status !== 'open') continue;
+            const key = r.key;
+            const line = key ? meta[key] : null;
+            const stake = Math.max(0, Math.round(Number(r.stake) || 0));
+            if (!line || stake <= 0) continue;
+            let pnl;
+            if (line.win) {
+              const unit = line.stake > 0 ? (line.pnl / line.stake) : 0;
+              pnl = Math.round(stake * unit);
+            } else {
+              pnl = -stake;
+            }
+            r.result = resultStr;
+            r.pnl = pnl;
+            r.status = 'settled';
+            if (!r.roundId) r.roundId = roundId;
+            openStakeByKey[key] = (openStakeByKey[key] || 0) + stake;
+            touched = true;
+          }
+          let extraIdx = 0;
+          for (const line of settleLines) {
+            const already = openStakeByKey[line.key] || 0;
+            const rem = Math.max(0, Math.round(line.stake - already));
+            if (rem <= 0) continue;
+            const unit = line.stake > 0 ? (line.pnl / line.stake) : -1;
+            list.unshift({
+              betId: newBetId(ts, extraIdx++),
+              ts,
+              roundId,
+              tableId: 'S601',
+              result: resultStr,
+              market: BET_LABEL[line.key] || line.key,
+              key: line.key,
+              stake: rem,
+              pnl: Math.round(rem * unit),
+              status: 'settled',
+            });
+            touched = true;
+          }
+          if (touched) {
+            saveBetLog(list);
+            refreshRecordsIfOpen();
+          }
         }
         clearOpenBetSnapshot();
         const net = returned - staked;
@@ -5223,7 +5298,7 @@
       const Voice = {
         ctx: null,
         unlocked: false,
-        dead: false, // 关页/切走后禁止再出声
+        dead: false, // 关页后禁止再出声
         muted: false, // 喇叭红叉：全部静音
         pending: [],
         pendingText: null,
@@ -5341,6 +5416,12 @@
             Object.keys(this.players).forEach((k) => {
               const el = this.players[k];
               if (!el) return;
+              /* silence 会拆掉 src，解锁时必须装回才能出声 */
+              const want = this.clips[k];
+              if (want && el.getAttribute('src') !== want && !String(el.src || '').includes(want.split('?')[0])) {
+                el.src = want;
+                try { el.load(); } catch (_) { /* ignore */ }
+              }
               /* 已静音时禁止被 unlock 强行打开 */
               el.muted = !!this.muted;
               el.volume = this.muted ? 0 : 1;
@@ -5365,6 +5446,16 @@
             } else if (this.muted) {
               this.pendingText = null;
             }
+          } catch (_) { /* ignore */ }
+        },
+
+        /** 切后台：只暂停，不拆 src、不标 dead（freeze 也不准走 silence） */
+        pauseSoft() {
+          try {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            document.querySelectorAll('audio').forEach((el) => {
+              try { el.pause(); } catch (_) { /* ignore */ }
+            });
           } catch (_) { /* ignore */ }
         },
 
@@ -5573,6 +5664,7 @@
           if (!el) return;
           try {
             if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            el.muted = !!this.muted;
             el.pause();
             el.currentTime = 0;
             el.volume = vol;
@@ -5614,7 +5706,8 @@
       }
 
       let voiceKickBusy = false;
-      let joinedLiveHall = false; // 首次进桌：接入进行中的大厅，不从个人欢迎重开
+      let joinedLiveHall = false; // 首次进桌：接入进行中的大厅（随机剩余秒）
+      let welcomePlayed = false; // 整页生命周期只自动欢迎一次
       const unlockWaiters = [];
 
       function sleep(ms) {
@@ -5635,7 +5728,41 @@
         const q = unlockWaiters.splice(0);
         q.forEach((fn) => { try { fn(); } catch (_) { /* ignore */ } });
       }
-      /** 大厅「开始下注」口播：不播个人欢迎；不阻塞倒计时 */
+      /** 首进自动播「欢迎进入骰宝游戏」；失败会短重试，成功才标记已播 */
+      async function playWelcomeOnce() {
+        if (welcomePlayed || Voice.dead || Voice.muted) return;
+        try {
+          Voice.unlock();
+          notifyAudioReady();
+          for (let i = 0; i < 8; i++) {
+            if (Voice.dead || Voice.muted || welcomePlayed) return;
+            const el = Voice.players.welcome;
+            let ok = false;
+            if (el) {
+              try {
+                el.muted = false;
+                el.volume = 1;
+                el.pause();
+                el.currentTime = 0;
+                const p = el.play();
+                if (p && typeof p.then === 'function') await p;
+                ok = !el.paused;
+              } catch (_) { ok = false; }
+            }
+            if (!ok) ok = await Voice.speak('欢迎进入骰宝游戏');
+            if (ok) {
+              welcomePlayed = true;
+              Voice.pendingText = null;
+              return;
+            }
+            Voice.pendingText = '欢迎进入骰宝游戏';
+            await sleep(350);
+          }
+        } catch (_) {
+          Voice.pendingText = '欢迎进入骰宝游戏';
+        }
+      }
+      /** 大厅「开始下注」口播：不阻塞倒计时 */
       async function kickStartBetVoice(gen) {
         if (voiceKickBusy || Voice.dead || Voice.muted) return;
         voiceKickBusy = true;
@@ -5651,6 +5778,8 @@
         if (roundStarted) return;
         const gen = ++roundGen;
         roundStarted = true;
+        currentRoundId = '';
+        ensureRoundId();
         if (winGoldTimer) { clearTimeout(winGoldTimer); winGoldTimer = 0; }
         betZones.forEach((z) => z.classList.remove('win-gold-flash', 'key-flash-all'));
         resetBets();
@@ -5661,7 +5790,7 @@
 
         /*
          * 几百人大厅：第一次进桌接到「正在进行」的一局（随机剩余秒），
-         * 不播「欢迎进入骰宝」、也不从开局重念「开始下注」。
+         * 自动说一句「欢迎进入骰宝游戏」；不从开局重念「开始下注」。
          * 之后每局正常满秒开局才播「开始下注」。
          */
         const midJoin = !joinedLiveHall;
@@ -5678,8 +5807,8 @@
           if (gen === roundGen) roundStarted = false;
         };
 
-        Voice.unlock();
         notifyAudioReady();
+        if (midJoin) playWelcomeOnce();
         if (!midJoin) kickStartBetVoice(gen);
 
         for (let t = startSec; t >= 1; t--) {
@@ -5736,7 +5865,7 @@
         if (stillThisRound(gen)) runRound();
       }
 
-      // 进桌尝试自动解锁；被策略拦时首次点按只解锁接大厅当前声音，不重播欢迎/不开新局叙事
+      // 进桌立刻解锁自动出声（欢迎+滴答）
       Voice.init();
       try { Voice.unlock(); } catch (_) { /* ignore */ }
       document.addEventListener('pointerdown', () => {
@@ -5757,17 +5886,22 @@
       window.addEventListener('pagehide', leavePage, true);
       window.addEventListener('beforeunload', leavePage, true);
       window.addEventListener('unload', leavePage, true);
-      window.addEventListener('freeze', leavePage, true);
-      // 仅切后台：本局继续倒数/开奖；未确定选盘保留；不口播收官
+      // freeze 只暂停：禁止走 silence（否则后台一冻就拆 src，回来永久没声）
+      window.addEventListener('freeze', () => { try { Voice.pauseSoft(); } catch (_) {} }, true);
+      window.addEventListener('resume', () => { try { Voice.unlock(); } catch (_) {} }, true);
+      window.addEventListener('pageshow', () => {
+        if (Voice.dead) {
+          try { Voice.init(); Voice.unlock(); } catch (_) {}
+        }
+      }, true);
+      // 仅切后台：暂停口播；本局继续倒数；回来可见时照常出声
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
           try { saveBalance(balance); } catch (_) {}
           try { persistOpenBets(); } catch (_) {}
-          // 停声但不标 dead，避免把未确定当成退出收官
-          try {
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-            document.querySelectorAll('audio').forEach((el) => { try { el.pause(); } catch (_) {} });
-          } catch (_) {}
+          try { Voice.pauseSoft(); } catch (_) {}
+        } else {
+          try { Voice.unlock(); } catch (_) {}
         }
       }, true);
       (function paintAccountTip() {
@@ -5872,6 +6006,7 @@
         bets[key] += amt;
         betDenom[key] = chipArtFor(bets[key]);
         persistOpenBets();
+        recordConfirmedBet(key, amt);
         pendingMarket = null;
         pendingStake = 0;
         paintBets();
