@@ -1,0 +1,8 @@
+sicbo lock v1.3.3
+PC: game.html / game.LOCKED-1.3.3.html
+Mobile: game-m.html / game-m.LOCKED-1.3.3.html
+Wallet: js/fg-wallet.js / js/fg-wallet.LOCKED-1.3.3.js (?v=1.0.1)
+Lobby: GAME_PC + GAME_M → ?v=1.3.3
+Notes: unified wallet across PC/mobile/roulette; multi-pending bets on PC; mobile placeBet align; hydrate blocks stale local balance overwrite.
+Live: https://forestgroup.ai/game.html?v=1.3.3
+Live: https://forestgroup.ai/game-m.html?v=1.3.3
