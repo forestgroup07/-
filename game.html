@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.2.5" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.2.6" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.30" type="image/webp" />
@@ -236,7 +236,7 @@
     .bal.flash-up { color: #7dff9f; transform: scale(1.08); }
     .bal.flash-down { color: #ffb4b4; transform: scale(1.08); }
 
-    /* 积分热区：整颗余额胶囊；点击弹出「賬戶餘額」 */
+    /* 积分热区：整颗余额胶囊；悬停弹出「賬戶餘額」 */
     .bal-hot {
       position: absolute;
       left: 45.247%;
@@ -296,7 +296,7 @@
       border-top: 0.48em solid rgba(0, 0, 0, 0.92);
     }
 
-    /* 账号热区：盖住底图 asdg 胶囊；点击弹出对标资料气泡 */
+    /* 账号热区：盖住底图 asdg 胶囊；悬停弹出对标资料气泡 */
     .account-hot {
       position: absolute;
       left: 37.523%;
@@ -380,7 +380,7 @@
       letter-spacing: 0.02em;
     }
 
-    /* 注金热区：盖住底图金币+0 胶囊；点击弹出玩法/下注/輸贏 */
+    /* 注金热区：盖住底图金币+0 胶囊；悬停「下注總額」，点击仍可开明细 */
     .stake-hot {
       position: absolute;
       left: 56.124%;
@@ -398,6 +398,47 @@
     }
     .stake-hot:focus,
     .stake-hot:focus-visible { outline: none; }
+    .stake-label-tip {
+      position: absolute;
+      left: 59.164%; /* 56.124 + 6.079/2 */
+      bottom: 20.65%;
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      padding: 0.42em 0.85em;
+      border-radius: 0.55em;
+      background: rgba(0, 0, 0, 0.92);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .stake-label-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .stake-label-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.42em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.45em solid transparent;
+      border-right: 0.45em solid transparent;
+      border-top: 0.48em solid rgba(0, 0, 0, 0.92);
+    }
     .stake-amt {
       position: absolute;
       left: 57.95%;
@@ -890,7 +931,7 @@
     }
     .music-track.is-missing { opacity: 0.55; }
 
-    /* 喇叭：恢复底图原位热区（不画第二只喇叭） */
+    /* 喇叭（底图扬声器）：声效静音；悬停「聲效」 */
     .sound-wrap {
       position: absolute;
       left: 75.137%;
@@ -898,7 +939,7 @@
       width: 1.92%;
       aspect-ratio: 1;
       height: auto;
-      z-index: 80;
+      z-index: 140;
       transform: translate(-50%, -50%);
     }
     .sound-hot {
@@ -919,11 +960,11 @@
       left: 50%;
       bottom: calc(100% + 0.35em);
       transform: translateX(-50%) translateY(4px);
-      z-index: 120;
+      z-index: 150;
       padding: 0.38em 0.75em;
       border-radius: 0.45em;
-      background: rgba(20, 20, 20, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
       font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
       font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
@@ -953,7 +994,7 @@
       height: 0;
       border-left: 0.4em solid transparent;
       border-right: 0.4em solid transparent;
-      border-top: 0.45em solid rgba(20, 20, 20, 0.55);
+      border-top: 0.45em solid rgba(0, 0, 0, 0.92);
     }
     .sound-mute {
       position: absolute;
@@ -970,6 +1011,72 @@
       height: 100%;
       display: block;
       overflow: visible;
+    }
+
+    /* 现场声音：底图摄像机+喇叭图标；悬停出「現場聲音」 */
+    .live-sound-wrap {
+      position: absolute;
+      left: 77.97%;
+      top: 97.810%;
+      width: 2.15%;
+      aspect-ratio: 1;
+      height: auto;
+      z-index: 140;
+      transform: translate(-50%, -50%);
+    }
+    .live-sound-hot {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 50%;
+    }
+    .live-sound-hot:focus,
+    .live-sound-hot:focus-visible { outline: none; }
+    .live-sound-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 0.35em);
+      transform: translateX(-50%) translateY(4px);
+      z-index: 150;
+      padding: 0.38em 0.75em;
+      border-radius: 0.45em;
+      background: rgba(0, 0, 0, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .live-sound-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .live-sound-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.4em;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.4em solid transparent;
+      border-right: 0.4em solid transparent;
+      border-top: 0.45em solid rgba(0, 0, 0, 0.92);
     }
 
     /* 视频线路：底图刷新+1/2/3/4 热区；点击视频区黑屏 2 秒再恢复 */
@@ -1033,8 +1140,8 @@
       z-index: 150;
       padding: 0.38em 0.75em;
       border-radius: 0.45em;
-      background: rgba(20, 20, 20, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
       font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
       font-size: calc(min(100vw, 100vh * 2188 / 1393) * 20 / 2188);
@@ -1064,7 +1171,7 @@
       height: 0;
       border-left: 0.4em solid transparent;
       border-right: 0.4em solid transparent;
-      border-top: 0.45em solid rgba(20, 20, 20, 0.55);
+      border-top: 0.45em solid rgba(0, 0, 0, 0.92);
     }
     .video-blank {
       position: absolute;
@@ -1700,15 +1807,15 @@
       box-sizing: border-box;
       border: 0;
       background-color: #373735;
-      background-image: url("assets/bead-tabs-dice.png?v=1.2.5");
+      background-image: url("assets/bead-tabs-dice.png?v=1.2.6");
       background-size: 100% 100%;
       background-repeat: no-repeat;
       pointer-events: auto;
       overflow: hidden;
     }
-    .bead-tabs[data-mode="dice"] { background-image: url("assets/bead-tabs-dice.png?v=1.2.5"); }
-    .bead-tabs[data-mode="size"] { background-image: url("assets/bead-tabs-size.png?v=1.2.5"); }
-    .bead-tabs[data-mode="parity"] { background-image: url("assets/bead-tabs-parity.png?v=1.2.5"); }
+    .bead-tabs[data-mode="dice"] { background-image: url("assets/bead-tabs-dice.png?v=1.2.6"); }
+    .bead-tabs[data-mode="size"] { background-image: url("assets/bead-tabs-size.png?v=1.2.6"); }
+    .bead-tabs[data-mode="parity"] { background-image: url("assets/bead-tabs-parity.png?v=1.2.6"); }
     .bead-tab {
       flex: 1 1 0;
       margin: 0;
@@ -2901,7 +3008,7 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.5" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.6" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <!-- 框外两侧：欧洲风静图 + CSS 微晃 -->
@@ -2991,7 +3098,8 @@
           <div>賬號: <span id="accountId">—</span></div>
         </div>
       </div>
-      <button class="stake-hot" id="stakeHot" type="button" aria-label="本局注金" aria-expanded="false" aria-controls="stakeTip"></button>
+      <button class="stake-hot" id="stakeHot" type="button" aria-label="本局注金" aria-expanded="false" aria-controls="stakeTip" aria-describedby="stakeLabelTip"></button>
+      <div class="stake-label-tip" id="stakeLabelTip" role="tooltip">下注總額</div>
       <div class="stake-amt" id="stakeAmt">0</div>
       <div class="stake-tip" id="stakeTip" role="dialog" aria-label="本局下注">
         <div class="stake-tip-head">
@@ -3131,6 +3239,10 @@
             <line x1="9.5" y1="9.5" x2="30.5" y2="30.5" stroke="#e53935" stroke-width="3.2" stroke-linecap="round"/>
           </svg>
         </div>
+      </div>
+      <div class="live-sound-wrap" id="liveSoundWrap">
+        <button class="live-sound-hot" id="liveSoundHot" type="button" aria-label="現場聲音" aria-describedby="liveSoundTip"></button>
+        <div class="live-sound-tip" id="liveSoundTip" role="tooltip">現場聲音</div>
       </div>
       <div class="vsrc-wrap" data-vsrc="refresh">
         <button class="vsrc-hot" id="vsrcRefreshHot" type="button" aria-label="刷新" data-vsrc="refresh" aria-describedby="vsrcRefreshTip"></button>
@@ -3682,7 +3794,7 @@
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script>
     (async function () {
-      const V = '1.2.5';
+      const V = '1.2.6';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -4442,6 +4554,7 @@
       const accountTip = document.getElementById('accountTip');
       const stakeHot = document.getElementById('stakeHot');
       const stakeTip = document.getElementById('stakeTip');
+      const stakeLabelTip = document.getElementById('stakeLabelTip');
       const stakeAmt = document.getElementById('stakeAmt');
       const limitHot = document.getElementById('limitHot');
       const limitTip = document.getElementById('limitTip');
@@ -4451,6 +4564,8 @@
       const soundHot = document.getElementById('soundHot');
       const soundTip = document.getElementById('soundTip');
       const soundMute = document.getElementById('soundMute');
+      const liveSoundHot = document.getElementById('liveSoundHot');
+      const liveSoundTip = document.getElementById('liveSoundTip');
       const MUSIC_MUTE_KEY = 'fg_sicbo_music_mute::' + ACCOUNT_ID.trim().toLowerCase();
       const SOUND_MUTE_KEY = 'fg_sicbo_sound_mute::' + ACCOUNT_ID.trim().toLowerCase();
       const MUSIC_VOL_KEY = 'fg_sicbo_music_vol::' + ACCOUNT_ID.trim().toLowerCase();
@@ -6357,6 +6472,7 @@
         accountHot.setAttribute('aria-expanded', 'false');
         stakeTip.classList.remove('show');
         stakeHot.setAttribute('aria-expanded', 'false');
+        if (stakeLabelTip) stakeLabelTip.classList.remove('show');
         balTip.classList.remove('show');
         balHot.setAttribute('aria-expanded', 'false');
         limitTip.classList.remove('show');
@@ -6374,6 +6490,14 @@
         }
         stakeTip.classList.toggle('show', open);
         stakeHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (stakeLabelTip) stakeLabelTip.classList.remove('show');
+      }
+      function setStakeLabelTip(open) {
+        if (open) {
+          if (stakeTip.classList.contains('show')) return;
+          closeHudTips();
+        }
+        if (stakeLabelTip) stakeLabelTip.classList.toggle('show', open);
       }
       function setBalTip(open) {
         if (open) closeHudTips();
@@ -6385,23 +6509,18 @@
         limitTip.classList.toggle('show', open);
         limitHot.setAttribute('aria-expanded', open ? 'true' : 'false');
       }
-      accountHot.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        Voice.unlock();
-        setAccountTip(!accountTip.classList.contains('show'));
-      });
+      /* 账号 / 余额 / 下注總額：悬停出字，不必点击 */
+      accountHot.addEventListener('mouseenter', () => setAccountTip(true));
+      accountHot.addEventListener('mouseleave', () => setAccountTip(false));
+      balHot.addEventListener('mouseenter', () => setBalTip(true));
+      balHot.addEventListener('mouseleave', () => setBalTip(false));
+      stakeHot.addEventListener('mouseenter', () => setStakeLabelTip(true));
+      stakeHot.addEventListener('mouseleave', () => setStakeLabelTip(false));
       stakeHot.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         Voice.unlock();
         setStakeTip(!stakeTip.classList.contains('show'));
-      });
-      balHot.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        Voice.unlock();
-        setBalTip(!balTip.classList.contains('show'));
       });
       limitHot.addEventListener('click', (e) => {
         e.preventDefault();
@@ -6415,9 +6534,10 @@
         musicTip.classList.toggle('show', on);
       }
       function showSoundTip(show) {
-        /* 红叉静音时不显示「聲效」 */
-        const on = !!show && !Voice.muted;
-        soundTip.classList.toggle('show', on);
+        soundTip.classList.toggle('show', !!show);
+      }
+      function showLiveSoundTip(show) {
+        if (liveSoundTip) liveSoundTip.classList.toggle('show', !!show);
       }
 
       const musicPanel = document.getElementById('musicPanel');
@@ -6445,7 +6565,6 @@
         soundMute.classList.toggle('show', muted);
         soundHot.setAttribute('aria-pressed', muted ? 'true' : 'false');
         soundHot.setAttribute('aria-label', muted ? '取消静音' : '声效');
-        if (muted) showSoundTip(false);
       }
       function setVoiceMuted(on) {
         Voice.setMuted(!!on);
@@ -6690,6 +6809,14 @@
         setVoiceMuted(next);
         if (!next) Voice.unlock();
       });
+      if (liveSoundHot) {
+        liveSoundHot.addEventListener('mouseenter', () => showLiveSoundTip(true));
+        liveSoundHot.addEventListener('mouseleave', () => showLiveSoundTip(false));
+        liveSoundHot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      }
       stakeTip.addEventListener('click', (e) => e.stopPropagation());
       limitTip.addEventListener('click', (e) => e.stopPropagation());
       document.addEventListener('click', () => {

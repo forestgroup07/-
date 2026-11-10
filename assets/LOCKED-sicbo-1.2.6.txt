@@ -1,0 +1,5 @@
+sicbo PC v1.2.6 lock pack
+- hover tips: 账号/賬戶餘額/下注總額；摄像机「現場聲音」；刷新「刷新」
+- bead tabs: whole gold key (from 1.2.5) retained
+- snapshots: game.LOCKED-1.2.6.html, LOCKED-bead-tabs-*-1.2.6.png, LOCKED-bead-tab-gold-btn-1.2.6.png, LOCKED-pc-full-v111-1.2.6.jpg
+- live pin: game.html / lobby GAME_PC ?v=1.2.6
