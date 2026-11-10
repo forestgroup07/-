@@ -1,0 +1,4 @@
+sicbo PC v1.2.5 lock pack
+- bead tabs: whole original gold key (incl. top lip) moves between 骰子/大小/單雙
+- snapshots: game.LOCKED-1.2.5.html, LOCKED-bead-tabs-*-1.2.5.png, LOCKED-bead-tab-gold-btn-1.2.5.png, LOCKED-pc-full-v111-1.2.5.jpg
+- live pin: game.html / lobby GAME_PC ?v=1.2.5

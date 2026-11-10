@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.2.0" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.2.5" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.30" type="image/webp" />
@@ -1685,6 +1685,112 @@
     .road-grid { display: none !important; }
 
     /*
+      底栏路单右侧三档：母版「大金键」整块（含顶边饰条 y=1168..1243）在三格间切换。
+      底图金痕已抹净；热区透明无字。
+    */
+    .bead-tabs {
+      position: absolute;
+      left: 46.572%; /* 1019/2188 */
+      top: 83.848%; /* 1168/1393 */
+      z-index: 42;
+      width: 6.17%; /* 135/2188 */
+      height: 16.368%; /* 228/1393 */
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      border: 0;
+      background-color: #373735;
+      background-image: url("assets/bead-tabs-dice.png?v=1.2.5");
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      pointer-events: auto;
+      overflow: hidden;
+    }
+    .bead-tabs[data-mode="dice"] { background-image: url("assets/bead-tabs-dice.png?v=1.2.5"); }
+    .bead-tabs[data-mode="size"] { background-image: url("assets/bead-tabs-size.png?v=1.2.5"); }
+    .bead-tabs[data-mode="parity"] { background-image: url("assets/bead-tabs-parity.png?v=1.2.5"); }
+    .bead-tab {
+      flex: 1 1 0;
+      margin: 0;
+      padding: 0;
+      border: 0 !important;
+      outline: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      color: transparent;
+      font-size: 0;
+      line-height: 0;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bead-tab:focus,
+    .bead-tab:focus-visible,
+    .bead-tab:active {
+      outline: none !important;
+      box-shadow: none !important;
+      border: 0 !important;
+    }
+    .bead-tab.is-on {
+      color: transparent;
+      font-size: 0;
+    }
+    /* 大小/單雙：盖在底栏路单格上，不进视频屏 */
+    .road-bead-grid {
+      position: absolute;
+      left: 0.274%; /* 6/2188 */
+      top: 84.85%; /* 1182/1393 */
+      z-index: 41;
+      width: 45.75%; /* 1001/2188 */
+      height: 14.21%; /* 198/1393 */
+      display: none;
+      grid-template-rows: repeat(6, 1fr);
+      grid-auto-flow: column;
+      grid-auto-columns: calc(100% / 28);
+      box-sizing: border-box;
+      background:
+        linear-gradient(to right, #5c5c5c 1px, transparent 1px) 0 0 / calc(100% / 28) 100%,
+        linear-gradient(to bottom, #5c5c5c 1px, transparent 1px) 0 0 / 100% calc(100% / 6),
+        #000;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .road-bead-grid.is-on { display: grid; }
+    .road-strip.is-bead-hide { visibility: hidden; }
+    .bead-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      /* 清单字号大两号：18 → 26 */
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 26 / 2188);
+      font-weight: 800;
+      line-height: 1;
+      user-select: none;
+      color: transparent;
+    }
+    .bead-cell.is-odd { color: #3b7ddd; }
+    .bead-cell.is-even { color: #e53935; }
+    .bead-cell.is-big { color: #e53935; }
+    .bead-cell.is-small { color: #3b7ddd; }
+    .bead-cell.is-wrap {
+      color: #2ecc71;
+      box-shadow: inset 0 0 0 1.5px #2ecc71;
+      margin: 8%;
+      width: 84%;
+      height: 84%;
+      justify-self: center;
+      align-self: center;
+    }
+    .bead-cell.is-sum-big { color: #e53935; }
+    .bead-cell.is-sum-small { color: #3b7ddd; }
+    .bead-cell.is-fresh {
+      outline: 1px solid rgba(255, 210, 120, 0.9);
+      outline-offset: -1px;
+    }
+
+    /*
       母版历史已按格像素抹成空底格。直播层只贴和值+三骰，尺寸对齐原版：
       骰 41px、间距 10px、和值约 22px；格 bounds 与抹图一致。
       空/有内容皆透明——露出底格，禁止灰黑块覆盖。
@@ -1920,6 +2026,7 @@
       justify-content: center;
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
       transform: scale(.96);
       transition: opacity .25s ease, transform .25s ease, visibility .25s;
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
@@ -1927,6 +2034,7 @@
     .result-board.show {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto;
       transform: scale(1);
     }
     .result-board .dice-pyramid {
@@ -2793,7 +2901,7 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.0" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.5" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <!-- 框外两侧：欧洲风静图 + CSS 微晃 -->
@@ -2845,6 +2953,12 @@
       </div>
       <div class="stop-bet" id="stopBet" aria-live="polite">停止下注</div>
       <div class="road-strip" id="roadStrip" aria-label="每局开奖记录"></div>
+      <div class="road-bead-grid" id="beadGrid" aria-hidden="true" aria-label="大小单双路单"></div>
+      <div class="bead-tabs" id="beadTabs" data-mode="dice" role="tablist" aria-label="路单切换">
+        <button class="bead-tab is-on" type="button" role="tab" data-mode="dice" aria-label="骰子" aria-selected="true"></button>
+        <button class="bead-tab" type="button" role="tab" data-mode="size" aria-label="大小" aria-selected="false"></button>
+        <button class="bead-tab" type="button" role="tab" data-mode="parity" aria-label="單/雙" aria-selected="false"></button>
+      </div>
       <!-- 最近50局：默认点数1～6；点金色箭头打开和值4～17绿柱 -->
       <div class="face-stat" id="faceStat" aria-label="最近50局点数统计">
         <div class="face-stat-col" data-face="1"><div class="face-stat-bar is-empty"><span class="face-stat-n"></span></div></div>
@@ -3568,7 +3682,7 @@
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script>
     (async function () {
-      const V = '1.2.4';
+      const V = '1.2.5';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -4346,7 +4460,7 @@
       try { musicMuted = localStorage.getItem(MUSIC_MUTE_KEY) === '1'; } catch (_) {}
       /* 喇叭：每次进桌默认开声，不恢复上次红叉；背景音乐仍可记住关闭 */
       let soundMutedInit = false;
-      try { localStorage.removeItem(SOUND_MUTE_KEY); } catch (_) {}
+      try { soundMutedInit = localStorage.getItem(SOUND_MUTE_KEY) === '1'; } catch (_) {}
       let musicVol = 70;
       try {
         const v = Number(localStorage.getItem(MUSIC_VOL_KEY));
@@ -4387,9 +4501,15 @@
       const resultPay = document.getElementById('resultPay');
       const roadGrid = document.getElementById('roadGrid');
       const roadStrip = document.getElementById('roadStrip');
+      const beadGrid = document.getElementById('beadGrid');
+      const beadTabs = document.getElementById('beadTabs');
       const faceStat = document.getElementById('faceStat');
       const sumStat = document.getElementById('sumStat');
       const statToggle = document.getElementById('statToggle');
+      /** 底栏路单三档：骰子 / 大小 / 單雙（默认骰子） */
+      const BEAD_ROWS = 6;
+      const BEAD_COLS = 28;
+      let beadMode = 'dice';
       /** 与母版抹图 bounds 一致；空格透明露底格，新局按格贴 */
       const ROAD_MAX = 13;
       const ROAD_BOUNDS = [3, 73, 151, 229, 308, 385, 464, 542, 620, 698, 776, 854, 932, 1010];
@@ -5088,12 +5208,121 @@
         const n = Math.max(1, Math.min(6, face | 0));
         return `<span class="die p${n}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>`;
       }
+      function isTripleDice(dice) {
+        if (!dice || dice.length < 3) return false;
+        return (dice[0] | 0) === (dice[1] | 0) && (dice[1] | 0) === (dice[2] | 0);
+      }
+      function beadKeyForItem(item, mode) {
+        if (!item) return null;
+        const dice = item.dice || [];
+        const wrap = isTripleDice(dice);
+        let sum = item.sum | 0;
+        if (!sum && dice.length) sum = (dice[0] | 0) + (dice[1] | 0) + (dice[2] | 0);
+        const size = item.size === 'big' || item.size === 'small'
+          ? item.size
+          : (sum >= 11 ? 'big' : 'small');
+        const parity = item.parity === 'odd' || item.parity === 'even'
+          ? item.parity
+          : (sum % 2 === 0 ? 'even' : 'odd');
+        if (mode === 'parity') {
+          if (wrap) return { text: '圍', cls: 'is-wrap' };
+          if (parity === 'even') return { text: '雙', cls: 'is-even' };
+          return { text: '單', cls: 'is-odd' };
+        }
+        if (mode === 'size') {
+          if (wrap) return { text: '圍', cls: 'is-wrap' };
+          if (size === 'big') return { text: '大', cls: 'is-big' };
+          return { text: '小', cls: 'is-small' };
+        }
+        // dice：显示和值；圍骰同样标圍
+        if (wrap) return { text: '圍', cls: 'is-wrap' };
+        return {
+          text: String(sum),
+          cls: size === 'big' ? 'is-sum-big' : 'is-sum-small',
+        };
+      }
+      /** 珠盘：同结果向下连；变色新开一列；满 6 格向右拐 */
+      function buildBeadColumns(history, mode) {
+        const cols = [];
+        let col = -1;
+        let row = 0;
+        let prevKey = null;
+        for (let i = 0; i < history.length; i++) {
+          const cell = beadKeyForItem(history[i], mode);
+          if (!cell) continue;
+          const key = cell.text + '|' + cell.cls;
+          const fresh = i === history.length - 1;
+          if (col < 0 || key !== prevKey || row >= BEAD_ROWS) {
+            col += 1;
+            row = 0;
+            if (!cols[col]) cols[col] = [];
+          }
+          cols[col][row] = { text: cell.text, cls: cell.cls, fresh };
+          row += 1;
+          prevKey = key;
+        }
+        return cols;
+      }
+      function paintBeadPanel() {
+        if (!beadGrid) return;
+        if (beadMode === 'dice') {
+          beadGrid.classList.remove('is-on');
+          beadGrid.setAttribute('aria-hidden', 'true');
+          beadGrid.innerHTML = '';
+          if (roadStrip) roadStrip.classList.remove('is-bead-hide');
+          return;
+        }
+        const list = roadHistory.slice(-(BEAD_COLS * BEAD_ROWS));
+        const cols = buildBeadColumns(list, beadMode);
+        const frag = document.createDocumentFragment();
+        for (let c = 0; c < BEAD_COLS; c++) {
+          for (let r = 0; r < BEAD_ROWS; r++) {
+            const el = document.createElement('div');
+            el.className = 'bead-cell';
+            const hit = cols[c] && cols[c][r];
+            if (hit) {
+              el.textContent = hit.text;
+              el.className += ' ' + hit.cls + (hit.fresh ? ' is-fresh' : '');
+            }
+            frag.appendChild(el);
+          }
+        }
+        beadGrid.innerHTML = '';
+        beadGrid.appendChild(frag);
+        beadGrid.classList.add('is-on');
+        beadGrid.setAttribute('aria-hidden', 'false');
+        if (roadStrip) roadStrip.classList.add('is-bead-hide');
+      }
+      function setBeadMode(mode) {
+        if (mode !== 'dice' && mode !== 'size' && mode !== 'parity') return;
+        beadMode = mode;
+        if (beadTabs) {
+          beadTabs.setAttribute('data-mode', mode);
+          const tabs = beadTabs.querySelectorAll('.bead-tab');
+          for (let i = 0; i < tabs.length; i++) {
+            const on = tabs[i].getAttribute('data-mode') === mode;
+            tabs[i].classList.toggle('is-on', on);
+            tabs[i].setAttribute('aria-selected', on ? 'true' : 'false');
+          }
+        }
+        paintBeadPanel();
+      }
+      if (beadTabs) {
+        beadTabs.addEventListener('click', (ev) => {
+          const btn = ev.target && ev.target.closest ? ev.target.closest('.bead-tab') : null;
+          if (!btn) return;
+          setBeadMode(btn.getAttribute('data-mode') || 'dice');
+        });
+      }
       function paintRoadGrid() {
         if (roadGrid) {
           roadGrid.innerHTML = '';
           roadGrid.classList.remove('has-rows');
         }
-        if (!roadStrip) return;
+        if (!roadStrip) {
+          paintBeadPanel();
+          return;
+        }
         roadStrip.innerHTML = '';
         const list = roadHistory.slice(-ROAD_MAX);
         for (let i = 0; i < ROAD_MAX; i++) {
@@ -5118,6 +5347,7 @@
             + dice.map(roadDieHtml).join('');
           roadStrip.appendChild(col);
         }
+        paintBeadPanel();
       }
       function countFaceStats(history) {
         const list = history.slice(-FACE_STAT_ROUNDS);
@@ -5477,20 +5707,34 @@
 
         setMuted(on) {
           this.muted = !!on;
+          this.pendingText = null;
+          this.pending.length = 0;
+          this._playToken = {};
           try {
             Object.keys(this.players).forEach((k) => {
               const el = this.players[k];
               if (!el) return;
               el.muted = this.muted;
               el.volume = this.muted ? 0 : 1;
+              if (this.muted) {
+                try { el.pause(); el.currentTime = 0; } catch (_) { /* ignore */ }
+              }
             });
           } catch (_) { /* ignore */ }
           if (this.muted) this.stopAllAudio();
         },
 
+        canPlay() {
+          return !this.dead && !this.muted;
+        },
+
         playEl(el) {
           return new Promise((resolve) => {
-            if (this.dead || this.muted || !el) { resolve(false); return; }
+            if (!this.canPlay() || !el) { resolve(false); return; }
+            try {
+              el.muted = false;
+              el.volume = 1;
+            } catch (_) { /* ignore */ }
             let settled = false;
             let playing = false;
             const token = {};
@@ -5581,9 +5825,10 @@
         /** 播一个临时 mp3（随页面生死，关页必停） */
         playUrl(url) {
           return new Promise((resolve) => {
-            if (this.dead || this.muted) { resolve(false); return; }
+            if (!this.canPlay()) { resolve(false); return; }
             const el = new Audio(url);
             el.preload = 'auto';
+            el.muted = false;
             el.volume = 1;
             let settled = false;
             const done = (ok) => {
@@ -5608,7 +5853,7 @@
         /** 一句一句播：串行队列，上一句播完才下一句；只用预录 mp3。返回是否真正播出。 */
         async speak(text) {
           const run = async () => {
-            if (this.dead || this.muted) return false;
+            if (!this.canPlay()) return false;
             // 打断上一句音源
             this._playToken = {}; // 作废进行中的 playEl
             try {
@@ -5659,12 +5904,12 @@
 
         /** 短音效：钟表滴答 / 炸弹滴滴（预录，不再用刺耳方波） */
         playQuick(key, vol = 0.6) {
-          if (this.dead || this.muted) return;
+          if (!this.canPlay()) return;
           const el = this.players[key];
           if (!el) return;
           try {
             if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
-            el.muted = !!this.muted;
+            el.muted = false;
             el.pause();
             el.currentTime = 0;
             el.volume = vol;
@@ -5728,46 +5973,35 @@
         const q = unlockWaiters.splice(0);
         q.forEach((fn) => { try { fn(); } catch (_) { /* ignore */ } });
       }
-      /** 首进自动播「欢迎进入骰宝游戏」；失败会短重试，成功才标记已播 */
+      /** 首进自动播「欢迎进入骰宝游戏」；失败会短重试，成功才标记已播。喇叭静音时绝不出声。 */
       async function playWelcomeOnce() {
-        if (welcomePlayed || Voice.dead || Voice.muted) return;
+        if (welcomePlayed || !Voice.canPlay()) return;
         try {
           Voice.unlock();
           notifyAudioReady();
           for (let i = 0; i < 8; i++) {
-            if (Voice.dead || Voice.muted || welcomePlayed) return;
-            const el = Voice.players.welcome;
-            let ok = false;
-            if (el) {
-              try {
-                el.muted = false;
-                el.volume = 1;
-                el.pause();
-                el.currentTime = 0;
-                const p = el.play();
-                if (p && typeof p.then === 'function') await p;
-                ok = !el.paused;
-              } catch (_) { ok = false; }
-            }
-            if (!ok) ok = await Voice.speak('欢迎进入骰宝游戏');
+            if (welcomePlayed || !Voice.canPlay()) return;
+            const ok = await Voice.speak('欢迎进入骰宝游戏');
             if (ok) {
               welcomePlayed = true;
               Voice.pendingText = null;
               return;
             }
+            if (!Voice.canPlay()) return;
             Voice.pendingText = '欢迎进入骰宝游戏';
             await sleep(350);
           }
         } catch (_) {
-          Voice.pendingText = '欢迎进入骰宝游戏';
+          if (Voice.canPlay()) Voice.pendingText = '欢迎进入骰宝游戏';
         }
       }
-      /** 大厅「开始下注」口播：不阻塞倒计时 */
+      /** 大厅「开始下注」口播：不阻塞倒计时；喇叭静音时跳过 */
       async function kickStartBetVoice(gen) {
-        if (voiceKickBusy || Voice.dead || Voice.muted) return;
+        if (voiceKickBusy || !Voice.canPlay()) return;
         voiceKickBusy = true;
         try {
           if (gen != null && !stillThisRound(gen)) return;
+          if (!Voice.canPlay()) return;
           await Voice.speak('开始下注');
         } finally {
           voiceKickBusy = false;
@@ -5814,8 +6048,10 @@
         for (let t = startSec; t >= 1; t--) {
           if (!stillThisRound(gen)) { bail(); return; }
           setTimerDisplay(t);
-          if (t <= 10) Voice.bombTick();
-          else Voice.tick();
+          if (Voice.canPlay()) {
+            if (t <= 10) Voice.bombTick();
+            else Voice.tick();
+          }
           await sleep(1000);
         }
 
@@ -5823,7 +6059,7 @@
         setTimerDisplay(0);
         setBettingOpen(false);
         showStopBet(true);
-        await Voice.speak('停止下注');
+        if (Voice.canPlay()) await Voice.speak('停止下注');
 
         // 停注 → 手按骰盅 → 骰子跳跃 → 播完再定点数 → 报点结算
         if (!stillThisRound(gen)) { bail(); return; }
@@ -5836,7 +6072,9 @@
         // 开奖亮相：中奖格整格金光淡入淡出闪 7 秒（三点数/和值/大小单双等）
         flashWinGold(info, 7000);
         const [a, b, c] = info.dice;
-        await Voice.speak(`${a}点、${b}点、${c}点，共${info.sum}点`, { rate: 0.84 });
+        if (Voice.canPlay()) {
+          await Voice.speak(`${a}点、${b}点、${c}点，共${info.sum}点`, { rate: 0.84 });
+        }
         if (!stillThisRound(gen)) { bail(); return; }
 
         // 未点确定的挂单：开奖前作废，绝不参与结算
@@ -5850,11 +6088,11 @@
         showResultPay(info, pay);
 
         // 只有本局确实有「已确定」投注且净赢才口播恭喜
-        if (pay.staked > 0 && pay.net > 0 && stillThisRound(gen)) {
+        if (pay.staked > 0 && pay.net > 0 && stillThisRound(gen) && Voice.canPlay()) {
           await Voice.playSfx('coin');
           await sleep(200);
           await Voice.playSfx('coin');
-          if (stillThisRound(gen)) await Voice.speak('恭喜你赢钱了');
+          if (stillThisRound(gen) && Voice.canPlay()) await Voice.speak('恭喜你赢钱了');
         }
         // 输：只显示小白字「输」，不说话
 
@@ -6211,9 +6449,12 @@
       }
       function setVoiceMuted(on) {
         Voice.setMuted(!!on);
-        /* 喇叭只管女声/滴答；背景音乐由音符单独开关。不写入 localStorage：刷新后喇叭默认开 */
+        /* 喇叭只管女声/滴答；背景音乐由音符单独开关。静音必须记住，新局不得自行打开 */
+        try { localStorage.setItem(SOUND_MUTE_KEY, on ? '1' : '0'); } catch (_) {}
         if (on) {
           try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_) {}
+          Voice.pendingText = null;
+          Voice.pending.length = 0;
         }
         paintSoundMuteUi();
       }
