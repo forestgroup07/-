@@ -1,0 +1,6 @@
+sicbo PC v1.2.9 lock pack
+- left green strip: plate pixel-mask, pure panel-bg green [18,98,76], length locked from 1.2.8 silhouette; gap dirt cleaned; buttons untouched
+- right green strip: same height as left (13px y651-663), pure green on plate; CSS beauty-green-seam-r off
+- screen top-fill / bead gold tabs / hover tips retained from 1.2.8 line
+- snapshots: game.LOCKED-1.2.9.html, LOCKED-pc-full-v111-1.2.9.jpg, LOCKED-bead-*-1.2.9.png
+- live pin: game.html / lobby GAME_PC ?v=1.2.9
