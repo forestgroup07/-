@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.2.7" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.2.8" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.30" type="image/webp" />
@@ -1615,6 +1615,27 @@
       animation-name: beautySwayR;
       animation-duration: 5.4s;
     }
+    /* 美女底边与两旁绿键上沿缝隙：绿条盖缝并叠进绿键上沿，颜色跟键面一体 */
+    .beauty-green-seam {
+      position: absolute;
+      pointer-events: none;
+      /* 与底图绿键上沿同色，无描边无阴影，避免「后贴」感 */
+      background: #145c4e;
+      box-shadow: none;
+      border: 0;
+    }
+    /* 左侧缝改由底图绿键轮廓自然上延填实，不再用 CSS 条/斜切 */
+    .beauty-green-seam-l {
+      display: none;
+    }
+    .beauty-green-seam-r {
+      left: 69.74%;
+      width: 30.26%;
+      top: 46.55%;
+      height: calc(min(100vw, 100vh * 2188 / 1393) * 22 / 2188);
+      z-index: 28;
+      background: #145c4e;
+    }
     @keyframes beautySwayL {
       0%, 100% { transform: translate3d(0, 0, 0) rotate(-0.35deg) scale(1); }
       50% { transform: translate3d(0.35%, -0.55%, 0) rotate(0.45deg) scale(1.012); }
@@ -1808,15 +1829,15 @@
       box-sizing: border-box;
       border: 0;
       background-color: #373735;
-      background-image: url("assets/bead-tabs-dice.png?v=1.2.7");
+      background-image: url("assets/bead-tabs-dice.png?v=1.2.8");
       background-size: 100% 100%;
       background-repeat: no-repeat;
       pointer-events: auto;
       overflow: hidden;
     }
-    .bead-tabs[data-mode="dice"] { background-image: url("assets/bead-tabs-dice.png?v=1.2.7"); }
-    .bead-tabs[data-mode="size"] { background-image: url("assets/bead-tabs-size.png?v=1.2.7"); }
-    .bead-tabs[data-mode="parity"] { background-image: url("assets/bead-tabs-parity.png?v=1.2.7"); }
+    .bead-tabs[data-mode="dice"] { background-image: url("assets/bead-tabs-dice.png?v=1.2.8"); }
+    .bead-tabs[data-mode="size"] { background-image: url("assets/bead-tabs-size.png?v=1.2.8"); }
+    .bead-tabs[data-mode="parity"] { background-image: url("assets/bead-tabs-parity.png?v=1.2.8"); }
     .bead-tab {
       flex: 1 1 0;
       margin: 0;
@@ -3009,12 +3030,14 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.7" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.8" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <!-- 框外两侧：欧洲风静图 + CSS 微晃 -->
       <img class="side-beauty side-beauty-l" src="assets/eu-concept/beauty-side-l.png?v=v1.2.1p" alt="" draggable="false" />
       <img class="side-beauty side-beauty-r" src="assets/eu-concept/beauty-side-r.png?v=v1.2.1p" alt="" draggable="false" />
+      <div class="beauty-green-seam beauty-green-seam-l" aria-hidden="true"></div>
+      <div class="beauty-green-seam beauty-green-seam-r" aria-hidden="true"></div>
 
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
@@ -3795,7 +3818,7 @@
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script>
     (async function () {
-      const V = '1.2.7';
+      const V = '1.2.8';
       const START_BAL = 2000;
       function currentUser() {
         try {

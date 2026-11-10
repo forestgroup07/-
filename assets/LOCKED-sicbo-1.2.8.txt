@@ -1,0 +1,7 @@
+sicbo PC v1.2.8 lock pack
+- screen: enlarged red well + gold frame top-fill (from 1.2.7)
+- left beauty/green seam: natural upward extend of green key silhouette on plate; CSS left strip off
+- right beauty-green-seam CSS retained
+- hover tips + bead gold tabs retained
+- snapshots: game.LOCKED-1.2.8.html, LOCKED-pc-full-v111-1.2.8.jpg, LOCKED-bead-*-1.2.8.png
+- live pin: game.html / lobby GAME_PC ?v=1.2.8
