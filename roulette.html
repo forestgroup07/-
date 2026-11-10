@@ -231,8 +231,8 @@
       -webkit-backdrop-filter: blur(2px);
       color: #fff;
       font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
-      font-weight: 700;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 28 / var(--sw));
+      font-weight: 500;
       line-height: 1.15;
       text-align: center;
       pointer-events: none;
@@ -254,8 +254,8 @@
       justify-content: center;
       border-radius: 0.28em;
       border: 2px solid #e6c84a;
-      font-size: 1.55em;
-      font-weight: 800;
+      font-size: 1.9em;
+      font-weight: 500;
       color: #fff;
       text-shadow: 0 1px 2px rgba(0,0,0,.45);
       margin-bottom: 0.15em;
@@ -1257,22 +1257,76 @@
       pointer-events: none;
       box-sizing: border-box;
     }
-    /* 珠盘：全竖格（只竖线分列）；先铺底格再贴号 */
+    /* 珠盘底格：10 等分竖线，号球不得压线/出列 */
     #historyBoard .hist-panel.bead-bg {
       background-color: #070707;
       background-image: repeating-linear-gradient(
         90deg,
         transparent 0,
         transparent calc(10% - 1px),
-        rgba(255, 255, 255, 0.22) calc(10% - 1px),
-        rgba(255, 255, 255, 0.22) 10%
+        rgba(255, 255, 255, 0.28) calc(10% - 1px),
+        rgba(255, 255, 255, 0.28) 10%
       );
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+      overflow: hidden;
     }
     #historyBoard .hist-panel.road-bg {
       background: #ffffff;
       box-shadow: inset 0 0 0 1px #9a9a9a;
     }
+    /* 打/列：七行矩阵（第一打～第三列），非大路竖排字 */
+    #historyBoard .hist-dc {
+      position: absolute;
+      z-index: 2;
+      display: none;
+      box-sizing: border-box;
+      background: #fff;
+      box-shadow: inset 0 0 0 1px #9a9a9a;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #historyBoard .hist-dc.is-on { display: block; }
+    #historyBoard .hist-dc-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 30% repeat(11, 1fr);
+      grid-template-rows: repeat(7, 1fr);
+    }
+    #historyBoard .hist-dc-label,
+    #historyBoard .hist-dc-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #c8c8c8;
+      box-sizing: border-box;
+      min-width: 0;
+      min-height: 0;
+    }
+    /* 打/列矩阵标签：尽量大、不靠加粗 */
+    #historyBoard .hist-dc-label {
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 26 / var(--sw));
+      font-weight: 500;
+      font-family: "PingFang TC", "Microsoft YaHei", sans-serif;
+      line-height: 1;
+      letter-spacing: -0.08em;
+      white-space: nowrap;
+      background: #fff;
+      padding: 0 1px;
+    }
+    #historyBoard .hist-dc-label.is-dozen { color: #c62828; }
+    #historyBoard .hist-dc-label.is-zero { color: #1b7a3a; }
+    #historyBoard .hist-dc-label.is-col { color: #1e6fff; }
+    #historyBoard .hist-dc-dot {
+      width: 70%;
+      max-width: 18px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: block;
+    }
+    #historyBoard .hist-dc-dot.is-red { background: #e53935; }
+    #historyBoard .hist-dc-dot.is-blue { background: #1e88e5; }
+    #historyBoard .hist-dc-dot.is-green { background: #2e7d32; }
     #historyBoard .hist-panel.hot-bg {
       background:
         linear-gradient(135deg, rgba(0,0,0,.18) 25%, transparent 25%) -6px 0 / 12px 12px,
@@ -1306,10 +1360,10 @@
       justify-content: center;
       gap: 0.28em;
       color: #fff;
-      font-weight: 600;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 26 / var(--sw));
+      font-weight: 500;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 32 / var(--sw));
       font-family: "PingFang TC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.08em;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
       pointer-events: none;
     }
@@ -1341,36 +1395,81 @@
       align-items: center;
       justify-content: center;
     }
+    /* 切換條：對標黑底金字；選中金底黑字 */
+    #historyBoard .hist-panel.tab-bg {
+      background: #121212;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+      border-radius: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 4 / var(--sw));
+      overflow: hidden;
+    }
     #historyBoard .hist-hit.hist-tab {
-      border-radius: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 6 / var(--sw));
+      border-radius: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 4 / var(--sw));
       cursor: pointer;
+      color: #e8c76a;
+      -webkit-text-fill-color: #e8c76a;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 34 / var(--sw));
+      font-weight: 500;
+      line-height: 1.05;
+      font-family: "PingFang TC", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0.01em;
+      background: transparent;
+      border: 1px solid rgba(232, 200, 120, 0.18);
+      z-index: 3;
     }
     #historyBoard .hist-hit.hist-tab.is-on {
-      box-shadow: inset 0 0 0 1px rgba(232, 200, 120, 0.55);
-      background: linear-gradient(180deg, rgba(255, 240, 200, 0.22), rgba(0, 0, 0, 0.05));
+      color: #1a1408;
+      -webkit-text-fill-color: #1a1408;
+      background: linear-gradient(180deg, #f3e2b0 0%, #e0c07a 55%, #c9a45a 100%);
+      border-color: rgba(255, 230, 160, 0.65);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
     }
-    /* 珠盘底格格线已在 panel；空位透明，有号才贴彩圆 */
+    /* 珠盘号球：锁在列内；红左黑右交错，不越竖线 */
     #historyBoard .hist-hit.hist-bead {
-      border-radius: 50%;
+      border-radius: 0;
       background: transparent;
       border: 0;
+      overflow: hidden;
+      font-size: 0;
+      gap: 0;
+      z-index: 1;
+      padding: 0;
+      box-sizing: border-box;
     }
-    #historyBoard .hist-hit.hist-bead.has-num {
+    #historyBoard .hist-hit.hist-bead.has-num { z-index: 2; }
+    #historyBoard .hist-hit.hist-bead.has-num.is-red { justify-content: flex-start; }
+    #historyBoard .hist-hit.hist-bead.has-num.is-black { justify-content: flex-end; }
+    #historyBoard .hist-hit.hist-bead.has-num.is-green { justify-content: center; }
+    #historyBoard .hist-hit.hist-bead .hist-bead-dot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      /* 直径再 +0.5mm（≈2.4px @4.8px/mm），仍锁列内 */
+      height: calc(96% + min(100vw, 100vh * var(--sw) / var(--sh)) * 2.4 / var(--sw));
+      aspect-ratio: 1 / 1;
+      width: auto;
+      max-width: 52%;
+      border-radius: 50%;
+      border: 1.4px solid #fff;
       color: #fff;
       -webkit-text-fill-color: #fff;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 26 / var(--sw));
-      font-weight: 800;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 21 / var(--sw));
+      font-weight: 500;
       line-height: 1;
-      font-family: "Avenir Next", "Segoe UI", "PingFang TC", sans-serif;
-      border: 1.5px solid rgba(255, 255, 255, 0.85);
-      box-sizing: border-box;
-      transform: scale(0.86);
-      transform-origin: center center;
+      font-family: "Helvetica Neue", "Avenir Next", "Segoe UI", "PingFang TC", sans-serif;
+      letter-spacing: -0.02em;
+      text-shadow: none;
+      flex: 0 0 auto;
+      transform: none;
+      margin: 0;
     }
-    #historyBoard .hist-hit.hist-bead.has-num.is-red { background: #c62828; }
-    #historyBoard .hist-hit.hist-bead.has-num.is-black { background: #1a1a1a; }
-    #historyBoard .hist-hit.hist-bead.has-num.is-green { background: #1b7a3a; }
-    /* 熱門/冷門：对标圆号——白描边彩圆，字约占圆径 62% */
+    #historyBoard .hist-hit.hist-bead.has-num.is-red .hist-bead-dot { background: #e53935; }
+    #historyBoard .hist-hit.hist-bead.has-num.is-black .hist-bead-dot { background: #111111; }
+    #historyBoard .hist-hit.hist-bead.has-num.is-green .hist-bead-dot { background: #2e7d32; }
+    #historyBoard .hist-hit.hist-bead.is-new .hist-bead-dot {
+      box-shadow: 0 0 0 2px #e6c84a;
+    }
+    /* 熱門/冷門：字尽量大（约圆径 78%）、不加粗 */
     #historyBoard .hist-hit.hist-hot,
     #historyBoard .hist-hit.hist-cold {
       border-radius: 50%;
@@ -1382,9 +1481,8 @@
     #historyBoard .hist-hit.hist-cold.has-num {
       color: #fff;
       -webkit-text-fill-color: #fff;
-      /* 字高 ≈ 圆径 × 0.62；圆径取 stage 宽向 % */
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 1.9866 / 100 * 0.62);
-      font-weight: 600;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 1.9866 / 100 * 0.66);
+      font-weight: 500;
       line-height: 1;
       font-family: "Helvetica Neue", "Avenir Next", "Segoe UI", "PingFang TC", sans-serif;
       letter-spacing: -0.04em;
@@ -1398,30 +1496,524 @@
     #historyBoard .hist-hit.hist-cold.has-num.is-black { background: #0d0d0d; }
     #historyBoard .hist-hit.hist-hot.has-num.is-green,
     #historyBoard .hist-hit.hist-cold.has-num.is-green { background: #2e7d32; }
-    /* 大路：白格+清晰灰线 */
+    /* 大路：字尽量大、字重中等；打类为「数字在上、打在下」 */
     #historyBoard .hist-hit.hist-road {
       border-radius: 0;
       background: #fff;
       border: 1px solid #8f8f8f;
       box-shadow: inset 0 0 0 0.5px #c0c0c0;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 24 / var(--sw));
-      font-weight: 800;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 34 / var(--sw));
+      font-weight: 500;
       line-height: 1;
       font-family: "PingFang TC", "Microsoft YaHei", sans-serif;
+    }
+    #historyBoard .hist-hit.hist-road .hist-road-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      line-height: 0.86;
+      transform: none;
+    }
+    /* 对标公司：数字+打几乎撑满格，字重中等 */
+    #historyBoard .hist-hit.hist-road .hist-road-stack .n {
+      font-size: 1.28em;
+      font-weight: 500;
+      line-height: 0.86;
+    }
+    #historyBoard .hist-hit.hist-road .hist-road-stack .c {
+      font-size: 1.18em;
+      font-weight: 500;
+      line-height: 0.86;
+    }
+    #historyBoard .hist-hit.hist-road.has-stack {
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
     }
     #historyBoard .hist-hit.hist-road.is-red { color: #c62828; -webkit-text-fill-color: #c62828; background: #fff; }
     #historyBoard .hist-hit.hist-road.is-black { color: #111; -webkit-text-fill-color: #111; background: #fff; }
     #historyBoard .hist-hit.hist-road.is-green { color: #1b7a3a; -webkit-text-fill-color: #1b7a3a; background: #fff; }
+    /* 對標：大/雙/3打=紅；小/單/1打=藍；2打=黑 */
     #historyBoard .hist-hit.hist-road.is-big,
-    #historyBoard .hist-hit.hist-road.is-odd,
+    #historyBoard .hist-hit.hist-road.is-even,
     #historyBoard .hist-hit.hist-road.is-d3 { color: #c62828; -webkit-text-fill-color: #c62828; background: #fff; }
     #historyBoard .hist-hit.hist-road.is-small,
-    #historyBoard .hist-hit.hist-road.is-even,
+    #historyBoard .hist-hit.hist-road.is-odd,
     #historyBoard .hist-hit.hist-road.is-d1 { color: #1e6fff; -webkit-text-fill-color: #1e6fff; background: #fff; }
     #historyBoard .hist-hit.hist-road.is-d2 { color: #222; -webkit-text-fill-color: #222; background: #fff; }
-    #historyBoard .hist-hit.hist-bead.is-new {
-      box-shadow: 0 0 0 2px #e6c84a;
+    #historyBoard .hist-hit.hist-road.is-c1 { color: #1e6fff; -webkit-text-fill-color: #1e6fff; background: #fff; }
+    #historyBoard .hist-hit.hist-road.is-c2 { color: #222; -webkit-text-fill-color: #222; background: #fff; }
+    #historyBoard .hist-hit.hist-road.is-c3 { color: #c62828; -webkit-text-fill-color: #c62828; background: #fff; }
+
+    /* 左侧四键：返回 / 下注记录 / 游戏规则 / 联系客服（底图已烤图标，热区对齐实测） */
+    .back-wrap,
+    .record-wrap,
+    .help-wrap,
+    .cs-wrap {
+      position: absolute;
+      top: 81.50%;
+      width: 2.85%;
+      aspect-ratio: 1;
+      height: auto;
+      z-index: 80;
+      transform: translate(-50%, -50%);
     }
+    .back-wrap { left: 2.21%; }
+    .record-wrap { left: 5.35%; }
+    .help-wrap { left: 9.00%; }
+    .cs-wrap { left: 12.37%; }
+    .back-face,
+    .record-face,
+    .help-face,
+    .cs-face {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      border-radius: 0.28em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      background: linear-gradient(165deg, #f0e2c0 0%, #e0c892 45%, #c9a56a 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 -2px 3px rgba(80, 55, 15, 0.35),
+        0 1px 2px rgba(0, 0, 0, 0.3);
+      transition: opacity .12s ease;
+    }
+    .back-face svg,
+    .record-face svg,
+    .help-face svg,
+    .cs-face svg {
+      width: 70%;
+      height: 70%;
+      display: block;
+    }
+    .back-wrap.is-hover .back-face,
+    .back-wrap:hover .back-face,
+    .record-wrap.is-hover .record-face,
+    .record-wrap:hover .record-face,
+    .help-wrap.is-hover .help-face,
+    .help-wrap:hover .help-face,
+    .cs-wrap.is-hover .cs-face,
+    .cs-wrap:hover .cs-face {
+      opacity: 1;
+    }
+    .back-hot,
+    .record-hot,
+    .help-hot,
+    .cs-hot {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 0.28em;
+    }
+    .back-hot:focus,
+    .back-hot:focus-visible,
+    .record-hot:focus,
+    .record-hot:focus-visible,
+    .help-hot:focus,
+    .help-hot:focus-visible,
+    .cs-hot:focus,
+    .cs-hot:focus-visible { outline: none; }
+    .back-tip,
+    .record-tip,
+    .help-tip,
+    .cs-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 0.4em);
+      transform: translateX(-50%) translateY(4px);
+      z-index: 120;
+      padding: 0.38em 0.75em;
+      border-radius: 0.45em;
+      background: rgba(12, 12, 12, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 20 / var(--sw));
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .back-tip.show,
+    .record-tip.show,
+    .help-tip.show,
+    .cs-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .back-tip::after,
+    .record-tip::after,
+    .help-tip::after,
+    .cs-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 0.4em solid transparent;
+      border-right: 0.4em solid transparent;
+      border-top: 0.45em solid rgba(12, 12, 12, 0.92);
+    }
+
+    .records-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 210;
+      display: none;
+      align-items: stretch;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.72);
+      pointer-events: auto;
+    }
+    .records-overlay.show { display: flex; }
+    .records-panel {
+      position: relative;
+      width: 96%;
+      max-width: 100%;
+      height: 94%;
+      margin: auto;
+      box-sizing: border-box;
+      padding: 1.2% 1.4% 1%;
+      border-radius: 0.35em;
+      background: rgba(18, 18, 18, 0.96);
+      color: #e8e8e8;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .records-close {
+      position: absolute;
+      right: 0.8%;
+      top: 0.8%;
+      z-index: 2;
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(80, 80, 80, 0.9);
+      color: #f5f5f5;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .records-tabs {
+      display: flex;
+      gap: 0.45em;
+      margin: 0 0 0.7em;
+      padding-right: 2.5em;
+    }
+    .records-tab {
+      padding: 0.35em 0.9em;
+      border-radius: 0.3em;
+      border: 1px solid #555;
+      background: #2a2a2a;
+      color: #cfcfcf;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 18 / var(--sw));
+      font-weight: 600;
+      cursor: default;
+    }
+    .records-tab.is-on {
+      background: #d7c29a;
+      border-color: #d7c29a;
+      color: #2a1c0c;
+    }
+    .records-filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45em 0.7em;
+      margin: 0 0 0.7em;
+      padding: 0.55em 0.7em;
+      background: #1a1a1a;
+      border-radius: 0.25em;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 16 / var(--sw));
+    }
+    .records-filters label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      color: #c8c8c8;
+      white-space: nowrap;
+    }
+    .records-filters input {
+      width: 8.5em;
+      max-width: 18vw;
+      height: 1.9em;
+      border: 1px solid #666;
+      border-radius: 0.2em;
+      background: #fff;
+      color: #222;
+      padding: 0 0.4em;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    .records-filters input[type="date"] {
+      width: 9.5em;
+      max-width: 22vw;
+      min-width: 7.5em;
+    }
+    .records-query {
+      margin-left: 0.35em;
+      padding: 0.35em 1.1em;
+      border: 0;
+      border-radius: 0.25em;
+      background: #d7c29a;
+      color: #2a1c0c;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1em;
+      position: relative;
+      z-index: 5;
+      pointer-events: auto;
+    }
+    .records-query.is-reset {
+      margin-left: auto;
+      background: #3a3a3a;
+      color: #eee;
+      border: 1px solid #777;
+    }
+    .records-query-msg {
+      flex: 1 0 100%;
+      width: 100%;
+      margin: 0.15em 0 0;
+      min-height: 1.2em;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 16 / var(--sw));
+      color: #f0c070;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+    }
+    .records-query-msg.is-empty { color: #ff8d8d; }
+    .records-query-msg.is-ok { color: #7dff9f; }
+    .records-table-wrap {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      border: 1px solid #444;
+      border-radius: 0.2em;
+    }
+    .records-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 14 / var(--sw));
+      white-space: nowrap;
+    }
+    .records-table th {
+      position: sticky;
+      top: 0;
+      background: #d7c29a;
+      color: #2a1c0c;
+      font-weight: 700;
+      padding: 0.55em 0.5em;
+      border: 1px solid #b79a6a;
+      text-align: center;
+      z-index: 1;
+    }
+    .records-table td {
+      padding: 0.5em 0.45em;
+      border: 1px solid #333;
+      text-align: center;
+      color: #ddd;
+      background: #141414;
+    }
+    .records-table tr:nth-child(even) td { background: #1c1c1c; }
+    .records-table .pnl-win { color: #3dce6a; font-weight: 700; }
+    .records-table .pnl-lose { color: #e74c3c; font-weight: 700; }
+    .records-table .st-ok { color: #3dce6a; }
+    .records-empty td {
+      padding: 2.5em 1em;
+      color: #888;
+    }
+    .records-foot {
+      margin-top: 0.55em;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6em 1.2em;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 15 / var(--sw));
+      color: #cfcfcf;
+    }
+    .records-sum span { margin-right: 0.9em; }
+    .records-sum .pnl-win { color: #3dce6a; }
+    .records-sum .pnl-lose { color: #e74c3c; }
+    .records-pager {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+    }
+    .records-pager button {
+      min-width: 1.8em;
+      height: 1.8em;
+      border: 1px solid #555;
+      border-radius: 0.2em;
+      background: #2a2a2a;
+      color: #eee;
+      cursor: pointer;
+    }
+    .records-pager button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .rules-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 200;
+      display: none;
+      align-items: stretch;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.55);
+      pointer-events: auto;
+    }
+    .rules-overlay.show { display: flex; }
+    .rules-panel {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      background: linear-gradient(180deg, #cbb58a 0%, #e8d9b4 18%, #f3e9cf 55%, #efe4c4 100%);
+      color: #3a2a18;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      box-sizing: border-box;
+      padding: 1.6% 3.2% 3%;
+    }
+    .rules-close {
+      position: absolute;
+      right: 1.2%;
+      top: 1.2%;
+      z-index: 2;
+      width: 2.4%;
+      min-width: 28px;
+      aspect-ratio: 1;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(80, 50, 20, 0.85);
+      color: #f5ecd8;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      line-height: 1;
+      cursor: pointer;
+    }
+    .rules-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45em;
+      margin: 0.2em 0 1.1em;
+      padding-right: 3%;
+    }
+    .rules-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.38em 0.85em;
+      border-radius: 0.35em;
+      border: 1px solid #8a6a3a;
+      background: #5c3d1f;
+      color: #fff;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 20 / var(--sw));
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .rules-title {
+      margin: 0 0 0.85em;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 42 / var(--sw));
+      font-weight: 800;
+      color: #3d2a14;
+      letter-spacing: 0.02em;
+    }
+    .rules-h {
+      margin: 1.05em 0 0.45em;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 28 / var(--sw));
+      font-weight: 800;
+      color: #3d2a14;
+    }
+    .rules-sub {
+      margin: 0.85em 0 0.35em;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      font-weight: 700;
+      color: #3d2a14;
+      max-width: 92%;
+    }
+    .rules-p {
+      margin: 0 0 0.55em;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      line-height: 1.65;
+      color: #3a2a18;
+      max-width: 92%;
+    }
+    .rules-list {
+      margin: 0.2em 0 0.6em;
+      padding-left: 1.35em;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 22 / var(--sw));
+      line-height: 1.7;
+      color: #3a2a18;
+      max-width: 92%;
+      list-style: disc;
+    }
+    .rules-list.rules-ol {
+      list-style: decimal;
+      padding-left: 1.55em;
+    }
+    .rules-list li { margin: 0.15em 0; }
+    .rules-table-wrap {
+      width: 92%;
+      max-width: 920px;
+      margin: 0.35em 0 1em;
+      overflow: auto;
+      border-radius: 0.25em;
+      border: 1px solid #8a6a3a;
+      background: rgba(255, 250, 235, 0.55);
+    }
+    .rules-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 20 / var(--sw));
+      color: #3a2a18;
+    }
+    .rules-table th,
+    .rules-table td {
+      border: 1px solid #a8844a;
+      padding: 0.55em 0.7em;
+      vertical-align: top;
+      text-align: left;
+      line-height: 1.45;
+    }
+    .rules-table th {
+      background: #5c3d1f;
+      color: #fff;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .rules-table td:last-child {
+      white-space: nowrap;
+      font-weight: 700;
+      width: 18%;
+    }
+    .rules-table tr:nth-child(even) td {
+      background: rgba(232, 214, 170, 0.35);
+    }
+
   </style>
 </head>
 <body>
@@ -1644,6 +2236,177 @@
         </div>
       </div>
 
+
+      <div class="back-wrap" id="backWrap">
+        <div class="back-face" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 15h12c3.9 0 7 3.1 7 7s-3.1 7-7 7H14" fill="none" stroke="#1a1208" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M17 9l-7 6 7 6" fill="none" stroke="#1a1208" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <button class="back-hot" id="backHot" type="button" aria-label="返回" aria-describedby="backTip"></button>
+        <div class="back-tip" id="backTip" role="tooltip">返回</div>
+      </div>
+      <div class="record-wrap" id="recordWrap">
+        <div class="record-face" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect x="9" y="6" width="18" height="24" rx="1.5" fill="none" stroke="#1a1208" stroke-width="2.2"/>
+            <path d="M13 12h10M13 17h10M13 22h7" fill="none" stroke="#1a1208" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="27" cy="27" r="6" fill="none" stroke="#1a1208" stroke-width="2.2"/>
+            <path d="M31.2 31.2L35 35" stroke="#1a1208" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <button class="record-hot" id="recordHot" type="button" aria-label="下注记录" aria-describedby="recordTip"></button>
+        <div class="record-tip" id="recordTip" role="tooltip">下注記錄</div>
+      </div>
+      <div class="help-wrap" id="helpWrap">
+        <div class="help-face" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="11.2" fill="none" stroke="#1a1208" stroke-width="2.4"/>
+            <text x="20" y="25.2" text-anchor="middle" fill="#1a1208" font-size="16" font-weight="700" font-family="Georgia, 'Times New Roman', serif">?</text>
+          </svg>
+        </div>
+        <button class="help-hot" id="helpHot" type="button" aria-label="游戏规则" aria-describedby="helpTip"></button>
+        <div class="help-tip" id="helpTip" role="tooltip">遊戲規則</div>
+      </div>
+      <div class="cs-wrap" id="csWrap">
+        <div class="cs-face" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="14.5" r="5.2" fill="none" stroke="#1a1208" stroke-width="2.2"/>
+            <path d="M10.5 30.5c1.6-5.2 4.8-7.8 9.5-7.8s7.9 2.6 9.5 7.8" fill="none" stroke="#1a1208" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M12.2 16.2v5.2c0 1.1.9 2 2 2h1.1" fill="none" stroke="#1a1208" stroke-width="2" stroke-linecap="round"/>
+            <path d="M27.8 16.2v5.2c0 1.1-.9 2-2 2h-1.1" fill="none" stroke="#1a1208" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <button class="cs-hot" id="csHot" type="button" aria-label="联系客服" aria-describedby="csTip"></button>
+        <div class="cs-tip" id="csTip" role="tooltip">联系客服</div>
+      </div>
+
+      <div class="records-overlay" id="recordsOverlay" aria-hidden="true">
+        <div class="records-panel" role="dialog" aria-modal="true" aria-labelledby="recordsTitle">
+          <button class="records-close" id="recordsClose" type="button" aria-label="关闭">×</button>
+          <div class="records-tabs" id="recordsTitle">
+            <span class="records-tab is-on">投注記錄</span>
+            <span class="records-tab">額度記錄</span>
+            <span class="records-tab">電子遊戲記錄</span>
+          </div>
+          <div class="records-filters">
+            <label>局號 <input id="recRoundQ" type="text" autocomplete="off" /></label>
+            <label>訂單號 <input id="recOrderQ" type="text" autocomplete="off" /></label>
+            <label>下注時間
+              <input id="recFrom" type="date" />
+              <span>至</span>
+              <input id="recTo" type="date" />
+            </label>
+            <button class="records-query is-reset" id="recResetBtn" type="button">當前</button>
+            <button class="records-query" id="recQueryBtn" type="button" onclick="window.__fgRecQuery&&window.__fgRecQuery(event)">查詢</button>
+            <div class="records-query-msg" id="recQueryMsg" aria-live="polite"></div>
+          </div>
+          <div class="records-table-wrap">
+            <table class="records-table">
+              <thead>
+                <tr>
+                  <th>投注編號</th>
+                  <th>時間</th>
+                  <th>靴-局</th>
+                  <th>局號</th>
+                  <th>遊戲類型</th>
+                  <th>桌檯編號</th>
+                  <th>結果</th>
+                  <th>玩法</th>
+                  <th>下注總額</th>
+                  <th>輸贏</th>
+                  <th>有效投注</th>
+                  <th>狀態</th>
+                </tr>
+              </thead>
+              <tbody id="recordsBody"></tbody>
+            </table>
+          </div>
+          <div class="records-foot">
+            <div class="records-sum" id="recordsSum"></div>
+            <div class="records-pager">
+              <span id="recordsTotalLabel">總計: 0</span>
+              <button type="button" id="recPrev" aria-label="上一页">‹</button>
+              <span id="recordsPageLabel">1/1</span>
+              <button type="button" id="recNext" aria-label="下一页">›</button>
+              <span>每頁顯示 10</span>
+            </div>
+            <div style="margin-left:auto">洗碼比 0.00%　洗碼佣金 0</div>
+          </div>
+        </div>
+      </div>
+      <div class="rules-overlay" id="rulesOverlay" aria-hidden="true">
+        <div class="rules-panel" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+          <button class="rules-close" id="rulesClose" type="button" aria-label="关闭">×</button>
+          <div class="rules-tabs">
+            <span class="rules-tab">輪盤</span>
+          </div>
+          <h1 class="rules-title" id="rulesTitle">輪盤</h1>
+          <h2 class="rules-h">遊戲概述</h2>
+          <p class="rules-p">輪盤是一款經典賭場遊戲。荷官轉動輪盤並投下小球，玩家預測小球最終落入的號碼或相關屬性（紅/黑、單/雙、大/小、打、列等）進行投注。</p>
+          <h2 class="rules-h">如何勝出</h2>
+          <p class="rules-p">若您的投注項目涵蓋開獎號碼，即按對應賠率獲得派彩；未中則扣除該注本金。</p>
+          <h2 class="rules-h">參與說明</h2>
+          <ul class="rules-list">
+            <li>倒計時開始後，選擇籌碼並點擊盤口完成投注，再按「確定」確認。</li>
+            <li>倒計時結束後停止下注，輪盤與小球開始轉動並落定。</li>
+            <li>系統識別落點號碼後顯示結果，並寫入開獎記錄。</li>
+          </ul>
+          <h2 class="rules-h">常見賠率</h2>
+          <div class="rules-table-wrap">
+            <table class="rules-table">
+              <thead>
+                <tr>
+                  <th>投注項目</th>
+                  <th>說明</th>
+                  <th>賠率</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>直注</td>
+                  <td>投注單一號碼（含 0）</td>
+                  <td>1 賠 35</td>
+                </tr>
+                <tr>
+                  <td>分注</td>
+                  <td>投注相鄰兩個號碼</td>
+                  <td>1 賠 17</td>
+                </tr>
+                <tr>
+                  <td>街注</td>
+                  <td>投注同一橫排三個號碼</td>
+                  <td>1 賠 11</td>
+                </tr>
+                <tr>
+                  <td>角注</td>
+                  <td>投注構成一角的四個號碼</td>
+                  <td>1 賠 8</td>
+                </tr>
+                <tr>
+                  <td>線注</td>
+                  <td>投注兩街共六個號碼</td>
+                  <td>1 賠 5</td>
+                </tr>
+                <tr>
+                  <td>打 / 列</td>
+                  <td>第一/二/三打或第一/二/三列</td>
+                  <td>1 賠 2</td>
+                </tr>
+                <tr>
+                  <td>紅 / 黑 / 單 / 雙 / 大 / 小</td>
+                  <td>對應顏色、奇偶或 1-18 / 19-36（0 通常通殺）</td>
+                  <td>1 賠 1</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h2 class="rules-h">請注意</h2>
+          <p class="rules-p">如遊戲過程中因平台網絡等故障未能正常完成牌局，系統將取消該局下注並退回本金。</p>
+        </div>
+      </div>
+
       <div class="toast-msg" id="toastMsg" role="status"></div>
       <div class="stop-bet" id="stopBet" aria-live="polite">停止下注</div>
       <audio id="voWelcome" preload="auto" playsinline></audio>
@@ -1655,7 +2418,7 @@
 
   <script>
     (async function () {
-      const V = '1.1.24';
+      const V = '1.2.2';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -2235,9 +2998,91 @@
       const histHotEls = [];
       const histColdEls = [];
       const histTabEls = {};
-      let histResults = [];
-      let histRoadMode = 'rb';
+      const HIST_DC_ROWS = [
+        { id: 'd1', label: '第一打', kind: 'dozen' },
+        { id: 'd2', label: '第二打', kind: 'dozen' },
+        { id: 'd3', label: '第三打', kind: 'dozen' },
+        { id: 'z', label: '零', kind: 'zero' },
+        { id: 'c1', label: '第一列', kind: 'col' },
+        { id: 'c2', label: '第二列', kind: 'col' },
+        { id: 'c3', label: '第三列', kind: 'col' },
+      ];
+      const HIST_DC_COLS = 11;
+      let histDcBoard = null;
+      let histDcCells = []; /* [row][col] */
+      /* 摇奖记录固定键：换号/刷版本不丢；并兼容旧 per-user 键 */
+      const HIST_STORE_KEY = 'fg_roulette_hist_v1';
+      const HIST_MODE_KEY = 'fg_roulette_hist_mode_v1';
+      function normalizeHistArr(arr) {
+        if (!Array.isArray(arr)) return [];
+        return arr
+          .map((n) => Number(n))
+          .filter((n) => Number.isFinite(n) && n >= 0 && n <= 36)
+          .slice(-300);
+      }
+      function loadHistResults() {
+        try {
+          let raw = localStorage.getItem(HIST_STORE_KEY);
+          if (!raw) {
+            try { raw = sessionStorage.getItem(HIST_STORE_KEY); } catch (_) {}
+          }
+          if (!raw) {
+            const uid = String(ACCOUNT_ID || '').trim().toLowerCase();
+            if (uid) raw = localStorage.getItem('fg_roulette_hist::' + uid);
+          }
+          if (!raw) {
+            for (let i = 0; i < localStorage.length; i++) {
+              const k = localStorage.key(i);
+              if (k && k.indexOf('fg_roulette_hist::') === 0) {
+                raw = localStorage.getItem(k);
+                if (raw) break;
+              }
+            }
+          }
+          if (!raw) return [];
+          return normalizeHistArr(JSON.parse(raw));
+        } catch (_) {
+          return [];
+        }
+      }
+      function saveHistResults() {
+        try {
+          const payload = JSON.stringify(histResults.slice(-300));
+          localStorage.setItem(HIST_STORE_KEY, payload);
+          try { sessionStorage.setItem(HIST_STORE_KEY, payload); } catch (_) {}
+          const uid = String(ACCOUNT_ID || '').trim().toLowerCase();
+          if (uid) localStorage.setItem('fg_roulette_hist::' + uid, payload);
+        } catch (_) {}
+      }
+      function loadHistRoadMode() {
+        try {
+          let m = localStorage.getItem(HIST_MODE_KEY);
+          if (!m) {
+            const uid = String(ACCOUNT_ID || '').trim().toLowerCase();
+            if (uid) m = localStorage.getItem('fg_roulette_hist_mode::' + uid);
+          }
+          if (m === 'rb' || m === 'bs' || m === 'oe' || m === 'dc') return m;
+        } catch (_) {}
+        return 'rb';
+      }
+      function saveHistRoadMode() {
+        try {
+          localStorage.setItem(HIST_MODE_KEY, histRoadMode);
+          const uid = String(ACCOUNT_ID || '').trim().toLowerCase();
+          if (uid) localStorage.setItem('fg_roulette_hist_mode::' + uid, histRoadMode);
+        } catch (_) {}
+      }
+      let histResults = loadHistResults();
+      let histRoadMode = loadHistRoadMode();
       let histFlashTimer = 0;
+      /* 启动立刻回写一次，把旧键迁到固定键 */
+      if (histResults.length) saveHistResults();
+      try {
+        window.addEventListener('beforeunload', saveHistResults);
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'hidden') saveHistResults();
+        });
+      } catch (_) {}
 
       function histColorClass(n) {
         if (n === 0) return 'is-green';
@@ -2260,9 +3105,10 @@
             ? { text: '單', cls: 'is-odd', key: '單' }
             : { text: '雙', cls: 'is-even', key: '雙' };
         }
-        if (n <= 12) return { text: '1打', cls: 'is-d1', key: '1打' };
-        if (n <= 24) return { text: '2打', cls: 'is-d2', key: '2打' };
-        return { text: '3打', cls: 'is-d3', key: '3打' };
+        /* 打/列：大路竖排「数字+打」（1蓝/2黑/3红） */
+        if (n <= 12) return { text: '1打', stackNum: '1', stackChar: '打', cls: 'is-d1', key: '1打' };
+        if (n <= 24) return { text: '2打', stackNum: '2', stackChar: '打', cls: 'is-d2', key: '2打' };
+        return { text: '3打', stackNum: '3', stackChar: '打', cls: 'is-d3', key: '3打' };
       }
       function buildBigRoad(results, mode) {
         const cols = HIST_ROAD_COLS;
@@ -2309,6 +3155,7 @@
         const shown = histResults.slice(-HIST_CAP);
         histBeadEls.forEach((el) => {
           el.textContent = '';
+          el.innerHTML = '';
           el.classList.remove('has-num', 'is-red', 'is-black', 'is-green', 'is-new');
         });
         shown.forEach((n, i) => {
@@ -2316,23 +3163,53 @@
           const row = i % HIST_BEAD_ROWS;
           const el = histBeadEls[col * HIST_BEAD_ROWS + row];
           if (!el) return;
-          el.textContent = String(n);
+          const dot = document.createElement('span');
+          dot.className = 'hist-bead-dot';
+          dot.textContent = String(n);
+          el.appendChild(dot);
           el.classList.add('has-num', histColorClass(n));
           if (i === shown.length - 1) el.classList.add('is-new');
         });
 
-        const road = buildBigRoad(histResults, histRoadMode);
+        const dcOn = histRoadMode === 'dc';
+        if (histDcBoard) histDcBoard.classList.toggle('is-on', dcOn);
         histRoadEls.forEach((el) => {
+          el.style.visibility = dcOn ? 'hidden' : '';
           el.textContent = '';
+          el.innerHTML = '';
           el.className = 'hist-hit hist-road';
         });
-        for (let c = 0; c < HIST_ROAD_COLS; c++) {
-          for (let r = 0; r < HIST_ROAD_ROWS; r++) {
-            const o = road[c][r];
-            const el = histRoadEls[c * HIST_ROAD_ROWS + r];
-            if (!el || !o) continue;
-            el.textContent = o.text;
-            el.classList.add(o.cls);
+        if (dcOn) {
+          /* 公司格式：七行（第一打～第三列）；每局一列；打红点、列蓝点、零绿点 */
+          histDcCells.forEach((row) => row.forEach((cell) => { cell.innerHTML = ''; }));
+          const slice = histResults.slice(-HIST_DC_COLS);
+          const start = HIST_DC_COLS - slice.length;
+          slice.forEach((n, i) => {
+            const c = start + i;
+            if (n === 0) {
+              const cell = histDcCells[3] && histDcCells[3][c];
+              if (cell) cell.innerHTML = '<span class="hist-dc-dot is-green"></span>';
+              return;
+            }
+            const dRow = n <= 12 ? 0 : (n <= 24 ? 1 : 2);
+            const cRow = (n % 3 === 1) ? 4 : (n % 3 === 2 ? 5 : 6);
+            if (histDcCells[dRow] && histDcCells[dRow][c]) {
+              histDcCells[dRow][c].innerHTML = '<span class="hist-dc-dot is-red"></span>';
+            }
+            if (histDcCells[cRow] && histDcCells[cRow][c]) {
+              histDcCells[cRow][c].innerHTML = '<span class="hist-dc-dot is-blue"></span>';
+            }
+          });
+        } else {
+          const road = buildBigRoad(histResults, histRoadMode);
+          for (let c = 0; c < HIST_ROAD_COLS; c++) {
+            for (let r = 0; r < HIST_ROAD_ROWS; r++) {
+              const o = road[c][r];
+              const el = histRoadEls[c * HIST_ROAD_ROWS + r];
+              if (!el || !o) continue;
+              el.textContent = o.text;
+              el.classList.add(o.cls);
+            }
           }
         }
 
@@ -2376,6 +3253,7 @@
         if (!Number.isFinite(num) || num < 0 || num > 36) return;
         histResults.push(num);
         if (histResults.length > 300) histResults = histResults.slice(-300);
+        saveHistResults();
         paintHistoryBoard();
         clearTimeout(histFlashTimer);
         histFlashTimer = setTimeout(() => {
@@ -2387,16 +3265,20 @@
         if (!historyBoard) return;
         historyBoard.innerHTML = '';
         historyBoard.setAttribute('aria-hidden', 'false');
-        /* 黑版面：下移 2mm、左移 3mm；底边再剪高 1mm（≈4.8px/mm） */
+        /* 珠盘底格：面板十分列竖线为准；球格由面板几何生成，禁止出线 */
         const BEAD_DX = -(3 * 4.8) / 2284 * 100; /* -3mm */
         const BEAD_DY = (2 * 4.8) / 1468 * 100;  /* +2mm */
         const BEAD_DH = -(1 * 4.8) / 1468 * 100; /* 高度 -1mm */
+        const beadPanelLeft = Math.max(0.15, 0.35 + BEAD_DX);
+        const beadPanelTop = 82.43 + BEAD_DY;
+        const beadPanelW = 30.7;
+        const beadPanelH = 16.9 + BEAD_DH;
         const beadPanel = document.createElement('div');
         beadPanel.className = 'hist-panel bead-bg';
-        beadPanel.style.left = (0.35 + BEAD_DX).toFixed(4) + '%';
-        beadPanel.style.top = (82.43 + BEAD_DY).toFixed(4) + '%';
-        beadPanel.style.width = '30.7%';
-        beadPanel.style.height = (16.9 + BEAD_DH).toFixed(4) + '%';
+        beadPanel.style.left = beadPanelLeft.toFixed(4) + '%';
+        beadPanel.style.top = beadPanelTop.toFixed(4) + '%';
+        beadPanel.style.width = beadPanelW.toFixed(4) + '%';
+        beadPanel.style.height = beadPanelH.toFixed(4) + '%';
         historyBoard.appendChild(beadPanel);
         const roadPanel = document.createElement('div');
         roadPanel.className = 'hist-panel road-bg';
@@ -2405,6 +3287,37 @@
         roadPanel.style.width = '21.72%';
         roadPanel.style.height = '16.48%';
         historyBoard.appendChild(roadPanel);
+        histDcBoard = document.createElement('div');
+        histDcBoard.className = 'hist-dc';
+        histDcBoard.style.left = '31.35%';
+        histDcBoard.style.top = '82.97%';
+        histDcBoard.style.width = '21.72%';
+        histDcBoard.style.height = '16.48%';
+        const dcGrid = document.createElement('div');
+        dcGrid.className = 'hist-dc-grid';
+        histDcCells = HIST_DC_ROWS.map((row) => {
+          const lab = document.createElement('div');
+          lab.className = 'hist-dc-label is-' + row.kind;
+          lab.textContent = row.label;
+          dcGrid.appendChild(lab);
+          const cells = [];
+          for (let c = 0; c < HIST_DC_COLS; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'hist-dc-cell';
+            dcGrid.appendChild(cell);
+            cells.push(cell);
+          }
+          return cells;
+        });
+        histDcBoard.appendChild(dcGrid);
+        historyBoard.appendChild(histDcBoard);
+        const tabPanel = document.createElement('div');
+        tabPanel.className = 'hist-panel tab-bg';
+        tabPanel.style.left = '53.1524%';
+        tabPanel.style.top = '82.97%';
+        tabPanel.style.width = '6.3047%';
+        tabPanel.style.height = '16.4851%';
+        historyBoard.appendChild(tabPanel);
         /* 紅藍圖（熱門/冷門）整组左移 1.0mm（相对原位） */
         const HC_DX = -(1.0 * 4.8) / 2284 * 100;
         const hotPanel = document.createElement('div');
@@ -2440,23 +3353,36 @@
           historyBoard.appendChild(b);
           return b;
         }
-        HISTORY_BOARD.bead.slice().sort((a, b) => a.col - b.col || a.row - b.row)
-          .forEach((c) => {
-            const box = Object.assign({}, c, {
-              left: (parseFloat(c.left) + BEAD_DX).toFixed(4) + '%',
-              top: (parseFloat(c.top) + BEAD_DY).toFixed(4) + '%',
-            });
-            histBeadEls.push(addHit(box, 'bead', '珠盘' + c.col + '-' + c.row));
-          });
+        /* 球格 = 面板 10×6 等分，左右各留缝不压竖线 */
+        const colW = beadPanelW / HIST_BEAD_COLS;
+        const rowH = beadPanelH / HIST_BEAD_ROWS;
+        const padX = colW * 0.06;
+        const padY = rowH * 0.03;
+        for (let col = 0; col < HIST_BEAD_COLS; col++) {
+          for (let row = 0; row < HIST_BEAD_ROWS; row++) {
+            const box = {
+              id: 'b' + col + '_' + row,
+              col: col,
+              row: row,
+              left: (beadPanelLeft + col * colW + padX).toFixed(4) + '%',
+              top: (beadPanelTop + row * rowH + padY).toFixed(4) + '%',
+              width: (colW - padX * 2).toFixed(4) + '%',
+              height: (rowH - padY * 2).toFixed(4) + '%',
+            };
+            histBeadEls.push(addHit(box, 'bead', '珠盘' + col + '-' + row));
+          }
+        }
         HISTORY_BOARD.road.slice().sort((a, b) => a.col - b.col || a.row - b.row)
           .forEach((c) => histRoadEls.push(addHit(c, 'road', '大路' + c.col + '-' + c.row)));
         HISTORY_BOARD.tabs.forEach((c) => {
           const el = addHit(c, 'tab', c.label);
+          el.textContent = c.label;
           histTabEls[c.id] = el;
           el.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             histRoadMode = c.id;
+            saveHistRoadMode();
             paintHistoryBoard();
           });
         });
@@ -2526,8 +3452,10 @@
       /* 整圈跑道 0–36：欧式轮序绝对热区贴底图；与主键盘同 data-bet → paintLit 同步亮 */
       const TRACK_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
       const TRACK_CELLS = {
-        0: { left:'82.6182%', top:'70.5722%', width:'4.0718%', height:'6.3351%', mask:'assets/roulette/track-masks/n0.png' },
-        32: { left:'79.6848%', top:'65.1226%', width:'4.1594%', height:'6.8801%', mask:'assets/roulette/track-masks/n32.png' },
+        /* 0：底图橄榄绿键实像素蒙版（扩边盖满、不吃 32/26） */
+        0: { left:'81.655%', top:'69.6185%', width:'4.9912%', height:'6.8801%', mask:'assets/roulette/track-masks/n0.png' },
+        /* 32/3/30/23：与 0/8 同法——扇区底格 + 底图补强（v1.2.2） */
+        32: { left:'79.7723%', top:'65.1907%', width:'4.1156%', height:'6.7439%', mask:'assets/roulette/track-masks/n32.png' },
         15: { cx:'81.2172%', cy:'63.5899%', w:'3.0648%', h:'2.9291%', rot:0 },
         19: { cx:'81.2172%', cy:'60.4564%', w:'3.0648%', h:'2.9291%', rot:0 },
         4: { cx:'81.2172%', cy:'57.3229%', w:'3.0648%', h:'2.9291%', rot:0 },
@@ -2541,12 +3469,13 @@
         13: { cx:'81.2172%', cy:'32.0845%', w:'2.9773%', h:'2.7248%', rot:0 },
         36: { cx:'81.2172%', cy:'28.8828%', w:'3.1524%', h:'2.9972%', rot:0 },
         11: { cx:'81.2172%', cy:'25.7493%', w:'3.0648%', h:'2.861%', rot:0 },
-        30: { left:'79.7285%', top:'19.0736%', width:'3.6778%', height:'5.0409%', mask:'assets/roulette/track-masks/n30.png' },
-        8: { left:'80.9107%', top:'14.0327%', width:'4.3783%', height:'6.812%', mask:'assets/roulette/track-masks/n8.png' },
-        23: { left:'83.9317%', top:'12.1253%', width:'4.1156%', height:'5.7221%', mask:'assets/roulette/track-masks/n23.png' },
-        10: { left:'88.1349%', top:'12.1935%', width:'3.9405%', height:'5.4496%', mask:'assets/roulette/track-masks/n10.png' },
-        5: { left:'90.7618%', top:'13.9646%', width:'4.4658%', height:'6.8801%', mask:'assets/roulette/track-masks/n5.png' },
-        24: { left:'92.8634%', top:'19.1417%', width:'3.5026%', height:'4.9046%', mask:'assets/roulette/track-masks/n24.png' },
+        30: { left:'79.641%', top:'18.733%', width:'3.8091%', height:'5.8583%', mask:'assets/roulette/track-masks/n30.png' },
+        /* 8/10/5/24：与 0 同法——扇区底格 + 底图补强，锁邻壁（v1.2.1） */
+        8: { left:'80.6918%', top:'13.9646%', width:'4.641%', height:'7.2207%', mask:'assets/roulette/track-masks/n8.png' },
+        23: { left:'83.5814%', top:'12.0572%', width:'4.4658%', height:'6.1308%', mask:'assets/roulette/track-masks/n23.png' },
+        10: { left:'87.8284%', top:'12.0572%', width:'4.3345%', height:'5.9264%', mask:'assets/roulette/track-masks/n10.png' },
+        5: { left:'90.5867%', top:'13.624%', width:'4.7723%', height:'7.3569%', mask:'assets/roulette/track-masks/n5.png' },
+        24: { left:'92.6445%', top:'18.3924%', width:'3.8529%', height:'5.9264%', mask:'assets/roulette/track-masks/n24.png' },
         16: { cx:'94.9431%', cy:'25.7834%', w:'3.1086%', h:'2.9291%', rot:0 },
         33: { cx:'94.9431%', cy:'28.9169%', w:'3.1086%', h:'2.7929%', rot:0 },
         1: { cx:'94.9212%', cy:'32.0163%', w:'3.1524%', h:'2.9972%', rot:0 },
@@ -2561,7 +3490,7 @@
         28: { cx:'94.9431%', cy:'60.4564%', w:'3.1086%', h:'2.9291%', rot:0 },
         12: { cx:'94.9212%', cy:'63.5899%', w:'3.0648%', h:'2.9291%', rot:0 },
         35: { left:'92.2504%', top:'65.0545%', width:'4.1156%', height:'6.8801%', mask:'assets/roulette/track-masks/n35.png' },
-        3: { left:'89.6673%', top:'69.6185%', width:'4.8161%', height:'6.812%', mask:'assets/roulette/track-masks/n3.png' },
+        3: { left:'89.4046%', top:'69.0054%', width:'5.1664%', height:'7.6975%', mask:'assets/roulette/track-masks/n3.png' },
         26: { left:'85.8581%', top:'72.139%', width:'4.4221%', height:'5.2452%', mask:'assets/roulette/track-masks/n26.png' },
       };
       const trackNums = document.getElementById('trackNums');
@@ -2953,6 +3882,378 @@
         }
       });
       paintLit();
+
+
+      /* 左侧四键：返回 / 下注记录 / 游戏规则 / 联系客服（对齐骰宝） */
+      const BET_LOG_KEY = 'fg_roulette_betlog::' + ACCOUNT_ID.trim().toLowerCase();
+      function loadBetLog() {
+        try {
+          const raw = localStorage.getItem(BET_LOG_KEY);
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch (_) {
+          return [];
+        }
+      }
+      function saveBetLog(list) {
+        const clipped = (list || []).slice(0, 2000);
+        try {
+          localStorage.setItem(BET_LOG_KEY, JSON.stringify(clipped));
+        } catch (_) {}
+        scheduleServerSave({ betlog: clipped });
+      }
+      function pushBetRecords(rows) {
+        if (!rows || !rows.length) return;
+        const list = loadBetLog();
+        for (let i = rows.length - 1; i >= 0; i--) list.unshift(rows[i]);
+        saveBetLog(list);
+      }
+      const backWrap = document.getElementById('backWrap');
+      const backHot = document.getElementById('backHot');
+      const backTip = document.getElementById('backTip');
+      if (backHot) {
+        if (backWrap && backTip) {
+          const showBackTip = (on) => {
+            backTip.classList.toggle('show', on);
+            backWrap.classList.toggle('is-hover', on);
+          };
+          backHot.addEventListener('mouseenter', () => showBackTip(true));
+          backHot.addEventListener('mouseleave', () => showBackTip(false));
+          backHot.addEventListener('focus', () => showBackTip(true));
+          backHot.addEventListener('blur', () => showBackTip(false));
+        }
+        backHot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            sessionStorage.setItem('fg_sicbo_auth', '1');
+            sessionStorage.setItem('fg_sicbo_user', ACCOUNT_ID);
+            localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
+            saveBal();
+          } catch (_) {}
+          location.replace(new URL(`lobby.html?v=${V}`, location.href).href);
+        });
+      }
+      const helpWrap = document.getElementById('helpWrap');
+      const helpHot = document.getElementById('helpHot');
+      const helpTip = document.getElementById('helpTip');
+      const rulesOverlay = document.getElementById('rulesOverlay');
+      const rulesClose = document.getElementById('rulesClose');
+      const recordWrap = document.getElementById('recordWrap');
+      const recordHot = document.getElementById('recordHot');
+      const recordTip = document.getElementById('recordTip');
+      const recordsOverlay = document.getElementById('recordsOverlay');
+      const recordsClose = document.getElementById('recordsClose');
+      let recPage = 1;
+      const REC_PAGE_SIZE = 10;
+      let recFilter = { round: '', order: '', from: 0, to: 0 };
+      function fmtRecTime(ts) {
+        const d = new Date(ts);
+        const p = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+      }
+      function fmtDateInput(d) {
+        const p = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+      }
+      function parseRecDateParts(raw) {
+        const s = String(raw || '').trim();
+        if (!s) return null;
+        let m = /^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/.exec(s);
+        if (!m) m = /^(\d{4})(\d{2})(\d{2})$/.exec(s);
+        if (!m) return null;
+        const y = Number(m[1]);
+        const mo = Number(m[2]);
+        const d = Number(m[3]);
+        if (!y || mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+        return { y, mo, d };
+      }
+      function parseRecDayStart(raw) {
+        const p = parseRecDateParts(raw);
+        if (!p) return 0;
+        return new Date(p.y, p.mo - 1, p.d, 0, 0, 0, 0).getTime();
+      }
+      function parseRecDayEnd(raw) {
+        const p = parseRecDateParts(raw);
+        if (!p) return 0;
+        return new Date(p.y, p.mo - 1, p.d, 23, 59, 59, 999).getTime();
+      }
+      function syncRecFilterFromInputs() {
+        const roundEl = document.getElementById('recRoundQ');
+        const orderEl = document.getElementById('recOrderQ');
+        const fromEl = document.getElementById('recFrom');
+        const toEl = document.getElementById('recTo');
+        recFilter.round = ((roundEl && roundEl.value) || '').trim();
+        recFilter.order = ((orderEl && orderEl.value) || '').trim();
+        const fromRaw = fromEl ? (fromEl.value || fromEl.getAttribute('value') || '') : '';
+        const toRaw = toEl ? (toEl.value || toEl.getAttribute('value') || '') : '';
+        recFilter.from = parseRecDayStart(fromRaw);
+        recFilter.to = parseRecDayEnd(toRaw);
+      }
+      function initRecDateDefaults(force) {
+        const fromEl = document.getElementById('recFrom');
+        const toEl = document.getElementById('recTo');
+        if (!fromEl || !toEl) return;
+        const now = new Date();
+        const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+        if (force || !fromEl.value) fromEl.value = fmtDateInput(from);
+        if (force || !toEl.value) toEl.value = fmtDateInput(now);
+      }
+      function resetRecToCurrent(ev) {
+        if (ev) {
+          try { ev.preventDefault(); ev.stopPropagation(); } catch (_) {}
+        }
+        const roundEl = document.getElementById('recRoundQ');
+        const orderEl = document.getElementById('recOrderQ');
+        if (roundEl) roundEl.value = '';
+        if (orderEl) orderEl.value = '';
+        initRecDateDefaults(true);
+        setRecQueryMsg('已回到當前時段', 'ok');
+        runRecQuery();
+      }
+      function filteredBetLog() {
+        return loadBetLog().filter((r) => {
+          const ts = Number(r.ts) || 0;
+          if (recFilter.round && !String(r.roundId || '').includes(recFilter.round)) return false;
+          if (recFilter.order && !String(r.betId || '').includes(recFilter.order)) return false;
+          if (recFilter.from && ts < recFilter.from) return false;
+          if (recFilter.to && ts > recFilter.to) return false;
+          return true;
+        });
+      }
+      function setRecQueryMsg(text, kind) {
+        const el = document.getElementById('recQueryMsg');
+        if (!el) return;
+        el.textContent = text || '';
+        el.classList.toggle('is-empty', kind === 'empty');
+        el.classList.toggle('is-ok', kind === 'ok');
+      }
+      function paintRecords() {
+        const body = document.getElementById('recordsBody');
+        const sumEl = document.getElementById('recordsSum');
+        const totalLabel = document.getElementById('recordsTotalLabel');
+        const pageLabel = document.getElementById('recordsPageLabel');
+        const prevBtn = document.getElementById('recPrev');
+        const nextBtn = document.getElementById('recNext');
+        if (!body) return;
+        const all = filteredBetLog();
+        const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
+        if (recPage > pages) recPage = pages;
+        if (recPage < 1) recPage = 1;
+        const start = (recPage - 1) * REC_PAGE_SIZE;
+        const pageRows = all.slice(start, start + REC_PAGE_SIZE);
+        const filtered = !!(recFilter.round || recFilter.order || recFilter.from || recFilter.to);
+        if (!pageRows.length) {
+          const emptyText = filtered ? '該時段沒有符合條件的記錄' : '暫無投注記錄';
+          body.innerHTML = `<tr class="records-empty"><td colspan="12">${emptyText}</td></tr>`;
+        } else {
+          body.innerHTML = pageRows.map((r) => {
+            const pnl = Number(r.pnl) || 0;
+            const pnlCls = pnl > 0 ? 'pnl-win' : (pnl < 0 ? 'pnl-lose' : '');
+            return `<tr>
+              <td>${r.betId}</td>
+              <td>${fmtRecTime(r.ts)}</td>
+              <td>—</td>
+              <td>${r.roundId}</td>
+              <td>輪盤</td>
+              <td>${r.tableId || 'R501'}</td>
+              <td>${r.result || '—'}</td>
+              <td>${r.market || '—'}</td>
+              <td>${r.stake}</td>
+              <td class="${pnlCls}">${pnl}</td>
+              <td>${r.stake}</td>
+              <td class="st-ok">已結算</td>
+            </tr>`;
+          }).join('');
+        }
+        const pageStake = pageRows.reduce((s, r) => s + (Number(r.stake) || 0), 0);
+        const pagePnl = pageRows.reduce((s, r) => s + (Number(r.pnl) || 0), 0);
+        const allStake = all.reduce((s, r) => s + (Number(r.stake) || 0), 0);
+        const allPnl = all.reduce((s, r) => s + (Number(r.pnl) || 0), 0);
+        const pnlClass = (n) => (n > 0 ? 'pnl-win' : (n < 0 ? 'pnl-lose' : ''));
+        if (sumEl) {
+          sumEl.innerHTML =
+            `小計　下注總額 ${pageStake.toLocaleString('en-US')}　`
+            + `輸贏 <span class="${pnlClass(pagePnl)}">${pagePnl.toLocaleString('en-US')}</span>　`
+            + `有效投注 ${pageStake.toLocaleString('en-US')}<br>`
+            + `總計　下注總額 ${allStake.toLocaleString('en-US')}　`
+            + `輸贏 <span class="${pnlClass(allPnl)}">${allPnl.toLocaleString('en-US')}</span>　`
+            + `有效投注 ${allStake.toLocaleString('en-US')}`;
+        }
+        if (totalLabel) totalLabel.textContent = `總計: ${all.length}`;
+        if (pageLabel) pageLabel.textContent = `${recPage}/${pages}`;
+        if (prevBtn) prevBtn.disabled = recPage <= 1;
+        if (nextBtn) nextBtn.disabled = recPage >= pages;
+      }
+      function openRecords() {
+        if (recordTip) recordTip.classList.remove('show');
+        if (recordWrap) recordWrap.classList.remove('is-hover');
+        if (!recordsOverlay) return;
+        initRecDateDefaults();
+        syncRecFilterFromInputs();
+        setRecQueryMsg('');
+        recPage = 1;
+        paintRecords();
+        recordsOverlay.classList.add('show');
+        recordsOverlay.setAttribute('aria-hidden', 'false');
+      }
+      function closeRecords() {
+        if (!recordsOverlay) return;
+        recordsOverlay.classList.remove('show');
+        recordsOverlay.setAttribute('aria-hidden', 'true');
+      }
+      if (recordHot && recordTip && recordWrap) {
+        const showRecordTip = (on) => {
+          recordTip.classList.toggle('show', on);
+          recordWrap.classList.toggle('is-hover', on);
+        };
+        recordHot.addEventListener('mouseenter', () => showRecordTip(true));
+        recordHot.addEventListener('mouseleave', () => showRecordTip(false));
+        recordHot.addEventListener('focus', () => showRecordTip(true));
+        recordHot.addEventListener('blur', () => showRecordTip(false));
+        recordHot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openRecords();
+        });
+      }
+      if (recordsClose) {
+        recordsClose.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeRecords();
+        });
+      }
+      if (recordsOverlay) {
+        recordsOverlay.addEventListener('click', (e) => {
+          if (e.target === recordsOverlay) closeRecords();
+        });
+      }
+      function runRecQuery(ev) {
+        if (ev) {
+          try { ev.preventDefault(); ev.stopPropagation(); } catch (_) {}
+        }
+        try {
+          syncRecFilterFromInputs();
+          const fromEl = document.getElementById('recFrom');
+          const toEl = document.getElementById('recTo');
+          const fromRaw = fromEl ? String(fromEl.value || '').trim() : '';
+          const toRaw = toEl ? String(toEl.value || '').trim() : '';
+          if (fromRaw && !recFilter.from) {
+            setRecQueryMsg('開始日期格式無效，請重選', 'empty');
+            return;
+          }
+          if (toRaw && !recFilter.to) {
+            setRecQueryMsg('結束日期格式無效，請重選', 'empty');
+            return;
+          }
+          if (!fromRaw) recFilter.from = 0;
+          if (!toRaw) recFilter.to = 0;
+          if (recFilter.from && recFilter.to && recFilter.from > recFilter.to) {
+            setRecQueryMsg('開始時間不能晚於結束時間', 'empty');
+            const body = document.getElementById('recordsBody');
+            if (body) body.innerHTML = '<tr class="records-empty"><td colspan="12">時間區間無效</td></tr>';
+            const totalLabel = document.getElementById('recordsTotalLabel');
+            if (totalLabel) totalLabel.textContent = '總計: 0';
+            return;
+          }
+          recPage = 1;
+          paintRecords();
+          const n = filteredBetLog().length;
+          if (n > 0) {
+            setRecQueryMsg(`查詢完成：共 ${n} 筆（已按時間篩選）`, 'ok');
+          } else {
+            setRecQueryMsg('該時段沒有記錄', 'empty');
+          }
+          try {
+            if (typeof showToast === 'function') {
+              showToast(n > 0 ? `查到 ${n} 筆` : '該時段無記錄', 1400);
+            }
+          } catch (_) {}
+        } catch (err) {
+          setRecQueryMsg('查詢失敗，請重試', 'empty');
+        }
+      }
+      window.__fgRecQuery = runRecQuery;
+      window.__fgRecReset = resetRecToCurrent;
+      const recQueryBtn = document.getElementById('recQueryBtn');
+      if (recQueryBtn) {
+        recQueryBtn.addEventListener('click', (e) => runRecQuery(e));
+      }
+      const recResetBtn = document.getElementById('recResetBtn');
+      if (recResetBtn) {
+        recResetBtn.addEventListener('click', (e) => resetRecToCurrent(e));
+      }
+      ['recRoundQ', 'recOrderQ', 'recFrom', 'recTo'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') runRecQuery(e);
+        });
+        el.addEventListener('change', () => {
+          setRecQueryMsg('日期已更改，請點「查詢」', '');
+        });
+      });
+      const recPrev = document.getElementById('recPrev');
+      const recNext = document.getElementById('recNext');
+      if (recPrev) recPrev.addEventListener('click', () => { recPage -= 1; paintRecords(); });
+      if (recNext) recNext.addEventListener('click', () => { recPage += 1; paintRecords(); });
+      if (helpHot && helpTip && helpWrap) {
+        const showHelpTip = (on) => {
+          helpTip.classList.toggle('show', on);
+          helpWrap.classList.toggle('is-hover', on);
+        };
+        const openRules = () => {
+          showHelpTip(false);
+          if (!rulesOverlay) return;
+          rulesOverlay.classList.add('show');
+          rulesOverlay.setAttribute('aria-hidden', 'false');
+        };
+        const closeRules = () => {
+          if (!rulesOverlay) return;
+          rulesOverlay.classList.remove('show');
+          rulesOverlay.setAttribute('aria-hidden', 'true');
+        };
+        helpHot.addEventListener('mouseenter', () => showHelpTip(true));
+        helpHot.addEventListener('mouseleave', () => showHelpTip(false));
+        helpHot.addEventListener('focus', () => showHelpTip(true));
+        helpHot.addEventListener('blur', () => showHelpTip(false));
+        helpHot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openRules();
+        });
+        if (rulesClose) rulesClose.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeRules();
+        });
+        if (rulesOverlay) {
+          rulesOverlay.addEventListener('click', (e) => {
+            if (e.target === rulesOverlay) closeRules();
+          });
+        }
+      }
+      const csWrap = document.getElementById('csWrap');
+      const csHot = document.getElementById('csHot');
+      const csTip = document.getElementById('csTip');
+      if (csHot && csTip && csWrap) {
+        const showCsTip = (on) => {
+          csTip.classList.toggle('show', on);
+          csWrap.classList.toggle('is-hover', on);
+        };
+        csHot.addEventListener('mouseenter', () => showCsTip(true));
+        csHot.addEventListener('mouseleave', () => showCsTip(false));
+        csHot.addEventListener('focus', () => showCsTip(true));
+        csHot.addEventListener('blur', () => showCsTip(false));
+        csHot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showCsTip(false);
+          location.href = 'support.html?v=' + V;
+        });
+      }
 
       /* 全屏 */
       const fsWrap = document.getElementById('fsWrap');

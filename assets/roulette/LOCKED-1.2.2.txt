@@ -1,0 +1,6 @@
+roulette v1.2.2 lock pack (2026-11-10)
+- roulette.html / lobby ROULETTE ?v=1.2.2 / assets/roulette/VERSION
+- snapshot: roulette.LOCKED-1.2.2.html
+- includes: track masks through 1.2.7 lineage on disk; left toolbar four hotspots
+  (back / bet records / rules / CS) ported from sicbo UX
+- do not overwrite this pack without user written rename
