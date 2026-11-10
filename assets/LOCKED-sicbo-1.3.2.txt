@@ -1,0 +1,6 @@
+sicbo PC v1.3.2 lock pack
+- based on 1.3.1 green strips + right pair-dice tops from 1.2.8
+- side beauty overlap under gold bezel (L width 26.25%, R left 69.85%) + dark edge bleed; CSS green-seam L/R off
+- plate: pure strip; left untouched vs 1.3.1 lock
+- snapshots: game.LOCKED-1.3.2.html, LOCKED-pc-full-v111-1.3.2.jpg, LOCKED-bead-*-1.3.2.png
+- live pin: game.html / lobby GAME_PC ?v=1.3.2
