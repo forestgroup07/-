@@ -1,0 +1,6 @@
+sicbo PC v1.2.7 lock pack
+- screen: remove gold strip; enlarge red well + gold frame to fill top screen (top:0, height:51.48%)
+- hover tips retained from 1.2.6 (account/balance/stake/live-sound/refresh)
+- bead gold tabs retained
+- snapshots: game.LOCKED-1.2.7.html, LOCKED-pc-full-v111-1.2.7.jpg, LOCKED-bead-*-1.2.7.png
+- live pin: game.html / lobby GAME_PC ?v=1.2.7

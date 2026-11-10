@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.2.6" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.2.7" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=v1.0.30" type="image/webp" />
@@ -68,25 +68,26 @@
       --vb-inner-r: calc(var(--vb-r) - var(--vb-rim));
       position: absolute;
       left: 25.594%;
-      top: 3.95%;
+      /* 金框+红布上沿贴顶，填满上方屏幕；底仍贴绿键盘 U 槽 ≈51.48% */
+      top: 0;
       width: 45.018%;
-      /* 底贴绿键盘 U 槽谷底 ≈51.48% */
-      height: 47.53%;
+      height: 51.48%;
       z-index: 40;
       box-sizing: border-box;
       padding: var(--vb-rim);
-      border-radius: var(--vb-r);
+      /* 顶边贴齐，圆角只留底部 */
+      border-radius: 0 0 var(--vb-r) var(--vb-r);
       pointer-events: none;
-      /* 底舌嵌进绿键盘凹槽（底格），肩线落在绿格上沿 */
+      /* 肩线保持落在绿格上沿 ≈47.37% → 47.37/51.48≈92.02% */
       clip-path: polygon(
         0% 0%,
         100% 0%,
-        100% 91.35%,
-        98.55% 91.35%,
+        100% 92.02%,
+        98.55% 92.02%,
         97.85% 99.85%,
         10.55% 99.85%,
-        9.85% 91.35%,
-        0% 91.35%
+        9.85% 92.02%,
+        0% 92.02%
       );
       background:
         linear-gradient(158deg, #f3e2b8 0%, #d8b56f 26%, #a8793c 55%, #6a451c 78%, #3d2710 100%);
@@ -100,7 +101,7 @@
       content: "";
       position: absolute;
       inset: var(--vb-rim);
-      border-radius: var(--vb-inner-r);
+      border-radius: 0 0 var(--vb-inner-r) var(--vb-inner-r);
       pointer-events: none;
       z-index: 3;
       box-shadow:
@@ -112,7 +113,7 @@
       position: relative;
       width: 100%;
       height: 100%;
-      border-radius: var(--vb-inner-r);
+      border-radius: 0 0 var(--vb-inner-r) var(--vb-inner-r);
       overflow: hidden;
       /* 红桌布底，与 3D 盅场景衔接 */
       background: radial-gradient(ellipse at 50% 40%, #c81828 0%, #8e0c16 55%, #5a060c 100%);
@@ -142,7 +143,7 @@
       pointer-events: none;
       user-select: none;
       -webkit-user-drag: none;
-      border-radius: var(--vb-inner-r);
+      border-radius: 0 0 var(--vb-inner-r) var(--vb-inner-r);
     }
 
     /* 倒计时：相对视频框左上（动态绿圈） */
@@ -1807,15 +1808,15 @@
       box-sizing: border-box;
       border: 0;
       background-color: #373735;
-      background-image: url("assets/bead-tabs-dice.png?v=1.2.6");
+      background-image: url("assets/bead-tabs-dice.png?v=1.2.7");
       background-size: 100% 100%;
       background-repeat: no-repeat;
       pointer-events: auto;
       overflow: hidden;
     }
-    .bead-tabs[data-mode="dice"] { background-image: url("assets/bead-tabs-dice.png?v=1.2.6"); }
-    .bead-tabs[data-mode="size"] { background-image: url("assets/bead-tabs-size.png?v=1.2.6"); }
-    .bead-tabs[data-mode="parity"] { background-image: url("assets/bead-tabs-parity.png?v=1.2.6"); }
+    .bead-tabs[data-mode="dice"] { background-image: url("assets/bead-tabs-dice.png?v=1.2.7"); }
+    .bead-tabs[data-mode="size"] { background-image: url("assets/bead-tabs-size.png?v=1.2.7"); }
+    .bead-tabs[data-mode="parity"] { background-image: url("assets/bead-tabs-parity.png?v=1.2.7"); }
     .bead-tab {
       flex: 1 1 0;
       margin: 0;
@@ -3008,7 +3009,7 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.6" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.2.7" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <!-- 框外两侧：欧洲风静图 + CSS 微晃 -->
@@ -3794,7 +3795,7 @@
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script>
     (async function () {
-      const V = '1.2.6';
+      const V = '1.2.7';
       const START_BAL = 2000;
       function currentUser() {
         try {
