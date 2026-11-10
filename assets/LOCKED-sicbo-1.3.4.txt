@@ -1,0 +1,11 @@
+sicbo PC lock v1.3.4
+Scope: 电脑版 only（game.html）；手机版 game-m 仍为 1.3.3，本包不含。
+PC: game.html / game.LOCKED-1.3.4.html
+Base: pc-full-v111.jpg / assets/LOCKED-pc-full-v111-1.3.4.jpg
+Sum atlas: assets/pair-dice/sum-atlas.webp / LOCKED-sum-atlas-1.3.4.webp
+Dim mask: assets/sicbo-bet-kbd-dim-mask.png / LOCKED-sicbo-bet-kbd-dim-mask-1.3.4.png
+Act gold faces: assets/act-btn-faces/{repeat,confirm,cancel}.png + LOCKED-*-1.3.4.png
+Lobby: GAME_PC → game.html?v=1.3.4
+Notes: 挂单三键金面；停注绿台实心蒙版；总和 4–17 数字去脏重绘。
+Freeze: 未经用户书面点名「改骰宝」禁止改本定版任何文件/部署/还原。
+Live: https://forestgroup.ai/game.html?v=1.3.4

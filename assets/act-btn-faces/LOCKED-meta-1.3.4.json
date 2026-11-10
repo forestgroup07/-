@@ -1,0 +1,57 @@
+{
+  "method": "outer-white-CC full gold cover",
+  "font_px": 30,
+  "icon_px": 26,
+  "radius": 9,
+  "stage": [
+    2188,
+    1393
+  ],
+  "slots": [
+    {
+      "id": "repeat",
+      "box": [
+        1475,
+        1268,
+        1655,
+        1324
+      ],
+      "css": {
+        "left": 67.4132,
+        "top": 91.0266,
+        "width": 8.2267,
+        "height": 4.0201
+      }
+    },
+    {
+      "id": "confirm",
+      "box": [
+        1681,
+        1268,
+        1862,
+        1324
+      ],
+      "css": {
+        "left": 76.8282,
+        "top": 91.0266,
+        "width": 8.2724,
+        "height": 4.0201
+      }
+    },
+    {
+      "id": "cancel",
+      "box": [
+        1888,
+        1268,
+        2069,
+        1324
+      ],
+      "css": {
+        "left": 86.2888,
+        "top": 91.0266,
+        "width": 8.2724,
+        "height": 4.0201
+      }
+    }
+  ]
+}
