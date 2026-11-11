@@ -1,0 +1,26 @@
+sicbo PC lock v1.4.12
+Scope: 电脑版 only（game.html）；手机版 game-m 另册，本包不含。
+PC: game.html / game.LOCKED-1.4.12.html
+Cup screen: assets/eu-concept/cup-screen-hero.jpg / LOCKED-cup-screen-hero-1.4.12.jpg
+Cup hero: assets/eu-concept/cup-hero-3dice.jpg / LOCKED-cup-hero-3dice-1.4.12.jpg
+Cup shake: js/cup-shake-3d.js / cup-shake-3d.LOCKED-1.4.12.js
+Base: assets/LOCKED-pc-full-v111-1.4.12.jpg（底图黑底三键仍为「重复下注」，未改字）
+Sum atlas: assets/pair-dice/sum-atlas.webp / LOCKED-sum-atlas-1.4.12.webp
+Dim mask: assets/sicbo-bet-kbd-dim-mask.png / LOCKED-sicbo-bet-kbd-dim-mask-1.4.12.png
+Act gold faces: assets/act-btn-faces/{undo,confirm,cancel,repeat}.png + LOCKED-*-1.4.12.png
+Lobby: GAME_PC → game.html?v=1.4.12
+
+已验收清单（本包算数）:
+- 挂单后金色左键叠层：重复下注 → 撤销（绿箭头；字号与确定/取消一致）
+- 左键逻辑：undoBet 回退上一步挂单；去掉加倍
+- 打开画面不金；仅挂单后 is-pending 才显示金面
+- 底图黑底白字三键仍为「重复下注 / 确定 / 取消」，未改底图字
+
+未验收、不得当作本定版的项:
+- 独立透明抠图盅壳 / Three.js 立体骰叠层
+- 三颗白骰不规则单独跳动
+- 把底图黑底「重复下注」改成「撤销」
+- 确定 / 取消金面视觉重做（本版仅沿用既有金面）
+
+Freeze: 未经用户书面点名同意，禁止改本定版任何文件/部署/还原一点。
+Live: https://forestgroup.ai/game.html?v=1.4.12
