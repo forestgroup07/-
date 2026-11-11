@@ -1,0 +1,28 @@
+roulette v1.2.9 lock pack (2026-11-11)
+Scope: 轮盘电脑版；在 v1.2.4 盘面基础上仅定「金色左键→撤销」。
+
+Snapshots:
+- roulette.LOCKED-1.2.9.html
+- assets/roulette/LOCKED-1.2.9.txt
+- assets/roulette/LOCKED-VERSION-1.2.9.txt
+- assets/roulette/LOCKED-sicbo-ctrl-strip-1.2.9.png（底条黑底仍为「重复下注」，未改字）
+- assets/roulette/act-btn-faces/LOCKED-{undo,confirm,cancel,repeat}-1.2.9.png
+- assets/roulette/LOCKED-bet-kbd-dim-mask-1.2.9.png
+- assets/roulette/LOCKED-wheel-disc-1.2.9.png
+- audio/roulette-en/n0..n36.mp3（沿用 1.2.4）
+- audio/roulette-fret-click-0..2.mp3（沿用 1.2.4）
+- lobby ROULETTE → roulette.html?v=1.2.9 / assets/roulette/VERSION=1.2.9
+
+已验收清单（本包算数）:
+- 挂单后金色左键叠层：重复下注 → 撤销（绿箭头；字号与确定/取消一致）
+- 左键逻辑：undoBet 回退上一步挂单；去掉加倍 / 去掉无挂单时重放上局
+- 打开画面不金；仅挂单后 is-pending 才显示金面
+- 底条黑底白字仍为「重复下注 / 确定 / 取消」，未改底条字
+
+未验收、不得当作本定版的项:
+- 把底条黑底「重复下注」改成「撤销」
+- 确定 / 取消金面视觉重做（本版仅沿用既有金面）
+- 1.2.4 以外的盘面/音效改动
+
+Freeze: 未经用户书面点名同意，禁止改本定版任何文件/部署/还原一点。
+Live: https://forestgroup.ai/roulette.html?v=1.2.9
