@@ -1,0 +1,19 @@
+Sicbo dice WIP backup — recessed solid dice on red cloth
+Version: 1.4.18
+Date: 2026-11-11
+
+Accepted scope (this pack only):
+- Three.js solid white dice with recessed cylinder pips (no face stickers)
+- Clean white body; red pips on 1/4; black on 2/3/5/6
+- Squircle large corner radius; contact shadow for weight
+- Preview on red felt (assets/eu-concept/red-felt-plain.jpg)
+- Idle always-on via CupShake3D.showIdle
+
+Snapshots (restore from these only):
+- js/cup-shake-3d.LOCKED-dice-1.4.18.js
+- assets/dice/LOCKED-from-hero-1.4.18/
+- assets/eu-concept/LOCKED-red-felt-plain-1.4.18.jpg
+- assets/eu-concept/LOCKED-cup-screen-empty-nodice-1.4.18.jpg
+- Live: https://forestgroup.ai/game.html?v=1.4.18
+
+NOT a full sicbo PC release lock (board/金键/盅进盅流程另册).
