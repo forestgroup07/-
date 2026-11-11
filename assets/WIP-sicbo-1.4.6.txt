@@ -1,0 +1,23 @@
+Sicbo PC WIP backup tag v1.4.6 (NOT full release lock)
+Date: 2026-11-12
+
+Scope committed:
+- game.html / lobby.html / VERSION
+- js/cup-shake-3d.js (calibrated pad, vibrator physics, land separate,
+  desync dice, visible plate shake, phase banners 5s, bead newest cols)
+- assets/LOCKED-cup-calib-1.4.38.txt (calib note only)
+
+Accepted in this WIP pack (as of backup):
+- empty cup plate + Three.js dice overlay
+- calib PAD/camera
+- vibrator-style kicks + visible plate micro-shake
+- hard freeze / no post teleport to idle triangle
+- phase text hold 5s (start parallel to timer)
+- bead 单双/大小 show newest columns
+
+NOT a formal LOCKED release:
+- no game.LOCKED-1.4.6.html
+- no *-frozen-*.mdc pointer update
+- no release: lock commit style beyond WIP backup
+
+Online: https://forestgroup.ai/game.html?v=1.4.6

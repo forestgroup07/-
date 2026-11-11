@@ -1,0 +1,22 @@
+Sicbo cup CALIBRATION note (not full release lock)
+Version: 1.4.38
+Date: 2026-11-11
+
+Photo: assets/eu-concept/cup-screen-empty-nodice.jpg (1280x720)
+Measured green pad: center UV (0.501, 0.639), radius ~0.096 of width
+
+World calibration:
+- camera pos (0, 5.1, 6.75) lookAt (0, 0.7, 0) fov 28
+- PAD_R = 0.72 (projects to pad radius on photo)
+- DIE = 0.36 (~1/4 of pad diameter)
+- WALL_R = PAD_R - DIE_COL_R
+- CEIL_H = 1.55
+- cupRoot: no extra tilt/scale (world = cup)
+
+Debug rings: open with ?cupDebug=1
+- green = pad rim
+- yellow = die-center limit
+- cyan = glass wall height
+
+Accepted this step: geometry alignment only.
+NOT accepted yet: vibrating-plate feel / full physics polish.

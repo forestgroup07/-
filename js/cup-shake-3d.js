@@ -2,23 +2,56 @@
  * Photo-matched white solid dice (Three.js) — dice ONLY, no CGI glass cup.
  * Background = empty cup photo (#videoFeed). Opposite faces: 1↔6, 2↔5, 3↔4.
  * window.CupShake3D = { ready, play([d1,d2,d3]), showIdle, hide }
+ *
+ * v1.4.6 可见振盘：空盅底图+骰层与虚拟振盘同相位微抖（方案1）。
+ * ?cupDebug=1 仍显示校准圈。
  */
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-const FACE_VER = '1.4.18';
-const SHAKE_MS = 4800;
-const SETTLE_MS = 1600;
-const LAND_STAGGER_MS = [0, 220, 480];
-/* 红布预览：一体凹点（无贴纸）；方圆形；实心沉感 */
-const CUP_SCALE = 1;
-const CUP_TILT_X = (16 * Math.PI) / 180;
-const CUP_REST_Y = -0.28;
-const DIE_TIP_X = (3 * Math.PI) / 180;
-const DIE = 0.32;
+const FACE_VER = '1.4.6';
+/** 可见振盘像素振幅（相对世界 amp） */
+const VIS_PLATE_Y_PX = 11;
+const VIS_PLATE_X_PX = 4.5;
+/* 真机约 5.7s：0–1.5s 猛振 → 1.5–3s 衰减 → ≥3s 停死 */
+const SHAKE_MS = 5700;
+const FIERCE_S = 1.5;
+const SETTLE_S = 3.0;
+const BALL_EASE_P = 2.55;
+
+/*
+ * 校准常量（对照 assets/eu-concept/cup-screen-empty-nodice.jpg 1280×720）：
+ * - 绿垫中心 UV ≈ (0.501, 0.639)
+ * - 绿垫半径 ≈ 0.096×画面宽
+ * - 世界：垫半径 PAD_R=0.72 → 投影对齐上述 UV；DIE=0.36 ≈ 垫直径的 1/4
+ */
+const PAD_R = 0.72;
+const DIE = 0.36;
 const DIE_RADIUS = DIE * 0.26;
 const DIE_SEG = 6;
-const PAD_R = 0.55;
+/* 球近似互撞半径；贴地时改用盒距 LAND_MIN，才像实心方骰 */
+const DIE_COL_R = DIE * 0.58;
+const LAND_MIN = DIE * 1.28;
+const WALL_R = Math.max(0.12, PAD_R - DIE_COL_R);
+const CEIL_H = 1.85; /* 允许抛到罩中上部（对真机视频） */
+const GRAVITY = 16.5;
+const FLOOR_REST = 0.34;
+const WALL_REST = 0.62;
+const PLATE_KICK = 1.65; /* 猛振阶段把骰踢到罩中上 */
+const DIE_TIP_X = (3 * Math.PI) / 180;
+
+const CAM_POS = [0, 5.1, 6.75];
+const CAM_LOOK = [0, 0.7, 0];
+const CAM_FOV = 28;
+
+function ballProgress(u) {
+  const t = Math.max(0, Math.min(1, u));
+  return 1 - Math.pow(1 - t, BALL_EASE_P);
+}
+function rnd(a, b) {
+  return a + Math.random() * (b - a);
+}
+
 const PIP_RED = 0xb41c20;
 const PIP_BLACK = 0x161616;
 const PIP_UV = {
@@ -30,8 +63,17 @@ const PIP_UV = {
   6: [[0.28, 0.24], [0.72, 0.24], [0.28, 0.5], [0.72, 0.5], [0.28, 0.76], [0.72, 0.76]],
 };
 
+function wantDebug() {
+  try {
+    return new URLSearchParams(location.search).get('cupDebug') === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
 async function mountCupShake3D(canvas, opts = {}) {
   const lite = !!opts.lite;
+  const debug = wantDebug();
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -45,26 +87,67 @@ async function mountCupShake3D(canvas, opts = {}) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(28, 1, 0.05, 50);
-  camera.position.set(0, 2.2, 3.1);
-  camera.lookAt(0, 0, 0.15);
+  const camera = new THREE.PerspectiveCamera(CAM_FOV, 1, 0.05, 80);
+  camera.position.set(CAM_POS[0], CAM_POS[1], CAM_POS[2]);
+  camera.lookAt(CAM_LOOK[0], CAM_LOOK[1], CAM_LOOK[2]);
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.55));
   const sun = new THREE.DirectionalLight(0xffffff, 1.55);
   sun.position.set(0.6, 4.2, 1.2);
   scene.add(sun);
-  const fill = new THREE.PointLight(0xffffff, 0.35, 12);
+  const fill = new THREE.PointLight(0xffffff, 0.35, 20);
   fill.position.set(-1.6, 1.2, 1.4);
   scene.add(fill);
 
+  /* 校准后：杯坐标系 = 世界，底面 y=0，无额外 tilt/scale 错位 */
   const cupRoot = new THREE.Group();
-  cupRoot.scale.setScalar(CUP_SCALE);
-  cupRoot.rotation.set(CUP_TILT_X, 0, 0);
-  cupRoot.position.set(0, CUP_REST_Y, 0);
   scene.add(cupRoot);
 
   const FLOOR_TOP = 0;
   const DIE_REST_Y = FLOOR_TOP + DIE * 0.5 + 0.001;
+  const backZ = 0;
+
+  if (debug) {
+    const mkRing = (radius, color, y) => {
+      const g = new THREE.RingGeometry(radius * 0.985, radius, 96);
+      const m = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(g, m);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.y = y;
+      mesh.renderOrder = 9;
+      return mesh;
+    };
+    cupRoot.add(mkRing(PAD_R, 0x22ff66, 0.002)); /* 绿垫外缘 */
+    cupRoot.add(mkRing(WALL_R, 0xffee22, 0.004)); /* 骰心可到半径 */
+    const wall = new THREE.Mesh(
+      new THREE.CylinderGeometry(PAD_R, PAD_R, CEIL_H, 64, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: 0x44ccff,
+        transparent: true,
+        opacity: 0.18,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      })
+    );
+    wall.position.y = CEIL_H * 0.5;
+    wall.renderOrder = 8;
+    cupRoot.add(wall);
+    console.log('[CupShake3D] CALIB', {
+      PAD_R,
+      WALL_R,
+      CEIL_H,
+      DIE,
+      CAM_POS,
+      CAM_LOOK,
+      padUV: '(0.501, 0.639)',
+    });
+  }
 
   const bodyMat = new THREE.MeshPhysicalMaterial({
     color: 0xf5f5f5,
@@ -84,7 +167,6 @@ async function mountCupShake3D(canvas, opts = {}) {
     metalness: 0.0,
   });
 
-  /** 一体凹点：圆柱沉进白面，顶面几乎齐平可见（无贴纸） */
   function addRecessedPips(group, faceNum, normal) {
     const mat = faceNum === 1 || faceNum === 4 ? redPipMat : blackPipMat;
     const span = DIE * 0.62;
@@ -104,7 +186,6 @@ async function mountCupShake3D(canvas, opts = {}) {
       pip.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
       const u = (uu - 0.5) * span;
       const v = (vv - 0.5) * span;
-      /* 顶面齐平表面，柱身沉进内部形成凹点 */
       pip.position
         .copy(n)
         .multiplyScalar(half - depth * 0.48)
@@ -131,29 +212,190 @@ async function mountCupShake3D(canvas, opts = {}) {
       { f: 4, n: new THREE.Vector3(-1, 0, 0) },
     ];
     for (const s of faces) addRecessedPips(g, s.f, s.n);
-
-    const shadow = new THREE.Mesh(
-      new THREE.CircleGeometry(DIE * 0.55, 32),
-      new THREE.MeshBasicMaterial({
-        color: 0x000000,
-        transparent: true,
-        opacity: 0.4,
-        depthWrite: false,
-      })
-    );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = -DIE * 0.5 + 0.002;
-    shadow.renderOrder = 0;
-    g.add(shadow);
+    /* 不要脚下黑圆影（照片绿垫上会显得脏） */
     return g;
   }
 
-  /* 三颗落点：红布正中，略挤一点更有重量感 */
-  const spots = [
-    new THREE.Vector3(-0.34, DIE_REST_Y, 0.1),
-    new THREE.Vector3(0.0, DIE_REST_Y, 0.16),
-    new THREE.Vector3(0.34, DIE_REST_Y, 0.1),
-  ];
+  /* 闲置散开三角：中心距 DIE×1.28，落在校准绿垫内 */
+  const idleGap = DIE * 1.28;
+  const idleR = Math.min(WALL_R * 0.92, idleGap / Math.sqrt(3));
+  const spots = [0, 1, 2].map((i) => {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 3;
+    return new THREE.Vector3(
+      Math.cos(a) * idleR,
+      DIE_REST_Y,
+      Math.sin(a) * idleR + backZ
+    );
+  });
+
+  function clampInCup(p, v) {
+    if (p.y < DIE_REST_Y) {
+      p.y = DIE_REST_Y;
+      if (v.y < 0) v.y *= -FLOOR_REST * (0.55 + Math.random() * 0.35);
+      v.x *= 0.88;
+      v.z *= 0.88;
+    }
+    const ceil = DIE_REST_Y + CEIL_H;
+    if (p.y > ceil) {
+      p.y = ceil;
+      if (v.y > 0) v.y *= -0.35;
+    }
+    const h01 = Math.max(0, Math.min(1, (p.y - DIE_REST_Y) / CEIL_H));
+    const maxR = WALL_R * (1 - h01 * h01 * 0.28);
+    const rr = Math.hypot(p.x, p.z);
+    if (rr > maxR && rr > 1e-6) {
+      const nx = p.x / rr;
+      const nz = p.z / rr;
+      p.x = nx * maxR;
+      p.z = nz * maxR;
+      const dot = v.x * nx + v.z * nz;
+      if (dot > 0) {
+        v.x -= (1 + WALL_REST) * dot * nx;
+        v.z -= (1 + WALL_REST) * dot * nz;
+      }
+      v.x *= 0.9;
+      v.z *= 0.9;
+      v.y += rnd(0.05, 0.25);
+    }
+  }
+
+  function collidePair(pa, va, pb, vb, frozenA = false, frozenB = false) {
+    if (frozenA && frozenB) return;
+    const dx = pa.x - pb.x;
+    const dy = pa.y - pb.y;
+    const dz = pa.z - pb.z;
+    const dist = Math.hypot(dx, dy, dz) || 1e-6;
+    /* 两颗都近地：按方骰边长推开（XZ），空中仍用球近似 */
+    const bothLow = pa.y <= DIE_REST_Y + DIE * 0.65 && pb.y <= DIE_REST_Y + DIE * 0.65;
+    const minD = bothLow ? LAND_MIN : DIE_COL_R * 2;
+    if (bothLow) {
+      let hx = dx;
+      let hz = dz;
+      let hDist = Math.hypot(hx, hz);
+      if (hDist < 1e-5) {
+        const ang = Math.random() * Math.PI * 2;
+        hx = Math.cos(ang);
+        hz = Math.sin(ang);
+        hDist = 1e-5;
+      }
+      if (hDist >= LAND_MIN) return;
+      const nx = hx / hDist;
+      const nz = hz / hDist;
+      const overlap = LAND_MIN - hDist;
+      if (frozenA) {
+        pb.x -= nx * overlap;
+        pb.z -= nz * overlap;
+      } else if (frozenB) {
+        pa.x += nx * overlap;
+        pa.z += nz * overlap;
+      } else {
+        pa.x += nx * overlap * 0.5;
+        pa.z += nz * overlap * 0.5;
+        pb.x -= nx * overlap * 0.5;
+        pb.z -= nz * overlap * 0.5;
+      }
+      const rv = frozenA
+        ? -(vb.x * nx + vb.z * nz)
+        : frozenB
+          ? va.x * nx + va.z * nz
+          : (va.x - vb.x) * nx + (va.z - vb.z) * nz;
+      if (rv < 0) {
+        const j = rv * 0.9;
+        if (!frozenA) {
+          va.x -= j * nx;
+          va.z -= j * nz;
+        }
+        if (!frozenB) {
+          vb.x += j * nx;
+          vb.z += j * nz;
+        }
+      }
+      return;
+    }
+    if (dist >= minD) return;
+    const nx = dx / dist;
+    const ny = dy / dist;
+    const nz = dz / dist;
+    const overlap = minD - dist;
+    if (frozenA) {
+      pb.x -= nx * overlap;
+      pb.y -= ny * overlap;
+      pb.z -= nz * overlap;
+    } else if (frozenB) {
+      pa.x += nx * overlap;
+      pa.y += ny * overlap;
+      pa.z += nz * overlap;
+    } else {
+      const h = overlap * 0.5;
+      pa.x += nx * h;
+      pa.y += ny * h;
+      pa.z += nz * h;
+      pb.x -= nx * h;
+      pb.y -= ny * h;
+      pb.z -= nz * h;
+    }
+    const rvx = frozenA ? -vb.x : frozenB ? va.x : va.x - vb.x;
+    const rvy = frozenA ? -vb.y : frozenB ? va.y : va.y - vb.y;
+    const rvz = frozenA ? -vb.z : frozenB ? va.z : va.z - vb.z;
+    const rv = rvx * nx + rvy * ny + rvz * nz;
+    if (rv >= 0) return;
+    const j = rv * 0.82;
+    if (!frozenA) {
+      va.x -= j * nx;
+      va.y -= j * ny;
+      va.z -= j * nz;
+    }
+    if (!frozenB) {
+      vb.x += j * nx;
+      vb.y += j * ny;
+      vb.z += j * nz;
+    }
+  }
+
+  /** 水平一枪分离（不动画挪开）：落定前保证不叠模 */
+  function separateLandXZ(positions, canMove) {
+    for (let pass = 0; pass < 6; pass++) {
+      for (let a = 0; a < 3; a++) {
+        for (let b = a + 1; b < 3; b++) {
+          let dx = positions[a].x - positions[b].x;
+          let dz = positions[a].z - positions[b].z;
+          let dist = Math.hypot(dx, dz);
+          if (dist < 1e-5) {
+            const ang = (a * 2.1 + b * 1.7 + pass) * 1.7;
+            dx = Math.cos(ang);
+            dz = Math.sin(ang);
+            dist = 1e-5;
+          }
+          if (dist >= LAND_MIN) continue;
+          const nx = dx / dist;
+          const nz = dz / dist;
+          const push = LAND_MIN - dist;
+          const ma = canMove[a];
+          const mb = canMove[b];
+          if (ma && mb) {
+            positions[a].x += nx * push * 0.5;
+            positions[a].z += nz * push * 0.5;
+            positions[b].x -= nx * push * 0.5;
+            positions[b].z -= nz * push * 0.5;
+          } else if (ma) {
+            positions[a].x += nx * push;
+            positions[a].z += nz * push;
+          } else if (mb) {
+            positions[b].x -= nx * push;
+            positions[b].z -= nz * push;
+          }
+        }
+      }
+      for (let i = 0; i < 3; i++) {
+        if (!canMove[i]) continue;
+        const dummy = { x: 0, y: 0, z: 0 };
+        positions[i].y = DIE_REST_Y;
+        clampInCup(positions[i], dummy);
+        positions[i].y = DIE_REST_Y;
+      }
+    }
+  }
+
   const dieTipQ = new THREE.Quaternion().setFromAxisAngle(
     new THREE.Vector3(1, 0, 0),
     DIE_TIP_X
@@ -208,6 +450,21 @@ async function mountCupShake3D(canvas, opts = {}) {
   }
   loop();
 
+  function applyVisPlate(px, py) {
+    const tr = `scale(1.12) translate(${px.toFixed(2)}px, ${py.toFixed(2)}px)`;
+    const feed = document.getElementById('videoFeed');
+    const stereo = document.getElementById('cupStereo');
+    if (feed) feed.style.transform = tr;
+    if (stereo) stereo.style.transform = tr;
+  }
+  function resetVisPlate() {
+    const tr = 'scale(1.12)';
+    const feed = document.getElementById('videoFeed');
+    const stereo = document.getElementById('cupStereo');
+    if (feed) feed.style.transform = tr;
+    if (stereo) stereo.style.transform = tr;
+  }
+
   function setIdleFaces(faces) {
     const f = (faces || idleFaces).map((n) => Math.max(1, Math.min(6, n | 0)));
     dice.forEach((d, i) => {
@@ -217,132 +474,223 @@ async function mountCupShake3D(canvas, opts = {}) {
     renderer.render(scene, camera);
   }
 
+  const frozenMark = [false, false, false];
+  function freezeDie(i, pos, vel, spin, toQuat) {
+    frozenMark[i] = true;
+    pos[i].y = DIE_REST_Y;
+    vel[i].set(0, 0, 0);
+    spin[i].set(0, 0, 0);
+    dice[i].position.copy(pos[i]);
+    dice[i].quaternion.copy(toQuat[i]);
+  }
+
   async function play(faces) {
     if (shaking) return;
     shaking = true;
     resize();
     const f = (faces || [1, 2, 3]).map((n) => Math.max(1, Math.min(6, n | 0)));
+    /* 结果面开局锁死；落地只贴姿态，禁止再翻 */
+    const toQuat = f.map((n) => quatFaceUp(n, rnd(-0.7, 0.7)));
 
-    const maxR = PAD_R * 0.72;
-    const spins = dice.map(
-      () =>
-        new THREE.Vector3(
-          (Math.random() - 0.5) * 28,
-          (Math.random() - 0.5) * 28,
-          (Math.random() - 0.5) * 28
-        )
-    );
-    const vel = dice.map(() => {
-      const a = Math.random() * Math.PI * 2;
-      const s = 0.55 + Math.random() * 0.55;
-      return new THREE.Vector3(Math.cos(a) * s, 0.8 + Math.random() * 0.6, Math.sin(a) * s);
+    /* 底板公共参数 + 每骰独立相位/踢向（禁止三颗齐跳） */
+    const platePhase0 = rnd(0, Math.PI * 2);
+    const hz0 = rnd(14.5, 19.0);
+    const hz1 = rnd(3.5, 5.5);
+    const ampY0 = rnd(0.48, 0.62);
+    const ampL0 = ampY0 * rnd(0.14, 0.22);
+    const diePhase = [0, 1, 2].map((i) => platePhase0 + (i * 2 * Math.PI) / 3 + rnd(-0.55, 0.55));
+    const dieLatAng = [0, 1, 2].map((i) => rnd(0, Math.PI * 2) + i * 2.1);
+    const dieKick = [0, 1, 2].map(() => rnd(0.72, 1.28));
+    const dieHzMul = [0, 1, 2].map(() => rnd(0.88, 1.14));
+    const diePhaseAcc = diePhase.slice();
+    /* 可见振盘用公共相位（整机在抖）；骰子仍各自相位互不同步 */
+    let plateVisPhase = platePhase0;
+    const plateVisLat = rnd(0, Math.PI * 2);
+    resetVisPlate();
+
+    const pos = dice.map((_, i) => {
+      const a = (-Math.PI / 2 + (i * 2 * Math.PI) / 3) + rnd(-0.45, 0.45);
+      const r = rnd(WALL_R * 0.12, WALL_R * 0.52);
+      return new THREE.Vector3(
+        Math.cos(a) * r,
+        DIE_REST_Y + rnd(0.02, 0.55) + i * 0.12,
+        Math.sin(a) * r
+      );
     });
-    const pos = dice.map((d) => d.position.clone().setY(DIE_REST_Y + 0.05));
-    const toQuat = f.map((n) => quatFaceUp(n, (Math.random() - 0.5) * Math.PI * 0.35));
+    /* 初速方向错开约 120°，竖直也错开，开局就不齐跳 */
+    const vel = dice.map((_, i) => {
+      const a = (-Math.PI / 2 + (i * 2 * Math.PI) / 3) + rnd(-0.8, 0.8);
+      const s = rnd(0.9, 2.6);
+      const vyBands = [
+        [1.2, 3.0],
+        [3.5, 5.5],
+        [5.8, 7.5],
+      ];
+      const [lo, hi] = vyBands[i % 3];
+      return new THREE.Vector3(Math.cos(a) * s, rnd(lo, hi), Math.sin(a) * s);
+    });
+    const spin = dice.map(
+      () => new THREE.Vector3(rnd(-22, 22), rnd(-22, 22), rnd(-22, 22))
+    );
+    const ang = dice.map((d) => new THREE.Euler().setFromQuaternion(d.quaternion, 'YXZ'));
+    frozenMark[0] = frozenMark[1] = frozenMark[2] = false;
+    const stillMs = [0, 0, 0];
+
     const t0 = performance.now();
+    let lastT = t0;
+
+    function hardFreeze(i) {
+      /* 冻前先水平推开，避免焊成一团再锁死 */
+      const movable = [!frozenMark[0], !frozenMark[1], !frozenMark[2]];
+      movable[i] = true;
+      separateLandXZ(pos, movable);
+      freezeDie(i, pos, vel, spin, toQuat);
+      dice.forEach((d, k) => {
+        if (frozenMark[k] || k === i) {
+          d.position.copy(pos[k]);
+          d.quaternion.copy(toQuat[k]);
+        }
+      });
+    }
 
     await new Promise((resolve) => {
       function step(now) {
         const u = Math.min(1, (now - t0) / SHAKE_MS);
-        const env = u < 0.7 ? 1 : Math.sin(((1 - (u - 0.7) / 0.3) * Math.PI) / 2);
-        const dt = 0.016;
-        /* 盅壳不晃 — 只滚骰 */
-        cupRoot.rotation.set(CUP_TILT_X, 0, 0);
-        cupRoot.position.set(0, CUP_REST_Y, 0);
+        const tSec = (now - t0) / 1000;
+        const dt = Math.min(0.028, Math.max(0.008, (now - lastT) / 1000));
+        lastT = now;
+        const p = ballProgress(u);
+        /* 视频时间线：满振 → 衰减 → 断电 */
+        let drive;
+        if (tSec < FIERCE_S) drive = 1;
+        else if (tSec < SETTLE_S) drive = Math.pow(1 - (tSec - FIERCE_S) / (SETTLE_S - FIERCE_S), 1.35);
+        else drive = 0;
+        const hzBase = hz0 + (hz1 - hz0) * Math.min(1, tSec / SETTLE_S);
+        const ampY = ampY0 * drive;
+        const ampL = ampL0 * drive;
+        const airDamp = 1 - (0.16 + 0.7 * (1 - drive)) * dt;
 
-        dice.forEach((d, i) => {
-          if (u >= 0.9) {
-            d.quaternion.copy(toQuat[i]);
-            d.position.lerp(spots[i], 0.18);
-            return;
+        /* 可见振盘：底图+骰层同相位微抖，能量随 drive 衰减 */
+        plateVisPhase += hzBase * Math.PI * 2 * dt;
+        const visY = Math.sin(plateVisPhase) * ampY0 * drive * VIS_PLATE_Y_PX;
+        const visX =
+          Math.cos(plateVisPhase * 1.13 + plateVisLat) * ampL0 * drive * VIS_PLATE_X_PX * 8;
+        applyVisPlate(visX, visY);
+
+        for (let i = 0; i < dice.length; i++) {
+          if (frozenMark[i]) {
+            dice[i].position.copy(pos[i]);
+            dice[i].quaternion.copy(toQuat[i]);
+            continue;
           }
-          d.rotation.x += spins[i].x * 0.018 * env;
-          d.rotation.y += spins[i].y * 0.018 * env;
-          d.rotation.z += spins[i].z * 0.018 * env;
-          vel[i].y -= 2.8 * dt;
-          pos[i].x += vel[i].x * dt * env;
-          pos[i].z += vel[i].z * dt * env;
+
+          /* 每骰自己的振盘相位：上行时才踢到，三颗不会同帧同向齐跳 */
+          const hz = hzBase * dieHzMul[i];
+          diePhaseAcc[i] += hz * Math.PI * 2 * dt;
+          const sPh = Math.sin(diePhaseAcc[i]);
+          const cPh = Math.cos(diePhaseAcc[i]);
+          const omega = hz * Math.PI * 2;
+          const plateVy = ampY * omega * cPh * dieKick[i];
+          const plateVx = Math.cos(dieLatAng[i]) * ampL * omega * cPh * dieKick[i];
+          const plateVz = Math.sin(dieLatAng[i]) * ampL * omega * cPh * dieKick[i];
+          const floorY = DIE_REST_Y + ampY * sPh * dieKick[i];
+
+          vel[i].y -= GRAVITY * dt;
+          vel[i].x *= airDamp;
+          vel[i].z *= airDamp;
+          pos[i].x += vel[i].x * dt;
           pos[i].y += vel[i].y * dt;
-          if (pos[i].y < DIE_REST_Y) {
-            pos[i].y = DIE_REST_Y;
-            vel[i].y *= -0.55;
-            if (Math.abs(vel[i].y) < 0.12) vel[i].y = (0.35 + Math.random() * 0.45) * env;
-          }
-          const rr = Math.hypot(pos[i].x, pos[i].z);
-          if (rr > maxR) {
-            const s = maxR / rr;
-            pos[i].x *= s;
-            pos[i].z *= s;
-            const nx = pos[i].x / maxR;
-            const nz = pos[i].z / maxR;
-            const dot = vel[i].x * nx + vel[i].z * nz;
-            vel[i].x -= 2 * dot * nx;
-            vel[i].z -= 2 * dot * nz;
-            vel[i].x *= 0.85;
-            vel[i].z *= 0.85;
-          }
-          for (let j = 0; j < dice.length; j++) {
-            if (j === i) continue;
-            const dx = pos[i].x - pos[j].x;
-            const dz = pos[i].z - pos[j].z;
-            const dist = Math.hypot(dx, dz) || 0.001;
-            const minD = DIE * 0.95;
-            if (dist < minD) {
-              const push = ((minD - dist) / dist) * 0.5;
-              pos[i].x += dx * push;
-              pos[i].z += dz * push;
+          pos[i].z += vel[i].z * dt;
+
+          if (pos[i].y <= floorY) {
+            pos[i].y = floorY;
+            const relY = vel[i].y - plateVy;
+            if (drive > 0 && relY < 0) {
+              vel[i].y = -relY * FLOOR_REST + plateVy * PLATE_KICK * (0.65 + 0.55 * drive);
+              vel[i].x += plateVx * 0.65 + rnd(-0.35, 0.35) * drive;
+              vel[i].z += plateVz * 0.65 + rnd(-0.35, 0.35) * drive;
+              spin[i].x += (rnd(-12, 12) + plateVz * 2.5) * drive;
+              spin[i].y += rnd(-10, 10) * drive;
+              spin[i].z += (rnd(-12, 12) - plateVx * 2.5) * drive;
+            } else {
+              pos[i].y = DIE_REST_Y;
+              vel[i].set(0, 0, 0);
+              spin[i].multiplyScalar(0.45);
+              if (tSec >= SETTLE_S || Math.hypot(spin[i].x, spin[i].y, spin[i].z) < 2.2) {
+                hardFreeze(i);
+                continue;
+              }
             }
           }
-          d.position.copy(pos[i]);
-        });
-        renderer.render(scene, camera);
-        if (u < 1) requestAnimationFrame(step);
-        else resolve();
-      }
-      requestAnimationFrame(step);
-    });
 
-    dice.forEach((d, i) => d.quaternion.copy(toQuat[i]));
-    const order = [0, 1, 2].sort(() => Math.random() - 0.5);
-    const delays = order.map((_, rank) => LAND_STAGGER_MS[rank] + (Math.random() * 70 - 20));
-    const fromPos = dice.map((d, i) => {
-      const p = d.position.clone();
-      p.y = Math.max(p.y, DIE_REST_Y) + 0.1 + order.indexOf(i) * 0.03;
-      return p;
-    });
-    const fallDur = SETTLE_MS - Math.max(...delays) - 80;
-    const s0 = performance.now();
-    await new Promise((resolve) => {
-      function step(now) {
-        const elapsed = now - s0;
-        dice.forEach((d, i) => {
-          d.quaternion.copy(toQuat[i]);
-          const local = Math.min(1, Math.max(0, (elapsed - delays[i]) / fallDur));
-          const e = 1 - Math.pow(1 - local, 5);
-          d.position.lerpVectors(fromPos[i], spots[i], e);
-          if (local > 0 && local < 1) {
-            const bounce =
-              Math.sin(local * Math.PI * 2.2) * 0.055 * Math.pow(1 - local, 1.6);
-            d.position.y =
-              spots[i].y + Math.max(0, bounce) + (fromPos[i].y - spots[i].y) * (1 - e);
-          } else if (local >= 1) {
-            d.position.copy(spots[i]);
+          if (!frozenMark[i]) {
+            ang[i].x += spin[i].x * dt * 0.055 * (0.2 + drive);
+            ang[i].y += spin[i].y * dt * 0.055 * (0.2 + drive);
+            ang[i].z += spin[i].z * dt * 0.055 * (0.2 + drive);
+            spin[i].multiplyScalar(0.986 - 0.018 * (1 - drive));
+            clampInCup(pos[i], vel[i]);
           }
-        });
+        }
+
+        /* 已冻当静物，活骰仍要撞开，禁止穿进冻骰 */
+        collidePair(pos[0], vel[0], pos[1], vel[1], frozenMark[0], frozenMark[1]);
+        collidePair(pos[0], vel[0], pos[2], vel[2], frozenMark[0], frozenMark[2]);
+        collidePair(pos[1], vel[1], pos[2], vel[2], frozenMark[1], frozenMark[2]);
+        for (let i = 0; i < 3; i++) {
+          if (!frozenMark[i]) clampInCup(pos[i], vel[i]);
+        }
+
+        for (let i = 0; i < dice.length; i++) {
+          if (frozenMark[i]) continue;
+          const speed = Math.hypot(vel[i].x, vel[i].y, vel[i].z);
+          const onFloor = pos[i].y <= DIE_REST_Y + 0.05;
+          if (tSec >= SETTLE_S - 0.35 && onFloor && speed < 0.65) stillMs[i] += dt * 1000;
+          else stillMs[i] = 0;
+          if ((tSec >= SETTLE_S && onFloor) || stillMs[i] > 80 + i * 35) {
+            hardFreeze(i);
+            continue;
+          }
+          if (tSec >= SETTLE_S + 0.55) {
+            hardFreeze(i);
+            continue;
+          }
+          if (tSec >= SETTLE_S - 0.15 && onFloor) dice[i].quaternion.copy(toQuat[i]);
+          else dice[i].rotation.copy(ang[i]);
+          dice[i].position.copy(pos[i]);
+        }
+
         renderer.render(scene, camera);
-        if (elapsed < SETTLE_MS) requestAnimationFrame(step);
-        else {
-          dice.forEach((d, i) => {
-            d.position.copy(spots[i]);
-            d.quaternion.copy(toQuat[i]);
-          });
+        if (frozenMark.every(Boolean) && tSec >= SETTLE_S) {
+          separateLandXZ(pos, [true, true, true]);
+          for (let i = 0; i < 3; i++) {
+            pos[i].y = DIE_REST_Y;
+            dice[i].position.copy(pos[i]);
+            dice[i].quaternion.copy(toQuat[i]);
+          }
+          resetVisPlate();
           renderer.render(scene, camera);
           resolve();
+          return;
         }
+        if (u < 1 && frozenMark.some((x) => !x)) {
+          requestAnimationFrame(step);
+          return;
+        }
+        for (let i = 0; i < 3; i++) hardFreeze(i);
+        separateLandXZ(pos, [true, true, true]);
+        for (let i = 0; i < 3; i++) {
+          pos[i].y = DIE_REST_Y;
+          dice[i].position.copy(pos[i]);
+          dice[i].quaternion.copy(toQuat[i]);
+        }
+        resetVisPlate();
+        renderer.render(scene, camera);
+        resolve();
       }
       requestAnimationFrame(step);
     });
 
+    resetVisPlate();
     shaking = false;
   }
 
@@ -364,8 +712,7 @@ async function boot() {
     const api = await mountCupShake3D(canvas, { lite });
     const feed = document.getElementById('videoFeed');
     const stereo = document.getElementById('cupStereo');
-    const PLATE = 'assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.18';
-    const RED_CLOTH = 'assets/eu-concept/red-felt-plain.jpg?v=1.4.18';
+    const PLATE = 'assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.6';
 
     function showLayer() {
       if (stereo) {
@@ -385,7 +732,7 @@ async function boot() {
         canvas.style.opacity = '1';
       }
       if (feed) {
-        feed.src = RED_CLOTH;
+        feed.src = PLATE;
         feed.style.opacity = '1';
         feed.style.visibility = 'visible';
       }
@@ -416,8 +763,7 @@ async function boot() {
         api.resize();
         await api.play(faces);
         if (stereo) stereo.classList.remove('is-shaking');
-        /* 滚完仍显示落定骰在空盅上 */
-        api.setIdleFaces(faces);
+        /* 停死在落点：禁止 setIdleFaces 拽回三角位 */
       },
       hide() {
         hideLayer();
@@ -425,7 +771,6 @@ async function boot() {
       resize: api.resize,
     };
 
-    /* 强制亮红布+三骰；再补两帧防首屏白板 */
     showLayer();
     requestAnimationFrame(() => {
       showLayer();
@@ -435,7 +780,7 @@ async function boot() {
     try {
       window.dispatchEvent(new CustomEvent('cup3d-ready'));
     } catch (_) {}
-    console.log('[CupShake3D] ready recessed-pip dice on red cloth');
+    console.log('[CupShake3D] ready visible plate v1.4.6');
   } catch (e) {
     console.error('[CupShake3D] failed', e);
     window.CupShake3D = { ready: false, play: async () => {}, hide() {}, error: String(e) };
