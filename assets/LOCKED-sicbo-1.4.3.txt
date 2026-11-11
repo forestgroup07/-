@@ -1,0 +1,26 @@
+sicbo PC lock v1.4.3
+Scope: 电脑版 only（game.html）；手机版 game-m 另册，本包不含。
+Note: 用户指定版本号 v1.4.3（承接盘面字色/骰子清晰度 + 黄键挂单修正；含既有金色「撤销」）。
+
+PC: game.html / game.LOCKED-1.4.3.html
+Base: pc-full-v111.jpg / assets/LOCKED-pc-full-v111-1.4.3.jpg
+Sum atlas: assets/pair-dice/sum-atlas.webp / LOCKED-sum-atlas-1.4.3.webp（透明底，挂单透出黄键）
+Left atlas: assets/pair-dice/left-atlas.webp / LOCKED-left-atlas-1.4.3.webp
+Pair atlas: assets/pair-dice/atlas.webp / LOCKED-atlas-1.4.3.webp
+Cup screen/hero + shake / dim mask / act faces：本包 LOCKED-*-1.4.3.*
+Lobby: GAME_PC → game.html?v=1.4.3
+
+已验收清单（本包算数）:
+- 盘面点数 4–10 蓝、11–17 红（清晰描边）；闲置底图 + 点选图集
+- 挂单黄键：sum-atlas 透明底，不再黑底挡黄
+- 骰子图清晰度提升（左栏/组合/对子图集）；1/4 红点
+- 金色左键「撤销」+ undoBet（底图黑底仍为「重复下注」）
+- 中间大小/单双/全圍区未再误擦（已从备份恢复）
+
+未验收、不得当作本定版的项:
+- 独立抠盅 / Three.js 立体骰 / 白骰单独跳动
+- 底图黑底「重复下注」改字
+- 左侧骰键赔率小字去留的进一步精修（用户称已无，本包不另改）
+
+Freeze: 未经用户书面点名同意，禁止改本定版任何文件/部署/还原一点。
+Live: https://forestgroup.ai/game.html?v=1.4.3
