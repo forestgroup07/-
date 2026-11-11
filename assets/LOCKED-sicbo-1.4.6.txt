@@ -1,0 +1,30 @@
+sicbo PC lock v1.4.6
+Scope: 电脑版 only（game.html）；手机版 game-m 另册，本包不含。
+Date: 2026-11-12
+Note: 用户书面「定版」；线上已验收链接对齐 ?v=1.4.6。
+
+PC: game.html / game.LOCKED-1.4.6.html
+Shake: js/cup-shake-3d.js / js/cup-shake-3d.LOCKED-1.4.6.js
+Empty cup plate: assets/eu-concept/cup-screen-empty-nodice.jpg
+  / assets/eu-concept/LOCKED-cup-screen-empty-nodice-1.4.6.jpg
+Calib note: assets/LOCKED-cup-calib-1.4.38.txt
+Lobby: GAME_PC → game.html?v=1.4.6
+Online: https://forestgroup.ai/game.html?v=1.4.6
+
+盘面底图 / 挂单金面 / 停注蒙版 / 图集等：沿用既有定版资源（见 v1.4.3 系 LOCKED），
+本包增量以盅屏空盅图 + 三维骰振盘为主。
+
+已验收清单（本包算数）:
+- 空盅静底 + Three.js 凹陷点实心白骰叠层
+- 绿垫/相机校准（PAD_R / CAM；?cupDebug=1 可核）
+- 虚拟振盘踢地 + 可见底图/骰层同相位微抖
+- 三骰相位不同步；落定盒距分离，禁止叠模焊死
+- 落地硬锁位锁面；收局不拽回三角闲置位
+- 局态三句留屏 5 秒；「开始下注」不占用倒计时
+- 珠盘单双/大小贴最新列（不再只画最老列）
+- 去掉骰脚下黑圆影
+
+未验收、不得当作本定版的项:
+- 「陆续落地 + 自然滚转停稳」学轮盘小球手感（已讨论，尚未实现）
+- 真机械振盘实拍 / 全 3D 玻璃盅替换照片方案
+- 手机版 game-m
