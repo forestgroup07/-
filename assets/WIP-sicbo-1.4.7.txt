@@ -1,0 +1,13 @@
+Sicbo PC WIP backup tag v1.4.7 (NOT full release lock)
+Date: 2026-11-12
+
+Relative to locked v1.4.6, this pack adds:
+- Natural roll-settle after vibrator power-off (per-die friction/spin, staggered stop)
+- 「停止下注」hold = 3s (开始下注 / 下注成功 still 5s)
+
+Files:
+- game.html / lobby.html / VERSION
+- js/cup-shake-3d.js
+
+NOT formal LOCKED release (no game.LOCKED-1.4.7 / frozen pointer bump).
+Online: https://forestgroup.ai/game.html?v=1.4.7

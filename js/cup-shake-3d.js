@@ -3,21 +3,24 @@
  * Background = empty cup photo (#videoFeed). Opposite faces: 1↔6, 2↔5, 3↔4.
  * window.CupShake3D = { ready, play([d1,d2,d3]), showIdle, hide }
  *
- * v1.4.6 可见振盘：空盅底图+骰层与虚拟振盘同相位微抖（方案1）。
+ * v1.4.7 滚落：振盘断电后各自滚动/转动耗能，陆续自然停（学轮盘小球）。
  * ?cupDebug=1 仍显示校准圈。
  */
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-const FACE_VER = '1.4.6';
+const FACE_VER = '1.4.7';
 /** 可见振盘像素振幅（相对世界 amp） */
 const VIS_PLATE_Y_PX = 11;
 const VIS_PLATE_X_PX = 4.5;
-/* 真机约 5.7s：0–1.5s 猛振 → 1.5–3s 衰减 → ≥3s 停死 */
-const SHAKE_MS = 5700;
+/* 猛振 → 衰减断电 → 滚落耗能 → 陆续停死 */
+const SHAKE_MS = 6400;
 const FIERCE_S = 1.5;
 const SETTLE_S = 3.0;
+const ROLL_DEADLINE_S = 5.6;
 const BALL_EASE_P = 2.55;
+const FLOOR_SLIDE_FRIC = 3.2;
+const FLOOR_SPIN_FRIC = 2.4;
 
 /*
  * 校准常量（对照 assets/eu-concept/cup-screen-empty-nodice.jpg 1280×720）：
@@ -535,12 +538,13 @@ async function mountCupShake3D(canvas, opts = {}) {
     const ang = dice.map((d) => new THREE.Euler().setFromQuaternion(d.quaternion, 'YXZ'));
     frozenMark[0] = frozenMark[1] = frozenMark[2] = false;
     const stillMs = [0, 0, 0];
+    /* 每颗停稳门槛错开，保证陆续落地 */
+    const stillNeedMs = [0, 1, 2].map((i) => 240 + i * 170 + rnd(0, 90));
 
     const t0 = performance.now();
     let lastT = t0;
 
     function hardFreeze(i) {
-      /* 冻前先水平推开，避免焊成一团再锁死 */
       const movable = [!frozenMark[0], !frozenMark[1], !frozenMark[2]];
       movable[i] = true;
       separateLandXZ(pos, movable);
@@ -559,8 +563,7 @@ async function mountCupShake3D(canvas, opts = {}) {
         const tSec = (now - t0) / 1000;
         const dt = Math.min(0.028, Math.max(0.008, (now - lastT) / 1000));
         lastT = now;
-        const p = ballProgress(u);
-        /* 视频时间线：满振 → 衰减 → 断电 */
+        /* 视频时间线：满振 → 衰减 → 断电后进入滚落 */
         let drive;
         if (tSec < FIERCE_S) drive = 1;
         else if (tSec < SETTLE_S) drive = Math.pow(1 - (tSec - FIERCE_S) / (SETTLE_S - FIERCE_S), 1.35);
@@ -568,9 +571,8 @@ async function mountCupShake3D(canvas, opts = {}) {
         const hzBase = hz0 + (hz1 - hz0) * Math.min(1, tSec / SETTLE_S);
         const ampY = ampY0 * drive;
         const ampL = ampL0 * drive;
-        const airDamp = 1 - (0.16 + 0.7 * (1 - drive)) * dt;
+        const airDamp = 1 - (0.12 + 0.45 * (1 - drive)) * dt;
 
-        /* 可见振盘：底图+骰层同相位微抖，能量随 drive 衰减 */
         plateVisPhase += hzBase * Math.PI * 2 * dt;
         const visY = Math.sin(plateVisPhase) * ampY0 * drive * VIS_PLATE_Y_PX;
         const visX =
@@ -584,7 +586,6 @@ async function mountCupShake3D(canvas, opts = {}) {
             continue;
           }
 
-          /* 每骰自己的振盘相位：上行时才踢到，三颗不会同帧同向齐跳 */
           const hz = hzBase * dieHzMul[i];
           diePhaseAcc[i] += hz * Math.PI * 2 * dt;
           const sPh = Math.sin(diePhaseAcc[i]);
@@ -603,9 +604,10 @@ async function mountCupShake3D(canvas, opts = {}) {
           pos[i].z += vel[i].z * dt;
 
           if (pos[i].y <= floorY) {
-            pos[i].y = floorY;
+            pos[i].y = Math.max(DIE_REST_Y, floorY);
             const relY = vel[i].y - plateVy;
             if (drive > 0 && relY < 0) {
+              /* 振盘阶段：踢起 */
               vel[i].y = -relY * FLOOR_REST + plateVy * PLATE_KICK * (0.65 + 0.55 * drive);
               vel[i].x += plateVx * 0.65 + rnd(-0.35, 0.35) * drive;
               vel[i].z += plateVz * 0.65 + rnd(-0.35, 0.35) * drive;
@@ -613,26 +615,32 @@ async function mountCupShake3D(canvas, opts = {}) {
               spin[i].y += rnd(-10, 10) * drive;
               spin[i].z += (rnd(-12, 12) - plateVx * 2.5) * drive;
             } else {
+              /* 滚落阶段：贴地仍可滑/转，摩擦耗能（学轮盘小球） */
               pos[i].y = DIE_REST_Y;
-              vel[i].set(0, 0, 0);
-              spin[i].multiplyScalar(0.45);
-              if (tSec >= SETTLE_S || Math.hypot(spin[i].x, spin[i].y, spin[i].z) < 2.2) {
-                hardFreeze(i);
-                continue;
+              if (vel[i].y < 0) {
+                vel[i].y *= -FLOOR_REST * 0.28;
+                if (Math.abs(vel[i].y) < 0.35) vel[i].y = 0;
               }
+              const slide = Math.max(0, 1 - FLOOR_SLIDE_FRIC * dt);
+              vel[i].x *= slide;
+              vel[i].z *= slide;
+              /* 滚动耦合：水平速度喂一点自旋，看起来在滚 */
+              spin[i].x += -vel[i].z * 4.5 * dt;
+              spin[i].z += vel[i].x * 4.5 * dt;
+              spin[i].multiplyScalar(Math.max(0.82, 1 - FLOOR_SPIN_FRIC * dt));
             }
           }
 
           if (!frozenMark[i]) {
-            ang[i].x += spin[i].x * dt * 0.055 * (0.2 + drive);
-            ang[i].y += spin[i].y * dt * 0.055 * (0.2 + drive);
-            ang[i].z += spin[i].z * dt * 0.055 * (0.2 + drive);
-            spin[i].multiplyScalar(0.986 - 0.018 * (1 - drive));
+            const spinGain = drive > 0 ? 0.055 * (0.25 + drive) : 0.07;
+            ang[i].x += spin[i].x * dt * spinGain;
+            ang[i].y += spin[i].y * dt * spinGain;
+            ang[i].z += spin[i].z * dt * spinGain;
+            if (drive > 0) spin[i].multiplyScalar(0.988 - 0.012 * (1 - drive));
             clampInCup(pos[i], vel[i]);
           }
         }
 
-        /* 已冻当静物，活骰仍要撞开，禁止穿进冻骰 */
         collidePair(pos[0], vel[0], pos[1], vel[1], frozenMark[0], frozenMark[1]);
         collidePair(pos[0], vel[0], pos[2], vel[2], frozenMark[0], frozenMark[2]);
         collidePair(pos[1], vel[1], pos[2], vel[2], frozenMark[1], frozenMark[2]);
@@ -643,24 +651,42 @@ async function mountCupShake3D(canvas, opts = {}) {
         for (let i = 0; i < dice.length; i++) {
           if (frozenMark[i]) continue;
           const speed = Math.hypot(vel[i].x, vel[i].y, vel[i].z);
-          const onFloor = pos[i].y <= DIE_REST_Y + 0.05;
-          if (tSec >= SETTLE_S - 0.35 && onFloor && speed < 0.65) stillMs[i] += dt * 1000;
-          else stillMs[i] = 0;
-          if ((tSec >= SETTLE_S && onFloor) || stillMs[i] > 80 + i * 35) {
-            hardFreeze(i);
-            continue;
+          const spinMag = Math.hypot(spin[i].x, spin[i].y, spin[i].z);
+          const onFloor = pos[i].y <= DIE_REST_Y + 0.04;
+
+          /* 姿态：振盘期乱转；滚落期边转边收到结果面 */
+          if (drive > 0.08) {
+            dice[i].rotation.copy(ang[i]);
+          } else {
+            dice[i].rotation.copy(ang[i]);
+            const settleT = Math.max(0, Math.min(1, (tSec - SETTLE_S) / 1.8));
+            const ease = ballProgress(settleT);
+            const blend = 0.04 + ease * 0.22 + (speed < 0.6 ? 0.12 : 0);
+            dice[i].quaternion.slerp(toQuat[i], blend);
+            ang[i].setFromQuaternion(dice[i].quaternion, 'YXZ');
           }
-          if (tSec >= SETTLE_S + 0.55) {
-            hardFreeze(i);
-            continue;
-          }
-          if (tSec >= SETTLE_S - 0.15 && onFloor) dice[i].quaternion.copy(toQuat[i]);
-          else dice[i].rotation.copy(ang[i]);
           dice[i].position.copy(pos[i]);
+
+          /* 各自判停：速度+自旋够小才累计，门槛错开 → 陆续停 */
+          if (drive < 0.02 && onFloor && speed < 0.28 && spinMag < 2.2) {
+            stillMs[i] += dt * 1000;
+          } else if (drive < 0.02 && onFloor && speed < 0.55 && spinMag < 4.5) {
+            stillMs[i] += dt * 450;
+          } else {
+            stillMs[i] = Math.max(0, stillMs[i] - dt * 500);
+          }
+
+          if (stillMs[i] >= stillNeedMs[i]) {
+            hardFreeze(i);
+            continue;
+          }
+          if (tSec >= ROLL_DEADLINE_S && onFloor) {
+            hardFreeze(i);
+          }
         }
 
         renderer.render(scene, camera);
-        if (frozenMark.every(Boolean) && tSec >= SETTLE_S) {
+        if (frozenMark.every(Boolean)) {
           separateLandXZ(pos, [true, true, true]);
           for (let i = 0; i < 3; i++) {
             pos[i].y = DIE_REST_Y;
@@ -672,11 +698,15 @@ async function mountCupShake3D(canvas, opts = {}) {
           resolve();
           return;
         }
-        if (u < 1 && frozenMark.some((x) => !x)) {
-          requestAnimationFrame(step);
-          return;
+        if (u < 1 || frozenMark.some((x) => !x)) {
+          if (tSec < ROLL_DEADLINE_S + 0.8) {
+            requestAnimationFrame(step);
+            return;
+          }
         }
-        for (let i = 0; i < 3; i++) hardFreeze(i);
+        for (let i = 0; i < 3; i++) {
+          if (!frozenMark[i]) hardFreeze(i);
+        }
         separateLandXZ(pos, [true, true, true]);
         for (let i = 0; i < 3; i++) {
           pos[i].y = DIE_REST_Y;
@@ -712,7 +742,7 @@ async function boot() {
     const api = await mountCupShake3D(canvas, { lite });
     const feed = document.getElementById('videoFeed');
     const stereo = document.getElementById('cupStereo');
-    const PLATE = 'assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.6';
+    const PLATE = 'assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.7';
 
     function showLayer() {
       if (stereo) {
@@ -780,7 +810,7 @@ async function boot() {
     try {
       window.dispatchEvent(new CustomEvent('cup3d-ready'));
     } catch (_) {}
-    console.log('[CupShake3D] ready visible plate v1.4.6');
+    console.log('[CupShake3D] ready roll-settle v1.4.7');
   } catch (e) {
     console.error('[CupShake3D] failed', e);
     window.CupShake3D = { ready: false, play: async () => {}, hide() {}, error: String(e) };
