@@ -1,0 +1,9 @@
+roulette v1.2.3 lock pack (2026-11-11)
+- Current board after hit-seam sensitivity (EDGE_BAND 0.38 + HIT_PAD cover gutters)
+- Stop-bet dim = prior 1.2.35 mask (1.2.36 solid-panel attempt rolled back)
+- roulette.html / lobby ROULETTE ?v=1.2.3 / assets/roulette/VERSION
+- Snapshots:
+  - roulette.LOCKED-1.2.3.html
+  - assets/roulette/LOCKED-VERSION-1.2.3.txt
+  - assets/roulette/LOCKED-bet-kbd-dim-mask-1.2.3.png
+- Do not overwrite this pack without user written rename
