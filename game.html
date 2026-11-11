@@ -135,7 +135,7 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      /* 好盘面静底（含白骰盅）；摇时只跳椭圆裁切叠层，红布区不跟着跑 */
+      /* 空盅静底（无白骰）；scale(1.12) 居中铺满视频屏 */
       object-fit: cover;
       object-position: center center;
       transform: scale(1.12);
@@ -148,10 +148,10 @@
       border-radius: 0 0 var(--vb-inner-r) var(--vb-inner-r);
     }
     /*
-     * 轮盘同款：焊死盘面图 + #diceSpin CSS transform（不抠骰、不叠鬼影）。
-     * 计时：只显示 videoFeed；停注：红布静底 + 整张盘面（盅+白骰）一起跳。
+     * 闲置：videoFeed 空盅静图；三骰旧盅/3D 盅层暂时关掉。
      */
     .cup-stereo {
+      display: none !important; /* 暂时去掉有三骰的盅叠层 */
       position: absolute;
       inset: 0;
       z-index: 45;
@@ -168,33 +168,11 @@
       visibility: visible;
     }
     .dice-spin {
-      position: absolute;
-      inset: 0;
-      transform: translate3d(0, 0, 0);
-      transform-origin: 50% 55%;
-      will-change: transform;
-      filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.4));
+      display: none !important; /* 不再用焊死图整盅跳 */
     }
     .cup-3d-disc,
     .dice-disc {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      display: block;
-      user-select: none;
-      -webkit-user-drag: none;
-      pointer-events: none;
-    }
-    /* 不用 WebGL 骰盖盘面图；计时时完全静止，仅停注后整盅椭圆层跳 */
-    .cup-stereo .cup3d-layer,
-    #cup3dLayer {
       display: none !important;
-      opacity: 0 !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
     }
 
     /* 倒计时：相对视频框左上（动态绿圈） */
@@ -3115,7 +3093,7 @@
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
           <picture>
-            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-hero.jpg?v=1.4.7" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:1" />
+            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.4" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:1" />
           </picture>
           <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
           <div class="video-blank" id="videoBlank" aria-hidden="true"></div>
@@ -3899,12 +3877,12 @@
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.4.7"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.4.4"></script>
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script src="js/fg-wallet.js?v=1.0.1"></script>
   <script>
     (async function () {
-      const V = '1.4.3';
+      const V = '1.4.4';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -5422,7 +5400,7 @@
         resultSize.classList.toggle('is-small', info.size === 'small');
         resultParity.textContent = info.parity === 'odd' ? '單' : '雙';
       }
-      /** 停注后：轮盘式盅 disc 整盅跳 + 实心三维骰（红布静底不动） */
+      /** 停注后：三骰旧盅/3D 层暂时关掉；视频屏只留空盅 scale(1.12) */
       async function playCupShake() {
         if (videoDice) {
           videoDice.classList.remove('is-show');
@@ -5435,11 +5413,8 @@
           shakeStage.setAttribute('aria-hidden', 'true');
         }
 
-        if (window.CupShake3D && window.CupShake3D.ready && window.CupShake3D.play) {
-          await window.CupShake3D.play(info.dice);
-        } else {
-          await sleep(800);
-        }
+        /* 暂时不播三骰盅 / CupShake3D，避免盖住空盅 */
+        await sleep(800);
         paintDiceFaces(info.dice);
         return info;
       }
