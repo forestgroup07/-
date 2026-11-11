@@ -1,0 +1,11 @@
+sicbo PC lock v1.3.8
+Scope: 电脑版 only（game.html）；手机版 game-m 另册，本包不含。
+PC: game.html / game.LOCKED-1.3.8.html
+Base: pc-full-v111.jpg / assets/LOCKED-pc-full-v111-1.3.8.jpg
+Sum atlas: assets/pair-dice/sum-atlas.webp / LOCKED-sum-atlas-1.3.8.webp
+Dim mask: assets/sicbo-bet-kbd-dim-mask.png / LOCKED-sicbo-bet-kbd-dim-mask-1.3.8.png
+Act gold faces: assets/act-btn-faces/{repeat,confirm,cancel}.png + LOCKED-*-1.3.8.png
+Lobby: GAME_PC → game.html?v=1.3.8
+Notes: 倒计时对标公司；局态三句（开始/停止/下注成功）统一金字同号；继承 1.3.7 盘面。
+Freeze: 未经用户书面点名同意，禁止改本定版任何文件/部署/还原一点。
+Live: https://forestgroup.ai/game.html?v=1.3.8
