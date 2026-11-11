@@ -147,8 +147,11 @@
     }
 
     /* 倒计时：相对视频框左上（动态绿圈） */
+    /* 对标公司：外圈弧 + 内扇形都随 --p 一起变短；白点钉在弧端；数字 2×（与轮盘同款） */
     .timer {
       --p: 1;
+      --timer-ring: #6fdc4a;
+      --timer-pie: #6fdc4a66;
       position: absolute;
       left: 2.4%;
       top: 4.5%;
@@ -160,30 +163,44 @@
       align-items: center;
       justify-content: center;
       pointer-events: none;
-      background: rgb(22, 34, 16);
-      color: #6fff9a;
+      color: var(--timer-ring);
       font-family: Arial, Helvetica, sans-serif;
-      font-weight: 900;
-      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 48 / 2188);
+      font-weight: 700;
+      font-size: calc(min(100vw, 100vh * 2188 / 1393) * 96 / 2188);
       line-height: 1;
-      text-shadow: 0 1px 2px rgba(0,0,0,.65);
+      letter-spacing: -0.02em;
+      text-shadow: 0 1px 2px rgba(0,0,0,.55);
+      background:
+        radial-gradient(farthest-side, rgba(8, 12, 8, 0.58) calc(100% - 0.13em), transparent calc(100% - 0.12em)),
+        conic-gradient(var(--timer-ring) calc(var(--p) * 1turn), transparent 0);
     }
     .timer::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: 0.13em;
       border-radius: 50%;
-      background: conic-gradient(#6fff9a calc(var(--p) * 1turn), rgba(40,55,35,.75) 0);
-      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
-              mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
+      background: conic-gradient(var(--timer-pie) calc(var(--p) * 1turn), transparent 0);
       pointer-events: none;
+    }
+    .timer::after {
+      content: "";
+      position: absolute;
+      width: 11%;
+      height: 11%;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0.08em rgba(0,0,0,.35);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(calc(var(--p) * 360deg)) translateY(-430%);
+      pointer-events: none;
+      z-index: 2;
     }
     .timer > span { position: relative; z-index: 1; }
     .timer.danger {
+      --timer-ring: #ff3b3b;
+      --timer-pie: #ff3b3b66;
       color: #ff3b3b;
-    }
-    .timer.danger::before {
-      background: conic-gradient(#ff3b3b calc(var(--p) * 1turn), rgba(60,20,20,.75) 0);
     }
 
     .stop-bet {
@@ -3852,7 +3869,7 @@
   <script src="js/fg-wallet.js?v=1.0.1"></script>
   <script>
     (async function () {
-      const V = '1.3.6';
+      const V = '1.3.7';
       const START_BAL = 2000;
       function currentUser() {
         try {

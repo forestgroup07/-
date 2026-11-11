@@ -1,0 +1,29 @@
+---
+description: 骰宝电脑版 v1.3.7 定版冻结，未经同意禁止改一点
+alwaysApply: true
+---
+
+# 骰宝电脑版 v1.3.7 不许再动
+
+用户硬规则（2026-11-11 定版 `1.3.7` 电脑版起生效）：
+
+1. **禁止**未经用户书面点名同意，修改、覆盖、还原、优化、部署本定版骰宝**电脑版**任何一点，包括但不限于：
+   - `game.html`、`lobby.html` 的 `GAME_PC ?v=`
+   - 挂单三键金面 `assets/act-btn-faces/`
+   - 停注绿台蒙版 `assets/sicbo-bet-kbd-dim-mask.png`
+   - 底图 `pc-full-v111.jpg`、总和图集 `assets/pair-dice/sum-atlas.webp`
+   - 倒计时样式（数字 2×、外圈弧+内扇形同收、白点）
+   - 投注记录分页铺满逻辑（`measureRecPageSize` / `recPageSize`）
+   - 本版 `LOCKED-*` 快照与线上 forestgroup.ai 对应资源
+2. 定版快照（回滚只能用这些，禁止邻近版本顶替）：
+   - `game.LOCKED-1.3.7.html`
+   - `assets/LOCKED-sicbo-1.3.7.txt`
+   - `assets/LOCKED-pc-full-v111-1.3.7.jpg`
+   - `assets/LOCKED-sicbo-bet-kbd-dim-mask-1.3.7.png`
+   - `assets/pair-dice/LOCKED-sum-atlas-1.3.7.webp`
+   - `assets/act-btn-faces/LOCKED-{repeat,confirm,cancel}-1.3.7.png`
+   - `assets/act-btn-faces/LOCKED-meta-1.3.7.json`
+   - git commit / tag 标明 `v1.3.7`
+3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
+4. 只有用户明确说「改骰宝 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
+5. 本冻结仅电脑版；手机 `game-m` 另册。当前有效冻结以本版为准（取代 `1.3.6`）。与 `one-task-only`、`sicbo-frozen`、`save-to-git` 同时生效；冲突时取更严：默认不动。
