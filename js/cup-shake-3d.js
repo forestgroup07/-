@@ -3,13 +3,13 @@
  * Background = empty cup photo (#videoFeed). Opposite faces: 1↔6, 2↔5, 3↔4.
  * window.CupShake3D = { ready, play([d1,d2,d3]), showIdle, hide }
  *
- * v1.4.7 滚落：振盘断电后各自滚动/转动耗能，陆续自然停（学轮盘小球）。
+ * v1.4.8 定版：滚落耗能 + 停止下注 3s + 倒计时弧端随环色：振盘断电后各自滚动/转动耗能，陆续自然停（学轮盘小球）。
  * ?cupDebug=1 仍显示校准圈。
  */
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-const FACE_VER = '1.4.7';
+const FACE_VER = '1.4.8';
 /** 可见振盘像素振幅（相对世界 amp） */
 const VIS_PLATE_Y_PX = 11;
 const VIS_PLATE_X_PX = 4.5;
@@ -742,7 +742,7 @@ async function boot() {
     const api = await mountCupShake3D(canvas, { lite });
     const feed = document.getElementById('videoFeed');
     const stereo = document.getElementById('cupStereo');
-    const PLATE = 'assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.7';
+    const PLATE = 'assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.8';
 
     function showLayer() {
       if (stereo) {
@@ -810,7 +810,7 @@ async function boot() {
     try {
       window.dispatchEvent(new CustomEvent('cup3d-ready'));
     } catch (_) {}
-    console.log('[CupShake3D] ready roll-settle v1.4.7');
+    console.log('[CupShake3D] ready roll-settle v1.4.8');
   } catch (e) {
     console.error('[CupShake3D] failed', e);
     window.CupShake3D = { ready: false, play: async () => {}, hide() {}, error: String(e) };
