@@ -1,0 +1,14 @@
+sicbo PC lock v1.3.9
+Scope: 电脑版 only（game.html）；手机版 game-m 另册，本包不含。
+PC: game.html / game.LOCKED-1.3.9.html
+Cup screen: assets/eu-concept/cup-screen-hero.jpg / LOCKED-cup-screen-hero-1.3.9.jpg
+Cup hero: assets/eu-concept/cup-hero-3dice.jpg / LOCKED-cup-hero-3dice-1.3.9.jpg
+Cup shake: js/cup-shake-3d.js / cup-shake-3d.LOCKED-1.3.9.js（停注后新盅图跳，旧 3D 盅关掉）
+Base: pc-full-v111.jpg / assets/LOCKED-pc-full-v111-1.3.9.jpg
+Sum atlas: assets/pair-dice/sum-atlas.webp / LOCKED-sum-atlas-1.3.9.webp
+Dim mask: assets/sicbo-bet-kbd-dim-mask.png / LOCKED-sicbo-bet-kbd-dim-mask-1.3.9.png
+Act gold faces: assets/act-btn-faces/{repeat,confirm,cancel}.png + LOCKED-*-1.3.9.png
+Lobby: GAME_PC → game.html?v=1.3.9
+Notes: 新密封玻璃盅上屏；scale(1.12)；停注后新盅 CSS 跳；继承 1.3.8 盘面/蒙版/挂单金面。
+Freeze: 未经用户书面点名同意，禁止改本定版任何文件/部署/还原一点。
+Live: https://forestgroup.ai/game.html?v=1.3.9

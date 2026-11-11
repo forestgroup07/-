@@ -10,7 +10,9 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 
 const FACE_VER = 'v1.2.2';
 const SHAKE_MS = 4800;
-const SETTLE_MS = 900;
+/* 落地总窗：含先后错峰；单颗由快到慢带衰减弹跳 */
+const SETTLE_MS = 1600;
+const LAND_STAGGER_MS = [0, 220, 480];
 // LOCKED 1.2.2：盅尺寸/定位继承 1.1.5；骰子为圆角方骰
 const CUP_SCALE = 2.55;
 const CUP_TILT_X = (10 * Math.PI) / 180;
@@ -380,26 +382,38 @@ async function mountCupShake3D(canvas, opts = {}) {
       requestAnimationFrame(step);
     });
 
-    /* 落定：姿态已锁死，只贴地滑入 + 轻落，绝不改朝向 */
+    /* 落定：实心骰按惯性由快到慢，分先后陆续着地（姿态锁死不翻面） */
     dice.forEach((d, i) => d.quaternion.copy(toQuat[i]));
-    const fromPos = dice.map((d) => {
+    const order = [0, 1, 2].sort(() => Math.random() - 0.5);
+    const delays = order.map((_, rank) => LAND_STAGGER_MS[rank] + (Math.random() * 70 - 20));
+    const fromPos = dice.map((d, i) => {
       const p = d.position.clone();
-      p.y = Math.max(p.y, DIE_REST_Y);
+      /* 悬空起点略错开，落地才有先后惯性感 */
+      p.y = Math.max(p.y, DIE_REST_Y) + 0.10 + order.indexOf(i) * 0.03;
       return p;
     });
+    const fallDur = SETTLE_MS - Math.max(...delays) - 80;
     const s0 = performance.now();
     await new Promise((resolve) => {
       function step(now) {
-        const u = Math.min(1, (now - s0) / SETTLE_MS);
-        const e = easeOutCubic(u);
-        const bounce = Math.sin(e * Math.PI) * 0.02 * (1 - e);
+        const elapsed = now - s0;
         dice.forEach((d, i) => {
-          d.position.lerpVectors(fromPos[i], spots[i], e);
-          d.position.y = spots[i].y + bounce * (1 - e);
           d.quaternion.copy(toQuat[i]);
+          const local = Math.min(1, Math.max(0, (elapsed - delays[i]) / fallDur));
+          /* easeOutQuint：先快后慢的物理惯性 */
+          const e = 1 - Math.pow(1 - local, 5);
+          d.position.lerpVectors(fromPos[i], spots[i], e);
+          /* 衰减弹跳：陆续触地后各抖一两下 */
+          if (local > 0 && local < 1) {
+            const bounce =
+              Math.sin(local * Math.PI * 2.2) * 0.055 * Math.pow(1 - local, 1.6);
+            d.position.y = spots[i].y + Math.max(0, bounce) + (fromPos[i].y - spots[i].y) * (1 - e);
+          } else if (local >= 1) {
+            d.position.copy(spots[i]);
+          }
         });
         renderer.render(scene, camera);
-        if (u < 1) requestAnimationFrame(step);
+        if (elapsed < SETTLE_MS) requestAnimationFrame(step);
         else {
           dice.forEach((d, i) => {
             d.position.copy(spots[i]);
@@ -452,21 +466,22 @@ async function boot() {
         await api.play(faces);
       },
       hide() {
-        // 摇完仍留在桌上，盖住概念图旧盅
+        // 摇完收起 3D，露出视频屏概念盅图
         if (layer) {
-          layer.classList.add('is-on');
-          layer.style.visibility = '';
-          layer.style.opacity = '';
+          layer.classList.remove('is-on');
+          layer.style.visibility = 'hidden';
+          layer.style.opacity = '0';
+          layer.setAttribute('aria-hidden', 'true');
         }
       },
       resize: api.resize,
     };
-    // 进桌就显示你的盅（不再等停注才闪一下）
+    // 默认不盖住视频屏盅图；仅 play() 摇盅时亮起
     if (layer) {
-      layer.classList.add('is-on');
-      layer.style.visibility = '';
-      layer.style.opacity = '';
-      layer.setAttribute('aria-hidden', 'false');
+      layer.classList.remove('is-on');
+      layer.style.visibility = 'hidden';
+      layer.style.opacity = '0';
+      layer.setAttribute('aria-hidden', 'true');
       api.resize();
     }
     try {
