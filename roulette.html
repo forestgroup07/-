@@ -394,7 +394,8 @@
     */
     #nums {
       position: absolute; inset: 0;
-      z-index: 35; pointer-events: none;
+      /* 高于开奖滑道球(55/56)，筹码压在红球之上 */
+      z-index: 58; pointer-events: none;
     }
     #nums .hit {
       position: absolute; pointer-events: auto;
@@ -463,8 +464,50 @@
       z-index: 1;
       transform-origin: center center;
     }
-    #nums .hit { overflow: visible; }
-    #nums .hit:has(.bet-chip-wrap) { z-index: 6; }
+    #nums .hit { overflow: visible !important; }
+    #boardChipLayer {
+      position: absolute;
+      inset: 0;
+      z-index: 63;
+      pointer-events: none;
+    }
+    #boardChipLayer .bet-chip-wrap {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      pointer-events: none;
+      line-height: 0;
+    }
+    #boardChipLayer .bet-chip {
+      position: static;
+      left: auto;
+      top: auto;
+      transform: none;
+      display: block;
+      width: calc(min(100vw, 100vh * 2188 / 1393) * 52 / 2188);
+      height: auto;
+      max-width: none;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55));
+    }
+    #boardChipLayer .bet-chip-plus {
+      position: absolute;
+      right: -0.15em;
+      top: -0.35em;
+      min-width: 1.35em;
+      padding: 0.08em 0.28em;
+      border-radius: 999px;
+      background: #1a1a1a;
+      border: 1px solid #e6c84a;
+      color: #ffe9a0 !important;
+      -webkit-text-fill-color: #ffe9a0 !important;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 13 / var(--sw)) !important;
+      font-weight: 800;
+      line-height: 1.15;
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      text-align: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,.5);
+      white-space: nowrap;
+    }
     #trackNums .hit.has-mask {
       border-radius: 0;
       -webkit-mask-size: 100% 100%;
@@ -502,7 +545,8 @@
     /* 打/外注：与数字盘同款，按底图像素绝对定位，严丝合缝 */
     #outside {
       position: absolute; inset: 0;
-      z-index: 35; pointer-events: none;
+      /* 高于数字盘：避免底行热区/外扩抢走打/外注点击 */
+      z-index: 61; pointer-events: none;
     }
     #outside .hit {
       position: absolute; pointer-events: auto;
@@ -526,7 +570,7 @@
     /* 中间四个法式：主键盘同款绝对热区贴底图槽；周边号格不动 */
     .french {
       position: absolute; inset: 0;
-      z-index: 40; pointer-events: none;
+      z-index: 58; pointer-events: none;
     }
     .french .hit {
       position: absolute; pointer-events: auto;
@@ -546,7 +590,7 @@
     /* 右侧滚道：按底图像素绝对热区（与主键盘同款半透明黄） */
     #trackNums {
       position: absolute; inset: 0;
-      z-index: 42; pointer-events: none;
+      z-index: 58; pointer-events: none;
     }
     #trackNums .hit {
       position: absolute; pointer-events: auto;
@@ -692,7 +736,7 @@
       position: absolute;
       left: 50%; top: 50%;
       transform: translate(-50%, -50%);
-      z-index: 3;
+      z-index: 20;
       pointer-events: none;
       line-height: 0;
     }
@@ -709,13 +753,16 @@
       border-radius: 999px;
       background: #1a1a1a;
       border: 1px solid #e6c84a;
-      color: #ffe9a0;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 13 / var(--sw));
+      /* 覆盖 .hit.is-lit 的 transparent !important，避免只剩黑椭圆 */
+      color: #ffe9a0 !important;
+      -webkit-text-fill-color: #ffe9a0 !important;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 13 / var(--sw)) !important;
       font-weight: 800;
       line-height: 1.15;
       font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
       text-align: center;
       box-shadow: 0 1px 2px rgba(0,0,0,.5);
+      white-space: nowrap;
     }
 
     .fs-wrap, .music-wrap, .sound-wrap, .live-sound-wrap, .vsrc-wrap {
@@ -860,29 +907,31 @@
       color: #ffe9b0; font-weight: 600;
     }
 
+    /* 局态文案：钉在 18↔21 格缝正中上方（开始/停止/下注成功同坑） */
     .toast-msg {
-      position: absolute; left: 50%; top: 48%; transform: translate(-50%,-50%) scale(.92);
+      position: absolute; left: 39.25%; top: 47.1%; transform: translate(-50%,-50%) scale(.92);
       z-index: 230; padding: 0.45em 1.1em; border-radius: 0.3em;
       background: rgba(0,0,0,.75); border: 1px solid rgba(255,220,140,.5);
       color: #ffe9b0; font-weight: 700; letter-spacing: .06em; opacity: 0; pointer-events: none;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 28 / var(--sw));
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 36 / var(--sw));
       transition: opacity .18s ease, transform .18s ease; white-space: nowrap;
+      text-shadow: 0 2px 8px rgba(0,0,0,.7);
     }
     .toast-msg.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
     .toast-msg.success { color: #b8ffc4; border-color: rgba(120,255,160,.55); }
     .stop-bet {
       position: absolute;
-      left: 50%;
-      top: 42%;
+      left: 39.25%;
+      top: 47.1%;
       transform: translate(-50%, -50%) scale(.96);
-      z-index: 90;
+      z-index: 220;
       padding: 0.55em 1.25em;
       border-radius: 0.2em;
       background: rgba(0,0,0,.62);
       border: 1px solid rgba(255,220,140,.45);
       color: #ffe29a;
       font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 52 / var(--sw));
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 48 / var(--sw));
       font-weight: 800;
       letter-spacing: 0.12em;
       white-space: nowrap;
@@ -897,13 +946,15 @@
       visibility: visible;
       transform: translate(-50%, -50%) scale(1);
     }
+    .stop-bet.is-start { color: #b8ffc4; border-color: rgba(120,255,160,.5); }
     /* 停止下注：底图像素蒙版压暗主键盘+跑道（与 pc-full-ref 2284×1468 对齐） */
     #betKbdDim {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      z-index: 44;
+      /* 高于主键盘筹码层(58)，停注时仍能压暗含筹码区域 */
+      z-index: 64;
       object-fit: fill;
       pointer-events: none;
       opacity: 0;
@@ -2273,6 +2324,8 @@
       <div id="outside" aria-label="打与外注"></div>
       <div class="french" id="french" aria-label="法式"></div>
       <div id="trackNums" aria-label="滚道"></div>
+      <!-- 筹码独立层：压过开奖滑道/绿条，停注蒙版仍在其上 -->
+      <div id="boardChipLayer" aria-hidden="true"></div>
       <img id="betKbdDim" class="bet-kbd-dim" src="assets/roulette/bet-kbd-dim-mask.png?v=1.2.35" alt="" draggable="false" decoding="async" aria-hidden="true" width="2284" height="1468" />
       <div id="historyBoard" aria-label="开奖记录底格" aria-hidden="true"></div>
 
@@ -2657,6 +2710,9 @@
       <audio id="voStartBet" preload="auto" playsinline></audio>
       <audio id="voRoundOpen" preload="auto" playsinline></audio>
       <audio id="voStopBet" preload="auto" playsinline></audio>
+      <audio id="voEnNum" preload="auto" playsinline></audio>
+      <audio id="sfxTick" preload="auto" playsinline></audio>
+      <audio id="sfxBombTick" preload="auto" playsinline></audio>
     </div>
   </div>
 
@@ -2708,8 +2764,9 @@
 
       let start = 0;
       let selected = null;
-      let pendingMarket = null;
-      let pendingStake = 0;
+      /* 挂单可多盘口：连续点不同注位都保留，确定时一起提交 */
+      let pendingBets = Object.create(null);
+      let lastPendingKey = null;
       let bettingOpen = true;
       let soundMuted = false;
       try { soundMuted = localStorage.getItem('fg_roulette_sound_mute') === '1'; } catch (_) {}
@@ -2755,15 +2812,21 @@
       const toastEl = document.getElementById('toastMsg');
       const sfxClick = new Audio('audio/key-click.mp3?v=' + V);
       sfxClick.preload = 'auto';
-      /* 外圈细滚 / 格内跳动 分段：跳动声只在掉进号码格后播 */
+      /* 外圈细滚；进内圈后按隔板撞击逐发 short click（参考片） */
       const sfxBallRoll = new Audio('audio/roulette-ball-roll.mp3?v=' + V);
       const sfxBallBounce = new Audio('audio/roulette-ball-bounce.mp3?v=' + V);
       sfxBallRoll.preload = 'auto';
       sfxBallBounce.preload = 'auto';
+      const sfxFretClicks = [0, 1, 2].map((i) => {
+        const a = new Audio('audio/roulette-fret-click-' + i + '.mp3?v=' + V);
+        a.preload = 'auto';
+        return a;
+      });
       /* 兼容旧引用名 */
       const sfxBallSpin = sfxBallRoll;
       let ballSpinPlaying = false;
       let ballBounceStarted = false;
+      let fretClickI = 0;
 
       let toastTimer = 0;
       function showToast(text, ms, kind) {
@@ -2817,11 +2880,13 @@
         ensureAudioCtx();
         _primeOne(sfxBallRoll);
         _primeOne(sfxBallBounce);
+        sfxFretClicks.forEach(_primeOne);
       }
       function playBallSpinSfx() {
-        /* 外圈阶段只播滚动；跳动见 playBallBounceSfx */
+        /* 外圈阶段只播滚动；进格后改 playFretClick */
         ballSpinPlaying = true;
         ballBounceStarted = false;
+        fretClickI = 0;
         if (soundMuted) return;
         ensureAudioCtx();
         try {
@@ -2843,28 +2908,31 @@
           try { startBallSpinSynth(false); } catch (__) {}
         }
       }
-      function playBallBounceSfx() {
-        if (ballBounceStarted) return;
-        ballBounceStarted = true;
-        if (soundMuted || !ballSpinPlaying) return;
-        ensureAudioCtx();
+      function stopBallRollOnly() {
         try {
           sfxBallRoll.pause();
+          sfxBallRoll.currentTime = 0;
         } catch (_) {}
+        stopBallSpinSynth();
+      }
+      /** 撞一格隔板一声；可重叠短音 */
+      function playFretClick(vol) {
+        if (soundMuted || !ballSpinPlaying) return;
+        ballBounceStarted = true;
+        const src = sfxFretClicks[fretClickI % sfxFretClicks.length];
+        fretClickI++;
+        if (!src) return;
         try {
-          sfxBallBounce.muted = false;
-          sfxBallBounce.pause();
-          sfxBallBounce.currentTime = 0;
-          sfxBallBounce.volume = 1;
-          const p = sfxBallBounce.play();
-          if (p && p.catch) {
-            p.catch(() => {
-              try { startBallSpinSynth(true); } catch (_) {}
-            });
-          }
-        } catch (_) {
-          try { startBallSpinSynth(true); } catch (__) {}
-        }
+          const a = src.cloneNode();
+          a.volume = vol == null ? 0.9 : vol;
+          a.muted = false;
+          const p = a.play();
+          if (p && p.catch) p.catch(() => {});
+        } catch (_) {}
+      }
+      function playBallBounceSfx() {
+        /* 旧整段跳动样例停用；改由隔板逐击 */
+        stopBallRollOnly();
       }
       let ballSynthTimer = 0;
       let ballSynthNodes = [];
@@ -2954,6 +3022,9 @@
           sfxBallBounce.pause();
           sfxBallBounce.currentTime = 0;
         } catch (_) {}
+        sfxFretClicks.forEach((el) => {
+          try { el.pause(); el.currentTime = 0; } catch (_) {}
+        });
       }
       const accountNameEl = document.getElementById('accountName');
       const accountHot = document.getElementById('accountHot');
@@ -3132,8 +3203,17 @@
         if (accountNickEl) accountNickEl.textContent = ACCOUNT_ID;
         if (accountIdEl) accountIdEl.textContent = ACCOUNT_ID;
       }
+      function pendingTotal() {
+        let s = 0;
+        Object.keys(pendingBets).forEach((k) => { s += Number(pendingBets[k]) || 0; });
+        return s;
+      }
+      function clearPendingState() {
+        pendingBets = Object.create(null);
+        lastPendingKey = null;
+      }
       function currentStakeTotal() {
-        let total = pendingStake || 0;
+        let total = pendingTotal();
         Object.keys(bets).forEach((k) => { total += Number(bets[k]) || 0; });
         return total;
       }
@@ -3317,11 +3397,17 @@
         if (!bettingOpen) return false;
         if (selected == null) { showToast('请先选择筹码', 1200); return false; }
         if (!hasPending()) { showToast('请先选择下注位置', 1200); return false; }
-        if (balance < pendingStake) { showToast('积分不足', 1200); return false; }
+        const entries = Object.keys(pendingBets)
+          .filter((k) => (Number(pendingBets[k]) || 0) > 0)
+          .map((k) => ({ key: k, amt: Number(pendingBets[k]) || 0 }));
+        const total = entries.reduce((s, e) => s + e.amt, 0);
+        if (balance < total) { showToast('积分不足', 1200); return false; }
         playClick();
-        setBalance(balance - pendingStake);
-        bets[pendingMarket] = (bets[pendingMarket] || 0) + pendingStake;
-        pendingMarket = null; pendingStake = 0;
+        setBalance(balance - total);
+        entries.forEach((e) => {
+          bets[e.key] = (bets[e.key] || 0) + e.amt;
+        });
+        clearPendingState();
         snapshotConfirmedBets();
         paintLit();
         paintStake();
@@ -3331,6 +3417,22 @@
       function repeatBet() {
         if (!bettingOpen) return;
         playClick();
+        /* 有挂单：最近点的那笔金额再加一倍（其它挂单不动） */
+        const pendKey = lastPendingKey && (Number(pendingBets[lastPendingKey]) || 0) > 0
+          ? lastPendingKey
+          : Object.keys(pendingBets).find((k) => (Number(pendingBets[k]) || 0) > 0);
+        if (pendKey) {
+          const cur = Number(pendingBets[pendKey]) || 0;
+          const next = cur * 2;
+          const other = pendingTotal() - cur;
+          if (balance < other + next) { showToast('积分不足，无法加倍', 1400); return; }
+          pendingBets[pendKey] = next;
+          lastPendingKey = pendKey;
+          paintLit();
+          paintStake();
+          showToast('加倍 ' + next, 1000);
+          return;
+        }
         const keys = Object.keys(lastConfirmedBets || {}).filter((k) => (lastConfirmedBets[k] || 0) > 0);
         if (!keys.length) return;
         let need = 0;
@@ -3340,8 +3442,7 @@
         keys.forEach((k) => {
           bets[k] = (bets[k] || 0) + (Number(lastConfirmedBets[k]) || 0);
         });
-        pendingMarket = null;
-        pendingStake = 0;
+        clearPendingState();
         snapshotConfirmedBets();
         paintLit();
         paintStake();
@@ -3350,7 +3451,7 @@
         if (!bettingOpen) { showToast('已停止下注，无法取消', 1200); return; }
         playClick();
         if (!hasPending()) { showToast('没有可取消的选择', 1000); return; }
-        pendingMarket = null; pendingStake = 0;
+        clearPendingState();
         paintLit();
         paintStake();
         showToast('已取消', 1000);
@@ -3402,9 +3503,9 @@
         36: { left:'67.0315%', top:'48.842%', width:'5.3415%', height:'5.5177%' },
       };
       const nums = document.getElementById('nums');
-      /* 热区外扩盖住格间缝：鼠标落在两/四/六格正中间也能命中边线组合 */
+      /* 热区外扩盖住格间缝；底边少扩，避免压到打/外注 */
       const HIT_PAD_X = 0.20; /* % of stage */
-      const HIT_PAD_Y = 0.32;
+      const HIT_PAD_Y = 0.18;
       Object.keys(NUM_CELLS).forEach((key) => {
         const n = Number(key);
         const box = NUM_CELLS[n];
@@ -3864,9 +3965,10 @@
       /* 打 / 外注：底图像素绝对定位（与数字盘同逻辑） */
       /* 沟槽分割实测（2284×1468）：贴齐底图圆角格，不吃缝、不露边 */
       const OUTSIDE_CELLS = {
-        d1:    { left:'6.0858%', top:'66.8937%', width:'22.0228%', height:'5.4496%', label:'1-12', text:'1 - 12' },
-        d2:    { left:'28.1961%', top:'66.8937%', width:'22.0665%', height:'5.4496%', label:'13-24', text:'13 - 24' },
-        d3:    { left:'50.4378%', top:'66.8937%', width:'22.0228%', height:'5.4496%', label:'25-36', text:'25 - 36' },
+        /* 打区顶边上移盖住与数字底行缝，避免点 25-36 等被底行分注热区吃掉 */
+        d1:    { left:'6.0858%', top:'66.35%', width:'22.0228%', height:'5.9933%', label:'1-12', text:'1 - 12' },
+        d2:    { left:'28.1961%', top:'66.35%', width:'22.0665%', height:'5.9933%', label:'13-24', text:'13 - 24' },
+        d3:    { left:'50.4378%', top:'66.35%', width:'22.0228%', height:'5.9933%', label:'25-36', text:'25 - 36' },
         small: { left:'6.0420%', top:'72.8202%', width:'10.9457%', height:'5.4496%', label:'小', text:'小' },
         even:  { left:'17.2067%', top:'72.8202%', width:'10.9457%', height:'5.4496%', label:'双', text:'雙' },
         red:   { left:'28.2399%', top:'72.8202%', width:'10.9019%', height:'5.4496%', label:'红', text:'◆' },
@@ -4052,9 +4154,9 @@
         voisins: { name: '零旁注', odds: '按注型' },
         'zero-game': { name: '轮上零旁', odds: '按注型' },
       };
-      /* 主键盘边线热区：上边线交接=線注6；格边中缝=分注2；格心=直注1
-         加大边带：鼠标一进两/四/六格交界就切组合高亮 */
-      const EDGE_BAND = 0.38;
+      /* 边缝分注用宽边带；四角/線注用窄角带，避免 23-26 中缝被抢成四角 */
+      const EDGE_BAND = 0.34;
+      const CORNER_BAND = 0.20;
       function numLeft(n) { return n >= 4 ? n - 3 : null; }
       function numRight(n) { return n <= 33 ? n + 3 : null; }
       function numUp(n) { return (n % 3 === 0) ? null : n + 1; }
@@ -4083,8 +4185,8 @@
         if (n === 0) {
           /* 0：右缘分注 0+邻号；右下/右上角街注或角注简化为分注/街注 */
           const onR = lx >= 1 - EDGE_BAND;
-          const onT = ly < EDGE_BAND;
-          const onB = ly >= 1 - EDGE_BAND;
+          const onT = ly < CORNER_BAND;
+          const onB = ly >= 1 - CORNER_BAND;
           if (onR && onT) return { kind: 'street', nums: [0, 2, 3], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
           if (onR && onB) return { kind: 'street', nums: [0, 1, 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
           if (onR && ly < 0.38) return { kind: 'split', nums: [0, 3], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
@@ -4092,63 +4194,71 @@
           if (onR) return { kind: 'split', nums: [0, 2], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
           return { kind: 'straight', nums: [0], name: '直注', odds: '1:35', limit: INSIDE_LIMIT.straight };
         }
-        const onL = lx < EDGE_BAND;
-        const onR = lx >= 1 - EDGE_BAND;
-        const onT = ly < EDGE_BAND;
-        const onB = ly >= 1 - EDGE_BAND;
+        const dL = lx;
+        const dR = 1 - lx;
+        const dT = ly;
+        const dB = 1 - ly;
+        const cornerL = dL < CORNER_BAND;
+        const cornerR = dR < CORNER_BAND;
+        const cornerT = dT < CORNER_BAND;
+        const cornerB = dB < CORNER_BAND;
+        const edgeL = dL < EDGE_BAND;
+        const edgeR = dR < EDGE_BAND;
+        const edgeT = dT < EDGE_BAND;
+        const edgeB = dB < EDGE_BAND;
         /* 顶行上边线 + 左边交接 → 線注六号（例：36 顶边交接 = 31-36） */
-        if (onT && onL) {
+        if (cornerT && cornerL) {
           const six = sixLineAtTopJunction(n);
           if (six) {
             return { kind: 'line', nums: six, name: '線注', odds: '1:5', limit: INSIDE_LIMIT.line };
           }
         }
-        /* 四角：角注四号 */
-        if (onT && onL) {
+        /* 四角：仅真正贴近交点才角注，中缝留给分注 */
+        if (cornerT && cornerL) {
           const L = numLeft(n); const U = numUp(n);
           if (L != null && U != null) {
             const UL = numUp(L);
             if (UL != null) return { kind: 'corner', nums: [n, L, U, UL], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
           }
         }
-        if (onT && onR) {
+        if (cornerT && cornerR) {
           const R = numRight(n); const U = numUp(n);
           if (R != null && U != null) {
             const UR = numUp(R);
             if (UR != null) return { kind: 'corner', nums: [n, R, U, UR], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
           }
         }
-        if (onB && onL) {
+        if (cornerB && cornerL) {
           const L = numLeft(n); const D = numDown(n);
           if (L != null && D != null) {
             const DL = numDown(L);
             if (DL != null) return { kind: 'corner', nums: [n, L, D, DL], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
           }
         }
-        if (onB && onR) {
+        if (cornerB && cornerR) {
           const R = numRight(n); const D = numDown(n);
           if (R != null && D != null) {
             const DR = numDown(R);
             if (DR != null) return { kind: 'corner', nums: [n, R, D, DR], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
           }
         }
-        /* 边缝 → 分注两号（角注已优先返回；此处不再要求远离四角，避免中缝钝） */
-        if (onL) {
+        /* 边缝中段 → 分注两号 */
+        if (edgeL) {
           const L = numLeft(n);
           if (L != null) return { kind: 'split', nums: [n, L], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
         }
-        if (onR) {
+        if (edgeR) {
           const R = numRight(n);
           if (R != null) return { kind: 'split', nums: [n, R], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
         }
-        if (onT) {
+        if (edgeT) {
           const U = numUp(n);
           if (U != null) return { kind: 'split', nums: [n, U], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
           /* 顶行顶边中：街注三号 */
           const base = n - 2;
           return { kind: 'street', nums: [base, base + 1, base + 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
         }
-        if (onB) {
+        if (edgeB) {
           const D = numDown(n);
           if (D != null) return { kind: 'split', nums: [n, D], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
           const base = n;
@@ -4179,7 +4289,7 @@
       const betTipOdds = document.getElementById('betTipOdds');
       const betTipLimit = document.getElementById('betTipLimit');
       function paintBetTip() {
-        const key = pendingMarket || hoverMarket || null;
+        const key = lastPendingKey || hoverMarket || null;
         const info = marketInfoFor(key);
         if (!info || !betTipEl) {
           if (betTipEl) {
@@ -4202,7 +4312,7 @@
       }
       function activeBetKeys() {
         const keys = new Set();
-        if (pendingMarket) keys.add(pendingMarket);
+        Object.keys(pendingBets).forEach((k) => { if ((Number(pendingBets[k]) || 0) > 0) keys.add(k); });
         Object.keys(bets).forEach((k) => { if (bets[k] > 0) keys.add(k); });
         return keys;
       }
@@ -4264,7 +4374,7 @@
         return p ? p.host : null;
       }
       function hasPending() {
-        return !!(pendingMarket && pendingStake > 0);
+        return pendingTotal() > 0;
       }
       function paintActBtns() {
         const dock = document.getElementById('sicboDock');
@@ -4284,19 +4394,29 @@
         }
       }
       function paintBoardChips() {
+        const layer = document.getElementById('boardChipLayer');
         document.querySelectorAll('.hit .bet-chip-wrap, .hit .bet-chip').forEach((el) => el.remove());
+        if (layer) layer.innerHTML = '';
         const lit = activeBetKeys();
         lit.forEach((key) => {
           const place = chipPlacementFor(key);
           if (!place || !place.host) return;
           let stake = bets[key] || 0;
-          const isPend = key === pendingMarket && pendingStake > 0;
-          if (isPend) stake = pendingStake;
+          const pendAmt = Number(pendingBets[key]) || 0;
+          const isPend = pendAmt > 0;
+          if (isPend) stake = pendAmt;
           if (stake <= 0) return;
+          const host = place.host;
+          const L = parseFloat(host.style.left) || 0;
+          const T = parseFloat(host.style.top) || 0;
+          const W = parseFloat(host.style.width) || 0;
+          const H = parseFloat(host.style.height) || 0;
+          const x = L + (W * place.left) / 100;
+          const y = T + (H * place.top) / 100;
           const wrap = document.createElement('span');
           wrap.className = 'bet-chip-wrap';
-          wrap.style.left = place.left + '%';
-          wrap.style.top = place.top + '%';
+          wrap.style.left = x + '%';
+          wrap.style.top = y + '%';
           const chip = document.createElement('img');
           chip.className = 'bet-chip';
           chip.alt = '';
@@ -4309,7 +4429,8 @@
             plus.textContent = '+' + stake;
             wrap.appendChild(plus);
           }
-          place.host.appendChild(wrap);
+          if (layer) layer.appendChild(wrap);
+          else place.host.appendChild(wrap);
         });
       }
       let hoverMarket = null;
@@ -4375,11 +4496,15 @@
             betKey = applyInsideHover(zone, e) || key;
           }
           const now = Date.now();
+          /* 仅防同盘口一次点击冒成两笔；换盘口可连续挂单 */
           if (betKey === lastZoneBetKey && now - lastZoneBetAt < 450) return;
           lastZoneBetAt = now; lastZoneBetKey = betKey;
           const next = Number(selected);
-          if (!next || balance < next) { showToast('积分不足', 1200); return; }
-          pendingMarket = betKey; pendingStake = next;
+          if (!next) { showToast('请先选择筹码', 1200); return; }
+          const other = pendingTotal() - (Number(pendingBets[betKey]) || 0);
+          if (balance < other + next) { showToast('积分不足', 1200); return; }
+          pendingBets[betKey] = next;
+          lastPendingKey = betKey;
           if (!Object.prototype.hasOwnProperty.call(bets, betKey)) bets[betKey] = 0;
           paintLit();
           paintStake();
@@ -4842,7 +4967,7 @@
         /* 与骰宝一致：有无红叉悬停都显示「聲效」 */
         soundTip.classList.toggle('show', !!show);
       }
-      const VOICE_IDS = ['voWelcome', 'voStartBet', 'voRoundOpen', 'voStopBet'];
+      const VOICE_IDS = ['voWelcome', 'voStartBet', 'voRoundOpen', 'voStopBet', 'voEnNum', 'sfxTick', 'sfxBombTick'];
       function stopAllSfx() {
         try {
           sfxClick.pause();
@@ -5266,12 +5391,16 @@
           startBet: 'audio/start-bet.mp3?v=' + V,
           roundOpen: 'audio/round-open-bet.mp3?v=' + V,
           stopBet: 'audio/stop-bet.mp3?v=' + V,
+          tick: 'audio/tick.mp3?v=' + V,
+          bombTick: 'audio/bomb-tick.mp3?v=' + V,
         },
         players: {
           welcome: document.getElementById('voWelcome'),
           startBet: document.getElementById('voStartBet'),
           roundOpen: document.getElementById('voRoundOpen'),
           stopBet: document.getElementById('voStopBet'),
+          tick: document.getElementById('sfxTick'),
+          bombTick: document.getElementById('sfxBombTick'),
         },
         clipFor: {
           '欢迎进入轮盘游戏': 'welcome',
@@ -5348,6 +5477,21 @@
             }
           });
         },
+        playQuick(key, vol) {
+          if (this.isOff()) return;
+          const el = this.players[key];
+          if (!el) return;
+          try {
+            el.muted = false;
+            el.pause();
+            el.currentTime = 0;
+            el.volume = vol == null ? 0.6 : vol;
+            const p = el.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          } catch (_) {}
+        },
+        tick() { this.playQuick('tick', 0.52); },
+        bombTick() { this.playQuick('bombTick', 0.62); },
         speak(text) {
           const run = async () => {
             if (this.isOff()) return false;
@@ -5355,6 +5499,7 @@
             const el = key && this.players[key];
             if (!el) return false;
             Object.keys(this.players).forEach((k) => {
+              if (k === 'tick' || k === 'bombTick') return;
               const other = this.players[k];
               if (!other || other === el) return;
               try { other.pause(); other.currentTime = 0; } catch (_) {}
@@ -5383,8 +5528,20 @@
         const stage = document.getElementById('stage');
         if (stage) stage.classList.toggle('is-bet-closed', !bettingOpen);
       }
+      function showRoundBanner(text, kind) {
+        if (!stopBetEl) return;
+        if (!text) {
+          stopBetEl.classList.remove('show', 'is-start');
+          stopBetEl.textContent = '停止下注';
+          return;
+        }
+        stopBetEl.textContent = text;
+        stopBetEl.classList.toggle('is-start', kind === 'start');
+        stopBetEl.classList.add('show');
+      }
       function showStopBet(show) {
-        if (stopBetEl) stopBetEl.classList.toggle('show', !!show);
+        if (show) showRoundBanner('停止下注');
+        else showRoundBanner(false);
         paintBetClosed();
       }
 
@@ -5580,8 +5737,7 @@
           bets[key] = 0;
         });
         Object.keys(bets).forEach((k) => { bets[k] = 0; });
-        pendingMarket = null;
-        pendingStake = 0;
+        clearPendingState();
         if (returned > 0) setBalance(balance + returned);
         paintLit();
         paintStake();
@@ -5593,11 +5749,42 @@
         }
       }
 
+      /* 英文报数：按开奖号播预录片（每局不同），不用 speechSynthesis */
+      function speakEnWinNumber(n) {
+        return new Promise((resolve) => {
+          if (Voice.isOff()) { resolve(false); return; }
+          const el = document.getElementById('voEnNum');
+          if (!el) { resolve(false); return; }
+          const num = Math.max(0, Math.min(36, n | 0));
+          let done = false;
+          const finish = (ok) => {
+            if (done) return;
+            done = true;
+            try { el.onended = null; el.onerror = null; } catch (_) {}
+            resolve(!!ok);
+          };
+          try {
+            el.pause();
+            el.src = 'audio/roulette-en/n' + num + '.mp3?v=' + V;
+            el.muted = false;
+            el.volume = 1;
+            el.onended = () => finish(true);
+            el.onerror = () => finish(false);
+            const p = el.play();
+            if (p && typeof p.catch === 'function') p.catch(() => finish(false));
+            setTimeout(() => finish(false), 3500);
+          } catch (_) {
+            finish(false);
+          }
+        });
+      }
+
       function announceWinNumber(n) {
         paintResultBoard(n);
         pushHistoryResult(n);
-        /* 禁止 speechSynthesis 男生报数；只做结果板 + 珠盘滚动 */
-        return rollHistoryRailBall(n).then(() => false);
+        const railP = rollHistoryRailBall(n);
+        const voiceP = speakEnWinNumber(n);
+        return Promise.all([railP, voiceP]).then((r) => r[1]);
       }
 
       function startIdleSpin() {
@@ -5682,17 +5869,17 @@
 
       /**
        * 停注后开奖：
-       * A. 外侧滑道快→慢（单一减速曲线）
-       * B. 掉进号码格内圈（WHEEL_POCKET_DIST），在格子隔板间弹跳
-       * C. 滚动声外圈；跳动声仅格内弹跳时出现
+       * A. 外侧滑道快→慢
+       * B. 掉进最内圈红黑格（WHEEL_POCKET_DIST）
+       * C. 在相邻格子隔板间逐格跳动（每过一隔板一声），最终停在开奖格中心
        */
       function runBallAndWheelStop(winNum) {
-        const TOTAL_MS = 7300;
+        const TOTAL_MS = 7600;
         const R_OUTER = 6.8;
         const R_POCKET = 50 - WHEEL_POCKET_DIST; /* 号码格中心：18.3 */
-        const DROP_U0 = 0.575; /* ≈4.2s 掉进格子 */
-        const DROP_U1 = 0.66;  /* 较快落入格底 */
-        const BOUNCE_U1 = 0.92;
+        const DROP_U0 = 0.55;
+        const DROP_U1 = 0.61;
+        const RATTLE_END = 0.88; /* 全局 u：隔板跳动结束、贴死开奖格 */
         const w0 = stopIdleSpinCapture();
         showBall(true);
         const ballEl = document.getElementById('wheelBall');
@@ -5703,40 +5890,57 @@
         const b0 = normDeg(ballAngle || 0);
         setBallAngle(b0, 0);
 
+        const winIdx = Math.max(0, EU_ORDER.indexOf(winNum));
+        const hops = 6 + ((Math.random() * 5) | 0); /* 进格后再跨 6–10 个隔板 */
+        /* 用未折回下标，避免跨 0 时跳格算错 */
+        const startIdx = winIdx + hops;
+
+        /* 终局球停在开奖格正中（无 jitter）；落点屏幕方位每局随机 */
         const markerCss = Math.random() * 360;
-        const jitter = (Math.random() - 0.5) * (SLOT * 0.35);
         const markerGeom = ballGeomFromCss(markerCss);
-        const pocket = pocketAngle(winNum) + jitter;
-        const wheelTargetLocal = normDeg(markerGeom - pocket);
+        const wheelTargetLocal = normDeg(markerGeom - pocketAngle(winNum));
         let wDelta = normDeg(wheelTargetLocal - normDeg(w0));
         if (wDelta < 80) wDelta += 360;
-        wDelta += 360 * (1 + Math.floor(Math.random() * 2));
+        wDelta += 360 * (1 + ((Math.random() * 2) | 0));
         const w1 = w0 + wDelta;
 
         let bDelta = normDeg(b0 - markerCss);
         if (bDelta < 1) bDelta = 360;
-        bDelta += 360 * (9 + Math.floor(Math.random() * 3));
+        bDelta += 360 * (9 + ((Math.random() * 3) | 0));
 
         const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+        const easeOutPow = (t, p) => 1 - Math.pow(1 - t, p);
         const easeInCubic = (t) => t * t * t;
         const BALL_EASE_P = 2.55;
         const ballProgress = (u) => 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), BALL_EASE_P);
-        const dropProg = ballProgress(DROP_U0);
-        const preDropCss = b0 - bDelta * dropProg;
         const finalBallCss = () => normDeg(pocketAngle(winNum) + BALL_CSS_TO_GEOM + w1);
 
-        /** 外圈贴死 → 落入号码格 → 格内径向弹跳 */
-        const radiusAt = (u) => {
+        /** 进格后：按格序浮点下标从 startIdx 跳到 winIdx */
+        const pocketFloatAt = (u) => {
+          if (u <= DROP_U0) return startIdx;
+          if (u >= RATTLE_END) return winIdx;
+          const t = (u - DROP_U0) / (RATTLE_END - DROP_U0);
+          const e = easeOutPow(t, 2.35);
+          let f = startIdx - hops * e;
+          /* 早期在隔板间加衰减摆动，看起来像真撞格 */
+          const wob = Math.sin(t * Math.PI * (hops * 0.85 + 0.5)) * (1 - e) * 0.42;
+          f += wob;
+          return f;
+        };
+        const localDegFromFloat = (f) => {
+          /* 允许非整数：隔板之间 */
+          return ZERO_CENTER_DEG + f * SLOT;
+        };
+        const radiusAt = (u, justHit) => {
           if (u < DROP_U0) return R_OUTER;
           if (u < DROP_U1) {
             const t = (u - DROP_U0) / (DROP_U1 - DROP_U0);
             return R_OUTER + (R_POCKET - R_OUTER) * easeInCubic(t);
           }
-          if (u < BOUNCE_U1) {
-            const t = (u - DROP_U1) / (BOUNCE_U1 - DROP_U1);
-            const amp = (1 - t) * (1 - t) * 2.8;
-            const hops = Math.sin(t * Math.PI * 3.4);
-            return R_POCKET - Math.abs(hops) * amp;
+          if (u < RATTLE_END) {
+            const t = (u - DROP_U1) / (RATTLE_END - DROP_U1);
+            const amp = (1 - t) * (1 - t) * (justHit ? 1.6 : 1.1);
+            return R_POCKET - amp;
           }
           return R_POCKET;
         };
@@ -5744,7 +5948,8 @@
         playBallSpinSfx();
         const t0 = performance.now();
         let raf = 0;
-        let bounceArmed = false;
+        let dropArmed = false;
+        let lastPocketI = -999;
 
         return new Promise((resolve) => {
           let settled = false;
@@ -5767,32 +5972,31 @@
             const wNow = w0 + wDelta * easeOutCubic(u);
             setWheelAngle(wNow, 0);
 
-            if (u >= DROP_U0 && !bounceArmed) {
-              bounceArmed = true;
-              playBallBounceSfx();
-            }
-
             let ang;
+            let justHit = false;
             if (u < DROP_U0) {
               ang = b0 - bDelta * ballProgress(u);
             } else {
-              /* 掉格后贴中奖格，并在隔板间角向弹跳 */
-              const t = (u - DROP_U0) / (1 - DROP_U0);
-              const settle = easeOutCubic(Math.min(1, t / 0.5));
-              const targetCss = normDeg(pocketAngle(winNum) + BALL_CSS_TO_GEOM + wNow);
-              let dSettle = targetCss - preDropCss;
-              while (dSettle > 180) dSettle -= 360;
-              while (dSettle < -180) dSettle += 360;
-              const edge = SLOT * 0.4;
-              const bounceT = Math.max(0, Math.min(1, (u - DROP_U1) / Math.max(1e-6, BOUNCE_U1 - DROP_U1)));
-              const amp = u < DROP_U1 ? edge * 0.22 : edge * (1 - bounceT) * (1 - bounceT);
-              const wobble = u < DROP_U1
-                ? Math.sin((u - DROP_U0) * 42) * amp
-                : Math.sin(bounceT * Math.PI * 4.2) * amp;
-              ang = preDropCss + dSettle * settle + wobble;
+              if (!dropArmed) {
+                dropArmed = true;
+                stopBallRollOnly();
+                playFretClick(1);
+                lastPocketI = Math.floor(pocketFloatAt(u) + 1e-6);
+              }
+              const f = pocketFloatAt(u);
+              const pocketI = Math.floor(f + 1e-6); /* 未折回，单调递减 */
+              if (pocketI !== lastPocketI) {
+                justHit = true;
+                lastPocketI = pocketI;
+                const t = (u - DROP_U0) / Math.max(1e-6, RATTLE_END - DROP_U0);
+                playFretClick(0.95 - Math.min(0.45, t * 0.45));
+              }
+              /* 球相对转盘锁定在当前浮点格位 → 叠到转盘角 */
+              const local = localDegFromFloat(f);
+              ang = normDeg(local + BALL_CSS_TO_GEOM + wNow);
             }
             setBallAngle(ang, 0);
-            if (ballEl) ballEl.style.top = radiusAt(u).toFixed(2) + '%';
+            if (ballEl) ballEl.style.top = radiusAt(u, justHit).toFixed(2) + '%';
 
             if (u < 1) {
               raf = requestAnimationFrame(tick);
@@ -5812,8 +6016,14 @@
       }
 
       async function kickRoundOpenVoice() {
-        if (Voice.isOff()) return;
-        await Voice.speak('已开局请下注');
+        /* 文字与口播都要：开始下注显示在轮盘中央坑位 */
+        showRoundBanner('开始下注', 'start');
+        if (!Voice.isOff()) {
+          await Voice.speak('开始下注');
+        } else {
+          await sleep(900);
+        }
+        if (stopBetEl && stopBetEl.textContent === '开始下注') showRoundBanner(false);
       }
 
       async function runBetRounds() {
@@ -5842,6 +6052,10 @@
           for (let t = BET_SECS; t >= 1; t--) {
             if (gen !== roundGen) return;
             setTimerDisplay(t);
+            if (!Voice.isOff()) {
+              if (t <= 10) Voice.bombTick();
+              else Voice.tick();
+            }
             await sleep(1000);
           }
           if (gen !== roundGen) return;
@@ -5849,8 +6063,7 @@
           bettingOpen = false;
           paintBetClosed();
           /* 停注：挂单未确定的作废，三键熄灭 */
-          pendingMarket = null;
-          pendingStake = 0;
+          clearPendingState();
           paintLit();
           paintStake();
           showStopBet(true);
