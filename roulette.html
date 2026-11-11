@@ -35,8 +35,11 @@
     }
 
     /* 骰宝同款倒计时：戴帽美女与轮盘之间上方 */
+    /* 对标公司：外圈弧 + 内扇形都随 --p 一起变短；白点钉在弧端；数字 2× */
     .timer {
       --p: 1;
+      --timer-ring: #6fdc4a;
+      --timer-pie: #6fdc4a66;
       position: absolute;
       left: 18.4%;
       top: 2.6%;
@@ -48,29 +51,45 @@
       align-items: center;
       justify-content: center;
       pointer-events: none;
-      background: rgb(22, 34, 16);
-      color: #6fff9a;
+      color: var(--timer-ring);
       font-family: Arial, Helvetica, sans-serif;
-      font-weight: 900;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 40 / var(--sw));
+      font-weight: 700;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 80 / var(--sw));
       line-height: 1;
-      text-shadow: 0 1px 2px rgba(0,0,0,.65);
-      box-shadow: 0 4px 14px rgba(0,0,0,.35);
+      letter-spacing: -0.02em;
+      text-shadow: 0 1px 2px rgba(0,0,0,.55);
+      /* 底层 conic 弧 + 上层挖空成细环（未走过的外圈不画） */
+      background:
+        radial-gradient(farthest-side, rgba(8, 12, 8, 0.58) calc(100% - 0.13em), transparent calc(100% - 0.12em)),
+        conic-gradient(var(--timer-ring) calc(var(--p) * 1turn), transparent 0);
     }
     .timer::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: 0.13em;
       border-radius: 50%;
-      background: conic-gradient(#6fff9a calc(var(--p) * 1turn), rgba(40,55,35,.75) 0);
-      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
-              mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
+      background: conic-gradient(var(--timer-pie) calc(var(--p) * 1turn), transparent 0);
       pointer-events: none;
     }
+    .timer::after {
+      content: "";
+      position: absolute;
+      width: 11%;
+      height: 11%;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0.08em rgba(0,0,0,.35);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(calc(var(--p) * 360deg)) translateY(-430%);
+      pointer-events: none;
+      z-index: 2;
+    }
     .timer > span { position: relative; z-index: 1; }
-    .timer.danger { color: #ff3b3b; }
-    .timer.danger::before {
-      background: conic-gradient(#ff3b3b calc(var(--p) * 1turn), rgba(60,20,20,.75) 0);
+    .timer.danger {
+      --timer-ring: #ff3b3b;
+      --timer-pie: #ff3b3b66;
+      color: #ff3b3b;
     }
 
     /* 立体可旋转轮盘：盖住底图烤盘，透视倾侧 + 旋转 */
@@ -436,6 +455,61 @@
       /* 半透明黄脸：底图号码/文字/菱形要从黄上透出 */
       background: rgba(232, 196, 48, 0.52) !important;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(120,80,0,.16);
+    }
+    /* 开奖闪：对齐骰宝 winGoldPulse——一条 7s 柔和起伏；JS 只加/摘 class */
+    #nums .hit.is-win-flash,
+    #outside .hit.is-win-flash,
+    #trackNums .hit.is-win-flash {
+      z-index: 3;
+    }
+    #nums .hit.is-win-flash::before,
+    #outside .hit.is-win-flash::before,
+    #trackNums .hit.is-win-flash::before {
+      animation: rouWinGoldPulse 7s ease-in-out forwards;
+      background: rgba(10, 48, 38, 0.35);
+    }
+    @keyframes rouWinGoldPulse {
+      0% {
+        background: rgba(10, 48, 38, 0.2);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+        filter: brightness(1);
+      }
+      12% {
+        background: rgba(236, 210, 120, 0.88);
+        box-shadow:
+          0 0 8px rgba(240, 215, 140, 0.5),
+          0 0 14px rgba(230, 190, 100, 0.3),
+          inset 0 0 8px rgba(255, 245, 210, 0.32);
+        filter: brightness(1.1);
+      }
+      28%, 42%, 56%, 70% {
+        background: rgba(236, 210, 120, 0.88);
+        box-shadow:
+          0 0 6px rgba(235, 210, 130, 0.4),
+          0 0 12px rgba(220, 185, 100, 0.25),
+          inset 0 0 6px rgba(255, 240, 190, 0.28);
+        filter: brightness(1.04);
+      }
+      35%, 49%, 63% {
+        background: rgba(242, 220, 140, 0.92);
+        box-shadow:
+          0 0 12px rgba(245, 225, 150, 0.65),
+          0 0 18px rgba(235, 200, 110, 0.4),
+          inset 0 0 10px rgba(255, 248, 220, 0.42);
+        filter: brightness(1.16);
+      }
+      82% {
+        background: rgba(236, 210, 120, 0.7);
+        box-shadow:
+          0 0 8px rgba(240, 215, 140, 0.35),
+          inset 0 0 6px rgba(255, 245, 210, 0.22);
+        filter: brightness(1.06);
+      }
+      100% {
+        background: rgba(10, 48, 38, 0.15);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+        filter: brightness(1);
+      }
     }
     /* 热区外扩盖住格缝后，黄脸仍贴原格面（勿跟着外扩） */
     #nums .hit:not(.zero)::before {
@@ -907,18 +981,38 @@
       color: #ffe9b0; font-weight: 600;
     }
 
-    /* 局态文案：钉在 18↔21 格缝正中上方（开始/停止/下注成功同坑） */
+    /* 局态三句统一（与骰宝同色同号）：开始下注 / 停止下注 / 下注成功 */
     .toast-msg {
-      position: absolute; left: 39.25%; top: 47.1%; transform: translate(-50%,-50%) scale(.92);
-      z-index: 230; padding: 0.45em 1.1em; border-radius: 0.3em;
-      background: rgba(0,0,0,.75); border: 1px solid rgba(255,220,140,.5);
-      color: #ffe9b0; font-weight: 700; letter-spacing: .06em; opacity: 0; pointer-events: none;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 36 / var(--sw));
-      transition: opacity .18s ease, transform .18s ease; white-space: nowrap;
+      position: absolute;
+      left: 39.25%;
+      top: 47.1%;
+      transform: translate(-50%,-50%) scale(.92);
+      z-index: 230;
+      padding: 0.55em 1.25em;
+      border-radius: 0.2em;
+      background: rgba(0,0,0,.62);
+      border: 1px solid rgba(255,220,140,.45);
+      color: #ffe29a;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 52 / var(--sw));
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .22s ease, transform .22s ease, visibility .22s;
       text-shadow: 0 2px 8px rgba(0,0,0,.7);
     }
-    .toast-msg.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-    .toast-msg.success { color: #b8ffc4; border-color: rgba(120,255,160,.55); }
+    .toast-msg.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%,-50%) scale(1);
+    }
+    .toast-msg.success {
+      color: #ffe29a;
+      border-color: rgba(255,220,140,.45);
+    }
     .stop-bet {
       position: absolute;
       left: 39.25%;
@@ -930,8 +1024,8 @@
       background: rgba(0,0,0,.62);
       border: 1px solid rgba(255,220,140,.45);
       color: #ffe29a;
-      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
-      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 48 / var(--sw));
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 52 / var(--sw));
       font-weight: 800;
       letter-spacing: 0.12em;
       white-space: nowrap;
@@ -946,7 +1040,10 @@
       visibility: visible;
       transform: translate(-50%, -50%) scale(1);
     }
-    .stop-bet.is-start { color: #b8ffc4; border-color: rgba(120,255,160,.5); }
+    .stop-bet.is-start {
+      color: #ffe29a;
+      border-color: rgba(255,220,140,.45);
+    }
     /* 停止下注：底图像素蒙版压暗主键盘+跑道（与 pc-full-ref 2284×1468 对齐） */
     #betKbdDim {
       position: absolute;
@@ -2222,7 +2319,7 @@
         <div class="wheel-3d-bowl" id="wheelBowl">
           <div class="wheel-spin" id="wheelSpin">
             <!-- 原图无木底座：一盘正圆外圈粗细均匀，整盘一起转 -->
-            <img class="wheel-3d-disc" id="wheelDisc" src="assets/roulette/wheel-disc.png?v=1.1.6" alt="" draggable="false" width="666" height="666" />
+            <img class="wheel-3d-disc" id="wheelDisc" src="assets/roulette/wheel-disc.png?v=1.2.4" alt="" draggable="false" width="666" height="666" />
             <div class="wheel-ring wheel-ring-hub" id="wheelRingHub" aria-hidden="true"></div>
             <div class="wheel-ring wheel-ring-pockets" id="wheelRingPockets" aria-hidden="true"></div>
             <div class="wheel-ring wheel-ring-nums" id="wheelRingNums" aria-hidden="true"></div>
@@ -2719,7 +2816,7 @@
   <script src="js/fg-wallet.js?v=1.0.1"></script>
   <script>
     (async function () {
-      const V = '1.2.3';
+      const V = '1.2.4';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -5779,9 +5876,57 @@
         });
       }
 
+      let winFlashTimer = 0;
+      function clearWinFlash() {
+        if (winFlashTimer) {
+          clearTimeout(winFlashTimer);
+          winFlashTimer = 0;
+        }
+        document.querySelectorAll('.hit.is-win-flash').forEach((el) => {
+          el.classList.remove('is-win-flash');
+        });
+      }
+      /** 开奖后：中奖格整格金光淡入淡出闪 durationMs（默认 7s）——同骰宝 flashWinGold */
+      function flashWinMarkets(n, durationMs = 7000) {
+        if (winFlashTimer) {
+          clearTimeout(winFlashTimer);
+          winFlashTimer = 0;
+        }
+        document.querySelectorAll('.hit.is-win-flash').forEach((el) => {
+          el.classList.remove('is-win-flash');
+        });
+        const keys = new Set(['n' + n]);
+        Object.keys(OUTSIDE_GROUPS).forEach((k) => {
+          if (OUTSIDE_GROUPS[k].has(n)) keys.add(k);
+        });
+        Object.keys(COLUMNS).forEach((k) => {
+          if (COLUMNS[k].has(n)) keys.add(k);
+        });
+        const zones = [];
+        document.querySelectorAll('[data-bet]').forEach((el) => {
+          const bet = el.dataset.bet;
+          if (!keys.has(bet)) return;
+          if (el.closest('#nums') || el.closest('#trackNums') || el.closest('#outside')) {
+            zones.push(el);
+          }
+        });
+        zones.forEach((el) => {
+          el.classList.remove('is-win-flash');
+          void el.offsetWidth;
+          el.classList.add('is-win-flash');
+        });
+        winFlashTimer = setTimeout(() => {
+          zones.forEach((el) => el.classList.remove('is-win-flash'));
+          winFlashTimer = 0;
+        }, durationMs);
+        return zones.length;
+      }
+
       function announceWinNumber(n) {
         paintResultBoard(n);
         pushHistoryResult(n);
+        /* 一出号立刻闪，不等开奖条挂满 */
+        flashWinMarkets(n);
         const railP = rollHistoryRailBall(n);
         const voiceP = speakEnWinNumber(n);
         return Promise.all([railP, voiceP]).then((r) => r[1]);
@@ -6081,12 +6226,13 @@
           await announceWinNumber(winNum);
           if (gen !== roundGen) return;
           settleRound(winNum);
-          /* 开奖条多停 5 秒（原 ~2.8s → ~7.8s） */
-          await sleep(7800);
+          /* 与骰宝一致：金光闪 7s 后再收开奖条 */
+          await sleep(7000);
           if (gen !== roundGen) return;
+          clearWinFlash();
           hideResultBoard();
           showBall(false);
-          await sleep(600);
+          await sleep(400);
         }
       }
 
