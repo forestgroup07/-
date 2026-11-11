@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
-  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.3.6" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.4.10" type="image/jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=v1.0.30" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=1.3.6" type="image/webp" />
@@ -148,37 +148,37 @@
       border-radius: 0 0 var(--vb-inner-r) var(--vb-inner-r);
     }
     /*
-     * 摇盅层 = 同一张好盘面，椭圆裁切只罩盅；
-     * 静止时与 feed 重合；跳动时只有盅区位移，外围红布仍是底下静图。
+     * 轮盘同款：焊死盘面图 + #diceSpin CSS transform（不抠骰、不叠鬼影）。
+     * 计时：只显示 videoFeed；停注：红布静底 + 整张盘面（盅+白骰）一起跳。
      */
     .cup-stereo {
       position: absolute;
       inset: 0;
       z-index: 45;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      overflow: visible;
       transform: scale(1.12);
       transform-origin: center center;
-      pointer-events: none;
-      will-change: transform;
-      opacity: 1;
-      visibility: visible;
-      overflow: hidden;
-      -webkit-clip-path: ellipse(36% 46% at 50% 54%);
-      clip-path: ellipse(36% 46% at 50% 54%);
-      filter: none;
     }
-    .cup-stereo.is-on {
-      opacity: 1;
-      visibility: visible;
-    }
+    .cup-stereo.is-on,
     .cup-stereo.is-shaking {
-      filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.4));
+      opacity: 1;
+      visibility: visible;
     }
-    .cup-3d-bowl {
+    .dice-spin {
       position: absolute;
       inset: 0;
-      z-index: 1;
+      transform: translate3d(0, 0, 0);
+      transform-origin: 50% 55%;
+      will-change: transform;
+      filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.4));
     }
-    .cup-3d-disc {
+    .cup-3d-disc,
+    .dice-disc {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -188,12 +188,13 @@
       -webkit-user-drag: none;
       pointer-events: none;
     }
-    /* 关掉雾面 Three 叠层：白骰在盘面图里，不再 PNG 空盅+WebGL 硬贴 */
+    /* 不用 WebGL 骰盖盘面图；计时时完全静止，仅停注后整盅椭圆层跳 */
     .cup-stereo .cup3d-layer,
     #cup3dLayer {
       display: none !important;
       opacity: 0 !important;
       visibility: hidden !important;
+      pointer-events: none !important;
     }
 
     /* 倒计时：相对视频框左上（动态绿圈） */
@@ -2786,7 +2787,7 @@
       background: rgba(232, 214, 170, 0.35);
     }
 
-    /* 透明热区：对准底图 重複下注 / 確定 / 取消 */
+    /* 透明热区：对准底图 撤銷 / 確定 / 取消 */
     .btn-act {
       position: absolute;
       z-index: 70;
@@ -2803,7 +2804,7 @@
       pointer-events: none;
       cursor: default;
     }
-    /* 挂单后：三键叠金键像素面（与轮盘同款） */
+    /* 挂单后才叠金键：撤銷 / 確定 / 取消（打开画面不金） */
     .btn-act-lit {
       position: absolute; inset: 0;
       display: none;
@@ -3102,7 +3103,7 @@
   <div class="frame">
     <div class="stage">
       <picture>
-        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.3.6" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="bg" id="bgImg" src="pc-full-v111.jpg?v=1.4.10" alt="骰宝" width="2188" height="1393" decoding="async" fetchpriority="high" draggable="false" />
       </picture>
 
       <!-- 框外两侧：欧洲风静图 + CSS 微晃 -->
@@ -3114,7 +3115,7 @@
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
           <picture>
-            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-hero.jpg?v=1.4.1" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:1" />
+            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-hero.jpg?v=1.4.7" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:1" />
           </picture>
           <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
           <div class="video-blank" id="videoBlank" aria-hidden="true"></div>
@@ -3134,9 +3135,9 @@
             </div>
             <div class="road-grid" id="roadGrid" aria-hidden="true"></div>
           </div>
-          <div class="cup-stereo is-on" id="cupStereo" aria-hidden="false">
-            <div class="cup-3d-bowl">
-              <img class="cup-3d-disc" id="cupDisc" src="assets/eu-concept/cup-screen-hero.jpg?v=1.4.1" alt="" width="1280" height="720" decoding="async" draggable="false" />
+          <div class="cup-stereo" id="cupStereo" aria-hidden="true">
+            <div class="dice-spin" id="diceSpin">
+              <img class="dice-disc" id="diceDisc" src="assets/eu-concept/dice-disc.png?v=1.4.7" alt="" width="420" height="420" decoding="async" draggable="false" />
             </div>
             <div class="cup3d-layer" id="cup3dLayer" aria-hidden="true">
               <canvas id="cup3dCanvas" width="768" height="768" aria-hidden="true"></canvas>
@@ -3385,14 +3386,14 @@
         </div>
         <div class="music-track-list" id="musicTrackList"></div>
       </div>
-      <button class="btn-act" id="btnRepeat" type="button" aria-label="重复下注">
-        <img class="btn-act-lit" src="assets/act-btn-faces/repeat.png?v=1.3.6" alt="" draggable="false" decoding="async" aria-hidden="true" />
+      <button class="btn-act" id="btnRepeat" type="button" aria-label="撤销">
+        <img class="btn-act-lit" src="assets/act-btn-faces/undo.png?v=1.4.12" alt="" draggable="false" decoding="async" aria-hidden="true" />
       </button>
       <button class="btn-act" id="btnConfirm" type="button" aria-label="确定">
-        <img class="btn-act-lit" src="assets/act-btn-faces/confirm.png?v=1.3.6" alt="" draggable="false" decoding="async" aria-hidden="true" />
+        <img class="btn-act-lit" src="assets/act-btn-faces/confirm.png?v=1.4.11" alt="" draggable="false" decoding="async" aria-hidden="true" />
       </button>
       <button class="btn-act" id="btnCancel" type="button" aria-label="取消">
-        <img class="btn-act-lit" src="assets/act-btn-faces/cancel.png?v=1.3.6" alt="" draggable="false" decoding="async" aria-hidden="true" />
+        <img class="btn-act-lit" src="assets/act-btn-faces/cancel.png?v=1.4.11" alt="" draggable="false" decoding="async" aria-hidden="true" />
       </button>
       <img id="betKbdDim" src="assets/sicbo-bet-kbd-dim-mask.png?v=1.3.17" alt="" draggable="false" decoding="async" aria-hidden="true" width="2188" height="1393" />
       <div class="toast-msg" id="toastMsg">下注成功</div>
@@ -3898,12 +3899,12 @@
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.4.1"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.4.7"></script>
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script src="js/fg-wallet.js?v=1.0.1"></script>
   <script>
     (async function () {
-      const V = '1.4.1';
+      const V = '1.4.12';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -4938,7 +4939,8 @@
       let selected = null; // 已选筹码面额
       /** 待确认挂单：可多盘口同时挂（点哪个挂哪个，互不顶替）；同盘口再点=换成当前筹码面额 */
       let pendingBets = emptyBets();
-      let lastPendingKey = null; // 「重复下注」加倍用：最近点的盘口
+      let lastPendingKey = null; // 「撤销」用：最近点的盘口
+      let pendingUndoStack = []; // 挂单步骤栈：撤销回退上一步
       let busy = false;
       let bettingOpen = true;
       let roundStarted = false;
@@ -5023,6 +5025,7 @@
       function clearPendingState() {
         pendingBets = emptyBets();
         lastPendingKey = null;
+        pendingUndoStack = [];
       }
       function paintBets() {
         betZones.forEach((zone) => {
@@ -6514,33 +6517,31 @@
         return true;
       }
 
-      /** 重複下注：最近点的那笔挂单金额再加一倍（其它挂单不动） */
-      function repeatBet() {
-        if (!bettingOpen) return;
+      /** 撤銷：回退上一步挂单（其它挂单不动）；无加倍 */
+      function undoBet() {
+        if (!bettingOpen) {
+          showToast('已停止下注，无法撤销', 1200);
+          return;
+        }
         Voice.playQuick('keyClick', 0.7);
-        const key = lastPendingKey && (pendingBets[lastPendingKey] || 0) > 0
-          ? lastPendingKey
-          : Object.keys(pendingBets).find((k) => (pendingBets[k] || 0) > 0);
+        if (!pendingUndoStack.length) {
+          showToast('没有可撤销的选择', 1000);
+          return;
+        }
+        const step = pendingUndoStack.pop();
+        const key = step && step.key;
         if (!key) {
-          showToast('请先选筹码并点大/小/单/双', 1400);
+          showToast('没有可撤销的选择', 1000);
           return;
         }
-        const cur = pendingBets[key] || 0;
-        const next = cur * 2;
-        const other = pendingTotal() - cur;
-        if (balance < other + next) {
-          showToast('积分不足，无法加倍', 1400);
-          return;
-        }
-        const limErr = checkBetLimit(key, next);
-        if (limErr) {
-          showToast(limErr, 1600);
-          return;
-        }
-        pendingBets[key] = next;
-        lastPendingKey = key;
+        const prev = Math.max(0, Number(step.prev) || 0);
+        if (prev > 0) pendingBets[key] = prev;
+        else pendingBets[key] = 0;
+        lastPendingKey = pendingUndoStack.length
+          ? pendingUndoStack[pendingUndoStack.length - 1].key
+          : null;
         paintPending();
-        showToast(`加倍 ${next}`, 1000);
+        showToast('已撤销', 1000);
       }
 
       /** 取消：清掉未点「确定」的选盘/挂单（已确定的注不受影响） */
@@ -6578,7 +6579,7 @@
           if (key === lastZoneBetKey && now - lastZoneBetAt < 450) return;
           lastZoneBetAt = now;
           lastZoneBetKey = key;
-          // 点盘口 = 按当前筹码挂该盘口（不累加、不顶替其它盘口）；加倍用「重复下注」
+          // 点盘口 = 按当前筹码挂该盘口（不累加、不顶替其它盘口）；撤銷回退上一步
           const next = selected;
           const other = pendingTotal() - (pendingBets[key] || 0);
           if (balance < other + next) {
@@ -6590,6 +6591,7 @@
             showToast(limErr, 1600);
             return;
           }
+          pendingUndoStack.push({ key, prev: pendingBets[key] || 0 });
           pendingBets[key] = next;
           lastPendingKey = key;
           Voice.playQuick('keyClick', 0.7);
@@ -6613,7 +6615,7 @@
         e.preventDefault();
         e.stopPropagation();
         Voice.unlock();
-        repeatBet();
+        undoBet();
       });
 
       function closeHudTips() {
