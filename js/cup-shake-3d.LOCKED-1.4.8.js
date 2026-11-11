@@ -3,7 +3,7 @@
  * Background = empty cup photo (#videoFeed). Opposite faces: 1↔6, 2↔5, 3↔4.
  * window.CupShake3D = { ready, play([d1,d2,d3]), showIdle, hide }
  *
- * v1.4.8 定版：滚落耗能 + 停止下注 3s + 倒计时弧端随环色：振盘断电后各自滚动/转动耗能，陆续自然停（学轮盘小球）。
+ * v1.4.8 定版：改滚感（断电滚冲 + 低摩擦长滑转 + 晚收面）+ 停止下注 3s + 倒计时弧端随环色。
  * ?cupDebug=1 仍显示校准圈。
  */
 import * as THREE from 'three';
@@ -13,14 +13,14 @@ const FACE_VER = '1.4.8';
 /** 可见振盘像素振幅（相对世界 amp） */
 const VIS_PLATE_Y_PX = 11;
 const VIS_PLATE_X_PX = 4.5;
-/* 猛振 → 衰减断电 → 滚落耗能 → 陆续停死 */
-const SHAKE_MS = 6400;
+/* 猛振 → 衰减断电 → 贴地长滚转 → 陆续停死 */
+const SHAKE_MS = 7200;
 const FIERCE_S = 1.5;
 const SETTLE_S = 3.0;
-const ROLL_DEADLINE_S = 5.6;
+const ROLL_DEADLINE_S = 6.4;
 const BALL_EASE_P = 2.55;
-const FLOOR_SLIDE_FRIC = 3.2;
-const FLOOR_SPIN_FRIC = 2.4;
+const FLOOR_SLIDE_FRIC = 0.95;
+const FLOOR_SPIN_FRIC = 0.72;
 
 /*
  * 校准常量（对照 assets/eu-concept/cup-screen-empty-nodice.jpg 1280×720）：
@@ -538,8 +538,9 @@ async function mountCupShake3D(canvas, opts = {}) {
     const ang = dice.map((d) => new THREE.Euler().setFromQuaternion(d.quaternion, 'YXZ'));
     frozenMark[0] = frozenMark[1] = frozenMark[2] = false;
     const stillMs = [0, 0, 0];
-    /* 每颗停稳门槛错开，保证陆续落地 */
-    const stillNeedMs = [0, 1, 2].map((i) => 240 + i * 170 + rnd(0, 90));
+    const rollBoosted = [false, false, false];
+    /* 停稳门槛更高更错开：先滚一阵再陆续停 */
+    const stillNeedMs = [0, 1, 2].map((i) => 520 + i * 280 + rnd(0, 140));
 
     const t0 = performance.now();
     let lastT = t0;
@@ -571,7 +572,8 @@ async function mountCupShake3D(canvas, opts = {}) {
         const hzBase = hz0 + (hz1 - hz0) * Math.min(1, tSec / SETTLE_S);
         const ampY = ampY0 * drive;
         const ampL = ampL0 * drive;
-        const airDamp = 1 - (0.12 + 0.45 * (1 - drive)) * dt;
+        /* 衰减段少刮水平速，留给断电后滚 */
+        const airDamp = 1 - (0.08 + 0.28 * (1 - drive)) * dt;
 
         plateVisPhase += hzBase * Math.PI * 2 * dt;
         const visY = Math.sin(plateVisPhase) * ampY0 * drive * VIS_PLATE_Y_PX;
@@ -596,6 +598,19 @@ async function mountCupShake3D(canvas, opts = {}) {
           const plateVz = Math.sin(dieLatAng[i]) * ampL * omega * cPh * dieKick[i];
           const floorY = DIE_REST_Y + ampY * sPh * dieKick[i];
 
+          /* 振盘刚断电：补一次滚冲动量，保证看得见贴地滚/转 */
+          if (drive < 0.02 && !rollBoosted[i] && tSec >= SETTLE_S) {
+            rollBoosted[i] = true;
+            const a = dieLatAng[i] + rnd(-0.9, 0.9);
+            const boost = rnd(1.6, 2.9) * (0.85 + i * 0.12);
+            vel[i].x += Math.cos(a) * boost;
+            vel[i].z += Math.sin(a) * boost;
+            vel[i].y += rnd(0.15, 0.55);
+            spin[i].x += rnd(-18, 18);
+            spin[i].y += rnd(-14, 14);
+            spin[i].z += rnd(-18, 18);
+          }
+
           vel[i].y -= GRAVITY * dt;
           vel[i].x *= airDamp;
           vel[i].z *= airDamp;
@@ -607,7 +622,6 @@ async function mountCupShake3D(canvas, opts = {}) {
             pos[i].y = Math.max(DIE_REST_Y, floorY);
             const relY = vel[i].y - plateVy;
             if (drive > 0 && relY < 0) {
-              /* 振盘阶段：踢起 */
               vel[i].y = -relY * FLOOR_REST + plateVy * PLATE_KICK * (0.65 + 0.55 * drive);
               vel[i].x += plateVx * 0.65 + rnd(-0.35, 0.35) * drive;
               vel[i].z += plateVz * 0.65 + rnd(-0.35, 0.35) * drive;
@@ -615,28 +629,29 @@ async function mountCupShake3D(canvas, opts = {}) {
               spin[i].y += rnd(-10, 10) * drive;
               spin[i].z += (rnd(-12, 12) - plateVx * 2.5) * drive;
             } else {
-              /* 滚落阶段：贴地仍可滑/转，摩擦耗能（学轮盘小球） */
+              /* 贴地长滚：低摩擦 + 强滚动耦合 */
               pos[i].y = DIE_REST_Y;
               if (vel[i].y < 0) {
-                vel[i].y *= -FLOOR_REST * 0.28;
-                if (Math.abs(vel[i].y) < 0.35) vel[i].y = 0;
+                vel[i].y *= -FLOOR_REST * 0.22;
+                if (Math.abs(vel[i].y) < 0.28) vel[i].y = 0;
               }
-              const slide = Math.max(0, 1 - FLOOR_SLIDE_FRIC * dt);
+              const slide = Math.max(0.92, 1 - FLOOR_SLIDE_FRIC * dt);
               vel[i].x *= slide;
               vel[i].z *= slide;
-              /* 滚动耦合：水平速度喂一点自旋，看起来在滚 */
-              spin[i].x += -vel[i].z * 4.5 * dt;
-              spin[i].z += vel[i].x * 4.5 * dt;
-              spin[i].multiplyScalar(Math.max(0.82, 1 - FLOOR_SPIN_FRIC * dt));
+              spin[i].x += -vel[i].z * 9.5 * dt;
+              spin[i].z += vel[i].x * 9.5 * dt;
+              spin[i].y *= Math.max(0.94, 1 - FLOOR_SPIN_FRIC * 0.55 * dt);
+              spin[i].x *= Math.max(0.94, 1 - FLOOR_SPIN_FRIC * dt);
+              spin[i].z *= Math.max(0.94, 1 - FLOOR_SPIN_FRIC * dt);
             }
           }
 
           if (!frozenMark[i]) {
-            const spinGain = drive > 0 ? 0.055 * (0.25 + drive) : 0.07;
+            const spinGain = drive > 0 ? 0.055 * (0.25 + drive) : 0.095;
             ang[i].x += spin[i].x * dt * spinGain;
             ang[i].y += spin[i].y * dt * spinGain;
             ang[i].z += spin[i].z * dt * spinGain;
-            if (drive > 0) spin[i].multiplyScalar(0.988 - 0.012 * (1 - drive));
+            if (drive > 0) spin[i].multiplyScalar(0.99 - 0.008 * (1 - drive));
             clampInCup(pos[i], vel[i]);
           }
         }
@@ -654,33 +669,28 @@ async function mountCupShake3D(canvas, opts = {}) {
           const spinMag = Math.hypot(spin[i].x, spin[i].y, spin[i].z);
           const onFloor = pos[i].y <= DIE_REST_Y + 0.04;
 
-          /* 姿态：振盘期乱转；滚落期边转边收到结果面 */
-          if (drive > 0.08) {
-            dice[i].rotation.copy(ang[i]);
-          } else {
-            dice[i].rotation.copy(ang[i]);
-            const settleT = Math.max(0, Math.min(1, (tSec - SETTLE_S) / 1.8));
-            const ease = ballProgress(settleT);
-            const blend = 0.04 + ease * 0.22 + (speed < 0.6 ? 0.12 : 0);
+          /* 滚的时候以自旋为主；只在很慢时才慢慢收到结果面 */
+          dice[i].rotation.copy(ang[i]);
+          if (drive < 0.05 && onFloor && speed < 0.45 && spinMag < 3.8) {
+            const blend = 0.05 + (1 - Math.min(1, speed / 0.45)) * 0.16;
             dice[i].quaternion.slerp(toQuat[i], blend);
             ang[i].setFromQuaternion(dice[i].quaternion, 'YXZ');
           }
           dice[i].position.copy(pos[i]);
 
-          /* 各自判停：速度+自旋够小才累计，门槛错开 → 陆续停 */
-          if (drive < 0.02 && onFloor && speed < 0.28 && spinMag < 2.2) {
+          if (drive < 0.02 && onFloor && speed < 0.16 && spinMag < 1.15) {
             stillMs[i] += dt * 1000;
-          } else if (drive < 0.02 && onFloor && speed < 0.55 && spinMag < 4.5) {
-            stillMs[i] += dt * 450;
+          } else if (drive < 0.02 && onFloor && speed < 0.32 && spinMag < 2.4) {
+            stillMs[i] += dt * 380;
           } else {
-            stillMs[i] = Math.max(0, stillMs[i] - dt * 500);
+            stillMs[i] = Math.max(0, stillMs[i] - dt * 650);
           }
 
           if (stillMs[i] >= stillNeedMs[i]) {
             hardFreeze(i);
             continue;
           }
-          if (tSec >= ROLL_DEADLINE_S && onFloor) {
+          if (tSec >= ROLL_DEADLINE_S && onFloor && speed < 0.55) {
             hardFreeze(i);
           }
         }
@@ -810,7 +820,7 @@ async function boot() {
     try {
       window.dispatchEvent(new CustomEvent('cup3d-ready'));
     } catch (_) {}
-    console.log('[CupShake3D] ready roll-settle v1.4.8');
+    console.log('[CupShake3D] ready roll-feel v1.4.8');
   } catch (e) {
     console.error('[CupShake3D] failed', e);
     window.CupShake3D = { ready: false, play: async () => {}, hide() {}, error: String(e) };
