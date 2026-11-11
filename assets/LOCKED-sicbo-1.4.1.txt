@@ -1,0 +1,26 @@
+sicbo PC lock v1.4.1
+Scope: 电脑版 only（game.html）；手机版 game-m 另册，本包不含。
+PC: game.html / game.LOCKED-1.4.1.html
+Cup screen: assets/eu-concept/cup-screen-hero.jpg / LOCKED-cup-screen-hero-1.4.1.jpg
+Cup hero: assets/eu-concept/cup-hero-3dice.jpg / LOCKED-cup-hero-3dice-1.4.1.jpg
+Cup shake: js/cup-shake-3d.js / cup-shake-3d.LOCKED-1.4.1.js
+Base: assets/LOCKED-pc-full-v111-1.4.1.jpg（= 1.4.0 底图快照延续）
+Sum atlas: assets/pair-dice/sum-atlas.webp / LOCKED-sum-atlas-1.4.1.webp
+Dim mask: assets/sicbo-bet-kbd-dim-mask.png / LOCKED-sicbo-bet-kbd-dim-mask-1.4.1.png
+Act gold faces: assets/act-btn-faces/{repeat,confirm,cancel}.png + LOCKED-*-1.4.1.png
+Lobby: GAME_PC → game.html?v=1.4.1
+
+已验收清单（本包算数）:
+- 视频屏盘面 cup-screen-hero.jpg（红底、白骰在图内）
+- video-feed scale(1.12)
+- 关掉 #videoDice CSS 白底骰叠层
+- 停注摇盅：#cupStereo 椭圆裁切叠层跳动，底下红布静底不跟着跑
+- 去掉烂抠图空盅 PNG + 雾面 Three.js 骰叠层（本版视觉以盘面图为准）
+
+未验收、不得当作本定版的项:
+- 独立透明抠图盅壳方案
+- Three.js 实心立体骰叠层
+- 三颗白骰不规则单独跳动（下一步任务，不在 1.4.1）
+
+Freeze: 未经用户书面点名同意，禁止改本定版任何文件/部署/还原一点。
+Live: https://forestgroup.ai/game.html?v=1.4.1

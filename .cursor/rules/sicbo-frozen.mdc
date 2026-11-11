@@ -5,9 +5,9 @@ alwaysApply: true
 
 # 骰宝不许再动
 
-用户硬规则（2026-11-06 起生效；电脑版当前定版见 `sicbo-pc-frozen-1.3.9`）：
+用户硬规则（2026-11-06 起生效；电脑版当前定版见 `sicbo-pc-frozen-1.4.1`）：
 
 1. **禁止**再修改、部署、还原、优化骰宝相关一切（含 `game.html` / `game-m.html` / `js/cup-shake-3d*.js` / 筹码 / 声音 / 屏幕美女 / VERSION / 线上 forestgroup.ai 骰宝资源）。
-2. 电脑版当前定版 **`v1.3.9`**（`game.LOCKED-1.3.9.html`）；没有用户书面命令，一点不许动。
+2. 电脑版当前定版 **`v1.4.1`**（`game.LOCKED-1.4.1.html`）；没有用户书面命令，一点不许动。
 3. 即使用户随口对比骰宝、贴骰宝截图，也只解释或问清；**未经书面点名「改骰宝」不得改骰宝文件**。
-4. 与 `one-task-only`、`sicbo-pc-frozen-1.3.9`、`save-to-git` 同时生效；冲突时取更严：默认不动骰宝。
+4. 与 `one-task-only`、`sicbo-pc-frozen-1.4.1`、`save-to-git`、`version-lock-gate` 同时生效；冲突时取更严：默认不动骰宝。

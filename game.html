@@ -135,42 +135,65 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      /* 新盅铺满视频屏：上下顶沿 */
+      /* 好盘面静底（含白骰盅）；摇时只跳椭圆裁切叠层，红布区不跟着跑 */
       object-fit: cover;
       object-position: center center;
       transform: scale(1.12);
       transform-origin: center center;
-      background: #080406;
+      background: #2a0608;
       display: block;
       pointer-events: none;
       user-select: none;
       -webkit-user-drag: none;
       border-radius: 0 0 var(--vb-inner-r) var(--vb-inner-r);
+    }
+    /*
+     * 摇盅层 = 同一张好盘面，椭圆裁切只罩盅；
+     * 静止时与 feed 重合；跳动时只有盅区位移，外围红布仍是底下静图。
+     */
+    .cup-stereo {
+      position: absolute;
+      inset: 0;
+      z-index: 45;
+      transform: scale(1.12);
+      transform-origin: center center;
+      pointer-events: none;
       will-change: transform;
+      opacity: 1;
+      visibility: visible;
+      overflow: hidden;
+      -webkit-clip-path: ellipse(36% 46% at 50% 54%);
+      clip-path: ellipse(36% 46% at 50% 54%);
+      filter: none;
     }
-    /* 停注后：新盅图由快到慢上下跳（不用旧 3D 盅） */
-    .video-feed.is-cup-shake {
-      animation: cupHeroShake 5.2s cubic-bezier(0.15, 0.75, 0.25, 1) both;
+    .cup-stereo.is-on {
+      opacity: 1;
+      visibility: visible;
     }
-    @keyframes cupHeroShake {
-      0%   { transform: scale(1.12) translate3d(0, 0, 0); }
-      4%   { transform: scale(1.12) translate3d(1.2%, -7.5%, 0); }
-      8%   { transform: scale(1.12) translate3d(-1.4%, 0.5%, 0); }
-      12%  { transform: scale(1.12) translate3d(1.1%, -6.8%, 0); }
-      16%  { transform: scale(1.12) translate3d(-1.0%, 0.4%, 0); }
-      22%  { transform: scale(1.12) translate3d(0.9%, -5.6%, 0); }
-      28%  { transform: scale(1.12) translate3d(-0.8%, 0.3%, 0); }
-      36%  { transform: scale(1.12) translate3d(0.7%, -4.2%, 0); }
-      44%  { transform: scale(1.12) translate3d(-0.55%, 0.25%, 0); }
-      54%  { transform: scale(1.12) translate3d(0.4%, -2.8%, 0); }
-      64%  { transform: scale(1.12) translate3d(-0.3%, 0.15%, 0); }
-      74%  { transform: scale(1.12) translate3d(0.22%, -1.5%, 0); }
-      84%  { transform: scale(1.12) translate3d(-0.12%, 0.08%, 0); }
-      92%  { transform: scale(1.12) translate3d(0.06%, -0.45%, 0); }
-      100% { transform: scale(1.12) translate3d(0, 0, 0); }
+    .cup-stereo.is-shaking {
+      filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.4));
     }
-    @media (prefers-reduced-motion: reduce) {
-      .video-feed.is-cup-shake { animation: none; }
+    .cup-3d-bowl {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+    .cup-3d-disc {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+    /* 关掉雾面 Three 叠层：白骰在盘面图里，不再 PNG 空盅+WebGL 硬贴 */
+    .cup-stereo .cup3d-layer,
+    #cup3dLayer {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
     }
 
     /* 倒计时：相对视频框左上（动态绿圈） */
@@ -1599,28 +1622,17 @@
     #bet-even  { left: 58.23%; top: 62.60%; width: 10.88%; height: 8.76%; }
 
     /* 视频罩内骰子：相对立体框定位 */
+    /* 新盅图已有骰：关掉 CSS 白底骰叠层 */
     .video-dice {
-      position: absolute;
-      left: 50%;
-      top: 78%;
-      transform: translate(-50%, -50%);
-      z-index: 4;
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
       pointer-events: none;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto;
-      justify-items: center;
-      align-items: center;
-      gap: 0.12em 0.22em;
-      width: max-content;
-      filter: drop-shadow(0 2px 3px rgba(0,0,0,.55));
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity .25s ease;
     }
     .video-dice.is-show {
-      opacity: 1;
-      visibility: visible;
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
     }
     .video-dice .die:nth-child(1) { grid-column: 1 / 3; }
     .video-dice .die {
@@ -1696,7 +1708,7 @@
 
     .cup3d-layer {
       position: absolute;
-      /* LOCKED-1.2.2：满画布+SCALE2.55；圆角方骰版；勿改盅位 */
+      /* 实心骰画布叠在盅 disc 上；盅壳本身是 #cupDisc */
       left: 50%;
       top: 0;
       bottom: 0;
@@ -3102,7 +3114,7 @@
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
           <picture>
-            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-hero.jpg?v=1.3.9" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:1" />
+            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-hero.jpg?v=1.4.1" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:1" />
           </picture>
           <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
           <div class="video-blank" id="videoBlank" aria-hidden="true"></div>
@@ -3122,8 +3134,13 @@
             </div>
             <div class="road-grid" id="roadGrid" aria-hidden="true"></div>
           </div>
-          <div class="cup3d-layer" id="cup3dLayer" aria-hidden="true">
-            <canvas id="cup3dCanvas" width="768" height="768" aria-hidden="true"></canvas>
+          <div class="cup-stereo is-on" id="cupStereo" aria-hidden="false">
+            <div class="cup-3d-bowl">
+              <img class="cup-3d-disc" id="cupDisc" src="assets/eu-concept/cup-screen-hero.jpg?v=1.4.1" alt="" width="1280" height="720" decoding="async" draggable="false" />
+            </div>
+            <div class="cup3d-layer" id="cup3dLayer" aria-hidden="true">
+              <canvas id="cup3dCanvas" width="768" height="768" aria-hidden="true"></canvas>
+            </div>
           </div>
           <div class="shake-stage" id="shakeStage" aria-hidden="true">
             <div class="shake-cup">
@@ -3881,12 +3898,12 @@
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.3.9"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.4.1"></script>
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script src="js/fg-wallet.js?v=1.0.1"></script>
   <script>
     (async function () {
-      const V = '1.3.9';
+      const V = '1.4.1';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -5391,9 +5408,10 @@
       }
       function paintResultCard(info) {
         paintDiceFaces(info.dice);
+        // 不显示视频屏白底 CSS 骰（盅图内已有骰）
         if (videoDice) {
-          videoDice.classList.add('is-show');
-          videoDice.setAttribute('aria-hidden', 'false');
+          videoDice.classList.remove('is-show');
+          videoDice.setAttribute('aria-hidden', 'true');
         }
         resultSumNum.textContent = String(info.sum);
         resultSize.textContent = info.size === 'big' ? '大' : '小';
@@ -5401,7 +5419,7 @@
         resultSize.classList.toggle('is-small', info.size === 'small');
         resultParity.textContent = info.parity === 'odd' ? '單' : '雙';
       }
-      /** 停注后：只用新盅静图跳（旧 3D/手势盅关掉） */
+      /** 停注后：轮盘式盅 disc 整盅跳 + 实心三维骰（红布静底不动） */
       async function playCupShake() {
         if (videoDice) {
           videoDice.classList.remove('is-show');
@@ -5409,27 +5427,13 @@
         }
         const info = classify(rollDice());
 
-        // 旧 3D 盅彻底关掉，不盖新盅
-        if (window.CupShake3D && window.CupShake3D.hide) window.CupShake3D.hide();
-        const layer = document.getElementById('cup3dLayer');
-        if (layer) {
-          layer.classList.remove('is-on');
-          layer.style.visibility = 'hidden';
-          layer.style.opacity = '0';
-          layer.setAttribute('aria-hidden', 'true');
-        }
         if (shakeStage) {
           shakeStage.classList.remove('is-on', 'is-press', 'is-done', 'is-shaking');
           shakeStage.setAttribute('aria-hidden', 'true');
         }
 
-        const feed = document.getElementById('videoFeed');
-        if (feed) {
-          feed.classList.remove('is-cup-shake');
-          void feed.offsetWidth;
-          feed.classList.add('is-cup-shake');
-          await sleep(5200);
-          feed.classList.remove('is-cup-shake');
+        if (window.CupShake3D && window.CupShake3D.ready && window.CupShake3D.play) {
+          await window.CupShake3D.play(info.dice);
         } else {
           await sleep(800);
         }
