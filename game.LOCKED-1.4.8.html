@@ -3887,7 +3887,7 @@
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.4.8rf"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.4.8"></script>
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
   <script src="js/fg-wallet.js?v=1.0.1"></script>
   <script>
@@ -4939,6 +4939,7 @@
       let lastPnl = { big: null, small: null, odd: null, even: null, wrap: null };
       let betDenom = emptyDenom();
       let toastTimer = null;
+      let timerSecLeft = BET_SECS;
 
       function fmtBal(n) {
         return Math.round(n).toLocaleString('en-US');
@@ -5151,12 +5152,20 @@
         }, durationMs);
         return zones.length;
       }
+      function hideToast() {
+        if (toastTimer) {
+          clearTimeout(toastTimer);
+          toastTimer = null;
+        }
+        if (toastMsg) toastMsg.classList.remove('show', 'is-success');
+      }
       function showToast(text, ms = 1600, kind) {
         toastMsg.textContent = text;
         toastMsg.classList.toggle('is-success', kind === 'success');
         toastMsg.classList.add('show');
         if (toastTimer) clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
+          toastTimer = null;
           toastMsg.classList.remove('show', 'is-success');
         }, ms);
       }
@@ -6164,6 +6173,7 @@
       };
 
       function setTimerDisplay(sec) {
+        timerSecLeft = sec;
         const p = Math.max(0, Math.min(1, sec / BET_SECS));
         timerEl.style.setProperty('--p', String(p));
         timerNum.textContent = String(sec);
@@ -6197,6 +6207,8 @@
         const label = text || '停止下注';
         const ms = holdMs != null ? holdMs : PHASE_HOLD_MS;
         const token = ++phaseBannerToken;
+        /* 停止下注不得与「下注成功」叠字：先收掉 toast，再出停止 */
+        if (label === '停止下注') hideToast();
         showStopBet(true, label);
         const voiceP = Voice.canPlay() ? Voice.speak(label) : Promise.resolve(false);
         await sleep(ms);
@@ -6306,6 +6318,7 @@
         if (!stillThisRound(gen)) { bail(); return; }
         setTimerDisplay(0);
         setBettingOpen(false);
+        hideToast(); /* 倒计时到点：下注成功若还在，先闪收再进停止下注 */
         await holdPhaseBanner('停止下注', gen, STOP_BET_HOLD_MS);
 
         // 停注 → 手按骰盅 → 骰子跳跃 → 播完再定点数 → 报点结算
@@ -6508,11 +6521,19 @@
         paintPending();
         const wait = flashGreenKeys();
         await new Promise((r) => setTimeout(r, Math.max(180, Math.min(900, wait * 0.35))));
-        showToast('下注成功', PHASE_HOLD_MS, 'success');
+        /* 时间将尽：下注成功只闪一下，把场留给马上到来的「停止下注」，禁止叠字 */
+        const okMs = timerSecLeft <= 1
+          ? 480
+          : timerSecLeft <= 3
+            ? 900
+            : timerSecLeft <= 5
+              ? 1600
+              : PHASE_HOLD_MS;
+        showToast('下注成功', okMs, 'success');
         const okT0 = performance.now();
         if (Voice.canPlay()) await Voice.speak('下注成功');
-        const okLeft = PHASE_HOLD_MS - (performance.now() - okT0);
-        if (okLeft > 0) await sleep(okLeft);
+        const okLeft = okMs - (performance.now() - okT0);
+        if (okLeft > 0 && bettingOpen) await sleep(okLeft);
         return true;
       }
 

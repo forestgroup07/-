@@ -9,7 +9,7 @@ alwaysApply: true
 
 1. **禁止**未经用户书面点名同意，修改、覆盖、还原、优化、部署本定版骰宝**电脑版**任何一点，包括但不限于：
    - `game.html`、`lobby.html` 的 `GAME_PC ?v=`
-   - 空盅底图 `assets/eu-concept/cup-screen-empty-nodice.jpg` 与三维骰 `js/cup-shake-3d.js`（校准/振盘/可见振盘/**改滚感**/落定分离）
+   - 空盅底图 `assets/eu-concept/cup-screen-empty-nodice.jpg` 与三维骰 `js/cup-shake-3d.js`（校准/振盘/可见振盘/滚落耗能/落定分离）
    - 局态三句留屏（停止下注 3s）、珠盘单双/大小贴最新列
    - 倒计时弧端点随环色（绿/红）
    - 挂单金面 / 停注蒙版 / 底图 / 图集等本版沿用既有 `LOCKED-*` 与线上 forestgroup.ai 对应资源
@@ -24,4 +24,4 @@ alwaysApply: true
 4. 只有用户明确说「改骰宝 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
 5. 本冻结仅电脑版；手机 `game-m` 另册。当前有效冻结以本版为准（取代 `1.4.6`）。与 `one-task-only`、`sicbo-frozen`、`save-to-git`、`version-lock-gate` 同时生效；冲突时取更严：默认不动。
 
-本定版已含：改滚感（rollBoost / 低摩擦长滑转 / 晚收面）。未进本定版：真机械振盘实拍、全 3D 玻璃盅、手机版。
+未进本定版（不得当已锁）：「改滚感」软摩擦/rollBoost/晚锁面/重力倒面——用户已下令去掉。
