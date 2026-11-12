@@ -8,7 +8,8 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>輪盤 R501 · 手机版</title>
   <link rel="preload" as="image" href="assets/roulette/wheel-disc.png?v=1.2.4" type="image/png" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.3.1" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.3.2" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.jpg?v=1.3.2" type="image/jpeg" fetchpriority="high" />
   <style>
     :root {
       --bg: #0a1210;
@@ -38,12 +39,163 @@
     .app {
       height: 100%;
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-rows: minmax(0, 1fr) auto;
       padding-top: var(--safe-t);
       padding-bottom: var(--safe-b);
       max-width: 480px;
       margin: 0 auto;
       background: linear-gradient(180deg, #07110f 0%, #0b1a17 40%, #0a1412 100%);
+    }
+    /* 关闭=露边一半；打开=完整竖向跑道盖住露边（一条整卵形），盘面左让 */
+    .slide-root {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      /* 整卵焊进底图(1479×2059)：无旋转 scale+平移，左列外沿竖直对齐 */
+      --face-w: 1479;
+      --face-base: 1200;
+      --face-wide: 123.25%; /* 1479/1200 */
+      --grid-w: 81.136%; /* 1200/1479 */
+      --board-pan: -18.864%; /* (1479-1200)/1479 */
+      --track-left: 63.243%;
+      --track-top: 0%;
+      --track-open: 36.596%;
+      --track-h: 98.384%;
+    }
+    .slide-main {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-height: 0;
+    }
+    .board-pan-inner {
+      position: relative;
+      width: var(--face-wide);
+      transition: transform .38s cubic-bezier(.22, .7, .2, 1);
+      will-change: transform;
+    }
+    /* 黄键打开：焊死底图整块左移，左侧绿键出画、右侧整卵入画 */
+    .app.is-track .board-pan-inner { transform: translateX(var(--board-pan)); }
+    .slide-track {
+      position: absolute;
+      top: var(--track-top);
+      left: var(--track-left);
+      width: var(--track-open);
+      height: var(--track-h);
+      display: block;
+      opacity: 0;
+      background: transparent;
+      z-index: 8;
+      box-shadow: none;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .app.is-track .slide-track {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* 卵已焊进底图：浮层只留热区，隐藏第二张卵图 */
+    .slide-track .track-face,
+    .slide-track picture { display: none !important; }
+    .app.is-track .race-open-hit { pointer-events: none; visibility: hidden; }
+    .track-top {
+      display: none;
+    }
+    .track-back {
+      position: absolute;
+      left: .35rem;
+      top: .35rem;
+      z-index: 5;
+      width: 1.85rem; height: 1.85rem;
+      border-radius: 999px;
+      background: rgba(0,0,0,.4);
+      border: 1px solid rgba(240, 211, 146, .4);
+      color: #f0d392;
+      font-size: 1.15rem;
+      line-height: 1;
+      pointer-events: auto;
+    }
+    .track-title { display: none; }
+    .track-body {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    .track-stage {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+    }
+    .track-face {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      object-position: left top;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      border-radius: 0;
+    }
+    #trackFrench,
+    #trackNumsM {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+    #trackFrench .hit,
+    #trackNumsM .hit {
+      position: absolute;
+      pointer-events: auto;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: transparent;
+      font-size: 0;
+      border: 0;
+      background: transparent;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 1;
+      border-radius: 18% / 22%;
+    }
+    #trackFrench .hit.has-mask,
+    #trackNumsM .hit.has-mask {
+      border-radius: 0;
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+    }
+    #trackFrench .hit.is-lit::before,
+    #trackNumsM .hit.is-lit::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(232, 196, 48, 0.52);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
+      pointer-events: none;
+      z-index: 1;
+    }
+    #trackNumsM .hit .chip-on {
+      z-index: 6;
+    }
+    .race-open-hit {
+      position: absolute;
+      left: 76%;
+      top: 0;
+      width: 24%;
+      height: 92%;
+      z-index: 6;
+      pointer-events: auto;
+      background: transparent;
+      border: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
     /* —— 顶屏：电脑转盘区+绿布+黑滑道；底沿裁到滑道下沿，绿键顶死接上 —— */
@@ -374,6 +526,7 @@
 
     /* —— 绿台键盘：公司原图原样贴上，顶死接黑滑道 —— */
     .board-wrap {
+      position: relative;
       overflow: hidden;
       min-height: 0;
       background: #117746;
@@ -394,6 +547,7 @@
       position: relative;
       width: 100%;
       line-height: 0;
+      overflow: hidden;
     }
     .board-face {
       display: block;
@@ -403,60 +557,37 @@
       user-select: none;
       -webkit-user-drag: none;
     }
-    /* 透明热区叠在原图上，外观完全用图 */
+    /* 热区仍按原 1200 宽坐标系（焊图左段） */
     .board-grid {
       position: absolute;
-      inset: 0;
-      display: grid;
-      /* 左外注 | 打 | 三列数字 | 右弯道 —— 全图 0–36 + 底列注 */
-      grid-template-columns: 12% 13% repeat(3, minmax(0, 1fr)) 16%;
-      grid-template-rows: 7.5% repeat(12, minmax(0, 1fr)) 7.5%;
-      gap: 0.55% 0.7%;
-      padding: 0.35% 1% 0.6% 1.2%;
-      box-sizing: border-box;
+      left: 0;
+      top: 0;
+      width: var(--grid-w);
+      height: 100%;
+      z-index: 2;
+      display: block;
+      margin: 0;
+      padding: 0;
+      border: 0;
       background: transparent;
-      min-height: 0;
-      height: auto;
+      pointer-events: none;
     }
-    .board-grid .cell,
     .board-grid .zero,
-    .board-grid .n,
-    .board-grid .r {
+    .board-grid .n {
+      position: absolute;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
       background: transparent !important;
       border: 0 !important;
       box-shadow: none !important;
       color: transparent !important;
       font-size: 0 !important;
       border-radius: 0;
-      display: block;
-      position: relative;
-      min-height: 0;
       -webkit-tap-highlight-color: transparent;
-    }
-    .board-grid .cell .lab,
-    .board-grid .cell .lab-v { display: none; }
-    .board-grid .zero {
-      grid-column: 3 / 6;
-      grid-row: 1;
-    }
-    .board-grid .col-race {
-      grid-column: 6;
-      grid-row: 1 / -1;
-      position: relative;
-      overflow: hidden;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-evenly;
-      padding: 2% 0;
-      pointer-events: none;
-    }
-    .board-grid .col-race .r {
       pointer-events: auto;
-      flex: 1 1 0;
-      width: 55%;
-      margin-left: 2%;
-      max-height: 9%;
+      z-index: 5;
+      cursor: pointer;
     }
     .chip-on {
       position: absolute;
@@ -472,10 +603,26 @@
       font-weight: 800;
       line-height: 1.2;
       pointer-events: none;
-      z-index: 2;
+      z-index: 6;
     }
-    .cell.has-bet, .n.has-bet, .zero.has-bet, .r.has-bet {
-      box-shadow: inset 0 0 0 2px rgba(240, 211, 146, .75) !important;
+    /* 亮层铺满蒙版格（与底图格对齐） */
+    .board-grid .n.is-lit,
+    .board-grid .zero.is-lit {
+      box-shadow: none !important;
+    }
+    .board-grid .n.is-lit::before,
+    .board-grid .zero.is-lit::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 8% / 10%;
+      background: rgba(232, 196, 48, 0.50);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 0 rgba(120,80,0,.14);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .board-grid .zero.is-lit::before {
+      border-radius: 10% / 14%;
     }
 
     /* —— 底栏（对标参考图） —— */
@@ -609,10 +756,45 @@
     .app.betting-closed .board-face {
       filter: brightness(.72);
     }
+    /* 黑滑道上方右侧：只要中间标志，无底板 */
+    .stage-corner-icons {
+      position: absolute;
+      right: 3.2%;
+      /* pcRail top≈88.2%（相对绿布）→ 图标坐在滑道上方 */
+      bottom: 13.5%;
+      z-index: 58;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      pointer-events: auto;
+    }
+    .stage-ico {
+      width: 1.85rem;
+      height: 1.85rem;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent !important;
+      box-shadow: none !important;
+      overflow: visible;
+      -webkit-tap-highlight-color: transparent;
+      display: grid;
+      place-items: center;
+    }
+    .stage-ico svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,.55));
+    }
+    .stage-ico.is-locked { opacity: .55; }
   </style>
 </head>
 <body>
   <div class="app" id="app">
+    <div class="slide-root" id="slideRoot">
+    <div class="slide-main" id="slideMain">
     <header class="stage" id="stage">
       <div class="topbar">
         <div class="top-left">
@@ -652,19 +834,63 @@
       <div class="brand-mark"><span class="dot">↻</span>轮盘</div>
       <div class="phase-banner" id="phaseBanner" aria-live="polite"></div>
       <div class="toast" id="toast"></div>
+      <div class="stage-corner-icons" id="stageCornerIcons">
+        <button type="button" class="stage-ico" id="btnTrackIco" aria-label="弯道">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <g fill="none" stroke="#f0d392" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="24" cy="24" rx="16.5" ry="11.5" />
+              <path d="M12.2 18.2h5.2M30.6 18.2h5.2M12.2 29.8h5.2M30.6 29.8h5.2" stroke-width="3.6" />
+            </g>
+          </svg>
+        </button>
+        <button type="button" class="stage-ico is-locked" id="btnStatsIco" aria-label="统计（暂不可用）" disabled>
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <g fill="#f0d392" stroke="none">
+              <rect x="10" y="28" width="6.5" height="10" rx="1.2" />
+              <rect x="20.75" y="21" width="6.5" height="17" rx="1.2" />
+              <rect x="31.5" y="14" width="6.5" height="24" rx="1.2" />
+            </g>
+            <g fill="none" stroke="#f0d392" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11.5 24.5 L21 16.5 L28.5 20.5 L37.5 11.5" />
+            </g>
+            <g fill="#f0d392">
+              <circle cx="11.5" cy="24.5" r="2.1" />
+              <circle cx="21" cy="16.5" r="2.1" />
+              <circle cx="28.5" cy="20.5" r="2.1" />
+              <circle cx="37.5" cy="11.5" r="2.1" />
+            </g>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <main class="board-wrap" id="boardWrap">
       <div class="board-scroll" id="boardScroll">
         <div class="board-face-wrap" id="boardFaceWrap">
-          <picture>
-            <source type="image/webp" srcset="assets/roulette/m-kbd-face.webp?v=1.3.1" />
-            <img class="board-face" id="boardFace" src="assets/roulette/m-kbd-face.jpg?v=1.3.1" alt="" width="1200" height="2059" decoding="async" fetchpriority="high" draggable="false" />
-          </picture>
-          <div class="board-grid" id="boardGrid" aria-label="下注键盘"></div>
+          <div class="board-pan-inner" id="boardPanInner">
+            <picture>
+              <source type="image/webp" srcset="assets/roulette/m-kbd-face.webp?v=1.3.2" />
+              <img class="board-face" id="boardFace" src="assets/roulette/m-kbd-face.jpg?v=1.3.2" alt="" width="1479" height="2059" decoding="async" fetchpriority="high" draggable="false" />
+            </picture>
+            <div class="board-grid" id="boardGrid" aria-label="下注键盘"></div>
+            <!-- 卵已焊进底图；此处仅打开态热区 -->
+            <div class="slide-track" id="slideTrack" aria-hidden="true">
+              <div class="track-body">
+                <button type="button" class="track-back" id="trackBack" aria-label="返回盘面">‹</button>
+                <div class="track-stage" id="trackStage">
+                  <picture>
+                    <source type="image/webp" srcset="assets/roulette/m-track-face-v.webp?v=1.3.2" />
+                    <img class="track-face" id="trackFace" src="assets/roulette/m-track-face-v.png?v=1.3.2" alt="" width="238" height="888" decoding="async" draggable="false" />
+                  </picture>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
+    </div><!-- /.slide-main -->
+    </div><!-- /.slide-root -->
 
     <footer class="dock">
       <div class="act-bar" id="actBar" aria-label="下注操作">
@@ -716,13 +942,231 @@
   <script src="js/fg-wallet.js?v=1.0.2"></script>
   <script>
     (function () {
-      const V = '1.3.1';
+      const V = '1.3.2';
+      /* 整卵无旋转重焊：左列 19/15/32 外沿与上格竖直对齐 */
+      const TRACK_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+      const TRACK_CELLS_M = {
+        0: { left:15.9738, top:85.6860, w:24.9451, h:9.9704, mask:'assets/roulette/track-masks/n0.png' },
+        32: { left:6.5644, top:79.2694, w:20.5690, h:9.7730, mask:'assets/roulette/track-masks/n32.png' },
+        15: { cx:13.7857, cy:76.9496, w:15.3173, h:4.2447 },
+        19: { cx:13.7857, cy:72.4087, w:15.3173, h:4.2447 },
+        4: { cx:13.7857, cy:67.8677, w:15.3173, h:4.2447 },
+        21: { cx:13.7857, cy:63.2774, w:15.3173, h:4.1460 },
+        2: { cx:13.7857, cy:58.6870, w:15.3173, h:4.2447 },
+        25: { cx:13.7857, cy:54.0968, w:15.3173, h:4.1460 },
+        17: { cx:13.6763, cy:49.6051, w:15.5362, h:4.2447 },
+        34: { cx:13.7857, cy:44.9655, w:15.3173, h:4.2447 },
+        6: { cx:13.7857, cy:40.3751, w:15.7551, h:4.1460 },
+        27: { cx:13.8952, cy:35.8342, w:15.5362, h:4.3434 },
+        13: { cx:13.7857, cy:31.2932, w:14.8800, h:3.9487 },
+        36: { cx:13.7857, cy:26.6535, w:15.7551, h:4.3434 },
+        11: { cx:13.7857, cy:22.1125, w:15.3173, h:4.1460 },
+        30: { left:5.9082, top:11.9448, w:19.0372, h:8.4896, mask:'assets/roulette/track-masks/n30.png' },
+        8: { left:11.1599, top:5.0346, w:23.1948, h:10.4640, mask:'assets/roulette/track-masks/n8.png' },
+        23: { left:25.6016, top:2.2705, w:22.3192, h:8.8845, mask:'assets/roulette/track-masks/n23.png' },
+        10: { left:46.8273, top:2.2705, w:21.6630, h:8.5883, mask:'assets/roulette/track-masks/n10.png' },
+        5: { left:60.6127, top:4.5410, w:23.8511, h:10.6613, mask:'assets/roulette/track-masks/n5.png' },
+        24: { left:70.8972, top:11.4512, w:19.2561, h:8.5883, mask:'assets/roulette/track-masks/n24.png' },
+        16: { cx:82.3852, cy:22.1619, w:15.5362, h:4.2447 },
+        33: { cx:82.3852, cy:26.7029, w:15.5362, h:4.0474 },
+        1: { cx:82.2758, cy:31.1944, w:15.7551, h:4.3434 },
+        20: { cx:82.2758, cy:35.8342, w:15.3173, h:4.1460 },
+        14: { cx:82.2758, cy:40.4245, w:15.7551, h:4.2447 },
+        31: { cx:82.2758, cy:44.9655, w:14.8800, h:4.0474 },
+        9: { cx:82.2758, cy:49.5064, w:15.3173, h:4.2447 },
+        22: { cx:82.3852, cy:54.0968, w:15.5362, h:4.3434 },
+        18: { cx:82.2758, cy:58.6870, w:15.3173, h:4.2447 },
+        29: { cx:82.4947, cy:63.2774, w:15.7551, h:4.3434 },
+        7: { cx:82.2758, cy:67.8183, w:15.3173, h:4.1460 },
+        28: { cx:82.3852, cy:72.4087, w:15.5362, h:4.2447 },
+        12: { cx:82.2758, cy:76.9496, w:15.3173, h:4.2447 },
+        35: { left:68.9276, top:79.0721, w:20.5690, h:9.9704, mask:'assets/roulette/track-masks/n35.png' },
+        3: { left:54.7048, top:84.7976, w:25.8207, h:11.1549, mask:'assets/roulette/track-masks/n3.png' },
+        26: { left:36.9801, top:89.3386, w:22.1008, h:7.6011, mask:'assets/roulette/track-masks/n26.png' }
+      };
+      const FRENCH_CELLS_M = {
+        tier: { left:23.4135, top:9.9704, w:49.2339, h:27.2458, mask:'assets/roulette/track-masks/french-tier.png', label:'轮盘下角注' },
+        orphelins: { left:23.4135, top:29.0227, w:49.2339, h:21.8164, mask:'assets/roulette/track-masks/french-orphelins.png', label:'轮上孤注' },
+        voisins: { left:23.4135, top:51.9249, w:49.4528, h:22.1126, mask:'assets/roulette/track-masks/french-voisins.png', label:'零旁注' },
+        'zero-game': { left:23.6324, top:75.0247, w:49.2339, h:13.6228, mask:'assets/roulette/track-masks/french-zero-game.png', label:'轮上零旁' }
+      };
+      const FRENCH = {
+        tier: new Set([27,13,36,11,30,8,23,10,5,24,16,33]),
+        orphelins: new Set([1,20,14,31,9,17,34,6]),
+        voisins: new Set([22,18,29,7,28,12,35,3,26,0,32,15,19,4,21,2,25]),
+        'zero-game': new Set([12,35,3,26,0,32,15])
+      };
+      /* m-kbd-face 1200×2059：按红格洪水填满实测整格（旧版搜索窗截断成半格） */
+      const NUM_FACE = {
+        0: [29.7500, 0.2428, 45.5000, 6.5080],
+        1: [29.5000, 7.3337, 14.9167, 6.7023],
+        2: [45.0000, 7.3337, 15.0000, 6.7023],
+        3: [60.6667, 7.3337, 14.8333, 6.7023],
+        4: [29.5000, 14.4245, 14.9167, 6.7023],
+        5: [45.0833, 14.4245, 14.9167, 6.7023],
+        6: [60.6667, 14.4245, 14.8333, 6.7023],
+        7: [29.5000, 21.4667, 14.9167, 6.7023],
+        8: [45.0000, 21.4667, 15.0000, 6.7023],
+        9: [60.6667, 21.4667, 14.9167, 6.7023],
+        10: [29.5000, 28.6061, 14.9167, 6.6537],
+        11: [45.0000, 28.6061, 15.0000, 6.6537],
+        12: [60.6667, 28.6061, 14.8333, 6.6537],
+        13: [29.5000, 35.6484, 14.9167, 6.7023],
+        14: [45.0833, 35.6484, 14.9167, 6.7023],
+        15: [60.6667, 35.6484, 14.8333, 6.7023],
+        16: [29.5000, 42.7392, 14.9167, 6.6537],
+        17: [45.0000, 42.7392, 15.0000, 6.6537],
+        18: [60.6667, 42.7392, 14.8333, 6.6537],
+        19: [29.5833, 49.8300, 14.8333, 6.6537],
+        20: [45.0000, 49.8300, 15.0000, 6.6537],
+        21: [60.6667, 49.8300, 14.8333, 6.7023],
+        22: [29.5000, 56.9208, 14.9167, 6.7508],
+        23: [45.0000, 56.9208, 15.0000, 6.7508],
+        24: [60.6667, 56.9208, 14.8333, 6.7508],
+        25: [29.5000, 64.0117, 14.9167, 6.7508],
+        26: [45.0000, 64.0117, 15.0000, 6.7508],
+        27: [60.6667, 64.0602, 14.8333, 6.7508],
+        28: [29.5000, 71.1510, 14.9167, 6.7508],
+        29: [45.0000, 71.1510, 15.0000, 6.7508],
+        30: [60.6667, 71.1510, 14.8333, 6.7508],
+        31: [29.5000, 78.2419, 14.9167, 6.7023],
+        32: [45.0000, 78.2419, 15.0000, 6.7023],
+        33: [60.6667, 78.2419, 14.8333, 6.7023],
+        34: [29.5000, 85.3327, 14.9167, 6.7023],
+        35: [45.0000, 85.3327, 15.0000, 6.7023],
+        36: [60.6667, 85.3327, 14.8333, 6.7023]
+      };
       const START_BAL = 2000;
       const BET_SEC = 22;
       const PHASE_HOLD_MS = 1600;
       const RED = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
       const EU_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+      /* —— 以下内注判定自电脑 roulette.html 原样迁入 —— */
+      const INSIDE_LIMIT = {
+        straight: '1 - 142',
+        split: '2 - 294',
+        street: '2 - 454',
+        corner: '3 - 625',
+        line: '4 - 1,000',
+      };
+      const EDGE_BAND = 0.34;
+      const CORNER_BAND = 0.20;
+      function numLeft(n) { return n >= 4 ? n - 3 : null; }
+      function numRight(n) { return n <= 33 ? n + 3 : null; }
+      function numUp(n) { return (n % 3 === 0) ? null : n + 1; }
+      function numDown(n) { return (n % 3 === 1) ? null : n - 1; }
+      function sixLineAtTopJunction(n) {
+        if (n < 3 || n % 3 !== 0) return null;
+        const rightStreet = n - 2;
+        const leftStreet = rightStreet - 3;
+        if (leftStreet < 1) return null;
+        return [leftStreet, leftStreet + 1, leftStreet + 2, rightStreet, rightStreet + 1, rightStreet + 2];
+      }
+      function insideBetKey(kind, nums) {
+        const sorted = nums.slice().sort((a, b) => a - b);
+        return kind + ':' + sorted.join('-');
+      }
+      function parseInsideBetKey(key) {
+        if (!key || key.indexOf(':') < 0) return null;
+        const i = key.indexOf(':');
+        const kind = key.slice(0, i);
+        const nums = key.slice(i + 1).split('-').map(Number).filter((n) => Number.isFinite(n));
+        if (!nums.length) return null;
+        return { kind, nums };
+      }
+      function resolveInsideBet(n, lx, ly) {
+        if (n === 0) {
+          const onR = lx >= 1 - EDGE_BAND;
+          const onT = ly < CORNER_BAND;
+          const onB = ly >= 1 - CORNER_BAND;
+          if (onR && onT) return { kind: 'street', nums: [0, 2, 3], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+          if (onR && onB) return { kind: 'street', nums: [0, 1, 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+          if (onR && ly < 0.38) return { kind: 'split', nums: [0, 3], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          if (onR && ly > 0.62) return { kind: 'split', nums: [0, 1], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          if (onR) return { kind: 'split', nums: [0, 2], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          return { kind: 'straight', nums: [0], name: '直注', odds: '1:35', limit: INSIDE_LIMIT.straight };
+        }
+        const dL = lx;
+        const dR = 1 - lx;
+        const dT = ly;
+        const dB = 1 - ly;
+        const cornerL = dL < CORNER_BAND;
+        const cornerR = dR < CORNER_BAND;
+        const cornerT = dT < CORNER_BAND;
+        const cornerB = dB < CORNER_BAND;
+        const edgeL = dL < EDGE_BAND;
+        const edgeR = dR < EDGE_BAND;
+        const edgeT = dT < EDGE_BAND;
+        const edgeB = dB < EDGE_BAND;
+        if (cornerT && cornerL) {
+          const six = sixLineAtTopJunction(n);
+          if (six) {
+            return { kind: 'line', nums: six, name: '線注', odds: '1:5', limit: INSIDE_LIMIT.line };
+          }
+        }
+        if (cornerT && cornerL) {
+          const L = numLeft(n); const U = numUp(n);
+          if (L != null && U != null) {
+            const UL = numUp(L);
+            if (UL != null) return { kind: 'corner', nums: [n, L, U, UL], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
+          }
+        }
+        if (cornerT && cornerR) {
+          const R = numRight(n); const U = numUp(n);
+          if (R != null && U != null) {
+            const UR = numUp(R);
+            if (UR != null) return { kind: 'corner', nums: [n, R, U, UR], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
+          }
+        }
+        if (cornerB && cornerL) {
+          const L = numLeft(n); const D = numDown(n);
+          if (L != null && D != null) {
+            const DL = numDown(L);
+            if (DL != null) return { kind: 'corner', nums: [n, L, D, DL], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
+          }
+        }
+        if (cornerB && cornerR) {
+          const R = numRight(n); const D = numDown(n);
+          if (R != null && D != null) {
+            const DR = numDown(R);
+            if (DR != null) return { kind: 'corner', nums: [n, R, D, DR], name: '角注', odds: '1:8', limit: INSIDE_LIMIT.corner };
+          }
+        }
+        if (edgeL) {
+          const L = numLeft(n);
+          if (L != null) return { kind: 'split', nums: [n, L], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+        }
+        if (edgeR) {
+          const R = numRight(n);
+          if (R != null) return { kind: 'split', nums: [n, R], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+        }
+        if (edgeT) {
+          const U = numUp(n);
+          if (U != null) return { kind: 'split', nums: [n, U], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          const base = n - 2;
+          return { kind: 'street', nums: [base, base + 1, base + 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+        }
+        if (edgeB) {
+          const D = numDown(n);
+          if (D != null) return { kind: 'split', nums: [n, D], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
+          const base = n;
+          return { kind: 'street', nums: [base, base + 1, base + 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+        }
+        return { kind: 'straight', nums: [n], name: '直注', odds: '1:35', limit: INSIDE_LIMIT.straight };
+      }
+      function numFromKey(key) {
+        if (!key || key[0] !== 'n') return null;
+        const n = Number(key.slice(1));
+        return Number.isFinite(n) ? n : null;
+      }
+      /* 手机竖盘 → 电脑横盘：屏上=电脑左，屏右=电脑上 */
+      function screenToPcInsideXY(lxS, lyS) {
+        return {
+          lx: Math.max(0, Math.min(1, lyS)),
+          ly: Math.max(0, Math.min(1, 1 - lxS)),
+        };
+      }
 
       try {
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
@@ -895,26 +1339,146 @@
         elTimer.classList.toggle('danger', timerLeft > 0 && timerLeft <= 5);
         elTimer.classList.toggle('closed', timerLeft <= 0);
       }
-      function chipMark(el, amt) {
-        let mark = el.querySelector('.chip-on');
-        if (amt > 0) {
-          if (!mark) {
-            mark = document.createElement('span');
-            mark.className = 'chip-on';
-            el.appendChild(mark);
+      function numHitEl(n) {
+        return boardGrid
+          ? boardGrid.querySelector('.n[data-bet="n' + n + '"], .zero[data-bet="n' + n + '"]')
+          : null;
+      }
+      /* 电脑同款：分注/角注/街注/線注锚在格边交点，直注格心 */
+      function chipPlacementFor(key) {
+        const inside = parseInsideBetKey(key);
+        if (inside && inside.nums.length) {
+          const nums = inside.nums.slice().sort((a, b) => a - b);
+          const kind = inside.kind;
+          let hostN = nums[nums.length - 1];
+          let left = 50;
+          let top = 50;
+          if (kind === 'split' && nums.length === 2) {
+            const [a, b] = nums;
+            if (a === 0) {
+              hostN = 0;
+              if (b === 3) { left = 100; top = 18; }
+              else if (b === 1) { left = 100; top = 82; }
+              else { left = 100; top = 50; }
+            } else if (b === a + 1) {
+              hostN = b; left = 50; top = 100;
+            } else if (b === a + 3) {
+              hostN = b; left = 0; top = 50;
+            }
+          } else if (kind === 'corner' && nums.length === 4) {
+            hostN = nums[3]; left = 0; top = 100;
+          } else if (kind === 'street' && nums.length === 3) {
+            if (nums[0] === 0) {
+              hostN = 0;
+              left = 100;
+              top = (nums[2] === 3) ? 18 : 82;
+            } else {
+              hostN = nums[2]; left = 50; top = 0;
+            }
+          } else if (kind === 'line' && nums.length === 6) {
+            hostN = nums[5]; left = 0; top = 0;
+          } else if (kind === 'straight') {
+            hostN = nums[0]; left = 50; top = 50;
           }
-          mark.textContent = String(amt);
-          el.classList.add('has-bet');
-        } else {
-          if (mark) mark.remove();
-          el.classList.remove('has-bet');
+          /* 电脑锚点% → 手机竖盘（与 screenToPc 互逆：屏X=1-电脑Y，屏Y=电脑X） */
+          const el = numHitEl(hostN);
+          if (el) {
+            const mLeft = 100 - top;
+            const mTop = left;
+            return { host: el, left: mLeft, top: mTop };
+          }
+        }
+        const n = numFromKey(key);
+        if (n != null) {
+          const el = numHitEl(n);
+          if (el) return { host: el, left: 50, top: 50 };
+        }
+        const host = boardGrid && boardGrid.querySelector('[data-bet="' + key + '"]');
+        return host ? { host, left: 50, top: 50 } : null;
+      }
+      function activeBetKeys() {
+        const keys = new Set();
+        Object.keys(draft).forEach((k) => { if ((Number(draft[k]) || 0) > 0) keys.add(k); });
+        Object.keys(confirmed).forEach((k) => { if ((Number(confirmed[k]) || 0) > 0) keys.add(k); });
+        return keys;
+      }
+      function expandInsideLit(expanded, key) {
+        const inside = parseInsideBetKey(key);
+        if (inside) {
+          inside.nums.forEach((n) => expanded.add('n' + n));
+          return;
+        }
+        if (numFromKey(key) != null) {
+          expanded.add(key);
+          return;
+        }
+        const set = FRENCH[key];
+        if (set) {
+          expanded.add(key);
+          set.forEach((n) => expanded.add('n' + n));
         }
       }
       function paintBets() {
-        document.querySelectorAll('[data-bet]').forEach((el) => {
-          const k = el.getAttribute('data-bet');
-          const amt = (Number(draft[k]) || 0) + (Number(confirmed[k]) || 0);
-          chipMark(el, amt);
+        if (!boardGrid) return;
+        boardGrid.querySelectorAll('.chip-on').forEach((el) => el.remove());
+        boardGrid.querySelectorAll('.n, .zero').forEach((el) => {
+          el.classList.remove('is-lit', 'has-bet');
+        });
+        const trackRoot = document.getElementById('trackStage');
+        if (trackRoot) {
+          trackRoot.querySelectorAll('.chip-on').forEach((el) => el.remove());
+          trackRoot.querySelectorAll('.hit').forEach((el) => {
+            el.classList.remove('is-lit', 'has-bet');
+          });
+        }
+        const lit = activeBetKeys();
+        const expanded = new Set();
+        lit.forEach((key) => {
+          expandInsideLit(expanded, key);
+          const place = chipPlacementFor(key);
+          if (place && place.host) {
+            const pend = Number(draft[key]) || 0;
+            const conf = Number(confirmed[key]) || 0;
+            const stake = pend > 0 ? pend : conf;
+            if (stake > 0) {
+              const mark = document.createElement('span');
+              mark.className = 'chip-on';
+              mark.textContent = String(stake);
+              mark.style.left = place.left + '%';
+              mark.style.top = place.top + '%';
+              place.host.appendChild(mark);
+              place.host.classList.add('has-bet');
+            }
+          }
+          /* 弯道号格 / 法式也叠筹码 */
+          if (trackRoot) {
+            const tHost = trackRoot.querySelector('[data-bet="' + key + '"]');
+            if (tHost) {
+              const pend = Number(draft[key]) || 0;
+              const conf = Number(confirmed[key]) || 0;
+              const stake = pend > 0 ? pend : conf;
+              if (stake > 0) {
+                const mark = document.createElement('span');
+                mark.className = 'chip-on';
+                mark.textContent = String(stake);
+                mark.style.left = '50%';
+                mark.style.top = '50%';
+                tHost.appendChild(mark);
+                tHost.classList.add('has-bet');
+              }
+            }
+          }
+        });
+        expanded.forEach((nk) => {
+          const el = boardGrid.querySelector('[data-bet="' + nk + '"]');
+          if (el && (el.classList.contains('n') || el.classList.contains('zero'))) {
+            el.classList.add('is-lit');
+          }
+          if (trackRoot) {
+            trackRoot.querySelectorAll('[data-bet="' + nk + '"]').forEach((el) => {
+              el.classList.add('is-lit');
+            });
+          }
         });
         paintMeta();
       }
@@ -922,93 +1486,95 @@
         /* 右侧已改为弯道（轮序），开奖历史不再画在键盘区 */
       }
 
+      function placeNumHit(n, cls) {
+        const box = NUM_FACE[n];
+        if (!box) return null;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = cls;
+        b.setAttribute('data-bet', 'n' + n);
+        b.setAttribute('aria-label', String(n));
+        b.style.left = box[0] + '%';
+        b.style.top = box[1] + '%';
+        b.style.width = box[2] + '%';
+        b.style.height = box[3] + '%';
+        boardGrid.appendChild(b);
+        return b;
+      }
       function buildBoard() {
         if (!boardGrid) return;
         boardGrid.innerHTML = '';
-
-        /* 热区对齐整图：左 小/双/红/黑/单/大；打×3；0+1–36；底三列；右弯道 */
-        [
-          { key: 'small', row: '2 / span 2' },
-          { key: 'even', row: '4 / span 2' },
-          { key: 'red', row: '6 / span 2' },
-          { key: 'black', row: '8 / span 2' },
-          { key: 'odd', row: '10 / span 2' },
-          { key: 'big', row: '12 / span 2' },
-        ].forEach((s) => {
+        /* 数字 0–36：底图蒙版实测 */
+        placeNumHit(0, 'zero');
+        for (let n = 1; n <= 36; n++) placeNumHit(n, 'n');
+        /* 右侧跑道条：点开弯道全貌 */
+        const raceHit = document.createElement('button');
+        raceHit.type = 'button';
+        raceHit.className = 'race-open-hit';
+        raceHit.id = 'raceOpenHit';
+        raceHit.setAttribute('aria-label', '打开弯道');
+        boardGrid.appendChild(raceHit);
+      }
+      function buildTrackBoard() {
+        const numsRoot = document.getElementById('trackNumsM');
+        const frRoot = document.getElementById('trackFrench');
+        if (!numsRoot || !frRoot) return;
+        numsRoot.innerHTML = '';
+        frRoot.innerHTML = '';
+        TRACK_ORDER.forEach((n) => {
+          const box = TRACK_CELLS_M[n];
+          if (!box) return;
           const b = document.createElement('button');
           b.type = 'button';
-          b.className = 'cell';
-          b.setAttribute('data-bet', s.key);
-          b.setAttribute('aria-label', s.key);
-          b.style.gridColumn = '1';
-          b.style.gridRow = s.row;
-          boardGrid.appendChild(b);
-        });
-
-        [
-          { key: 'dozen1', row: '2 / span 4' },
-          { key: 'dozen2', row: '6 / span 4' },
-          { key: 'dozen3', row: '10 / span 4' },
-        ].forEach((s) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'cell';
-          b.setAttribute('data-bet', s.key);
-          b.style.gridColumn = '2';
-          b.style.gridRow = s.row;
-          boardGrid.appendChild(b);
-        });
-
-        const zero = document.createElement('button');
-        zero.type = 'button';
-        zero.className = 'zero';
-        zero.setAttribute('data-bet', 'n0');
-        zero.setAttribute('aria-label', '0');
-        boardGrid.appendChild(zero);
-
-        for (let r = 0; r < 12; r++) {
-          for (let c = 1; c <= 3; c++) {
-            const n = r * 3 + c;
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'n';
-            b.setAttribute('data-bet', 'n' + n);
-            b.setAttribute('aria-label', String(n));
-            b.style.gridColumn = String(2 + c);
-            b.style.gridRow = String(2 + r);
-            boardGrid.appendChild(b);
+          b.className = 'hit';
+          b.dataset.bet = 'n' + n;
+          b.dataset.track = '1';
+          b.setAttribute('aria-label', '滚道' + n);
+          if (box.mask) {
+            b.classList.add('has-mask');
+            b.style.left = box.left + '%';
+            b.style.top = box.top + '%';
+            b.style.width = box.w + '%';
+            b.style.height = box.h + '%';
+            const mu = box.mask + '?v=' + V;
+            b.style.webkitMaskImage = 'url(' + mu + ')';
+            b.style.maskImage = 'url(' + mu + ')';
+          } else {
+            b.style.left = box.cx + '%';
+            b.style.top = box.cy + '%';
+            b.style.width = box.w + '%';
+            b.style.height = box.h + '%';
+            b.style.transform = 'translate(-50%, -50%)';
           }
-        }
-
-        [
-          { key: 'col1', col: '3' },
-          { key: 'col2', col: '4' },
-          { key: 'col3', col: '5' },
-        ].forEach((s) => {
+          numsRoot.appendChild(b);
+        });
+        Object.keys(FRENCH_CELLS_M).forEach((key) => {
+          const box = FRENCH_CELLS_M[key];
           const b = document.createElement('button');
           b.type = 'button';
-          b.className = 'cell';
-          b.setAttribute('data-bet', s.key);
-          b.style.gridColumn = s.col;
-          b.style.gridRow = '14';
-          boardGrid.appendChild(b);
+          b.className = 'hit has-mask';
+          b.dataset.bet = key;
+          b.setAttribute('aria-label', box.label || key);
+          b.style.left = box.left + '%';
+          b.style.top = box.top + '%';
+          b.style.width = box.w + '%';
+          b.style.height = box.h + '%';
+          const mu = box.mask + '?v=' + V;
+          b.style.webkitMaskImage = 'url(' + mu + ')';
+          b.style.maskImage = 'url(' + mu + ')';
+          frRoot.appendChild(b);
         });
-
-        const race = document.createElement('div');
-        race.className = 'col-race';
-        race.setAttribute('aria-label', '弯道');
-        const start = EU_ORDER.indexOf(23);
-        for (let i = 0; i < 11; i++) {
-          const idx = (start - i + EU_ORDER.length) % EU_ORDER.length;
-          const n = EU_ORDER[idx];
-          const d = document.createElement('button');
-          d.type = 'button';
-          d.className = 'r';
-          d.setAttribute('data-bet', 'n' + n);
-          d.setAttribute('aria-label', String(n));
-          race.appendChild(d);
-        }
-        boardGrid.appendChild(race);
+      }
+      function openTrack() {
+        app.classList.add('is-track');
+        const pane = document.getElementById('slideTrack');
+        if (pane) pane.setAttribute('aria-hidden', 'false');
+        paintBets();
+      }
+      function closeTrack() {
+        app.classList.remove('is-track');
+        const pane = document.getElementById('slideTrack');
+        if (pane) pane.setAttribute('aria-hidden', 'true');
       }
 
       function addDraft(key, amt) {
@@ -1020,11 +1586,28 @@
         undoStack.push({ key, amt: a });
         paintBets();
       }
+      /* 电脑同款：内注点一下覆盖该盘口为当前筹码（可撤销回上一值） */
+      function placeInsideDraft(key, amt) {
+        if (phase !== 'betting') return;
+        const next = Math.max(0, Math.round(Number(amt) || 0));
+        if (!key || next <= 0) return;
+        const other = totalDraft() - (Number(draft[key]) || 0);
+        if (availableBal() < other + next) { toast('积分不足'); return; }
+        undoStack.push({ key, prev: Number(draft[key]) || 0, mode: 'inside' });
+        draft[key] = next;
+        paintBets();
+      }
       function undoBet() {
         const last = undoStack.pop();
         if (!last) return;
-        draft[last.key] = Math.max(0, (Number(draft[last.key]) || 0) - last.amt);
-        if (!draft[last.key]) delete draft[last.key];
+        if (last.mode === 'inside') {
+          const prev = Math.max(0, Number(last.prev) || 0);
+          if (prev > 0) draft[last.key] = prev;
+          else delete draft[last.key];
+        } else {
+          draft[last.key] = Math.max(0, (Number(draft[last.key]) || 0) - (Number(last.amt) || 0));
+          if (!draft[last.key]) delete draft[last.key];
+        }
         paintBets();
       }
       function cancelDraft() {
@@ -1050,7 +1633,18 @@
       }
 
       function evalKey(key, win) {
-        if (key === 'n' + win) return { win: true, mult: 36 };
+        const n = numFromKey(key);
+        if (n != null) return { win: n === win, mult: 36 };
+        const inside = parseInsideBetKey(key);
+        if (inside) {
+          const hit = inside.nums.indexOf(win) >= 0;
+          const multMap = { straight: 36, split: 18, street: 12, corner: 9, line: 6 };
+          return { win: hit, mult: multMap[inside.kind] || 2 };
+        }
+        if (FRENCH[key]) {
+          /* 电脑同款：法式键命中组内号，按注型简化连本×2 */
+          return { win: FRENCH[key].has(win), mult: 2 };
+        }
         if (key === 'red') return { win: win !== 0 && RED.has(win), mult: 2 };
         if (key === 'black') return { win: win !== 0 && !RED.has(win), mult: 2 };
         if (key === 'odd') return { win: win !== 0 && win % 2 === 1, mult: 2 };
@@ -1170,21 +1764,67 @@
         if (v === 'max') btn.classList.add('sel');
       });
 
+      let lastZoneBetAt = 0;
+      let lastZoneBetKey = '';
       document.getElementById('boardWrap').addEventListener('click', (e) => {
+        if (e.target.closest('#raceOpenHit')) {
+          openTrack();
+          return;
+        }
         const btn = e.target.closest('[data-bet]');
-        if (!btn) return;
-        addDraft(btn.getAttribute('data-bet'), selected);
+        if (!btn || !boardGrid.contains(btn)) return;
+        const raw = btn.getAttribute('data-bet');
+        const isNum = btn.classList.contains('n') || btn.classList.contains('zero');
+        if (!isNum) return;
+        const n = numFromKey(raw);
+        if (n == null) return;
+        const rect = btn.getBoundingClientRect();
+        let lxS = rect.width ? (e.clientX - rect.left) / rect.width : 0.5;
+        let lyS = rect.height ? (e.clientY - rect.top) / rect.height : 0.5;
+        const pc = screenToPcInsideXY(lxS, lyS);
+        const hit = resolveInsideBet(n, pc.lx, pc.ly);
+        const betKey = insideBetKey(hit.kind, hit.nums);
+        const now = Date.now();
+        if (betKey === lastZoneBetKey && now - lastZoneBetAt < 450) return;
+        lastZoneBetAt = now;
+        lastZoneBetKey = betKey;
+        placeInsideDraft(betKey, selected);
+      });
+      /* 弯道全貌：电脑同款号格 + 法式键（覆盖挂单） */
+      const trackStage = document.getElementById('trackStage');
+      if (trackStage) {
+        trackStage.addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-bet]');
+          if (!btn || !trackStage.contains(btn)) return;
+          const betKey = btn.getAttribute('data-bet');
+          if (!betKey) return;
+          const now = Date.now();
+          if (betKey === lastZoneBetKey && now - lastZoneBetAt < 450) return;
+          lastZoneBetAt = now;
+          lastZoneBetKey = betKey;
+          placeInsideDraft(betKey, selected);
+        });
+      }
+      document.getElementById('trackBack').addEventListener('click', closeTrack);
+      document.getElementById('btnTrackIco').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openTrack();
       });
       document.getElementById('btnUndo').addEventListener('click', undoBet);
       document.getElementById('btnCancel').addEventListener('click', cancelDraft);
       document.getElementById('btnConfirm').addEventListener('click', confirmBet);
-      document.getElementById('btnBack').addEventListener('click', () => { location.href = 'lobby.html'; });
+      document.getElementById('btnBack').addEventListener('click', () => {
+        if (app.classList.contains('is-track')) { closeTrack(); return; }
+        location.href = 'lobby.html';
+      });
       document.getElementById('btnMenu').addEventListener('click', () => { location.href = 'lobby.html'; });
       document.getElementById('btnLimit').addEventListener('click', () => {
         toast('限红 20 - 5,000');
       });
 
       buildBoard();
+      buildTrackBoard();
       paintHistory();
       paintMeta();
       paintTimer();

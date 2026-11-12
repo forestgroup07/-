@@ -1,0 +1,24 @@
+roulette mobile release lock v1.3.2 (2026-11-13)
+
+已验收清单（本包算数）:
+- 整卵 m-track-face-v 按 8/30 数字中心 scale≈2.2838、无旋转平移，焊进 m-kbd-face（成品 1479×2059）
+- 合上只露原宽 1200；黄键打开整盘左移，右侧露出焊死整卵（用户确认打开右侧轨道正确）
+- 去掉旋转后左列外沿竖直，下方 19/15/32 不再越来越歪（用户确认「现在已经好了」）
+- lobby ROULETTE_M → roulette-m.html?v=1.3.2
+- 沿用既有：顶屏绿布/转盘/黑滑道、开奖红球、底栏筹码与限红骨架
+
+未验收、不得当作定版:
+- 弯道每一个号格「底格像素蒙格」热区逐格外沿（用户曾点名，定版前未做完）
+- 外注 / 打 / 列注 / 旁注赛道可点与规则对齐电脑
+- 内注分法（分注/角注/线注）对齐电脑
+- 电脑轮盘 roulette.html 程序（本包未改）
+
+回滚快照:
+- roulette-m.LOCKED-1.3.2.html
+- assets/roulette/LOCKED-m-kbd-face-1.3.2.{webp,jpg,png}
+- assets/roulette/LOCKED-m-kbd-face-preweld-1.3.2.jpg
+- assets/roulette/LOCKED-m-track-face-v-1.3.2.png
+- assets/roulette/LOCKED-m-wheel-felt-bg-1.3.2.jpg
+- assets/roulette/LOCKED-roulette-m-1.3.2.txt
+- assets/roulette/VERSION-m.txt
+- tag roulette-m-v1.3.2

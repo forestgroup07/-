@@ -1,0 +1,17 @@
+{
+  "method": "weld scale+translate NO rotation (fix lower 19/15/32 skew)",
+  "scale": 2.283803004142758,
+  "t": [
+    935.3666103936905,
+    -14.999657717494784
+  ],
+  "face_size": [
+    1479,
+    2059
+  ],
+  "base_w": 1200,
+  "pan_px": 279,
+  "face_wide_pct": 123.25,
+  "board_pan_pct": -18.864,
+  "grid_w_pct": 81.136
+}
