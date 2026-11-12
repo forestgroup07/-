@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0a1210" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>輪盤 R501 · 手机版</title>
+  <link rel="preload" as="image" href="assets/roulette/wheel-disc.png?v=1.2.4" type="image/png" fetchpriority="high" />
+  <style>
+    :root {
+      --bg: #0a1210;
+      --teal: #0e3d38;
+      --teal2: #12544c;
+      --cell: #0f4a43;
+      --cell-line: rgba(90, 200, 170, .28);
+      --gold: #e8c76a;
+      --gold2: #f5dfa0;
+      --red: #c62828;
+      --black: #1a1a1a;
+      --muted: #9bb8b0;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+      --v: 1.0.0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: #f2f6f4;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+    button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      padding-top: var(--safe-t);
+      padding-bottom: var(--safe-b);
+      max-width: 480px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #07110f 0%, #0b1a17 40%, #0a1412 100%);
+    }
+
+    /* —— 顶屏：电脑 pc-full-ref 同款转盘区+绿布+黑滑道（已抹掉烤死的 14） —— */
+    .stage {
+      position: relative;
+      width: 100%;
+      /* 与 m-wheel-felt-bg 同比例（电脑转盘窗裁切） */
+      aspect-ratio: 884 / 721;
+      height: auto;
+      max-height: min(48vh, 420px);
+      background: #0f6b32;
+      box-shadow:
+        inset 0 4px 10px rgba(0, 0, 0, 0.28),
+        inset 0 -1px 0 rgba(255, 220, 160, 0.08);
+      overflow: hidden;
+    }
+    .video-well {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+      background: #0f6b32;
+    }
+    /* 电脑屏转盘区绿布（含木台/滑道底，无烤死中奖号） */
+    .felt-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      z-index: 1;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    /* 电脑 wheel-disc：按 pc-full-ref 相对几何叠在绿布上 */
+    .wheel-wrap {
+      position: absolute;
+      left: 12.0159%;
+      top: -8.8909%;
+      width: 78.9592%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      z-index: 25;
+      pointer-events: none;
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,.4));
+    }
+    .wheel-spin {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      transform: rotate(0deg);
+      transform-origin: 50% 50%;
+      will-change: transform;
+      overflow: hidden;
+    }
+    .wheel-spin.is-idle {
+      animation: wheel-idle-cw 22s linear infinite;
+    }
+    @keyframes wheel-idle-cw {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .wheel-disc {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      z-index: 3;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .wheel-ball-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+    .wheel-ball-layer.show { opacity: 1; }
+    .wheel-ball-arm {
+      position: absolute;
+      inset: 0;
+      transform: rotate(0deg);
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+    .wheel-ball {
+      position: absolute;
+      left: 50%;
+      top: 6.8%;
+      width: 2.95%;
+      height: 2.95%;
+      min-width: 7px;
+      min-height: 7px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #fff 0%, #ececec 34%, #c8c8c8 58%, #7a7a7a 82%, #2a2a2a 100%);
+      box-shadow: 0 1px 2px rgba(0,0,0,.55), inset 0 1px 1px rgba(255,255,255,.55);
+    }
+    /* 黑滑道：相对绿布裁切窗，与电脑同款长洞；开奖前无数字 */
+    #pcRail {
+      position: absolute;
+      left: 9.0498%;
+      top: 88.2109%;
+      width: 77.4886%;
+      height: 9.4314%;
+      z-index: 55;
+      pointer-events: none;
+      border-radius: 999px;
+      overflow: visible;
+      box-sizing: border-box;
+      background: url("assets/roulette/wheel-bases/history-rail-hole.png?v=1.1.8") center / 100% 100% no-repeat;
+    }
+    /* 红球：挂在绿布舞台上；仅开奖后出现，数字=本局真实中奖号 */
+    #pcRailBall {
+      position: absolute;
+      left: 12.2947%;
+      top: 91.5413%;
+      width: 12.5465%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      min-width: 22px;
+      min-height: 22px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 56;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 30% 26%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 28%),
+        radial-gradient(circle at 50% 55%, #ff5252 0%, #e53935 38%, #c62828 62%, #7f0000 100%);
+      box-shadow:
+        0 4px 8px rgba(0,0,0,.5),
+        0 1px 0 rgba(255,255,255,.22) inset,
+        0 -2px 4px rgba(0,0,0,.35) inset;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 800;
+      font-size: clamp(0.7rem, 3.2vw, 0.95rem);
+      line-height: 1;
+      text-shadow: 0 1px 2px rgba(0,0,0,.55);
+      opacity: 0;
+      visibility: hidden;
+      will-change: left, transform;
+    }
+    #pcRailBall.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    #pcRailBall.is-rolling {
+      animation: pc-rail-ball-spin 1.35s linear;
+    }
+    @keyframes pc-rail-ball-spin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(1080deg); }
+    }
+
+    .topbar {
+      position: absolute; z-index: 5; left: 0; right: 0; top: 0;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: .55rem .7rem 0;
+    }
+    .top-left { display: flex; align-items: center; gap: .4rem; }
+    .btn-back {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(0,0,0,.35);
+      display: grid; place-items: center;
+      font-size: 1rem; line-height: 1;
+    }
+    .table-name { font-size: .95rem; font-weight: 700; letter-spacing: .02em; text-shadow: 0 1px 3px #000; }
+    .top-right { display: flex; align-items: center; gap: .55rem; }
+    .ico {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: rgba(0,0,0,.35);
+      display: grid; place-items: center;
+      color: #f0e6c8; font-size: .85rem;
+      border: 0; padding: 0;
+    }
+    .round-id {
+      position: absolute; z-index: 5; right: .7rem; top: 2.35rem;
+      font-size: .68rem; color: rgba(255,255,255,.78);
+      text-shadow: 0 1px 2px #000;
+    }
+
+    /* 倒计时：与骰宝手机同坑（左下） */
+    .timer {
+      --p: 1;
+      --timer-ring: #6fdc4a;
+      --timer-pie: #6fdc4a66;
+      position: absolute; z-index: 6;
+      left: .55rem; bottom: .5rem; top: auto;
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--timer-ring);
+      text-shadow: 0 1px 2px rgba(0,0,0,.55);
+      pointer-events: none;
+      background:
+        radial-gradient(farthest-side, rgba(8, 12, 8, 0.58) calc(100% - 0.13em), transparent calc(100% - 0.12em)),
+        conic-gradient(var(--timer-ring) calc(var(--p) * 1turn), transparent 0);
+    }
+    .timer::before {
+      content: "";
+      position: absolute;
+      inset: 0.13em;
+      border-radius: 50%;
+      background: conic-gradient(var(--timer-pie) calc(var(--p) * 1turn), transparent 0);
+      pointer-events: none;
+    }
+    .timer::after {
+      content: "";
+      position: absolute;
+      width: 11%; height: 11%;
+      border-radius: 50%;
+      background: var(--timer-ring);
+      box-shadow: 0 0 0.08em rgba(0,0,0,.35);
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%) rotate(calc(var(--p) * 360deg)) translateY(-430%);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .timer > span { position: relative; z-index: 1; }
+    .timer.closed {
+      --timer-ring: #888;
+      --timer-pie: #88888866;
+      color: #aaa;
+    }
+    .timer.danger {
+      --timer-ring: #ff3b3b;
+      --timer-pie: #ff3b3b66;
+      color: #ff3b3b;
+    }
+
+    /* 开奖结果：紧挨倒计时右侧（骰宝 result-dice 同坑）→ 号码 + 单双 + 大小 */
+    .result-board {
+      position: absolute; z-index: 8;
+      left: calc(.55rem + 56px + .4rem);
+      bottom: .42rem;
+      top: auto;
+      display: none;
+      align-items: flex-end;
+      gap: .45rem;
+      padding: 0;
+      background: transparent;
+      pointer-events: none;
+    }
+    .result-board.show { display: flex; }
+    .result-board .rb-num {
+      width: 36px; height: 36px;
+      border-radius: 6px;
+      border: 2px solid #e6c84a;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem; font-weight: 800;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,.55);
+      box-shadow: 0 1px 4px rgba(0,0,0,.5);
+      flex: 0 0 36px;
+    }
+    .result-board .rb-num.is-red { background: #c62828; }
+    .result-board .rb-num.is-black { background: #1a1a1a; }
+    .result-board .rb-num.is-green { background: #1b7a3a; }
+    .result-board .rb-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-bottom: 2px;
+      line-height: 1.1;
+    }
+    .result-board .rb-parity,
+    .result-board .rb-size {
+      font-size: 1.05rem;
+      font-weight: 900;
+      text-shadow: 0 1px 3px rgba(0,0,0,.65);
+    }
+    .result-board .rb-parity.is-odd { color: #4ea1ff; }
+    .result-board .rb-parity.is-even { color: #ff5a5a; }
+    .result-board .rb-size.is-big { color: #ff5a5a; }
+    .result-board .rb-size.is-small { color: #4ea1ff; }
+
+    .brand-mark {
+      position: absolute; z-index: 5; right: .7rem; bottom: .7rem;
+      display: flex; align-items: center; gap: .35rem;
+      font-size: .72rem; color: rgba(255,255,255,.85);
+      text-shadow: 0 1px 2px #000;
+    }
+    .brand-mark .dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,.55);
+      display: grid; place-items: center; font-size: .7rem;
+    }
+    .phase-banner {
+      position: absolute;
+      left: 50%; top: 42%;
+      transform: translate(-50%, -50%) scale(.96);
+      z-index: 45;
+      padding: 0.55em 1.25em;
+      border-radius: 0.2em;
+      background: rgba(0,0,0,.62);
+      border: 1px solid rgba(255,220,140,.45);
+      color: #ffe29a;
+      font-size: clamp(1.05rem, 4.2vw, 1.35rem);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0; visibility: hidden;
+      transition: opacity .22s ease, transform .22s ease, visibility .22s;
+      text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    }
+    .phase-banner.show {
+      opacity: 1; visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .toast {
+      position: absolute; z-index: 40; left: 50%; top: 58%;
+      transform: translate(-50%, -50%);
+      padding: .45rem .9rem; border-radius: 8px;
+      background: rgba(0,0,0,.72); color: #fff;
+      font-size: .88rem; font-weight: 700;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+      white-space: nowrap; visibility: hidden;
+    }
+    .toast.show { opacity: 1; visibility: visible; }
+
+    /* —— 绿台数字键盘（参考图：可下拉两屏；右弯道露半） —— */
+    .board-wrap {
+      overflow: hidden;
+      min-height: 0;
+      background: #326e4a;
+      border-top: 1px solid rgba(0, 0, 0, .28);
+    }
+    .board-scroll {
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+    }
+    .board-scroll::-webkit-scrollbar { display: none; }
+    .board-grid {
+      /* 左外注 | 打 | 三列数字 | 右弯道(露半) */
+      display: grid;
+      grid-template-columns: 12.5% 10.5% repeat(3, minmax(0, 1fr)) 13.5%;
+      grid-template-rows: 36px repeat(12, minmax(0, 1fr));
+      gap: 3px;
+      padding: 5px 0 10px 5px;
+      /* 首屏约 0+7 行，下拉看完；两屏衔接连续无缝 */
+      min-height: 172%;
+      box-sizing: border-box;
+    }
+    .board-grid .cell {
+      border-radius: 6px;
+      border: 1px solid rgba(20, 60, 40, .45);
+      background: #2f6b48;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: .9rem;
+      position: relative;
+      min-height: 0;
+      color: #fff;
+    }
+    .board-grid .cell .lab-v {
+      writing-mode: vertical-rl;
+      letter-spacing: .14em;
+      font-size: .78rem;
+      font-weight: 800;
+      transform: rotate(180deg);
+    }
+    .board-grid .cell.is-blue .lab {
+      color: #6ec8ff;
+      text-shadow: 0 0 1px #1a4a7a;
+    }
+    .board-grid .cell.is-red-t .lab {
+      color: #fff;
+      -webkit-text-stroke: 1px #e23b3b;
+      text-shadow: 0 0 1px #a01010;
+    }
+    .board-grid .cell.is-red-d .lab {
+      color: #e53935;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+    .board-grid .cell.is-black-d .lab {
+      color: #111;
+      font-size: 1.1rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 1px rgba(255,255,255,.7));
+    }
+    .board-grid .zero {
+      grid-column: 3 / 6;
+      grid-row: 1;
+      border-radius: 6px;
+      border: 1px solid rgba(20, 60, 40, .4);
+      background: #2f7a45;
+      font-weight: 900;
+      font-size: 1.05rem;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .board-grid .n {
+      border-radius: 5px;
+      border: 1px solid rgba(0, 0, 0, .35);
+      font-weight: 800;
+      font-size: .92rem;
+      position: relative;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      min-height: 0;
+    }
+    /* 数字色跟电脑轮盘 */
+    .board-grid .n.is-red { background: #c62828; }
+    .board-grid .n.is-black { background: #1a1a1a; }
+    .board-grid .col-race {
+      grid-column: 6;
+      grid-row: 1 / -1;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+    /* 弯道整椭圆，只露出左半（参考图） */
+    .race-oval {
+      position: absolute;
+      left: 0;
+      top: 1%;
+      bottom: 1%;
+      width: 200%;
+      border: 2px solid rgba(180, 200, 190, .35);
+      border-radius: 999px;
+      box-sizing: border-box;
+      background: rgba(10, 24, 20, .18);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      padding: 8px 0;
+      pointer-events: none;
+    }
+    .race-oval .r {
+      pointer-events: auto;
+      width: 40%;
+      max-width: 40px;
+      aspect-ratio: 1.15 / 1;
+      margin-left: 5%;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: .62rem;
+      font-weight: 800;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, .12);
+      position: relative;
+      flex: 0 0 auto;
+    }
+    .race-oval .r.is-red { background: #c62828; }
+    .race-oval .r.is-black { background: #1a1a1a; }
+    .race-oval .r.is-green { background: #1b7a3a; }
+    .chip-on {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 1.35em;
+      padding: .05em .28em;
+      border-radius: 999px;
+      background: rgba(0,0,0,.72);
+      border: 1px solid rgba(240, 211, 146, .65);
+      color: #ffe29a;
+      font-size: .58rem;
+      font-weight: 800;
+      line-height: 1.2;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .cell.has-bet, .n.has-bet, .zero.has-bet, .r.has-bet {
+      box-shadow: inset 0 0 0 1px rgba(240, 211, 146, .45);
+    }
+
+    /* —— 底栏（对标参考图） —— */
+    .dock {
+      position: relative;
+      background: linear-gradient(180deg, #0d2c28, #081a18);
+      border-top: 1px solid rgba(90, 200, 170, .2);
+      padding: .35rem .55rem 0;
+    }
+    .act-bar {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .45rem;
+      margin-bottom: .35rem;
+    }
+    .act-bar.show { display: grid; }
+    .act-btn {
+      height: 40px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #fff4b8 0%, #f7e68a 48%, #efd66a 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 -1px 0 rgba(180, 140, 40, 0.28),
+        0 3px 8px rgba(0, 0, 0, 0.28);
+      display: grid; place-items: center;
+    }
+    .act-btn .act-ico { width: 28px; height: 28px; display: block; pointer-events: none; }
+    .dock-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: .4rem; margin-bottom: .35rem;
+    }
+    .limit-pill {
+      display: inline-flex; align-items: center; gap: .25rem;
+      padding: .18rem .45rem; border-radius: 999px;
+      border: 1px solid rgba(232, 199, 106, .35);
+      color: var(--gold2); font-size: .68rem; font-weight: 600;
+      background: rgba(0,0,0,.25);
+    }
+    .bal-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 1px; line-height: 1.15; min-width: 0;
+      background: transparent; border: 0; color: inherit; font: inherit;
+    }
+    .bal-user { font-size: .68rem; color: var(--muted); }
+    .bal-amt {
+      display: inline-flex; align-items: center; gap: .25rem;
+      font-size: .92rem; font-weight: 800; color: var(--gold2);
+      font-variant-numeric: tabular-nums;
+    }
+    .bal-amt .c {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffe9a8, #c9973a 70%);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+    }
+    .stake-btn {
+      display: inline-flex; align-items: center; gap: .25rem;
+      color: #e8eef0; font-size: .85rem; font-weight: 700;
+      background: transparent;
+    }
+    .stake-num { font-variant-numeric: tabular-nums; min-width: 1.5em; text-align: right; }
+    .dock-actions {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) auto;
+      gap: .4rem;
+      align-items: center;
+      padding-bottom: .45rem;
+    }
+    .btn-gear {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      display: grid; place-items: center;
+    }
+    .btn-gear.is-locked { opacity: .45; }
+    .chips-rail {
+      display: flex; align-items: center; gap: .35rem;
+      overflow: hidden; min-width: 0;
+    }
+    .chips {
+      display: flex; gap: .35rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: .15rem 0;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip {
+      flex: 0 0 44px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      filter: grayscale(.15) brightness(.92);
+      opacity: .88;
+    }
+    .chip.sel {
+      filter: none;
+      opacity: 1;
+      transform: translateY(-3px) scale(1.06);
+      box-shadow: 0 0 0 2px rgba(240, 211, 146, .75), 0 6px 14px rgba(0,0,0,.4);
+    }
+    .chip.max {
+      flex: 0 0 44px;
+      background: radial-gradient(circle at 30% 28%, #ffe29a, #d4a017 55%, #8a5a00);
+      color: #3a2200;
+      font-size: .62rem;
+      font-weight: 900;
+      display: grid; place-items: center;
+      border: 1px solid rgba(255, 230, 160, .55);
+    }
+    .btn-road {
+      padding: .45rem .55rem;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #d9c28a, #b8964e);
+      color: #2a1c08;
+      font-size: .72rem;
+      font-weight: 800;
+      white-space: nowrap;
+      position: relative;
+    }
+    .btn-road.is-locked { opacity: .55; }
+    .btn-road .badge {
+      position: absolute; right: -4px; top: -6px;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: 999px; background: #e23b3b;
+      color: #fff; font-size: .62rem; font-weight: 800;
+      display: grid; place-items: center;
+    }
+    .app.betting-closed .board-grid .n,
+    .app.betting-closed .board-grid .zero,
+    .app.betting-closed .board-grid .cell,
+    .app.betting-closed .race-oval .r {
+      filter: brightness(.72);
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="stage" id="stage">
+      <div class="topbar">
+        <div class="top-left">
+          <button type="button" class="btn-back" id="btnBack" aria-label="返回">‹</button>
+          <div class="table-name">轮盘 R501</div>
+        </div>
+        <div class="top-right">
+          <span class="ico" title="安全" aria-hidden="true">🛡</span>
+          <span class="ico" title="换筹码" aria-hidden="true">◎</span>
+          <button type="button" class="ico" id="btnMenu" aria-label="菜单">≡</button>
+        </div>
+      </div>
+      <div class="video-well" id="videoWell">
+        <img class="felt-bg" src="assets/roulette/m-wheel-felt-bg.jpg?v=1.3.0" alt="" width="884" height="721" decoding="async" fetchpriority="high" draggable="false" />
+        <div class="wheel-wrap" id="wheelWrap" aria-hidden="true">
+          <div class="wheel-spin is-idle" id="wheelSpin">
+            <img class="wheel-disc" id="wheelDisc" src="assets/roulette/wheel-disc.png?v=1.2.4" alt="" width="666" height="666" draggable="false" />
+          </div>
+          <div class="wheel-ball-layer" id="wheelBallLayer" aria-hidden="true">
+            <div class="wheel-ball-arm" id="wheelBallArm">
+              <div class="wheel-ball" id="wheelBall"></div>
+            </div>
+          </div>
+        </div>
+        <div id="pcRail" aria-label="开奖号码长洞" aria-hidden="true"></div>
+        <div id="pcRailBall" aria-hidden="true"></div>
+      </div>
+      <div class="round-id" id="roundId">局号: —</div>
+      <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
+      <div class="result-board" id="resultBoard" aria-live="polite">
+        <div class="rb-num is-red" id="rbNum">18</div>
+        <div class="rb-meta">
+          <div class="rb-parity is-even" id="rbParity">雙</div>
+          <div class="rb-size is-small" id="rbSize">小</div>
+        </div>
+      </div>
+      <div class="brand-mark"><span class="dot">↻</span>轮盘</div>
+      <div class="phase-banner" id="phaseBanner" aria-live="polite"></div>
+      <div class="toast" id="toast"></div>
+    </header>
+
+    <main class="board-wrap" id="boardWrap">
+      <div class="board-scroll" id="boardScroll">
+        <div class="board-grid" id="boardGrid" aria-label="下注键盘"></div>
+      </div>
+    </main>
+
+    <footer class="dock">
+      <div class="act-bar" id="actBar" aria-label="下注操作">
+        <button type="button" class="act-btn" id="btnUndo" aria-label="撤销">
+          <svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#22c55e" d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62C8.77 11.22 10.54 10.5 12.5 10.5c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
+          </svg>
+        </button>
+        <button type="button" class="act-btn" id="btnConfirm" aria-label="确定">
+          <svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7" />
+          </svg>
+        </button>
+        <button type="button" class="act-btn" id="btnCancel" aria-label="取消">
+          <svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" d="M7 7l10 10M17 7L7 17" />
+          </svg>
+        </button>
+      </div>
+      <div class="dock-meta">
+        <button type="button" class="limit-pill" id="btnLimit" aria-label="限红">20 - 5,000 ▾</button>
+        <button type="button" class="bal-wrap" id="balHot" aria-label="账户">
+          <span class="bal-user" id="balUser">—</span>
+          <span class="bal-amt"><span class="c" aria-hidden="true"></span><span id="balText">0.00</span></span>
+        </button>
+        <button type="button" class="stake-btn" id="stakeBtn" aria-label="本局注金">
+          <span aria-hidden="true">◎</span>
+          <span class="stake-num" id="stakeText">0</span>
+        </button>
+      </div>
+      <div class="dock-actions">
+        <button type="button" class="btn-gear is-locked" id="btnGear" aria-label="设置（暂不可用）" disabled>⚙</button>
+        <div class="chips-rail">
+          <div class="chips" id="chips" aria-label="筹码">
+            <button type="button" class="chip" data-chip="10" aria-label="10" style="background-image:url('chips/chip-10.webp?v=1.2.1')"></button>
+            <button type="button" class="chip" data-chip="20" aria-label="20" style="background-image:url('chips/chip-20.webp?v=1.2.1')"></button>
+            <button type="button" class="chip sel" data-chip="50" aria-label="50" style="background-image:url('chips/chip-50.webp?v=1.2.1')"></button>
+            <button type="button" class="chip" data-chip="100" aria-label="100" style="background-image:url('chips/chip-100.webp?v=1.2.1')"></button>
+            <button type="button" class="chip max" data-chip="max" aria-label="MAX">MAX</button>
+          </div>
+        </div>
+        <button type="button" class="btn-road is-locked" id="btnRoad" aria-label="好路推荐（暂不可用）" disabled>
+          好路推荐<span class="badge">14</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/fg-wallet.js?v=1.0.2"></script>
+  <script>
+    (function () {
+      const V = '1.3.0';
+      const START_BAL = 2000;
+      const BET_SEC = 22;
+      const PHASE_HOLD_MS = 1600;
+      const RED = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+      const EU_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+      const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+
+      try {
+        if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
+          location.replace('index.html?v=' + V);
+          return;
+        }
+      } catch (_) {}
+
+      function currentUser() {
+        try {
+          const u = (sessionStorage.getItem('fg_sicbo_user')
+            || localStorage.getItem('fg_sicbo_last_user')
+            || 'asdg').trim();
+          return u || 'asdg';
+        } catch (_) { return 'asdg'; }
+      }
+      const user = currentUser();
+      const wallet = window.FgWallet.create({
+        user,
+        startBal: START_BAL,
+        bagKey: '__fgWalletPatchRouM',
+      });
+      let balance = wallet.readLocal();
+      if (balance == null) balance = START_BAL;
+
+      let selected = 50;
+      let phase = 'betting'; /* betting | closed | result */
+      let draft = Object.create(null);
+      let confirmed = Object.create(null);
+      let undoStack = [];
+      let history = [];
+      let roundId = '';
+      let timerLeft = BET_SEC;
+      let timerToken = 0;
+      let phaseBannerToken = 0;
+      let wheelAngle = 0;
+
+      const app = document.getElementById('app');
+      const elTimer = document.getElementById('timer');
+      const elTimerNum = document.getElementById('timerNum');
+      const elRound = document.getElementById('roundId');
+      const elBal = document.getElementById('balText');
+      const elBalUser = document.getElementById('balUser');
+      const elStake = document.getElementById('stakeText');
+      const elToast = document.getElementById('toast');
+      const elPhase = document.getElementById('phaseBanner');
+      const resultBoard = document.getElementById('resultBoard');
+      const rbNum = document.getElementById('rbNum');
+      const rbParity = document.getElementById('rbParity');
+      const rbSize = document.getElementById('rbSize');
+      const actBar = document.getElementById('actBar');
+      const wheelSpin = document.getElementById('wheelSpin');
+      const wheelBallLayer = document.getElementById('wheelBallLayer');
+      const wheelBallArm = document.getElementById('wheelBallArm');
+      const boardGrid = document.getElementById('boardGrid');
+      const videoWell = document.getElementById('videoWell');
+
+      if (elBalUser) elBalUser.textContent = user;
+
+      function fmt(n) {
+        return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+      function sumMap(m) {
+        return Object.keys(m || {}).reduce((s, k) => s + (Number(m[k]) || 0), 0);
+      }
+      function totalDraft() { return sumMap(draft); }
+      function totalConfirmed() { return sumMap(confirmed); }
+      function availableBal() { return balance - totalDraft(); }
+      function colorClass(n) {
+        if (n === 0) return 'is-green';
+        return RED.has(n) ? 'is-red' : 'is-black';
+      }
+      function bumpRound() {
+        const ts = Date.now();
+        roundId = String(1530000000 + (ts % 10000000));
+        if (elRound) elRound.textContent = '局号: ' + roundId;
+      }
+      function toast(msg, ms) {
+        if (!elToast) return;
+        elToast.textContent = msg || '';
+        elToast.classList.add('show');
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => elToast.classList.remove('show'), ms || 1400);
+      }
+      async function holdPhaseBanner(text, holdMs) {
+        const ms = holdMs != null ? holdMs : PHASE_HOLD_MS;
+        const token = ++phaseBannerToken;
+        if (!elPhase) { await sleep(ms); return; }
+        elPhase.classList.remove('show');
+        elPhase.textContent = text || '';
+        void elPhase.offsetWidth;
+        elPhase.classList.add('show');
+        await sleep(ms);
+        if (token !== phaseBannerToken) return;
+        if (elPhase.textContent === text) elPhase.classList.remove('show');
+      }
+      function hideResultBoard() {
+        if (!resultBoard) return;
+        resultBoard.classList.remove('show');
+      }
+      const pcRailBall = document.getElementById('pcRailBall');
+      function paintResultBoard(n) {
+        if (!resultBoard) return;
+        const isZero = n === 0;
+        rbNum.textContent = String(n);
+        rbNum.className = 'rb-num ' + colorClass(n);
+        if (isZero) {
+          rbParity.textContent = '-';
+          rbParity.className = 'rb-parity';
+          rbSize.textContent = '-';
+          rbSize.className = 'rb-size';
+        } else {
+          const even = n % 2 === 0;
+          rbParity.textContent = even ? '雙' : '單';
+          rbParity.className = 'rb-parity ' + (even ? 'is-even' : 'is-odd');
+          const small = n <= 18;
+          rbSize.textContent = small ? '小' : '大';
+          rbSize.className = 'rb-size ' + (small ? 'is-small' : 'is-big');
+        }
+        resultBoard.classList.add('show');
+      }
+      function hideRailBall() {
+        if (!pcRailBall) return;
+        pcRailBall.classList.remove('show', 'is-rolling');
+        pcRailBall.style.transition = 'none';
+        pcRailBall.style.left = '12.2947%';
+        pcRailBall.style.top = '91.5413%';
+        pcRailBall.textContent = '';
+      }
+      /** 开奖号变红球，沿黑滑道从左滚到右（电脑同款；数字=本局真实中奖号） */
+      function rollHistoryRailBall(n) {
+        if (!pcRailBall) return Promise.resolve();
+        const winN = Number(n);
+        if (!Number.isFinite(winN) || winN < 0 || winN > 36) return Promise.resolve();
+        pcRailBall.textContent = String(winN);
+        pcRailBall.classList.add('show');
+        pcRailBall.classList.remove('is-rolling');
+        pcRailBall.style.transition = 'none';
+        pcRailBall.style.left = '12.2947%';
+        pcRailBall.style.top = '91.5413%';
+        pcRailBall.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+        void pcRailBall.offsetWidth;
+        pcRailBall.classList.add('is-rolling');
+        pcRailBall.style.transition = 'left 1.35s cubic-bezier(.05,.75,.12,1)';
+        pcRailBall.style.left = '80.34%';
+        return sleep(1400).then(() => {
+          pcRailBall.classList.remove('is-rolling');
+          pcRailBall.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+        });
+      }
+      function layoutPcFrame() {}
+      function setBalance(n) {
+        balance = Math.max(0, Math.round(Number(n) || 0));
+        wallet.writeLocal(balance);
+        wallet.schedulePost({ balance }, 180);
+        paintMeta();
+      }
+      function paintMeta() {
+        if (elBal) elBal.textContent = fmt(balance);
+        if (elStake) elStake.textContent = String(totalDraft() + totalConfirmed());
+        const on = totalDraft() > 0 && phase === 'betting';
+        actBar.classList.toggle('show', on);
+        app.classList.toggle('betting-closed', phase !== 'betting');
+      }
+      function paintTimer() {
+        const p = Math.max(0, Math.min(1, timerLeft / BET_SEC));
+        elTimer.style.setProperty('--p', String(p));
+        elTimerNum.textContent = String(Math.max(0, Math.ceil(timerLeft)));
+        elTimer.classList.toggle('danger', timerLeft > 0 && timerLeft <= 5);
+        elTimer.classList.toggle('closed', timerLeft <= 0);
+      }
+      function chipMark(el, amt) {
+        let mark = el.querySelector('.chip-on');
+        if (amt > 0) {
+          if (!mark) {
+            mark = document.createElement('span');
+            mark.className = 'chip-on';
+            el.appendChild(mark);
+          }
+          mark.textContent = String(amt);
+          el.classList.add('has-bet');
+        } else {
+          if (mark) mark.remove();
+          el.classList.remove('has-bet');
+        }
+      }
+      function paintBets() {
+        document.querySelectorAll('[data-bet]').forEach((el) => {
+          const k = el.getAttribute('data-bet');
+          const amt = (Number(draft[k]) || 0) + (Number(confirmed[k]) || 0);
+          chipMark(el, amt);
+        });
+        paintMeta();
+      }
+      function paintHistory() {
+        /* 右侧已改为弯道（轮序），开奖历史不再画在键盘区 */
+      }
+
+      function buildBoard() {
+        if (!boardGrid) return;
+        boardGrid.innerHTML = '';
+
+        /* 左外注：小/双/红/黑/单/大 —— 各占数字区 2 行 */
+        const outs = [
+          { key: 'small', lab: '小', cls: 'is-blue' },
+          { key: 'even', lab: '双', cls: 'is-red-t' },
+          { key: 'red', lab: '♦', cls: 'is-red-d' },
+          { key: 'black', lab: '♠', cls: 'is-black-d' },
+          { key: 'odd', lab: '单', cls: 'is-blue' },
+          { key: 'big', lab: '大', cls: 'is-red-t' },
+        ];
+        outs.forEach((s, i) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'cell ' + (s.cls || '');
+          b.setAttribute('data-bet', s.key);
+          b.style.gridColumn = '1';
+          b.style.gridRow = (2 + i * 2) + ' / span 2';
+          b.innerHTML = '<span class="lab">' + s.lab + '</span>';
+          boardGrid.appendChild(b);
+        });
+
+        /* 打：1-12 / 13-24 / 25-36 —— 各占 4 行 */
+        [
+          { key: 'dozen1', lab: '1 - 12' },
+          { key: 'dozen2', lab: '13 - 24' },
+          { key: 'dozen3', lab: '25 - 36' },
+        ].forEach((s, i) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'cell';
+          b.setAttribute('data-bet', s.key);
+          b.style.gridColumn = '2';
+          b.style.gridRow = (2 + i * 4) + ' / span 4';
+          b.innerHTML = '<span class="lab-v">' + s.lab + '</span>';
+          boardGrid.appendChild(b);
+        });
+
+        /* 0 + 三列 1–36（色跟电脑轮盘） */
+        const zero = document.createElement('button');
+        zero.type = 'button';
+        zero.className = 'zero';
+        zero.setAttribute('data-bet', 'n0');
+        zero.textContent = '0';
+        boardGrid.appendChild(zero);
+
+        for (let r = 0; r < 12; r++) {
+          for (let c = 1; c <= 3; c++) {
+            const n = r * 3 + c;
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'n ' + colorClass(n);
+            b.setAttribute('data-bet', 'n' + n);
+            b.style.gridColumn = String(2 + c);
+            b.style.gridRow = String(2 + r);
+            b.textContent = String(n);
+            boardGrid.appendChild(b);
+          }
+        }
+
+        /* 右弯道：轮序椭圆，列裁切只露左半 */
+        const race = document.createElement('div');
+        race.className = 'col-race';
+        race.setAttribute('aria-label', '弯道');
+        const oval = document.createElement('div');
+        oval.className = 'race-oval';
+        /* 参考图自上而下：23→8→30…（欧盘逆序） */
+        const start = EU_ORDER.indexOf(23);
+        const raceNums = [];
+        for (let i = 0; i < 19; i++) {
+          const idx = (start - i + EU_ORDER.length) % EU_ORDER.length;
+          raceNums.push(EU_ORDER[idx]);
+        }
+        raceNums.forEach((n) => {
+          const d = document.createElement('button');
+          d.type = 'button';
+          d.className = 'r ' + colorClass(n);
+          d.setAttribute('data-bet', 'n' + n);
+          d.textContent = String(n);
+          oval.appendChild(d);
+        });
+        race.appendChild(oval);
+        boardGrid.appendChild(race);
+      }
+
+      function addDraft(key, amt) {
+        if (phase !== 'betting') return;
+        const a = Math.max(0, Math.round(Number(amt) || 0));
+        if (!key || a <= 0) return;
+        if (availableBal() < a) { toast('积分不足'); return; }
+        draft[key] = (Number(draft[key]) || 0) + a;
+        undoStack.push({ key, amt: a });
+        paintBets();
+      }
+      function undoBet() {
+        const last = undoStack.pop();
+        if (!last) return;
+        draft[last.key] = Math.max(0, (Number(draft[last.key]) || 0) - last.amt);
+        if (!draft[last.key]) delete draft[last.key];
+        paintBets();
+      }
+      function cancelDraft() {
+        draft = Object.create(null);
+        undoStack = [];
+        paintBets();
+      }
+      function confirmBet() {
+        if (phase !== 'betting') return false;
+        const keys = Object.keys(draft).filter((k) => (Number(draft[k]) || 0) > 0);
+        if (!keys.length) { toast('请先选择下注位置'); return false; }
+        const total = sumMap(draft);
+        if (balance < total) { toast('积分不足'); return false; }
+        setBalance(balance - total);
+        keys.forEach((k) => {
+          confirmed[k] = (Number(confirmed[k]) || 0) + (Number(draft[k]) || 0);
+        });
+        draft = Object.create(null);
+        undoStack = [];
+        paintBets();
+        holdPhaseBanner('下注成功', 1400);
+        return true;
+      }
+
+      function evalKey(key, win) {
+        if (key === 'n' + win) return { win: true, mult: 36 };
+        if (key === 'red') return { win: win !== 0 && RED.has(win), mult: 2 };
+        if (key === 'black') return { win: win !== 0 && !RED.has(win), mult: 2 };
+        if (key === 'odd') return { win: win !== 0 && win % 2 === 1, mult: 2 };
+        if (key === 'even') return { win: win !== 0 && win % 2 === 0, mult: 2 };
+        if (key === 'small') return { win: win >= 1 && win <= 18, mult: 2 };
+        if (key === 'big') return { win: win >= 19 && win <= 36, mult: 2 };
+        if (key === 'dozen1') return { win: win >= 1 && win <= 12, mult: 3 };
+        if (key === 'dozen2') return { win: win >= 13 && win <= 24, mult: 3 };
+        if (key === 'dozen3') return { win: win >= 25 && win <= 36, mult: 3 };
+        return { win: false, mult: 0 };
+      }
+      function settle(win) {
+        let returned = 0;
+        Object.keys(confirmed).forEach((k) => {
+          const stake = Number(confirmed[k]) || 0;
+          if (stake <= 0) return;
+          const r = evalKey(k, win);
+          if (r.win) returned += stake * r.mult;
+        });
+        confirmed = Object.create(null);
+        draft = Object.create(null);
+        undoStack = [];
+        if (returned > 0) setBalance(balance + returned);
+        paintBets();
+        if (returned > 0) toast('本局贏 +' + returned, 2000);
+      }
+
+      function angleForNum(n) {
+        const idx = EU_ORDER.indexOf(n);
+        const slot = 360 / EU_ORDER.length;
+        /* 盘面图 0 点朝上附近；停到正上方口袋 */
+        return -idx * slot;
+      }
+      function spinTo(win) {
+        return new Promise((resolve) => {
+          wheelSpin.classList.remove('is-idle');
+          const base = angleForNum(win);
+          const turns = 4 + Math.floor(Math.random() * 2);
+          const target = wheelAngle - (wheelAngle % 360) - turns * 360 + base;
+          wheelAngle = target;
+          if (wheelBallLayer) wheelBallLayer.classList.add('show');
+          if (wheelBallArm) {
+            wheelBallArm.style.transition = 'transform 4.8s cubic-bezier(.12,.7,.08,1)';
+            wheelBallArm.style.transform = 'rotate(' + (target * -1.15) + 'deg)';
+          }
+          wheelSpin.style.transition = 'transform 5.2s cubic-bezier(.12,.7,.08,1)';
+          wheelSpin.style.transform = 'rotate(' + target + 'deg)';
+          setTimeout(() => {
+            if (wheelBallLayer) wheelBallLayer.classList.remove('show');
+            resolve();
+          }, 5400);
+        });
+      }
+
+      async function runRound() {
+        const token = ++timerToken;
+        bumpRound();
+        hideResultBoard();
+        hideRailBall();
+        phase = 'betting';
+        timerLeft = BET_SEC;
+        paintTimer();
+        paintMeta();
+        holdPhaseBanner('开始下注', 1400);
+        wheelSpin.classList.add('is-idle');
+        wheelSpin.style.transition = '';
+
+        while (timerLeft > 0) {
+          await sleep(250);
+          if (token !== timerToken) return;
+          timerLeft -= 0.25;
+          paintTimer();
+        }
+        timerLeft = 0;
+        paintTimer();
+        phase = 'closed';
+        paintMeta();
+        /* 未确定草稿作废 */
+        if (totalDraft() > 0) cancelDraft();
+        await holdPhaseBanner('停止下注', 1800);
+        if (token !== timerToken) return;
+
+        const win = EU_ORDER[Math.floor(Math.random() * EU_ORDER.length)];
+        await spinTo(win);
+        if (token !== timerToken) return;
+        paintResultBoard(win);
+        await rollHistoryRailBall(win);
+        if (token !== timerToken) return;
+        history.unshift(win);
+        if (history.length > 40) history.length = 40;
+        paintHistory();
+        settle(win);
+        phase = 'result';
+        paintMeta();
+        await sleep(1800);
+        if (token !== timerToken) return;
+        runRound();
+      }
+
+      /* chips */
+      document.getElementById('chips').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-chip]');
+        if (!btn) return;
+        const v = btn.getAttribute('data-chip');
+        if (v === 'max') {
+          selected = Math.max(10, availableBal());
+          toast('MAX');
+        } else {
+          selected = Number(v) || 10;
+        }
+        document.querySelectorAll('#chips .chip').forEach((c) => {
+          c.classList.toggle('sel', c === btn || (v !== 'max' && c.getAttribute('data-chip') === String(selected)));
+        });
+        if (v === 'max') btn.classList.add('sel');
+      });
+
+      document.getElementById('boardWrap').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-bet]');
+        if (!btn) return;
+        addDraft(btn.getAttribute('data-bet'), selected);
+      });
+      document.getElementById('btnUndo').addEventListener('click', undoBet);
+      document.getElementById('btnCancel').addEventListener('click', cancelDraft);
+      document.getElementById('btnConfirm').addEventListener('click', confirmBet);
+      document.getElementById('btnBack').addEventListener('click', () => { location.href = 'lobby.html'; });
+      document.getElementById('btnMenu').addEventListener('click', () => { location.href = 'lobby.html'; });
+      document.getElementById('btnLimit').addEventListener('click', () => {
+        toast('限红 20 - 5,000');
+      });
+
+      buildBoard();
+      paintHistory();
+      paintMeta();
+      paintTimer();
+      layoutPcFrame();
+      window.addEventListener('resize', layoutPcFrame);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', layoutPcFrame);
+
+      wallet.hydrate().then((n) => {
+        if (n != null && Number.isFinite(Number(n))) balance = Math.max(0, Math.round(Number(n)));
+        paintMeta();
+      }).catch(() => {});
+
+      runRound();
+    })();
+  </script>
+</body>
+</html>

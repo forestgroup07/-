@@ -208,6 +208,12 @@
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
         url("assets/lobby-thumb.webp?v=v1.0.30") center 30% / cover no-repeat;
     }
+    /* 骰宝卡：同轮盘构图；预览=当前线上游戏整屏实拍（非底图母版） */
+    .card.sicbo .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        url("assets/lobby-sicbo-screen.jpg?v=1.5.1") center 12% / cover no-repeat;
+    }
     .card.roulette .thumb {
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
@@ -288,7 +294,6 @@
       <main class="main">
         <div class="recent" aria-label="最近游玩">
           <div class="pill"><b>S601</b>骰寶</div>
-          <div class="pill"><b>S602</b>骰寶</div>
           <div class="pill"><b>B601</b>百家樂</div>
           <div class="pill"><b>R501</b>輪盤</div>
         </div>
@@ -302,7 +307,8 @@
     (function () {
       const GAME_PC = 'game.html?v=1.5.1';
       const GAME_M = 'game-m.html?v=1.5.0';
-      const ROULETTE = 'roulette.html?v=1.2.10';
+      const ROULETTE_PC = 'roulette.html?v=1.2.11';
+      const ROULETTE_M = 'roulette-m.html?v=1.3.0';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -311,6 +317,7 @@
         return false;
       }
       const GAME = isMobileClient() ? GAME_M : GAME_PC;
+      const ROULETTE = isMobileClient() ? ROULETTE_M : ROULETTE_PC;
       const START_BAL = 2000;
       const ACCOUNT_API = 'api/sicbo-account.php';
       function currentUser() {
@@ -422,9 +429,9 @@
         });
       });
 
+      /* 只删掉重复骰宝厅 S602；其余分类/演示桌文案保留 */
       const tables = [
         { id: 'S601', name: '骰寶 S601', kind: 'sicbo', featured: true, sec: 22 },
-        { id: 'S602', name: '骰寶 S602', kind: 'sicbo', featured: true, sec: 18 },
         { id: 'R501', name: '輪盤 R501', kind: 'roulette', featured: true, sec: 20 },
         { id: 'F701', name: '魚蝦蟹 F701', kind: 'other', sec: 15 },
         { id: 'BB701', name: '牛牛 BB701', kind: 'other', sec: 16 },
@@ -459,6 +466,7 @@
           btn.type = 'button';
           btn.className = 'card'
             + (t.featured ? ' featured' : '')
+            + (t.kind === 'sicbo' ? ' sicbo' : '')
             + (t.kind === 'roulette' ? ' roulette' : '');
           const sub = t.kind === 'sicbo'
             ? '點擊進入骰寶桌'
@@ -482,11 +490,7 @@
           document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
           el.classList.add('active');
           cat = el.dataset.cat;
-          if (cat === 'sicbo') {
-            // 点左侧骰宝：直接进游戏
-            enterSicbo();
-            return;
-          }
+          /* 左侧点分类只筛选列表；进桌点卡片 */
           paint();
         });
       });
