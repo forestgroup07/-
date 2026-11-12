@@ -7,19 +7,14 @@
   <meta name="theme-color" content="#0a1210" />
   <meta name="robots" content="noindex,nofollow" />
   <title>骰宝 S602 · 手机版</title>
-  <!-- 首屏立刻出盅：静态对照图；三维后台加速加载 -->
-  <link rel="preload" as="image" href="assets/LOCKED-cup-mobile-1.2.0.png?v=1.3.3" type="image/png" fetchpriority="high" />
-  <link rel="modulepreload" href="js/vendor/three.module.js?v=0.160.0" />
-  <link rel="modulepreload" href="js/cup-shake-3d.js?v=1.3.3" />
-  <link rel="preload" as="image" href="assets/dice/die-face-1-sm.webp?v=1.3.3" type="image/webp" />
-  <link rel="preload" as="image" href="assets/dice/die-face-2-sm.webp?v=1.3.3" type="image/webp" />
-  <link rel="preload" as="image" href="assets/dice/die-face-3-sm.webp?v=1.3.3" type="image/webp" />
-  <link rel="preload" as="image" href="assets/dice/die-face-4-sm.webp?v=1.3.3" type="image/webp" />
-  <link rel="preload" as="image" href="assets/dice/die-face-5-sm.webp?v=1.3.3" type="image/webp" />
-  <link rel="preload" as="image" href="assets/dice/die-face-6-sm.webp?v=1.3.3" type="image/webp" />
+  <!-- 第一步：与电脑版同款空盅底图 + 三维实心骰 -->
+  <link rel="preload" as="image" href="assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.8" type="image/jpeg" fetchpriority="high" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
+  <link rel="modulepreload" href="js/cup-shake-3d.js?v=1.4.8" />
   <style>
     :root {
       --bg: #0a1210;
+      /* 颜色用我们自己的深绿盘；圆角形式可对标，不跟公司青绿 */
       --teal: #0e3d38;
       --teal2: #12544c;
       --cell: #0f4a43;
@@ -30,7 +25,7 @@
       --muted: #9bb8b0;
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
-      --v: 1.3.3;
+      --v: 1.4.8m18;
       --row-h: 56px;
       --row-gap: 4px;
     }
@@ -55,18 +50,60 @@
       background: linear-gradient(180deg, #07110f 0%, #0b1a17 40%, #0a1412 100%);
     }
 
-    /* —— 顶部：电脑同款红布 + 真三维玻璃罩（不要两侧美女） —— */
+    /* —— 顶部：电脑同款空盅底图 + 三维实心骰（不要两侧美女） —— */
     .stage {
       position: relative;
       height: clamp(220px, 36vh, 300px);
-      background: radial-gradient(ellipse at 50% 40%, #c81828 0%, #8e0c16 55%, #5a060c 100%);
+      background: #5a060c;
       box-shadow:
         inset 0 4px 10px rgba(0, 0, 0, 0.35),
         inset 0 -1px 0 rgba(255, 220, 160, 0.1);
       overflow: hidden;
     }
     .stage::after { display: none; }
-    /* LOCKED-1.1.5 层：与电脑同款；z 低于顶栏/计时器 */
+    /* 与电脑同款 1280×720 盅屏几何：骰相机按此比例投影，才叠得上空盅图 */
+    .video-well {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      width: 100%;
+      aspect-ratio: 1280 / 720;
+      transform: translateY(-50%);
+      z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .video-feed {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      z-index: 1;
+      pointer-events: none;
+      transform: scale(1.12);
+      transform-origin: center center;
+      will-change: transform;
+    }
+    .cup-stereo {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      overflow: visible;
+      transform: scale(1.12);
+      transform-origin: center center;
+      will-change: transform;
+    }
+    .cup-stereo.is-on,
+    .cup-stereo.is-shaking {
+      opacity: 1;
+      visibility: visible;
+    }
     .cup3d-layer {
       position: absolute;
       left: 50%;
@@ -74,13 +111,16 @@
       bottom: 0;
       width: 100%;
       height: 100%;
-      z-index: 1;
+      z-index: 3;
       transform: translateX(-50%);
       pointer-events: none;
       opacity: 0;
       visibility: hidden;
       transition: opacity .15s ease;
-      overflow: visible;
+      overflow: hidden;
+      /* 与电脑 game.html 同款椭圆裁切 */
+      clip-path: ellipse(15.5% 38% at 50.1% 46%);
+      -webkit-clip-path: ellipse(15.5% 38% at 50.1% 46%);
     }
     .cup3d-layer.is-on {
       opacity: 1;
@@ -92,24 +132,6 @@
       display: block;
       border: 0;
       background: transparent !important;
-    }
-    /* 首帧立刻可见：三维就绪后淡出 */
-    .cup-poster-fast {
-      position: absolute;
-      left: 50%;
-      top: 52%;
-      width: min(72%, 280px);
-      height: 92%;
-      transform: translate(-50%, -50%);
-      object-fit: contain;
-      z-index: 2;
-      pointer-events: none;
-      filter: drop-shadow(0 8px 16px rgba(0,0,0,.4));
-      transition: opacity .18s ease;
-    }
-    .cup-poster-fast.is-gone {
-      opacity: 0;
-      visibility: hidden;
     }
     .topbar {
       position: absolute; z-index: 5; left: 0; right: 0; top: 0;
@@ -150,39 +172,57 @@
       font-size: .68rem; color: rgba(255,255,255,.78);
       text-shadow: 0 1px 2px #000;
     }
-    /* 对标：左下角圆环倒计时（进度环随秒数缩短） */
+    /* 电脑同款倒计时：外圈弧+内扇形同收；弧端点随环色（绿/红） */
     .timer {
       --p: 1;
+      --timer-ring: #6fdc4a;
+      --timer-pie: #6fdc4a66;
       position: absolute; z-index: 6;
       left: .55rem; bottom: .5rem; top: auto;
-      transform: none;
       width: 56px; height: 56px; border-radius: 50%;
-      background: rgb(18, 28, 16);
-      box-shadow: 0 4px 12px rgba(0,0,0,.45);
-      display: grid; place-items: center;
-      font-size: 1.4rem; font-weight: 900; font-variant-numeric: tabular-nums;
-      color: #6fff9a;
-      text-shadow: 0 1px 2px rgba(0,0,0,.65);
+      display: flex; align-items: center; justify-content: center;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--timer-ring);
+      text-shadow: 0 1px 2px rgba(0,0,0,.55);
+      pointer-events: none;
+      background:
+        radial-gradient(farthest-side, rgba(8, 12, 8, 0.58) calc(100% - 0.13em), transparent calc(100% - 0.12em)),
+        conic-gradient(var(--timer-ring) calc(var(--p) * 1turn), transparent 0);
     }
     .timer::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: 0.13em;
       border-radius: 50%;
-      background: conic-gradient(#6fff9a calc(var(--p) * 1turn), rgba(40,55,35,.75) 0);
-      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
-              mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 0);
+      background: conic-gradient(var(--timer-pie) calc(var(--p) * 1turn), transparent 0);
       pointer-events: none;
     }
-    .timer > span { position: relative; z-index: 1; }
-    /* 与电脑一致：默认绿，≤10 变红；无黄色中间档 */
-    .timer.closed { color: #aaa; }
-    .timer.closed::before {
-      background: conic-gradient(#888 calc(var(--p) * 1turn), rgba(50,50,50,.75) 0);
+    .timer::after {
+      content: "";
+      position: absolute;
+      width: 11%;
+      height: 11%;
+      border-radius: 50%;
+      background: var(--timer-ring);
+      box-shadow: 0 0 0.08em rgba(0,0,0,.35);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(calc(var(--p) * 360deg)) translateY(-430%);
+      pointer-events: none;
+      z-index: 2;
     }
-    .timer.danger { color: #ff3b3b; }
-    .timer.danger::before {
-      background: conic-gradient(#ff3b3b calc(var(--p) * 1turn), rgba(60,20,20,.75) 0);
+    .timer > span { position: relative; z-index: 1; }
+    .timer.closed {
+      --timer-ring: #888;
+      --timer-pie: #88888866;
+      color: #aaa;
+    }
+    .timer.danger {
+      --timer-ring: #ff3b3b;
+      --timer-pie: #ff3b3b66;
+      color: #ff3b3b;
     }
     .brand-mark {
       position: absolute; z-index: 5; right: .7rem; bottom: .7rem;
@@ -255,8 +295,9 @@
       font-size: .88rem; font-weight: 700;
       opacity: 0; pointer-events: none; transition: opacity .2s;
       white-space: nowrap;
+      visibility: hidden;
     }
-    .toast.show { opacity: 1; }
+    .toast.show { opacity: 1; visibility: visible; }
     /* MAX：对标「下注所有余额」中条 */
     .toast.is-max {
       top: 58%;
@@ -267,6 +308,33 @@
       font-size: .95rem;
       letter-spacing: .12em;
       box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+    }
+    /* 局态三句：开始下注 / 停止下注 / 下注成功（电脑同款金字） */
+    .phase-banner {
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%) scale(.96);
+      z-index: 45;
+      padding: 0.55em 1.25em;
+      border-radius: 0.2em;
+      background: rgba(0,0,0,.62);
+      border: 1px solid rgba(255,220,140,.45);
+      color: #ffe29a;
+      font-size: clamp(1.05rem, 4.2vw, 1.35rem);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .22s ease, transform .22s ease, visibility .22s;
+      text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    }
+    .phase-banner.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
     }
 
     /* —— 下注区：首屏正好 6 整行（键更大），下滑看其余 —— */
@@ -299,31 +367,80 @@
     .row-5 { grid-template-columns: repeat(5, 1fr); }
     .row-6 { grid-template-columns: repeat(6, 1fr); }
     .row-7 { grid-template-columns: repeat(7, 1fr); }
+    .row-8 { grid-template-columns: repeat(8, 1fr); }
     .cell {
       position: relative;
       min-height: 0;
       height: 100%;
       border: 1px solid var(--cell-line);
-      border-radius: 6px;
-      background: linear-gradient(180deg, #146057, #0d3f39);
+      border-radius: 8px;
+      background: rgba(10, 48, 38, 0.92);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 2px;
       padding: .25rem .12rem;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.25);
+      transition: background .12s ease, box-shadow .12s ease;
     }
-    .cell:active { filter: brightness(1.12); }
-    .cell.on { outline: 2px solid var(--gold); outline-offset: -1px; }
+    .cell:active { filter: brightness(1.08); }
+    /* 电脑同款：点选/有注整格变黄 */
+    .cell.on,
+    .cell.has-bet {
+      background: rgba(232, 196, 48, 0.96);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 0 rgba(120,80,0,.22);
+      border-color: rgba(255, 220, 120, .55);
+    }
     .cell.hit { box-shadow: inset 0 0 0 2px #ffe08a, 0 0 12px rgba(255, 200, 80, .45); }
     .cell .lab {
-      font-size: clamp(1.05rem, 4.2vw, 1.35rem); font-weight: 800; color: var(--red);
+      font-size: clamp(1.05rem, 4.2vw, 1.35rem); font-weight: 800; color: #ff8b7a;
       line-height: 1.05; letter-spacing: .04em;
+      -webkit-text-stroke: 0.55px #fff;
+      paint-order: stroke fill;
+    }
+    /* 对标公司：小/单 = 蓝；大/双 = 红（底色仍用我们的） */
+    .cell[data-bet="small"] .lab,
+    .cell[data-bet="odd"] .lab {
+      color: #5ec8ff;
+      text-shadow: 0 0 6px rgba(60, 180, 255, .55);
+    }
+    .cell[data-bet="even"] .lab,
+    .cell[data-bet="big"] .lab {
+      color: #ff6b7a;
+      text-shadow: 0 0 6px rgba(255, 90, 110, .5);
     }
     .cell .odds {
       font-size: clamp(.62rem, 2.6vw, .78rem); color: rgba(255,255,255,.92);
       font-variant-numeric: tabular-nums;
     }
-    .cell.wrap .lab { color: #fff; font-size: clamp(.95rem, 3.8vw, 1.2rem); }
+    .cell.on .odds,
+    .cell.has-bet .odds { color: rgba(40, 28, 8, .85); text-shadow: none; }
+    .cell.wrap .lab {
+      color: #9dffb0;
+      font-size: clamp(.95rem, 3.8vw, 1.2rem);
+      -webkit-text-stroke: 0;
+      text-shadow: none;
+    }
+    .cell.wrap.on .lab,
+    .cell.wrap.has-bet .lab { color: #0a3d28; }
+    /* 对标公司总和：≤10 蓝（小），≥11 红（大） */
+    .cell.sum .lab.lo {
+      color: #5ec8ff;
+      text-shadow: 0 0 6px rgba(60, 180, 255, .55);
+    }
+    .cell.sum .lab.hi {
+      color: #ff6b7a;
+      text-shadow: 0 0 6px rgba(255, 90, 110, .5);
+    }
+    /* 封盘：盘面压暗不可点（电脑停注蒙版同效） */
+    .app.betting-closed .board-wrap {
+      pointer-events: none;
+      filter: brightness(0.55);
+    }
+    .app.betting-closed .chips-rail,
+    .app.betting-closed .act-bar {
+      pointer-events: none;
+      opacity: 0.45;
+    }
     .cell.sum .lab { font-size: clamp(.95rem, 3.6vw, 1.2rem); }
     .cell .die-row {
       display: flex; gap: 3px; align-items: center; justify-content: center;
@@ -333,30 +450,116 @@
       background-size: cover; background-position: center;
       box-shadow: 0 1px 2px rgba(0,0,0,.35);
     }
-    .cell.triple .die { width: calc(var(--row-h) * 0.30); height: calc(var(--row-h) * 0.30); }
-    .cell.combo img {
-      width: calc(var(--row-h) * 0.78) !important;
-      max-height: calc(var(--row-h) * 0.58) !important;
-      height: auto !important;
+    /* 围骰：对标公司品字排 + 白骰（1/4红点） */
+    .cell.triple .die-pin {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      line-height: 0;
     }
-    .cell.face .die { width: calc(var(--row-h) * 0.52); height: calc(var(--row-h) * 0.52); }
-    .cell.double .die { width: calc(var(--row-h) * 0.36); height: calc(var(--row-h) * 0.36); }
-    .chip-on {
-      position: absolute; right: 2px; bottom: 2px;
-      min-width: 22px; height: 18px; padding: 0 4px;
-      border-radius: 9px;
-      background: radial-gradient(circle at 30% 30%, #ffe9a8, #c9973a 72%);
-      color: #2a1a05; font-size: .58rem; font-weight: 800;
-      display: grid; place-items: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,.4);
+    .cell.triple .pin-top {
+      display: flex;
+      justify-content: center;
+    }
+    .cell.triple .pin-bot {
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+    }
+    .cell.triple .die {
+      width: calc(var(--row-h) * 0.28);
+      height: calc(var(--row-h) * 0.28);
+      border-radius: 3px;
+      background-color: #f4f4f4;
+      box-shadow: 0 1px 1px rgba(0,0,0,.28);
+    }
+    /* 对子组合：上下两枚白骰，无赔率字；加大一号并拉开间距 */
+    .cell.combo .die-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      line-height: 0;
+    }
+    .cell.combo .die {
+      width: calc(var(--row-h) * 0.42);
+      height: calc(var(--row-h) * 0.42);
+      border-radius: 3px;
+      background-color: #f4f4f4;
+      box-shadow: 0 1px 1px rgba(0,0,0,.28);
+    }
+    /* 组合两排末：对标公司深色渐变横条 + 1 x 5 */
+    .odds-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      margin: 1px 0 3px;
+      border-radius: 3px;
+      background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.08) 0%,
+        rgba(0, 0, 0, 0.42) 28%,
+        rgba(0, 0, 0, 0.58) 50%,
+        rgba(0, 0, 0, 0.42) 72%,
+        rgba(0, 0, 0, 0.08) 100%
+      );
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
       pointer-events: none;
     }
-    .chip-on.draft {
-      background: radial-gradient(circle at 30% 30%, #b8f0a0, #3cb85a 72%);
-      color: #06240c;
+    .odds-bar span {
+      color: #fff;
+      font-size: clamp(0.68rem, 2.8vw, 0.82rem);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+    }
+    .odds-bar.odds-bar-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      height: 24px;
+      padding: 0 4px;
+    }
+    .odds-bar.odds-bar-3 span {
+      text-align: center;
+      font-size: clamp(0.62rem, 2.5vw, 0.78rem);
+      letter-spacing: 0.02em;
+    }
+    /* 对子：白骰横排 + 1 x 8 */
+    .cell.double .die-row { gap: 4px; }
+    .cell.double .die {
+      width: calc(var(--row-h) * 0.36);
+      height: calc(var(--row-h) * 0.36);
+      border-radius: 3px;
+      background-color: #f4f4f4;
+      box-shadow: 0 1px 1px rgba(0,0,0,.28);
+    }
+    /* 单骰面：2×3，白骰加大，格内无赔率 */
+    .cell.face .die {
+      width: calc(var(--row-h) * 0.58);
+      height: calc(var(--row-h) * 0.58);
+      border-radius: 4px;
+      background-color: #f4f4f4;
+      box-shadow: 0 1px 2px rgba(0,0,0,.3);
+    }
+    /* 盘上落注：学电脑版居中筹码图（不用公司角标数字） */
+    .cell .bet-chip {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      width: calc(var(--row-h) * 0.52);
+      height: auto;
+      max-width: 42px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 4;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
     }
     .float-plus {
-      position: absolute; left: 50%; top: 18%;
+      position: absolute; left: 50%; top: 10%;
       transform: translate(-50%, 0);
       color: #7CFF7A; font-weight: 900; font-size: .78rem;
       text-shadow: 0 1px 2px rgba(0,0,0,.65);
@@ -369,38 +572,48 @@
       100% { opacity: 0; transform: translate(-50%, -18px); }
     }
 
-    /* 确认条：点筹码后出现，对标三键 */
+    /* 确认三键：对标公司浅黄胶囊，叠在盘底 / 信息条上方 */
     .act-bar {
       display: none;
       position: absolute;
       left: 50%;
-      bottom: calc(100% + 8px);
+      bottom: calc(100% - 2px);
       transform: translateX(-50%);
       z-index: 40;
-      width: min(92%, 340px);
-      padding: 7px 8px;
-      border-radius: 12px;
-      background: rgba(12, 28, 24, .55);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      box-shadow: 0 6px 18px rgba(0,0,0,.35);
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
+      width: min(88%, 360px);
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      grid-template-columns: 1fr 1.28fr 1fr;
+      gap: 10px;
+      pointer-events: none;
     }
     .act-bar.show { display: grid; }
     .act-btn {
-      height: 48px;
-      border-radius: 10px;
-      background: linear-gradient(180deg, #f3e2a8, #e2c56a 55%, #c9a84a);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 2px 4px rgba(0,0,0,.28);
+      height: 46px;
+      border-radius: 999px;
+      padding: 0;
+      overflow: visible;
+      pointer-events: auto;
+      background: linear-gradient(180deg, #fff4b8 0%, #f7e68a 48%, #efd66a 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 -1px 0 rgba(180, 140, 40, 0.28),
+        0 3px 8px rgba(0, 0, 0, 0.28);
       display: grid;
       place-items: center;
     }
-    .act-btn:active { filter: brightness(1.06); transform: scale(.98); }
-    .act-btn svg { width: 28px; height: 28px; display: block; }
-    .act-btn.ok {
-      background: linear-gradient(180deg, #ffe9a0, #f0d060 50%, #d4b040);
+    .act-btn:active { filter: brightness(1.04); transform: scale(.98); }
+    .act-btn .act-ico {
+      width: 28px;
+      height: 28px;
+      display: block;
+      pointer-events: none;
     }
+    .act-btn#btnUndo .act-ico { width: 30px; height: 30px; }
+    .act-btn#btnConfirm .act-ico { width: 30px; height: 30px; }
 
     /* —— 底栏 —— */
     .dock {
@@ -421,14 +634,39 @@
       background: rgba(0,0,0,.25);
     }
     .bal-wrap {
-      display: flex; align-items: center; gap: .35rem;
-      font-weight: 800; font-variant-numeric: tabular-nums;
-      color: var(--gold2); font-size: .92rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      min-width: 0;
+      line-height: 1.15;
+    }
+    .bal-wrap .bal-user {
+      color: rgba(255, 255, 255, 0.92);
+      font-size: clamp(0.62rem, 2.6vw, 0.74rem);
+      font-weight: 600;
+      max-width: 9em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    }
+    .bal-wrap .bal-amt {
+      display: flex;
+      align-items: center;
+      gap: .28rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: #fff;
+      font-size: .92rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
     }
     .bal-wrap .c {
-      width: 18px; height: 18px; border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ffe9a8, #c9973a 70%);
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.25);
+      width: 16px; height: 16px; border-radius: 50%;
+      flex: 0 0 16px;
+      background: radial-gradient(circle at 30% 30%, #e8f7ef, #7ecf9a 55%, #3a9a6a 78%);
+      box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35), 0 0 0 1px rgba(0,0,0,.25);
     }
     .stake-wrap {
       display: flex; align-items: center; gap: .25rem;
@@ -578,18 +816,19 @@
           <button type="button" class="ico" id="btnMenu" aria-label="菜单">≡</button>
         </div>
       </div>
+      <div class="video-well" id="videoWell">
+        <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.8" alt="" width="1280" height="720" decoding="async" fetchpriority="high" draggable="false" />
+        <div class="cup-stereo" id="cupStereo" aria-hidden="true">
+          <div class="cup3d-layer" id="cup3dLayer" aria-hidden="true">
+            <canvas id="cup3dCanvas" width="768" height="768" aria-hidden="true"></canvas>
+          </div>
+        </div>
+      </div>
       <div class="round-id" id="roundId">局号: —</div>
       <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
-      <img class="cup-poster-fast" id="cupPosterFast" src="assets/LOCKED-cup-mobile-1.2.0.png?v=1.3.3" alt="" decoding="async" fetchpriority="high" draggable="false" width="360" height="520" />
-      <div class="cup3d-layer is-on" id="cup3dLayer" aria-hidden="false">
-        <canvas id="cup3dCanvas" width="512" height="512" aria-hidden="true"
-          data-lite="1"
-          data-face-tpl="die-face-{n}-sm.webp"
-          data-face-ver="1.2.1"
-          data-asset-base="assets/dice"></canvas>
-      </div>
       <div class="result-dice" id="resultDice" aria-live="polite"></div>
       <div class="brand-mark"><span class="dot">↻</span>骰宝</div>
+      <div class="phase-banner" id="phaseBanner" aria-live="polite"></div>
       <div class="toast" id="toast"></div>
     </header>
 
@@ -607,35 +846,47 @@
         <div class="row row-6" id="rowTriple"></div>
         <div class="row row-7" id="rowSumA"></div>
         <div class="row row-7" id="rowSumB"></div>
-        <div class="row row-5" id="rowComboA"></div>
-        <div class="row row-5" id="rowComboB"></div>
-        <div class="row row-5" id="rowComboC"></div>
+        <div class="row row-7" id="rowComboA"></div>
+        <div class="row row-8" id="rowComboB"></div>
+        <div class="odds-bar" aria-hidden="true"><span>1 x 5</span></div>
         <div class="row row-6" id="rowDouble"></div>
-        <div class="row row-6" id="rowFace"></div>
+        <div class="row row-3" id="rowFaceA"></div>
+        <div class="row row-3" id="rowFaceB"></div>
+        <div class="odds-bar odds-bar-3" aria-hidden="true">
+          <span>单骰 1 x 1</span>
+          <span>双骰 1 x 2</span>
+          <span>三骰 1 x 3</span>
+        </div>
       </div>
     </main>
 
     <footer class="dock">
       <div class="act-bar" id="actBar" aria-label="下注操作">
-        <button type="button" class="act-btn" id="btnUndo" aria-label="返回">
-          <svg viewBox="0 0 48 48" aria-hidden="true">
-            <path d="M18 14v-5L6 21l12 12v-6c10 0 17 3 21 10-1-12-8-18-21-18z" fill="#22c55e"/>
+        <button type="button" class="act-btn" id="btnUndo" aria-label="撤销">
+          <!-- 对标公司：实心绿弯回箭头（撤销） -->
+          <svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#22c55e" d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62C8.77 11.22 10.54 10.5 12.5 10.5c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
           </svg>
         </button>
-        <button type="button" class="act-btn ok" id="btnConfirm" aria-label="确认">
-          <svg viewBox="0 0 48 48" aria-hidden="true">
-            <path d="M10 25l9 9 19-21" fill="none" stroke="#16a34a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <button type="button" class="act-btn" id="btnConfirm" aria-label="确定">
+          <svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+              d="M5 12.5l4.5 4.5L19 7" />
           </svg>
         </button>
         <button type="button" class="act-btn" id="btnCancel" aria-label="取消">
-          <svg viewBox="0 0 48 48" aria-hidden="true">
-            <path d="M14 14l20 20M34 14L14 34" fill="none" stroke="#e11d48" stroke-width="6" stroke-linecap="round"/>
+          <svg class="act-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round"
+              d="M7 7l10 10M17 7L7 17" />
           </svg>
         </button>
       </div>
       <div class="dock-meta">
         <button type="button" class="limit-pill" id="btnLimit">10 - 5,000 ▾</button>
-        <div class="bal-wrap"><span class="c"></span><span id="balText">0.00</span></div>
+        <div class="bal-wrap">
+          <span class="bal-user" id="balUser">—</span>
+          <span class="bal-amt"><span class="c" aria-hidden="true"></span><span id="balText">0.00</span></span>
+        </div>
         <div class="stake-wrap"><span class="ico-coin">🪙</span><span id="stakeText">0</span></div>
       </div>
       <div class="dock-actions">
@@ -694,25 +945,30 @@
   <script type="importmap">
   {
     "imports": {
-      "three": "./js/vendor/three.module.js?v=0.160.0"
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.3.3"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.4.8"></script>
   <script src="js/sicbo-engine.js?v=1.2.1"></script>
-  <script src="js/fg-wallet.js?v=1.0.1"></script>
+  <script src="js/fg-wallet.js?v=1.0.2"></script>
   <script>
   (function () {
     'use strict';
-    const V = '1.3.3';
+    const V = '1.4.8m18';
     const START_BAL = 2000;
     const TABLE_MIN = 10;
     const TABLE_MAX = 5000;
     const BET_SEC = 22;
+    const PHASE_HOLD_MS = 5000;
+    const STOP_BET_HOLD_MS = 3000;
     const ACCOUNT_API = 'api/sicbo-account.php';
     const E = window.SicboEngine;
     /* 小图预载：开奖瞬间秒出（对标 oneroyal 做法） */
     const dieSrc = (n) => `assets/dice/die-face-${n}-sm.webp?v=${V}`;
+    /* 围骰行专用：白底经典点色（1/4 红，其余黑） */
+    const classicDieSrc = (n) => `assets/dice/board-classic/die-face-${n}.png?v=${V}`;
     const comboSrc = (a, b) => `assets/pair-dice/c${a}${b}.webp?v=${V}`;
     const DIE_CACHE = Object.create(null);
     function warmDieFaces() {
@@ -769,7 +1025,12 @@
     }
     function saveBal(uid, n) {
       const v = wallet.writeLocal(n);
-      scheduleServerSave({ balance: v });
+      /* 水合后立刻上报（keepalive），避免手机输赢只留在本机、电脑刷新看不到 */
+      if (wallet.isHydrated()) {
+        wallet.post({ balance: v }, true);
+      } else {
+        scheduleServerSave({ balance: v });
+      }
       return v;
     }
     async function hydrateAccountFromServer() {
@@ -1015,14 +1276,32 @@
     const elTimer = document.getElementById('timer');
     const elTimerNum = document.getElementById('timerNum');
     const elBal = document.getElementById('balText');
+    const elBalUser = document.getElementById('balUser');
+    if (elBalUser) elBalUser.textContent = user;
     const elStake = document.getElementById('stakeText');
     const elRound = document.getElementById('roundId');
     const elResult = document.getElementById('resultDice');
     const elToast = document.getElementById('toast');
+    const elPhase = document.getElementById('phaseBanner');
     const sheet = document.getElementById('sheet');
+    let phaseBannerToken = 0;
 
     function fmt(n) {
       return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function sleep(ms) {
+      return new Promise((r) => setTimeout(r, ms));
+    }
+    function hideToast() {
+      clearTimeout(toast._t);
+      toast._t = null;
+      if (elToast) {
+        elToast.classList.remove('show', 'is-max');
+      }
+    }
+    function hidePhaseBanner() {
+      phaseBannerToken += 1;
+      if (elPhase) elPhase.classList.remove('show');
     }
     function toast(msg, opts) {
       const o = opts || {};
@@ -1031,9 +1310,27 @@
       elToast.classList.add('show');
       clearTimeout(toast._t);
       toast._t = setTimeout(() => {
+        toast._t = null;
         elToast.classList.remove('show');
         elToast.classList.remove('is-max');
       }, o.ms || (o.max ? 1800 : 1400));
+    }
+    /** 局态三句：与杂讯 toast 分开，停止下注前会收掉成功提示 */
+    async function holdPhaseBanner(text, holdMs) {
+      const ms = holdMs != null ? holdMs : PHASE_HOLD_MS;
+      const token = ++phaseBannerToken;
+      if (text === '停止下注') hideToast();
+      if (!elPhase) {
+        await sleep(ms);
+        return;
+      }
+      elPhase.classList.remove('show');
+      elPhase.textContent = text || '';
+      void elPhase.offsetWidth;
+      elPhase.classList.add('show');
+      await sleep(ms);
+      if (token !== phaseBannerToken) return;
+      if (elPhase.textContent === text) elPhase.classList.remove('show');
     }
     function sumMap(m) {
       return Object.keys(m || {}).reduce((s, k) => s + (m[k] || 0), 0);
@@ -1044,8 +1341,10 @@
       return balance - totalDraft();
     }
     function paintActBar() {
-      const on = totalDraft() > 0 && phase === 'betting';
+      const betting = phase === 'betting';
+      const on = totalDraft() > 0 && betting;
       actBar.classList.toggle('show', on);
+      document.getElementById('app').classList.toggle('betting-closed', !betting);
     }
     function paintMeta() {
       elBal.textContent = fmt(balance);
@@ -1053,8 +1352,18 @@
       elRound.textContent = '局号: ' + roundNo;
       paintActBar();
     }
-    function fmtChip(amt) {
-      return amt >= 1000 ? (amt / 1000).toFixed(amt % 1000 ? 1 : 0) + 'k' : String(amt);
+    const CHIP_DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+    function chipArtFor(stake) {
+      let d = CHIP_DENOMS[0];
+      for (let i = 0; i < CHIP_DENOMS.length; i++) {
+        const n = CHIP_DENOMS[i];
+        if (n <= stake) d = n;
+        else break;
+      }
+      return d;
+    }
+    function chipSrc(n) {
+      return 'chips/chip-' + n + '.webp?v=' + V;
     }
     function paintChipsOnCells() {
       document.querySelectorAll('.cell[data-bet]').forEach((btn) => {
@@ -1062,19 +1371,23 @@
         const cAmt = confirmed[key] || 0;
         const dAmt = draft[key] || 0;
         const amt = cAmt + dAmt;
-        let badge = btn.querySelector('.chip-on');
+        let chip = btn.querySelector('.bet-chip');
+        btn.querySelectorAll('.chip-on').forEach((el) => el.remove());
         if (amt > 0) {
-          if (!badge) {
-            badge = document.createElement('span');
-            badge.className = 'chip-on';
-            btn.appendChild(badge);
+          if (!chip) {
+            chip = document.createElement('img');
+            chip.className = 'bet-chip';
+            chip.alt = '';
+            chip.draggable = false;
+            btn.appendChild(chip);
           }
-          badge.textContent = fmtChip(amt);
-          badge.classList.toggle('draft', dAmt > 0 && cAmt === 0);
-          btn.classList.add('on');
+          const src = chipSrc(chipArtFor(amt));
+          if (chip.getAttribute('src') !== src) chip.src = src;
+          btn.classList.toggle('on', dAmt > 0);
+          btn.classList.toggle('has-bet', cAmt > 0);
         } else {
-          if (badge) badge.remove();
-          btn.classList.remove('on');
+          if (chip) chip.remove();
+          btn.classList.remove('on', 'has-bet');
         }
       });
     }
@@ -1092,6 +1405,12 @@
       d.style.backgroundImage = `url('${dieSrc(n)}')`;
       return d;
     }
+    function makeClassicDie(n) {
+      const d = document.createElement('span');
+      d.className = 'die';
+      d.style.backgroundImage = `url('${classicDieSrc(n)}')`;
+      return d;
+    }
     function fillTriples() {
       const row = document.getElementById('rowTriple');
       for (let n = 1; n <= 6; n++) {
@@ -1099,12 +1418,18 @@
         btn.type = 'button';
         btn.className = 'cell triple';
         btn.dataset.bet = 't' + n;
-        const rowEl = document.createElement('span');
-        rowEl.className = 'die-row';
-        rowEl.appendChild(makeDie(n));
-        rowEl.appendChild(makeDie(n));
-        rowEl.appendChild(makeDie(n));
-        btn.appendChild(rowEl);
+        const pin = document.createElement('span');
+        pin.className = 'die-pin';
+        const top = document.createElement('span');
+        top.className = 'pin-top';
+        top.appendChild(makeClassicDie(n));
+        const bot = document.createElement('span');
+        bot.className = 'pin-bot';
+        bot.appendChild(makeClassicDie(n));
+        bot.appendChild(makeClassicDie(n));
+        pin.appendChild(top);
+        pin.appendChild(bot);
+        btn.appendChild(pin);
         const odds = document.createElement('span');
         odds.className = 'odds';
         odds.textContent = '1 x 150';
@@ -1123,7 +1448,7 @@
           btn.type = 'button';
           btn.className = 'cell sum';
           btn.dataset.bet = 's' + n;
-          btn.innerHTML = `<span class="lab">${n}</span><span class="odds">1 x ${oddsMap[n]}</span>`;
+          btn.innerHTML = `<span class="lab ${n <= 10 ? 'lo' : 'hi'}">${n}</span><span class="odds">1 x ${oddsMap[n]}</span>`;
           row.appendChild(btn);
         });
       }
@@ -1135,29 +1460,25 @@
       btn.type = 'button';
       btn.className = 'cell combo';
       btn.dataset.bet = 'c' + a + b;
-      const img = document.createElement('img');
-      img.src = comboSrc(a, b);
-      img.alt = a + '·' + b;
-      img.draggable = false;
-      img.style.objectFit = 'contain';
-      btn.appendChild(img);
-      const odds = document.createElement('span');
-      odds.className = 'odds';
-      odds.textContent = '1 x 5';
-      btn.appendChild(odds);
+      btn.setAttribute('aria-label', a + '·' + b + ' 1x5');
+      const stack = document.createElement('span');
+      stack.className = 'die-stack';
+      stack.appendChild(makeClassicDie(a));
+      stack.appendChild(makeClassicDie(b));
+      btn.appendChild(stack);
+      /* 对标公司：格内不显示 1 x 5 */
       return btn;
     }
     function fillCombos() {
-      /* 15 对拆 5+5+5，避免最后一行只 3 格留下空洞 */
+      /* 对标公司两排：7 + 8 = 15 对 */
       const all = [
         [1,2],[1,3],[1,4],[1,5],[1,6],
         [2,3],[2,4],[2,5],[2,6],[3,4],
         [3,5],[3,6],[4,5],[4,6],[5,6],
       ];
       const chunks = [
-        { id: 'rowComboA', list: all.slice(0, 5) },
-        { id: 'rowComboB', list: all.slice(5, 10) },
-        { id: 'rowComboC', list: all.slice(10, 15) },
+        { id: 'rowComboA', list: all.slice(0, 7) },
+        { id: 'rowComboB', list: all.slice(7, 15) },
       ];
       chunks.forEach(({ id, list }) => {
         const row = document.getElementById(id);
@@ -1173,8 +1494,8 @@
         btn.dataset.bet = 'd' + n;
         const rowEl = document.createElement('span');
         rowEl.className = 'die-row';
-        rowEl.appendChild(makeDie(n));
-        rowEl.appendChild(makeDie(n));
+        rowEl.appendChild(makeClassicDie(n));
+        rowEl.appendChild(makeClassicDie(n));
         btn.appendChild(rowEl);
         const odds = document.createElement('span');
         odds.className = 'odds';
@@ -1184,21 +1505,17 @@
       }
     }
     function fillFaces() {
-      const row = document.getElementById('rowFace');
+      /* 对标公司：上 1–3 / 下 4–6；赔率说明在底部渐变条 */
+      const a = document.getElementById('rowFaceA');
+      const b = document.getElementById('rowFaceB');
       for (let n = 1; n <= 6; n++) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'cell face';
         btn.dataset.bet = 'f' + n;
-        const rowEl = document.createElement('span');
-        rowEl.className = 'die-row';
-        rowEl.appendChild(makeDie(n));
-        btn.appendChild(rowEl);
-        const odds = document.createElement('span');
-        odds.className = 'odds';
-        odds.textContent = '1 x 1';
-        btn.appendChild(odds);
-        row.appendChild(btn);
+        btn.setAttribute('aria-label', '骰面 ' + n);
+        btn.appendChild(makeClassicDie(n));
+        (n <= 3 ? a : b).appendChild(btn);
       }
     }
     fillTriples();
@@ -1295,7 +1612,9 @@
       undoStack = [];
       paintMeta();
       paintChipsOnCells();
-      toast('下注成功');
+      /* 临近收盘只闪一下，避免与马上到来的「停止下注」叠字 */
+      const okMs = secLeft <= 1 ? 480 : secLeft <= 3 ? 900 : secLeft <= 5 ? 1600 : PHASE_HOLD_MS;
+      void holdPhaseBanner('下注成功', okMs);
       Voice.speak('betOk');
     }
 
@@ -1451,8 +1770,8 @@
         return;
       }
       try {
+        /* 与电脑版一致：摇完停在盅内落点，不 hide 收掉 */
         await window.CupShake3D.play(faces);
-        if (window.CupShake3D.hide) window.CupShake3D.hide();
       } catch (_) {
         await new Promise((r) => setTimeout(r, 400));
       }
@@ -1465,8 +1784,6 @@
       draft = Object.create(null);
       undoStack = [];
       paintActBar();
-      toast('停止下注');
-      Voice.speak('stopBet');
       const dice = E.rollDice();
       const bets = Object.assign({}, confirmed);
       const hasBets = totalConfirmed() > 0;
@@ -1497,10 +1814,13 @@
       };
 
       (async () => {
+        hideToast();
+        Voice.speak('stopBet');
+        await holdPhaseBanner('停止下注', STOP_BET_HOLD_MS);
         try {
           await playCup3D(dice);
         } catch (_) {
-          await new Promise((r) => setTimeout(r, 400));
+          await sleep(400);
         }
         runSettle();
       })();
@@ -1514,7 +1834,9 @@
       secLeft = BET_SEC;
       paintMeta();
       setTimerFace(secLeft);
-      toast('已开局，请下注');
+      hideToast();
+      /* 与倒计时并行：开始下注留屏，不挡开秒 */
+      void holdPhaseBanner('开始下注', PHASE_HOLD_MS);
       kickTableVoice(true);
     }
 
@@ -1529,16 +1851,23 @@
       if (secLeft <= 0) lockAndReveal();
     }
 
-    function hideCupPosterFast() {
-      const p = document.getElementById('cupPosterFast');
-      if (p) p.classList.add('is-gone');
+    /* 空盅底图常显；三维就绪后叠骰并强制 resize（对齐电脑屏比例） */
+    function syncCupIdle() {
+      if (!(window.CupShake3D && window.CupShake3D.ready)) return;
+      if (window.CupShake3D.showIdle) window.CupShake3D.showIdle();
+      if (window.CupShake3D.resize) window.CupShake3D.resize();
     }
-    window.addEventListener('cup3d-ready', hideCupPosterFast);
-    if (window.CupShake3D && window.CupShake3D.ready) hideCupPosterFast();
-    /* 三维若失败，静态罩继续留着，不能空白 */
+    window.addEventListener('cup3d-ready', syncCupIdle);
+    syncCupIdle();
+    window.addEventListener('resize', () => {
+      if (window.CupShake3D && window.CupShake3D.resize) window.CupShake3D.resize();
+    });
     window.addEventListener('cup3d-failed', () => {
-      const p = document.getElementById('cupPosterFast');
-      if (p) p.classList.remove('is-gone');
+      const feed = document.getElementById('videoFeed');
+      if (feed) {
+        feed.style.opacity = '1';
+        feed.style.visibility = 'visible';
+      }
     });
 
     Voice.init();
@@ -1591,7 +1920,7 @@
       onShow: () => { softPullBalance(); },
     });
     hydrateAccountFromServer();
-    toast('已开局，请下注');
+    void holdPhaseBanner('开始下注', PHASE_HOLD_MS);
     kickTableVoice(false);
     timerId = setInterval(tick, 1000);
     requestAnimationFrame(() => {
