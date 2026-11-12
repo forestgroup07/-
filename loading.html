@@ -2,54 +2,56 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 載入中</title>
+  <link rel="preload" as="image" href="assets/loading-posters/lucky-pc.jpg?v=1.5.1" type="image/jpeg" />
+  <link rel="preload" as="image" href="assets/loading-posters/sanbao-pc.jpg?v=1.5.1" type="image/jpeg" />
+  <link rel="preload" as="image" href="assets/loading-posters/lucky-m.jpg?v=1.5.1" type="image/jpeg" />
+  <link rel="preload" as="image" href="assets/loading-posters/sanbao-m.jpg?v=1.5.1" type="image/jpeg" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
     .load {
       position: relative;
-      width: 100%; height: 100%;
-      background: #050505 url("assets/ref-loading.jpg?v=v1.0.30") center / cover no-repeat;
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: #000;
+      overflow: hidden;
     }
-    /* 手机：单张竖版整图，不再拼多图 */
-    .load.is-m {
-      background: #050505 url("assets/loading-poster-m.jpg?v=1.2.1m") center top / cover no-repeat;
-    }
-    .load::after {
-      content: "";
-      position: absolute; inset: 0;
-      background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.72) 100%);
-      pointer-events: none;
-    }
-    .load.is-m::after {
-      /* 海报自带底部文案区，只轻微压暗保证进度条可读 */
-      background: linear-gradient(180deg, transparent 78%, rgba(0,0,0,.55) 100%);
+    .load > .poster {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+      background: #000;
     }
     .bar-wrap {
       position: absolute;
       left: 50%;
-      bottom: 7%;
+      bottom: max(3.2%, env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%);
       z-index: 2;
       width: min(640px, 86vw);
       text-align: center;
-    }
-    .load.is-m .bar-wrap {
-      bottom: 3.2%;
-      width: min(420px, 88vw);
+      pointer-events: none;
     }
     .bar {
-      height: 6px;
+      height: 5px;
       border-radius: 999px;
-      background: rgba(255,255,255,.14);
+      background: rgba(255,255,255,.16);
       overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(212,176,106,.25);
-    }
-    .load.is-m .bar {
-      height: 4px;
-      background: rgba(255,255,255,.18);
+      box-shadow: 0 0 0 1px rgba(212,176,106,.28);
     }
     .bar > i {
       display: block;
@@ -57,25 +59,20 @@
       width: 0%;
       border-radius: inherit;
       background: linear-gradient(90deg, #c9973a, #f0d392, #ffe9a8);
-      transition: width .05s linear;
     }
     .txt {
-      margin-top: .55rem;
-      color: #f0d392;
+      margin-top: .45rem;
+      color: #f5e6c8;
       font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
       font-size: clamp(12px, 1.6vw, 15px);
       letter-spacing: 0.12em;
-      text-shadow: 0 2px 8px rgba(0,0,0,.7);
-    }
-    .load.is-m .txt {
-      margin-top: .4rem;
-      font-size: clamp(11px, 3.2vw, 13px);
-      color: #f5e6c8;
+      text-shadow: 0 2px 8px rgba(0,0,0,.85);
     }
   </style>
 </head>
 <body>
   <div class="load" id="load">
+    <img class="poster" id="poster" alt="" decoding="async" fetchpriority="high" />
     <div class="bar-wrap">
       <div class="bar"><i id="fill"></i></div>
       <div class="txt" id="txt">進入遊戲中... 0%</div>
@@ -90,7 +87,6 @@
         }
       } catch (_) { /* ignore */ }
 
-      const loadEl = document.getElementById('load');
       const isMobile = (function () {
         try {
           if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches) return true;
@@ -98,23 +94,74 @@
         const ua = navigator.userAgent || '';
         return /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
       })();
-      if (isMobile && loadEl) loadEl.classList.add('is-m');
 
+      /* 电脑横屏：幸运轮 ↔ 财富三宝；手机竖屏：同两套竖版；强制轮换 */
+      const POSTERS = isMobile
+        ? [
+            'assets/loading-posters/lucky-m.jpg?v=1.5.1',
+            'assets/loading-posters/sanbao-m.jpg?v=1.5.1'
+          ]
+        : [
+            'assets/loading-posters/lucky-pc.jpg?v=1.5.1',
+            'assets/loading-posters/sanbao-pc.jpg?v=1.5.1'
+          ];
+      const KEY = isMobile ? 'fg_load_poster_idx_m' : 'fg_load_poster_idx_pc';
+
+      function readLast() {
+        try {
+          const s = sessionStorage.getItem(KEY);
+          if (s === '0' || s === '1') return Number(s);
+        } catch (_) {}
+        try {
+          const s = localStorage.getItem(KEY);
+          if (s === '0' || s === '1') return Number(s);
+        } catch (_) {}
+        return -1;
+      }
+      function writeLast(n) {
+        const v = String(n);
+        try { sessionStorage.setItem(KEY, v); } catch (_) {}
+        try { localStorage.setItem(KEY, v); } catch (_) {}
+      }
+
+      const last = readLast();
+      const idx = last === 0 ? 1 : 0;
+      writeLast(idx);
+
+      const url = POSTERS[idx];
+      const poster = document.getElementById('poster');
       const fill = document.getElementById('fill');
       const txt = document.getElementById('txt');
-      const LOBBY = 'lobby.html?v=v1.2.1b';
-      const duration = 1600;
-      const t0 = performance.now();
+      const LOBBY = 'lobby.html?v=1.5.1';
+      const HOLD_MS = 2000;
+      let started = false;
 
-      function frame(now) {
-        const p = Math.min(1, (now - t0) / duration);
-        const pct = Math.round(p * 100);
-        fill.style.width = pct + '%';
-        txt.textContent = '進入遊戲中... ' + pct + '%';
-        if (p < 1) requestAnimationFrame(frame);
-        else location.replace(LOBBY);
+      function startProgress() {
+        if (started) return;
+        started = true;
+        const t0 = performance.now();
+        function frame(now) {
+          const p = Math.min(1, (now - t0) / HOLD_MS);
+          const pct = Math.round(p * 100);
+          fill.style.width = pct + '%';
+          txt.textContent = '進入遊戲中... ' + pct + '%';
+          if (p < 1) requestAnimationFrame(frame);
+          else location.replace(LOBBY);
+        }
+        requestAnimationFrame(frame);
       }
-      requestAnimationFrame(frame);
+
+      poster.onload = function () {
+        if (poster.decode) {
+          poster.decode().then(startProgress).catch(startProgress);
+        } else startProgress();
+      };
+      poster.onerror = startProgress;
+      poster.src = url;
+      if (poster.complete && poster.naturalWidth) startProgress();
+
+      const other = new Image();
+      other.src = POSTERS[1 - idx];
     })();
   </script>
 </body>

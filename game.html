@@ -7,8 +7,8 @@
   <title>Forest Group · 骰宝</title>
   <!-- 只预加载台面主图；筹码很小，随页面异步即可，避免抢带宽 -->
   <link rel="preload" as="image" href="pc-full-v111.jpg?v=1.4.3" type="image/jpeg" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=1.4.8" type="image/webp" />
-  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=1.4.8" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/atlas.webp?v=1.5.1" type="image/webp" />
+  <link rel="preload" as="image" href="assets/pair-dice/left-atlas.webp?v=1.5.1" type="image/webp" />
   <link rel="preload" as="image" href="assets/pair-dice/sum-atlas.webp?v=1.4.3" type="image/webp" />
   <style>
     :root {
@@ -1483,7 +1483,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/atlas.webp?v=1.4.8");
+      background-image: url("assets/pair-dice/atlas.webp?v=1.5.1");
       background-repeat: no-repeat;
       background-size: 2100% 100%;
     }
@@ -1529,7 +1529,7 @@
       z-index: 1;
       pointer-events: none;
       opacity: 0;
-      background-image: url("assets/pair-dice/left-atlas.webp?v=1.4.8");
+      background-image: url("assets/pair-dice/left-atlas.webp?v=1.5.1");
       background-repeat: no-repeat;
       background-size: 1200% 100%;
     }
@@ -3103,7 +3103,7 @@
       <div class="video-bezel" id="videoBezel" aria-label="视频屏">
         <div class="video-well">
           <picture>
-            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.8" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:1" />
+            <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.5.1" alt="" width="1280" height="720" decoding="async" draggable="false" style="opacity:1" />
           </picture>
           <div class="timer" id="timer" style="--p:1"><span id="timerNum">22</span></div>
           <div class="video-blank" id="videoBlank" aria-hidden="true"></div>
@@ -3125,7 +3125,7 @@
           </div>
           <div class="cup-stereo" id="cupStereo" aria-hidden="true">
             <div class="dice-spin" id="diceSpin">
-              <img class="dice-disc" id="diceDisc" src="assets/eu-concept/dice-disc.png?v=1.4.8" alt="" width="420" height="420" decoding="async" draggable="false" />
+              <img class="dice-disc" id="diceDisc" src="assets/eu-concept/dice-disc.png?v=1.5.1" alt="" width="420" height="420" decoding="async" draggable="false" />
             </div>
             <div class="cup3d-layer" id="cup3dLayer" aria-hidden="true">
               <canvas id="cup3dCanvas" width="768" height="768" aria-hidden="true"></canvas>
@@ -3378,10 +3378,10 @@
         <img class="btn-act-lit" src="assets/act-btn-faces/undo.png?v=1.4.12" alt="" draggable="false" decoding="async" aria-hidden="true" />
       </button>
       <button class="btn-act" id="btnConfirm" type="button" aria-label="确定">
-        <img class="btn-act-lit" src="assets/act-btn-faces/confirm.png?v=1.4.8" alt="" draggable="false" decoding="async" aria-hidden="true" />
+        <img class="btn-act-lit" src="assets/act-btn-faces/confirm.png?v=1.5.1" alt="" draggable="false" decoding="async" aria-hidden="true" />
       </button>
       <button class="btn-act" id="btnCancel" type="button" aria-label="取消">
-        <img class="btn-act-lit" src="assets/act-btn-faces/cancel.png?v=1.4.8" alt="" draggable="false" decoding="async" aria-hidden="true" />
+        <img class="btn-act-lit" src="assets/act-btn-faces/cancel.png?v=1.5.1" alt="" draggable="false" decoding="async" aria-hidden="true" />
       </button>
       <img id="betKbdDim" src="assets/sicbo-bet-kbd-dim-mask.png?v=1.3.17" alt="" draggable="false" decoding="async" aria-hidden="true" width="2188" height="1393" />
       <div class="toast-msg" id="toastMsg">下注成功</div>
@@ -3887,12 +3887,12 @@
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.4.8"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.5.1"></script>
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
-  <script src="js/fg-wallet.js?v=1.0.1"></script>
+  <script src="js/fg-wallet.js?v=1.0.2"></script>
   <script>
     (async function () {
-      const V = '1.4.8';
+      const V = '1.5.1';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -3939,13 +3939,19 @@
         }
       }
       function saveBalance(n) {
-        const v = String(Math.max(0, Math.round(n)));
+        const vNum = Math.max(0, Math.round(n));
+        const v = String(vNum);
         try {
           localStorage.setItem(BAL_KEY, v);
           localStorage.setItem('fg_sicbo_balance', v);
           localStorage.setItem('fg_sicbo_last_user', ACCOUNT_ID);
         } catch (_) {}
-        scheduleServerSave({ balance: Math.max(0, Math.round(n)) });
+        /* 跨端同步：水合后立刻 POST，避免只写本机、另一端刷新不到 */
+        if (wallet.isHydrated()) {
+          wallet.post({ balance: vNum }, true);
+        } else {
+          scheduleServerSave({ balance: vNum });
+        }
       }
       const BET_LOG_KEY = 'fg_sicbo_betlog::' + ACCOUNT_ID.trim().toLowerCase();
       function loadBetLog() {

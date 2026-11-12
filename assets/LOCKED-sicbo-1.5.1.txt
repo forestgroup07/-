@@ -1,0 +1,29 @@
+sicbo PC lock v1.5.1
+Scope: 电脑版 only（game.html + 进站过渡页电脑横屏轮换）；手机版另册，本包不改定手机盘面。
+Date: 2026-11-12
+Note: 用户书面「把电脑版存为1.5.1 计入git仓库」。
+      线上验收链接对齐 ?v=1.5.1。
+
+PC: game.html / game.LOCKED-1.5.1.html
+Shake: js/cup-shake-3d.js / js/cup-shake-3d.LOCKED-1.5.1.js
+Wallet: js/fg-wallet.js / js/fg-wallet.LOCKED-1.5.1.js
+Empty cup: assets/eu-concept/cup-screen-empty-nodice.jpg
+  / assets/eu-concept/LOCKED-cup-screen-empty-nodice-1.5.1.jpg
+Loading (PC): loading.html / loading.LOCKED-1.5.1.html
+  横屏幸运轮 assets/loading-posters/lucky-pc.jpg
+    / LOCKED-lucky-pc-1.5.1.jpg
+  横屏富贵三宝 assets/loading-posters/sanbao-pc.jpg
+    / LOCKED-sanbao-pc-1.5.1.jpg
+    （源预览 LOCKED-sanbao-pc-landscape-preview-1.5.1.jpg）
+Lobby: GAME_PC → game.html?v=1.5.1
+VERSION: 1.5.1
+Online: https://forestgroup.ai/game.html?v=1.5.1
+
+已验收清单（本包算数）:
+- 承接电脑盘面 v1.4.8 / 工作区 1.5.0 态：空盅+三维骰、局态留屏、珠盘、倒计时弧端点、跨端钱包
+- 登录后过渡页电脑：横屏「幸运轮」与横屏「富贵三宝」强制轮换；图先加载再停约 2 秒；全屏无硬黑边
+
+未验收、不得当作本定版的项:
+- 手机版 game-m 盘面（仍另册；过渡页手机竖图仅随 loading 共用部署，非本包手机定版）
+- 轮盘
+- Live2D / 购买激活等无关模块

@@ -1,0 +1,25 @@
+---
+description: 骰宝电脑版 v1.5.0 不许再动
+alwaysApply: true
+---
+
+# 骰宝电脑版 v1.5.0 不许再动
+
+用户硬规则（2026-11-12 定版 `1.5.0` 电脑版起生效）：
+
+1. **禁止**未经用户书面点名同意，修改、覆盖、还原、优化、部署本定版骰宝**电脑版**任何一点，包括但不限于：
+   - `game.html`、`lobby.html` 的 `GAME_PC ?v=`、`VERSION`
+   - 空盅底图 `assets/eu-concept/cup-screen-empty-nodice.jpg` 与三维骰 `js/cup-shake-3d.js`
+   - 跨端钱包 `js/fg-wallet.js`
+   - 局态三句留屏、珠盘、倒计时弧端点、挂单金面 / 停注蒙版 / 底图 / 图集等本版沿用既有 `LOCKED-*` 与线上 forestgroup.ai 对应资源
+2. 定版快照（回滚只能用这些，禁止邻近版本顶替）：
+   - `game.LOCKED-1.5.0.html`
+   - `assets/LOCKED-sicbo-1.5.0.txt`
+   - `js/cup-shake-3d.LOCKED-1.5.0.js`
+   - `js/fg-wallet.LOCKED-1.5.0.js`
+   - `assets/eu-concept/LOCKED-cup-screen-empty-nodice-1.5.0.jpg`
+   - `assets/LOCKED-cup-calib-1.4.38.txt`（沿用）
+   - git commit / tag 标明 `v1.5.0`
+3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
+4. 只有用户明确说「改骰宝 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
+5. 本冻结仅电脑版；手机 `game-m` 见 `sicbo-m-frozen-1.5.0`。当前有效冻结以 `sicbo-pc-frozen-1.5.1` 为准（本版为历史定版）。与 `one-task-only`、`sicbo-frozen`、`save-to-git`、`version-lock-gate` 同时生效；冲突时取更严：默认不动。

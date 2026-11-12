@@ -2,9 +2,10 @@
  * Forest 统一钱包同步：骰宝 PC/手机、轮盘共用 api/sicbo-account.php 的 balance。
  *
  * 硬规则：
- * 1) 水合完成前，禁止把本机旧余额 POST 上去（防止电脑旧缓存盖掉手机赢来的钱）
- * 2) 服务器已有记录时，一律以服务器余额为准
- * 3) 关页 / 切后台 keepalive 刷出；回前台重拉服务器余额
+ * 1) 水合完成前，禁止把「开页时的旧本机余额」POST 上去（防电脑旧缓存盖手机赢款）
+ * 2) 水合拉取期间若本机已因下注改过余额，禁止服务器旧值盖回来，改为把本机新余额推上去
+ * 3) 服务器已有记录且本机未脏写时，以服务器余额为准
+ * 4) 关页 / 切后台 keepalive 刷出；回前台重拉服务器余额
  */
 (function (root) {
   'use strict';
@@ -23,6 +24,7 @@
     var ready = false;
     var hydrated = false;
     var timer = 0;
+    var writeGen = 0; /* writeLocal 代数：水合中途下注可侦测 */
     var START_BAL = opts.startBal != null ? opts.startBal : 2000;
     var lastServerUpdatedAt = 0;
 
@@ -54,6 +56,7 @@
         localStorage.setItem('fg_sicbo_balance', String(v));
         localStorage.setItem('fg_sicbo_last_user', user);
       } catch (_) {}
+      writeGen += 1;
       return v;
     }
 
@@ -134,8 +137,9 @@
       hydrated = true;
     }
 
-    /** 拉取服务器账户；有服务器记录时强制用服务器余额 */
+    /** 拉取服务器账户；有服务器记录时强制用服务器余额（水合中途本机已改除外） */
     function hydrate() {
+      var genAtStart = writeGen;
       return fetch(api + '?user=' + encodeURIComponent(user), { cache: 'no-store' })
         .then(function (r) {
           if (!r.ok) throw new Error('http');
@@ -151,6 +155,7 @@
           var localBal = readLocal();
           var balance = localBal != null ? localBal : START_BAL;
           var fromServer = false;
+          var dirtyDuringFetch = writeGen !== genAtStart;
           if (!hasServer) {
             /* 真正的首次：把本机余额建档；建档完成才算水合 */
             return post({ balance: balance }).then(function () {
@@ -159,6 +164,18 @@
               hydrated = true;
               setReady(true);
               return { balance: balance, doc: d, fromServer: false };
+            });
+          }
+          /* 水合等待期间手机已下注改余额：推本机，禁止服务器旧值盖掉输赢 */
+          if (dirtyDuringFetch && localBal != null) {
+            balance = localBal;
+            writeLocal(balance);
+            if ((d.updatedAt | 0) > 0) lastServerUpdatedAt = d.updatedAt | 0;
+            dropPendingBalance();
+            hydrated = true;
+            setReady(true);
+            return post({ balance: balance }, true).then(function () {
+              return { balance: balance, doc: d, fromServer: false, pushedLocal: true };
             });
           }
           if (d.balance != null) {
