@@ -1,0 +1,21 @@
+roulette mobile release lock v1.3.1 (2026-11-12)
+
+已验收清单（本包算数）:
+- 沿用 v1.3.0：顶屏绿布+转盘+黑滑道、开奖红球真号、绿台可下拉键盘骨架
+- 绿台盘面改为公司参考图贴面：m-kbd-face（HQ→手机 WebP/JPG），PC 色板
+- part1+part2 底图像素蒙版拼缝；中间 22–24 格已验收
+- lobby ROULETTE_M → roulette-m.html?v=1.3.1
+
+未验收、不得当作定版:
+- 数字格 0–36 可点热区对齐（用户已点名第1项，尚未改）
+- 外注 / 打 / 列注 / 旁注赛道可点与规则对齐电脑
+- 内注分法（分注/角注/线注）对齐电脑
+- 电脑轮盘 roulette.html 程序（本包未改）
+
+回滚快照:
+- roulette-m.LOCKED-1.3.1.html
+- assets/roulette/LOCKED-m-kbd-face-1.3.1.{webp,jpg,png}
+- assets/roulette/LOCKED-m-wheel-felt-bg-1.3.1.jpg
+- assets/roulette/LOCKED-roulette-m-1.3.1.txt
+- assets/roulette/VERSION-m.txt
+- tag roulette-m-v1.3.1
