@@ -1,0 +1,33 @@
+sicbo mobile lock v1.4.8m18
+Scope: 手机版 only（game-m.html）；电脑版 PC 仍以 v1.4.8 另册冻结，本包不含改 PC。
+Date: 2026-11-12
+Note: 用户书面「这个是正式的啊 不能被篡改的」——正式定版，禁止未点名篡改。
+      线上验收链接对齐 ?v=1.4.8m18。
+
+Mobile: game-m.html / game-m.LOCKED-1.4.8m18.html
+Classic dice: assets/dice/board-classic/die-face-1..6.png
+  / assets/dice/LOCKED-board-classic-1.4.8m18/
+Lobby: GAME_M → game-m.html?v=1.4.8m18
+Online: https://forestgroup.ai/game-m.html?v=1.4.8m18
+
+共用（沿用 PC 定版、本包不重锁）:
+- 空盅底图 assets/eu-concept/cup-screen-empty-nodice.jpg
+- 三维 js/cup-shake-3d.js（PC v1.4.8 同款）
+- 筹码图 chips/chip-*.webp
+
+已验收清单（本包算数）:
+- 盅屏与电脑同步：1280×720 video-well、three/addons importmap、空盅+三维骰 idle
+- 盘底色保持我们自己的深绿（不对齐公司青绿底）
+- 小/单蓝、大/双红；总和 ≤10 蓝、≥11 红
+- 围骰行：品字排 + 白骰粗点（1/4 红，其余黑）+ 1 x 150
+- 组合两排：7+8 上下白骰、格内无 1x5；末行深色渐变横条「1 x 5」
+- 对子行：白骰横排 + 1 x 8
+- 骰面：2×3（1–3 / 4–6）+ 底条「单骰 1x1 / 双骰 1x2 / 三骰 1x3」
+- 底栏：用户名在金额上方
+- 落注筹码：电脑版筹码图居中（非公司角标）
+- 挂单三键：公司样浅黄胶囊（左绿撤 / 中绿勾 / 右红叉），叠盘底
+
+未验收、不得当作本定版的项:
+- 电脑版 game.html（仍以 v1.4.8 为准）
+- 轮盘
+- 手机 Live2D / 声音大改 / 购买激活等无关模块
