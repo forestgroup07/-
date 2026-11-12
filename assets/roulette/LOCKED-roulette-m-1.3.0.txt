@@ -1,0 +1,20 @@
+roulette mobile release lock v1.3.0 (2026-11-12)
+
+已验收清单（本包算数）:
+- 顶屏：电脑 pc-full-ref 裁切绿布+转盘+黑滑道；转盘大小保持大号几何
+- 绿布两侧延伸铺满，遮盖两侧美女露边
+- 黑滑道无烤死中奖号；开奖后红球显示本局真实号码
+- 绿台数字键盘可下拉两屏（0+1–36、外注、打、右侧弯道露半）
+- lobby ROULETTE_M → roulette-m.html?v=1.3.0
+
+未验收、不得当作定版:
+- 底栏限红按电脑轮盘（第2项未做）
+- 底栏其余照抄手机骰宝（第3项未做）
+- 电脑轮盘 roulette.html 程序（本包未改）
+
+回滚快照:
+- roulette-m.LOCKED-1.3.0.html
+- assets/roulette/LOCKED-m-wheel-felt-bg-1.3.0.jpg
+- assets/roulette/LOCKED-roulette-m-1.3.0.txt
+- assets/roulette/VERSION-m.txt
+- tag roulette-m-v1.3.0
