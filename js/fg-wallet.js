@@ -1,5 +1,5 @@
 /**
- * Forest 统一钱包同步：骰宝 PC/手机、轮盘共用 api/sicbo-account.php 的 balance。
+ * Forest 统一钱包同步：骰宝 PC/手机、轮盘共用 api/fg-wallet-account.php（MySQL 统一余额）。
  *
  * 硬规则：
  * 1) 水合完成前，禁止把「开页时的旧本机余额」POST 上去（防电脑旧缓存盖手机赢款）
@@ -10,7 +10,7 @@
 (function (root) {
   'use strict';
 
-  var API = 'api/sicbo-account.php';
+  var API = 'api/fg-wallet-account.php';
 
   function balKeyFor(user) {
     return 'fg_sicbo_bal::' + String(user || 'asdg').trim().toLowerCase();

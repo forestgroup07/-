@@ -2814,10 +2814,10 @@
     </div>
   </div>
 
-  <script src="js/fg-wallet.js?v=1.0.1"></script>
+  <script src="js/fg-wallet.js?v=1.0.3"></script>
   <script>
     (async function () {
-      const V = '1.2.13';
+      const V = '1.2.14';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -2840,7 +2840,7 @@
         }
       }
       const ACCOUNT_ID = currentUser();
-      const ACCOUNT_API = 'api/sicbo-account.php';
+      const ACCOUNT_API = 'api/fg-wallet-account.php';
       const wallet = window.FgWallet.create({
         user: ACCOUNT_ID,
         api: ACCOUNT_API,

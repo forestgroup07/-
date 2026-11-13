@@ -1,0 +1,32 @@
+Forest Group 统一钱包 — 50 万同时在线架构（2026-11-13）
+
+目标
+- 同一账号跨全部游戏（电脑+手机+未来几十款）共用一个余额
+- 高并发下不出现：超卖、负余额、重复扣款、丢流水、空数组清空
+
+正确性（比吞吐优先）
+1. 写钱唯一路径：fg_ledger_append
+2. 事务内：SELECT wallet FOR UPDATE → 校验余额 → INSERT ledger → UPDATE wallet.version
+3. UNIQUE(account_id, tx_id) 幂等；客户端必须带稳定 tx_id
+4. STRICT=1：拒绝 POST 绝对 balance（旧客户端直接盖余额会竞态）
+5. 空 creditlog/betlog 忽略；流水禁止 DELETE（作废改 status=void）
+6. READ COMMITTED + 行锁，避免长间隙锁拖垮并发
+
+容量
+- InnoDB；fg_ledger / fg_bet / fg_tx_dedupe 按 account_id HASH 32 分区
+- 一账号一行钱包：同账号下注串行；不同账号并行
+- 读历史走主键/二级索引；可加只读从库
+- 展示缓存（可选 Redis）只能读，必须以 MySQL 为准；写成功后再失效缓存
+
+运行
+- MySQL 库：fg_wallet（独立，非 ucoin_*）
+- 凭证：服务器 data/fg-wallet.env（不进 git）
+- API：api/fg-wallet-account.php
+- 旧 JSON API 仍给现网四端用；切换需书面点名
+
+运维建议（50 万在线）
+- php-fpm + MySQL 连接数按峰值 TPS 配；钱包写 QPS 远小于在线人数
+- 慢查询监控；ledger 按月归档冷数据（只迁 status 稳定的旧行，不删近线）
+- 压测：同账号并发 bet / 跨账号随机 bet / 重复 tx_id 幂等 / 余额不足
+
+未接四端页面：现网仍 sicbo-account.php，避免未验收切换导致资金路径双写。

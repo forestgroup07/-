@@ -1235,18 +1235,18 @@
   </script>
   <script type="module" src="js/cup-shake-3d.js?v=1.5.0"></script>
   <script src="js/sicbo-engine.js?v=1.2.1"></script>
-  <script src="js/fg-wallet.js?v=1.0.2"></script>
+  <script src="js/fg-wallet.js?v=1.0.3"></script>
   <script>
   (function () {
     'use strict';
-    const V = '1.5.2';
+    const V = '1.5.3';
     const START_BAL = 2000;
     const TABLE_MIN = 10;
     const TABLE_MAX = 5000;
     const BET_SEC = 22;
     const PHASE_HOLD_MS = 5000;
     const STOP_BET_HOLD_MS = 3000;
-    const ACCOUNT_API = 'api/sicbo-account.php';
+    const ACCOUNT_API = 'api/fg-wallet-account.php';
     const E = window.SicboEngine;
     /* 小图预载：开奖瞬间秒出（对标 oneroyal 做法） */
     const dieSrc = (n) => `assets/dice/die-face-${n}-sm.webp?v=${V}`;

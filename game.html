@@ -3890,10 +3890,10 @@
   </script>
   <script type="module" src="js/cup-shake-3d.js?v=1.5.1"></script>
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
-  <script src="js/fg-wallet.js?v=1.0.2"></script>
+  <script src="js/fg-wallet.js?v=1.0.3"></script>
   <script>
     (async function () {
-      const V = '1.5.3';
+      const V = '1.5.4';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -3906,7 +3906,7 @@
         }
       }
       const ACCOUNT_ID = currentUser();
-      const ACCOUNT_API = 'api/sicbo-account.php';
+      const ACCOUNT_API = 'api/fg-wallet-account.php';
       const wallet = window.FgWallet.create({
         user: ACCOUNT_ID,
         api: ACCOUNT_API,

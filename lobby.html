@@ -293,10 +293,10 @@
 
   <script>
     (function () {
-      const GAME_PC = 'game.html?v=1.5.3';
-      const GAME_M = 'game-m.html?v=1.5.2';
-      const ROULETTE_PC = 'roulette.html?v=1.2.13';
-      const ROULETTE_M = 'roulette-m.html?v=1.3.11';
+      const GAME_PC = 'game.html?v=1.5.4';
+      const GAME_M = 'game-m.html?v=1.5.3';
+      const ROULETTE_PC = 'roulette.html?v=1.2.14';
+      const ROULETTE_M = 'roulette-m.html?v=1.3.12';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -307,7 +307,7 @@
       const GAME = isMobileClient() ? GAME_M : GAME_PC;
       const ROULETTE = isMobileClient() ? ROULETTE_M : ROULETTE_PC;
       const START_BAL = 2000;
-      const ACCOUNT_API = 'api/sicbo-account.php';
+      const ACCOUNT_API = 'api/fg-wallet-account.php';
       function currentUser() {
         try {
           const u = (sessionStorage.getItem('fg_sicbo_user')
