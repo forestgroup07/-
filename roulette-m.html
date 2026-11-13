@@ -7,9 +7,8 @@
   <meta name="theme-color" content="#0a1210" />
   <meta name="robots" content="noindex,nofollow" />
   <title>輪盤 R501 · 手机版</title>
-  <link rel="preload" as="image" href="assets/roulette/wheel-disc.png?v=1.2.4" type="image/png" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.3.5" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.jpg?v=1.3.5" type="image/jpeg" fetchpriority="high" />
+  <!-- 关键资源已在 roulette-m-boot 预热；此处只 preload 一张键盘 webp，避免抢带宽 -->
+  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.3.7" type="image/webp" fetchpriority="high" />
   <style>
     :root {
       --bg: #0a1210;
@@ -586,7 +585,8 @@
       pointer-events: none;
     }
     .board-grid .zero,
-    .board-grid .n {
+    .board-grid .n,
+    .board-grid .out {
       position: absolute;
       box-sizing: border-box;
       margin: 0;
@@ -639,11 +639,13 @@
     }
     /* 亮层铺满蒙版格（与底图格对齐） */
     .board-grid .n.is-lit,
-    .board-grid .zero.is-lit {
+    .board-grid .zero.is-lit,
+    .board-grid .out.is-lit {
       box-shadow: none !important;
     }
     .board-grid .n.is-lit::before,
-    .board-grid .zero.is-lit::before {
+    .board-grid .zero.is-lit::before,
+    .board-grid .out.is-lit::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -655,6 +657,13 @@
     }
     .board-grid .zero.is-lit::before {
       border-radius: 10% / 14%;
+    }
+    .board-grid .out.is-lit::before {
+      border-radius: 6% / 8%;
+    }
+    .board-grid .out .bet-chip {
+      width: 52%;
+      max-width: 34px;
     }
 
     /* —— 底栏（对标参考图） —— */
@@ -1142,7 +1151,7 @@
         <img class="felt-bg" src="assets/roulette/m-wheel-felt-bg.jpg?v=1.3.0" alt="" width="884" height="721" decoding="async" fetchpriority="high" draggable="false" />
         <div class="wheel-wrap" id="wheelWrap" aria-hidden="true">
           <div class="wheel-spin is-idle" id="wheelSpin">
-            <img class="wheel-disc" id="wheelDisc" src="assets/roulette/wheel-disc.png?v=1.2.4" alt="" width="666" height="666" draggable="false" />
+            <img class="wheel-disc" id="wheelDisc" src="assets/roulette/wheel-disc.png?v=1.2.4" alt="" width="666" height="666" decoding="async" fetchpriority="low" draggable="false" />
           </div>
           <div class="wheel-ball-layer" id="wheelBallLayer" aria-hidden="true">
             <div class="wheel-ball-arm" id="wheelBallArm">
@@ -1206,8 +1215,8 @@
         <div class="board-face-wrap" id="boardFaceWrap">
           <div class="board-pan-inner" id="boardPanInner">
             <picture>
-              <source type="image/webp" srcset="assets/roulette/m-kbd-face.webp?v=1.3.5" />
-              <img class="board-face" id="boardFace" src="assets/roulette/m-kbd-face.jpg?v=1.3.5" alt="" width="1479" height="2059" decoding="async" fetchpriority="high" draggable="false" />
+              <source type="image/webp" srcset="assets/roulette/m-kbd-face.webp?v=1.3.7" />
+              <img class="board-face" id="boardFace" src="assets/roulette/m-kbd-face.jpg?v=1.3.7" alt="" width="1479" height="2059" decoding="async" fetchpriority="high" loading="eager" draggable="false" />
             </picture>
             <div class="board-grid" id="boardGrid" aria-label="下注键盘"></div>
             <!-- 卵已焊进底图；此处仅打开态热区 -->
@@ -1217,7 +1226,7 @@
                 <div class="track-stage" id="trackStage">
                   <picture>
                     <source type="image/webp" srcset="assets/roulette/m-track-face-v.webp?v=1.3.5" />
-                    <img class="track-face" id="trackFace" src="assets/roulette/m-track-face-v.png?v=1.3.5" alt="" width="238" height="888" decoding="async" draggable="false" />
+                    <img class="track-face" id="trackFace" src="assets/roulette/m-track-face-v.png?v=1.3.5" alt="" width="238" height="888" decoding="async" loading="lazy" draggable="false" />
                   </picture>
                   <div id="trackNumsM" aria-label="弯道号格"></div>
                   <div id="trackFrench" aria-label="法式绿键"></div>
@@ -1333,10 +1342,10 @@
     </footer>
   </div>
 
-  <script src="js/fg-wallet.js?v=1.0.3"></script>
+  <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '1.3.12';
+      const V = '1.3.7';
       /* 整卵无旋转重焊：左列 19/15/32 外沿与上格竖直对齐 */
       const TRACK_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
       const TRACK_CELLS_M = {
@@ -1462,6 +1471,26 @@
         34: [29.5000, 85.3327, 14.9167, 6.7023],
         35: [45.0000, 85.3327, 15.0000, 6.7023],
         36: [60.6667, 85.3327, 14.8333, 6.7023]
+      };
+      /* 左侧外注列（小/双/红/黑/单/大）：与 1–36 同高六等分，1200 宽坐标系实测 */
+      const OUTSIDE_FACE = {
+        small: [3.75, 7.3337, 12.0, 14.1169],
+        even:  [3.75, 21.4506, 12.0, 14.1169],
+        red:   [3.75, 35.5675, 12.0, 14.1169],
+        black: [3.75, 49.6844, 12.0, 14.1169],
+        odd:   [3.75, 63.8012, 12.0, 14.1169],
+        big:   [3.75, 77.9181, 12.0, 14.1169]
+      };
+      const OUTSIDE_GROUPS = {
+        small: new Set([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]),
+        big: new Set([19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36]),
+        even: new Set([2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36]),
+        odd: new Set([1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35]),
+        red: new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]),
+        black: new Set([2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35])
+      };
+      const OUTSIDE_LABEL = {
+        small: '小', even: '双', red: '红', black: '黑', odd: '单', big: '大'
       };
       const START_BAL = 2000;
       const BET_SEC = 22;
@@ -1611,8 +1640,10 @@
         } catch (_) { return 'asdg'; }
       }
       const user = currentUser();
+      const ACCOUNT_API = 'api/fg-wallet-account.php';
       const wallet = window.FgWallet.create({
         user,
+        api: ACCOUNT_API,
         startBal: START_BAL,
         bagKey: '__fgWalletPatchRouM',
       });
@@ -1949,6 +1980,12 @@
           expanded.add(key);
           return;
         }
+        const outSet = OUTSIDE_GROUPS[key];
+        if (outSet) {
+          expanded.add(key);
+          outSet.forEach((n) => expanded.add('n' + n));
+          return;
+        }
         const set = FRENCH[key];
         if (set) {
           expanded.add(key);
@@ -1960,7 +1997,7 @@
         /* 电脑同款：挂单亮 + 悬停预览；主盘 / 弯道 / 法式同 data-bet 同步黄 */
         if (!boardGrid) return;
         const trackRoot = document.getElementById('trackStage');
-        boardGrid.querySelectorAll('.n, .zero').forEach((el) => el.classList.remove('is-lit'));
+        boardGrid.querySelectorAll('.n, .zero, .out').forEach((el) => el.classList.remove('is-lit'));
         if (trackRoot) trackRoot.querySelectorAll('.hit').forEach((el) => el.classList.remove('is-lit'));
         const expanded = new Set();
         activeBetKeys().forEach((key) => {
@@ -1973,7 +2010,9 @@
         }
         expanded.forEach((nk) => {
           const el = boardGrid.querySelector('[data-bet="' + nk + '"]');
-          if (el && (el.classList.contains('n') || el.classList.contains('zero'))) el.classList.add('is-lit');
+          if (el && (el.classList.contains('n') || el.classList.contains('zero') || el.classList.contains('out'))) {
+            el.classList.add('is-lit');
+          }
           if (trackRoot) {
             trackRoot.querySelectorAll('[data-bet="' + nk + '"]').forEach((el) => el.classList.add('is-lit'));
           }
@@ -2004,7 +2043,7 @@
       function paintBets() {
         if (!boardGrid) return;
         boardGrid.querySelectorAll('.chip-on, .bet-chip').forEach((el) => el.remove());
-        boardGrid.querySelectorAll('.n, .zero').forEach((el) => el.classList.remove('has-bet'));
+        boardGrid.querySelectorAll('.n, .zero, .out').forEach((el) => el.classList.remove('has-bet'));
         const trackRoot = document.getElementById('trackStage');
         if (trackRoot) {
           trackRoot.querySelectorAll('.chip-on, .bet-chip').forEach((el) => el.remove());
@@ -2057,12 +2096,29 @@
         boardGrid.appendChild(b);
         return b;
       }
+      function placeOutsideHit(key) {
+        const box = OUTSIDE_FACE[key];
+        if (!box) return null;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'out';
+        b.setAttribute('data-bet', key);
+        b.setAttribute('aria-label', OUTSIDE_LABEL[key] || key);
+        b.style.left = box[0] + '%';
+        b.style.top = box[1] + '%';
+        b.style.width = box[2] + '%';
+        b.style.height = box[3] + '%';
+        boardGrid.appendChild(b);
+        return b;
+      }
       function buildBoard() {
         if (!boardGrid) return;
         boardGrid.innerHTML = '';
         /* 数字 0–36：底图蒙版实测 */
         placeNumHit(0, 'zero');
         for (let n = 1; n <= 36; n++) placeNumHit(n, 'n');
+        /* 左侧外注：小/双/红/黑/单/大 */
+        Object.keys(OUTSIDE_FACE).forEach((key) => placeOutsideHit(key));
         /* 右侧跑道条：点开弯道全貌 */
         const raceHit = document.createElement('button');
         raceHit.type = 'button';
@@ -2121,7 +2177,15 @@
           frRoot.appendChild(b);
         });
       }
+      let trackBoardReady = false;
+      function ensureTrackBoard() {
+        if (trackBoardReady) return;
+        trackBoardReady = true;
+        buildTrackBoard();
+        bindHoverLit(document.getElementById('trackStage'), null);
+      }
       function openTrack() {
+        ensureTrackBoard();
         app.classList.add('is-track');
         const pane = document.getElementById('slideTrack');
         if (pane) pane.setAttribute('aria-hidden', 'false');
@@ -2470,6 +2534,15 @@
         const btn = e.target.closest('[data-bet]');
         if (!btn || !boardGrid.contains(btn)) return;
         const raw = btn.getAttribute('data-bet');
+        const now = Date.now();
+        /* 左侧外注：点一下累加当前筹码 */
+        if (btn.classList.contains('out') && OUTSIDE_GROUPS[raw]) {
+          if (raw === lastZoneBetKey && now - lastZoneBetAt < 280) return;
+          lastZoneBetAt = now;
+          lastZoneBetKey = raw;
+          addDraft(raw, chipAmt());
+          return;
+        }
         const isNum = btn.classList.contains('n') || btn.classList.contains('zero');
         if (!isNum) return;
         const n = numFromKey(raw);
@@ -2480,7 +2553,6 @@
         const pc = screenToPcInsideXY(lxS, lyS);
         const hit = resolveInsideBet(n, pc.lx, pc.ly);
         const betKey = insideBetKey(hit.kind, hit.nums);
-        const now = Date.now();
         if (betKey === lastZoneBetKey && now - lastZoneBetAt < 450) return;
         lastZoneBetAt = now;
         lastZoneBetKey = betKey;
@@ -2527,7 +2599,7 @@
       document.getElementById('btnMenu').addEventListener('click', () => { location.href = 'lobby.html?v=' + V; });
 
       buildBoard();
-      buildTrackBoard();
+      /* 弯道热区/蒙版延后到首次打开弯道再建，避免进页拖慢 */
       /* 电脑同款：悬停/按住预览黄（主盘号 ↔ 弯道号 / 法式） */
       function bindHoverLit(root, filterFn) {
         if (!root) return;
@@ -2547,8 +2619,9 @@
           });
         });
       }
-      bindHoverLit(boardGrid, (z) => z.classList.contains('n') || z.classList.contains('zero'));
-      bindHoverLit(document.getElementById('trackStage'), null);
+      bindHoverLit(boardGrid, (z) => z.classList.contains('n') || z.classList.contains('zero') || z.classList.contains('out'));
+      /* 进页 1.8s 后静默预建弯道，不挡首屏 */
+      setTimeout(() => { try { ensureTrackBoard(); } catch (_) {} }, 1800);
       paintHistory();
       paintMeta();
       paintTimer();
