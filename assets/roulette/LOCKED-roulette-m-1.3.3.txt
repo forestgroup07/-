@@ -1,0 +1,25 @@
+roulette mobile release lock v1.3.3 (2026-11-13)
+
+已验收清单（本包算数）:
+- 主键盘 m-kbd-face 底色蓝统一为缝隙蓝 RGB(80,140,135)；红/黑键不动；第1/2/3列等绿键面保留（用户确认「干的不错」）
+- 顶屏弯道开关：金黄向右箭头 →；打开跑道键盘后立刻变金黄向左箭头 ←；跑道内灰色小返回箭头已去掉
+- 沿用 v1.3.2：整卵焊进底图、打开左移露轨、顶屏绿布/转盘/黑滑道/开奖红球、底栏筹码与限红骨架
+- lobby ROULETTE_M → roulette-m.html?v=1.3.3
+
+未验收、不得当作定版:
+- 三列键正下方画线底缝再收蓝（用户已令回滚，不进本包）
+- 弯道号格/法式绿成品贴面换色（多次实验未定）
+- 弯道每一个号格「底格像素蒙格」热区逐格外沿
+- 外注 / 打 / 列注 / 旁注赛道可点与规则对齐电脑
+- 内注分法对齐电脑
+- 电脑轮盘 roulette.html 程序（本包未改）
+
+回滚快照:
+- roulette-m.LOCKED-1.3.3.html
+- assets/roulette/LOCKED-roulette-m-1.3.3.txt
+- assets/roulette/LOCKED-m-kbd-face-1.3.3.{webp,jpg,png}
+- assets/roulette/LOCKED-m-kbd-face-preweld-1.3.3.jpg
+- assets/roulette/LOCKED-m-track-face-v-1.3.3.{png,jpg,webp}
+- assets/roulette/LOCKED-m-wheel-felt-bg-1.3.3.jpg
+- assets/roulette/VERSION-m.txt
+- tag roulette-m-v1.3.3
