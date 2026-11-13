@@ -674,98 +674,365 @@
       color: var(--gold2); font-size: .68rem; font-weight: 600;
       background: rgba(0,0,0,.25);
     }
-    .bal-wrap {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 1px; line-height: 1.15; min-width: 0;
-      background: transparent; border: 0; color: inherit; font: inherit;
+    /* 限红说明：布局抄手机骰宝；文案用电脑轮盘限红 */
+    .limit-tip {
+      position: absolute;
+      left: 3%;
+      bottom: calc(100% + 8px);
+      width: min(86vw, 320px);
+      max-height: min(58vh, 420px);
+      z-index: 52;
+      padding: 0.5rem 0.55rem 0.4rem;
+      border-radius: 10px;
+      border: 1px solid rgba(232, 199, 106, 0.55);
+      background: rgba(0, 0, 0, 0.88);
+      color: #f0f0f0;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
     }
-    .bal-user { font-size: .68rem; color: var(--muted); }
-    .bal-amt {
-      display: inline-flex; align-items: center; gap: .25rem;
-      font-size: .92rem; font-weight: 800; color: var(--gold2);
+    .limit-tip.show { display: flex; }
+    .limit-tip::after {
+      content: "";
+      position: absolute;
+      left: 16%;
+      bottom: -7px;
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 8px solid rgba(0, 0, 0, 0.88);
+    }
+    .limit-tip-scroll {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      flex: 1 1 auto;
+      min-height: 0;
+      padding-right: 4px;
+    }
+    .limit-tip-sec-title {
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0 0.35rem;
+      margin-top: 0.15rem;
+      border-bottom: 1px solid rgba(232, 199, 106, 0.55);
+      margin-bottom: 0.1rem;
+    }
+    .limit-tip-sec-title:first-child { margin-top: 0; }
+    .limit-tip-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 0.66rem;
+      line-height: 1.25;
+    }
+    .limit-tip-row .k { color: #f0f0f0; font-weight: 500; }
+    .limit-tip-row .v {
+      color: #e8e8e8;
       font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      white-space: nowrap;
     }
-    .bal-amt .c {
-      width: 14px; height: 14px; border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ffe9a8, #c9973a 70%);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+    .bal-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      min-width: 0;
+      line-height: 1.15;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      font: inherit;
+      color: inherit;
+    }
+    .bal-wrap:focus,
+    .bal-wrap:focus-visible { outline: none; }
+    .bal-wrap .bal-user {
+      color: rgba(255, 255, 255, 0.92);
+      font-size: clamp(0.62rem, 2.6vw, 0.74rem);
+      font-weight: 600;
+      max-width: 9em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    }
+    .bal-wrap .bal-amt {
+      display: flex;
+      align-items: center;
+      gap: .28rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: #fff;
+      font-size: .92rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    }
+    .bal-wrap .c {
+      width: 16px; height: 16px; border-radius: 50%;
+      flex: 0 0 16px;
+      background: radial-gradient(circle at 30% 30%, #e8f7ef, #7ecf9a 55%, #3a9a6a 78%);
+      box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35), 0 0 0 1px rgba(0,0,0,.25);
+    }
+    .account-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%) translateY(4px);
+      z-index: 55;
+      padding: 0.38rem 0.72rem;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.92);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    }
+    .account-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .account-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 7px solid rgba(0, 0, 0, 0.92);
     }
     .stake-btn {
-      display: inline-flex; align-items: center; gap: .25rem;
-      color: #e8eef0; font-size: .85rem; font-weight: 700;
-      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .45rem;
+      min-width: 5.2rem;
+      height: 30px;
+      padding: 0 .55rem 0 .42rem;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f2f2f2;
+      font-size: .8rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
     }
-    .stake-num { font-variant-numeric: tabular-nums; min-width: 1.5em; text-align: right; }
+    .stake-btn .stake-coin {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      display: block;
+    }
+    .stake-btn .stake-num {
+      flex: 1 1 auto;
+      text-align: center;
+      min-width: 1.2em;
+    }
+    .stake-btn .stake-caret {
+      width: 0;
+      height: 0;
+      flex: 0 0 auto;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 6px solid #e8d5a0;
+      margin-top: -1px;
+    }
+    .stake-btn[aria-expanded="true"] .stake-caret {
+      border-bottom: 0;
+      border-top: 6px solid #e8d5a0;
+    }
+    .stake-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 10px);
+      transform: translateX(-50%);
+      width: min(86vw, 340px);
+      z-index: 50;
+      padding: 0.55rem 0.75rem 0.7rem;
+      border-radius: 10px;
+      background: rgba(8, 28, 26, 0.88);
+      color: #f3f3f3;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      display: none;
+      flex-direction: column;
+      gap: 0.12rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      pointer-events: auto;
+    }
+    .stake-tip.show { display: flex; }
+    .stake-tip::after {
+      content: "";
+      position: absolute;
+      right: 18%;
+      bottom: -7px;
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 8px solid rgba(8, 28, 26, 0.88);
+    }
+    .stake-tip-head,
+    .stake-tip-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      align-items: center;
+      column-gap: 0.4rem;
+      min-height: 1.4em;
+    }
+    .stake-tip-head {
+      color: #e8c76a;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding-bottom: 0.28rem;
+      margin-bottom: 0.12rem;
+      border-bottom: 1px solid rgba(232, 199, 106, 0.45);
+    }
+    .stake-tip-head span:nth-child(2),
+    .stake-tip-head span:nth-child(3),
+    .stake-tip-row span:nth-child(2),
+    .stake-tip-row span:nth-child(3) {
+      text-align: center;
+    }
+    .stake-tip-row span:first-child {
+      color: #f0f0f0;
+      font-weight: 600;
+    }
+    .stake-tip-row.is-total {
+      margin-top: 0.18rem;
+      padding-top: 0.32rem;
+      border-top: 1px solid rgba(232, 199, 106, 0.45);
+      font-weight: 800;
+      color: #e8c76a;
+    }
     .dock-actions {
       display: grid;
-      grid-template-columns: 36px minmax(0, 1fr) auto;
-      gap: .4rem;
+      grid-template-columns: 36px 1fr auto;
       align-items: center;
-      padding-bottom: .45rem;
+      gap: .4rem;
     }
     .btn-gear {
       width: 34px; height: 34px; border-radius: 8px;
       background: rgba(255,255,255,.06);
-      color: var(--muted);
+      color: var(--gold2); font-size: 1.05rem;
       display: grid; place-items: center;
     }
-    .btn-gear.is-locked { opacity: .45; }
+    .btn-gear.is-locked,
+    .btn-gear:disabled,
+    .btn-road.is-locked,
+    .btn-road:disabled {
+      opacity: 0.55;
+      pointer-events: none;
+      cursor: default;
+    }
     .chips-rail {
-      display: flex; align-items: center; gap: .35rem;
-      overflow: hidden; min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      min-width: 0;
     }
     .chips {
-      display: flex; gap: .35rem;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      padding: .15rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: .5rem;
       flex: 1 1 auto;
       min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      touch-action: pan-x;
+      scroll-snap-type: x proximity;
+      padding: .15rem .1rem .35rem;
+      scrollbar-width: none;
     }
     .chips::-webkit-scrollbar { display: none; }
     .chip {
-      flex: 0 0 44px;
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      background-size: cover;
-      background-position: center;
-      filter: grayscale(.15) brightness(.92);
-      opacity: .88;
+      flex: 0 0 auto;
+      width: 46px; height: 46px; border-radius: 50%;
+      border: 2px solid transparent;
+      background: transparent center / contain no-repeat;
+      position: relative;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+      transition: transform .12s ease;
+      scroll-snap-align: center;
+    }
+    .chips-rail > .chip.max {
+      flex: 0 0 auto;
+      margin-bottom: .2rem;
     }
     .chip.sel {
-      filter: none;
-      opacity: 1;
+      border-color: #ffe08a;
+      box-shadow: 0 0 0 3px rgba(255, 200, 80, .35);
       transform: translateY(-3px) scale(1.06);
-      box-shadow: 0 0 0 2px rgba(240, 211, 146, .75), 0 6px 14px rgba(0,0,0,.4);
     }
     .chip.max {
-      flex: 0 0 44px;
-      background: radial-gradient(circle at 30% 28%, #ffe29a, #d4a017 55%, #8a5a00);
-      color: #3a2200;
-      font-size: .62rem;
-      font-weight: 900;
+      background:
+        radial-gradient(circle at 35% 30%, #ffd27a, #e07020 68%, #8a3a08);
+      color: #fff; font-size: .62rem; font-weight: 900;
+      letter-spacing: .02em;
       display: grid; place-items: center;
-      border: 1px solid rgba(255, 230, 160, .55);
+      border: 2px solid rgba(255,255,255,.35);
     }
+    .chip.max.sel { border-color: #ffe08a; }
     .btn-road {
-      padding: .45rem .55rem;
-      border-radius: 999px;
-      background: linear-gradient(180deg, #d9c28a, #b8964e);
-      color: #2a1c08;
-      font-size: .72rem;
-      font-weight: 800;
+      padding: .55rem .7rem;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #d9b57a, #b8894a);
+      color: #2a1a05;
+      font-size: .78rem; font-weight: 800;
       white-space: nowrap;
-      position: relative;
+      box-shadow: 0 2px 6px rgba(0,0,0,.35);
     }
-    .btn-road.is-locked { opacity: .55; }
-    .btn-road .badge {
-      position: absolute; right: -4px; top: -6px;
-      min-width: 16px; height: 16px; padding: 0 4px;
-      border-radius: 999px; background: #e23b3b;
-      color: #fff; font-size: .62rem; font-weight: 800;
+    .btn-road:active { filter: brightness(1.05); }
+    .dock-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: .28rem;
+      padding: .12rem .15rem calc(.08rem + var(--safe-b));
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .btn-nav {
+      width: 40px; height: 36px;
+      border-radius: 999px;
       display: grid; place-items: center;
+      color: #d7e6e0;
+      background: transparent;
+      -webkit-tap-highlight-color: transparent;
     }
+    .btn-nav:active { background: rgba(255,255,255,.08); }
+    .btn-nav svg { width: 22px; height: 22px; display: block; }
+    .btn-nav.muted { color: #8a9a94; opacity: .72; }
+    .btn-nav.muted .slash { display: block; }
+    .btn-nav .slash { display: none; }
+
     .app.betting-closed .board-face {
       filter: brightness(.72);
     }
@@ -937,29 +1204,84 @@
         </button>
       </div>
       <div class="dock-meta">
-        <button type="button" class="limit-pill" id="btnLimit" aria-label="限红">20 - 5,000 ▾</button>
-        <button type="button" class="bal-wrap" id="balHot" aria-label="账户">
+        <button type="button" class="limit-pill" id="btnLimit" aria-label="限红说明" aria-expanded="false" aria-controls="limitTip">10 - 5,000 ▾</button>
+        <button type="button" class="bal-wrap" id="balHot" aria-label="账户" aria-expanded="false" aria-controls="accountTip">
+          <span class="account-tip" id="accountTip" role="tooltip">—</span>
           <span class="bal-user" id="balUser">—</span>
           <span class="bal-amt"><span class="c" aria-hidden="true"></span><span id="balText">0.00</span></span>
         </button>
-        <button type="button" class="stake-btn" id="stakeBtn" aria-label="本局注金">
-          <span aria-hidden="true">◎</span>
+        <button type="button" class="stake-btn" id="stakeBtn" aria-label="本局注金明细" aria-expanded="false" aria-controls="stakeTip">
+          <svg class="stake-coin" viewBox="0 0 24 24" aria-hidden="true">
+            <ellipse cx="12" cy="17.2" rx="7.2" ry="2.4" fill="#9aa3ad"/>
+            <ellipse cx="12" cy="14.6" rx="7.2" ry="2.4" fill="#c5ced6"/>
+            <ellipse cx="12" cy="12" rx="7.2" ry="2.4" fill="#dfe6ec"/>
+            <ellipse cx="12" cy="9.4" rx="7.2" ry="2.6" fill="#eef3f7" stroke="#b8c2cc" stroke-width="0.6"/>
+            <text x="12" y="10.3" text-anchor="middle" font-size="6.5" font-weight="700" fill="#6a7380">$</text>
+          </svg>
           <span class="stake-num" id="stakeText">0</span>
+          <span class="stake-caret" aria-hidden="true"></span>
         </button>
       </div>
+      <div class="stake-tip" id="stakeTip" role="dialog" aria-label="本局下注">
+        <div class="stake-tip-head">
+          <span>玩法</span><span>下注</span><span>输赢</span>
+        </div>
+        <div class="stake-tip-row is-total" data-stake-key="total"><span>总计:</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+      </div>
+      <div class="limit-tip" id="limitTip" role="dialog" aria-label="限红说明">
+        <div class="limit-tip-scroll">
+          <div class="limit-tip-sec-title">玩法限紅</div>
+          <div class="limit-tip-row"><span class="k">直注</span><span class="v">1 - 142</span></div>
+          <div class="limit-tip-row"><span class="k">分注</span><span class="v">2 - 294</span></div>
+          <div class="limit-tip-row"><span class="k">街注</span><span class="v">2 - 454</span></div>
+          <div class="limit-tip-row"><span class="k">角注</span><span class="v">3 - 625</span></div>
+          <div class="limit-tip-row"><span class="k">列 1/2/3</span><span class="v">10 - 2,500</span></div>
+          <div class="limit-tip-row"><span class="k">打 1/2/3</span><span class="v">10 - 2,500</span></div>
+          <div class="limit-tip-row"><span class="k">紅/黑</span><span class="v">10 - 5,000</span></div>
+          <div class="limit-tip-row"><span class="k">大/小</span><span class="v">10 - 5,000</span></div>
+          <div class="limit-tip-row"><span class="k">單/雙</span><span class="v">10 - 5,000</span></div>
+          <div class="limit-tip-sec-title">彩池限紅</div>
+          <div class="limit-tip-row"><span class="k">直注总额限红</span><span class="v">5,000</span></div>
+          <div class="limit-tip-row"><span class="k">分注总额限红</span><span class="v">10,000</span></div>
+          <div class="limit-tip-row"><span class="k">街注总额限红</span><span class="v">15,000</span></div>
+          <div class="limit-tip-row"><span class="k">角注总额限红</span><span class="v">20,000</span></div>
+          <div class="limit-tip-row"><span class="k">列总额限红</span><span class="v">75,000</span></div>
+          <div class="limit-tip-row"><span class="k">打总额限红</span><span class="v">75,000</span></div>
+          <div class="limit-tip-row"><span class="k">紅/黑差额限红</span><span class="v">1.20M</span></div>
+          <div class="limit-tip-row"><span class="k">大/小差额限红</span><span class="v">1.20M</span></div>
+          <div class="limit-tip-row"><span class="k">單/雙差额限红</span><span class="v">1.20M</span></div>
+        </div>
+      </div>
       <div class="dock-actions">
-        <button type="button" class="btn-gear is-locked" id="btnGear" aria-label="设置（暂不可用）" disabled>⚙</button>
-        <div class="chips-rail">
-          <div class="chips" id="chips" aria-label="筹码">
+        <button type="button" class="btn-gear is-locked" id="btnGear" aria-label="设置（暂不可用）" aria-disabled="true" disabled>⚙</button>
+        <div class="chips-rail" id="chipsRail">
+          <div class="chips" id="chips" aria-label="筹码，左右滑动切换">
             <button type="button" class="chip" data-chip="10" aria-label="10" style="background-image:url('chips/chip-10.webp?v=1.2.1')"></button>
             <button type="button" class="chip" data-chip="20" aria-label="20" style="background-image:url('chips/chip-20.webp?v=1.2.1')"></button>
             <button type="button" class="chip sel" data-chip="50" aria-label="50" style="background-image:url('chips/chip-50.webp?v=1.2.1')"></button>
             <button type="button" class="chip" data-chip="100" aria-label="100" style="background-image:url('chips/chip-100.webp?v=1.2.1')"></button>
-            <button type="button" class="chip max" data-chip="max" aria-label="MAX">MAX</button>
+            <button type="button" class="chip" data-chip="200" aria-label="200" style="background-image:url('chips/chip-200.webp?v=1.2.1')"></button>
+            <button type="button" class="chip" data-chip="500" aria-label="500" style="background-image:url('chips/chip-500.webp?v=1.2.1')"></button>
+            <button type="button" class="chip" data-chip="1000" aria-label="1000" style="background-image:url('chips/chip-1000.webp?v=1.2.1')"></button>
+            <button type="button" class="chip" data-chip="2000" aria-label="2000" style="background-image:url('chips/chip-2000.webp?v=1.2.1')"></button>
+            <button type="button" class="chip" data-chip="5000" aria-label="5000" style="background-image:url('chips/chip-5000.webp?v=1.2.1')"></button>
           </div>
+          <button type="button" class="chip max" data-chip="max" aria-label="MAX">MAX</button>
         </div>
-        <button type="button" class="btn-road is-locked" id="btnRoad" aria-label="好路推荐（暂不可用）" disabled>
-          好路推荐<span class="badge">14</span>
+        <button type="button" class="btn-road is-locked" id="btnRoad" aria-label="好路推荐（暂不可用）" aria-disabled="true" disabled>好路推荐</button>
+      </div>
+      <div class="dock-nav" aria-label="底部导航">
+        <button type="button" class="btn-nav" id="btnSound" aria-label="声音" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.3-3.9v7.8a4.5 4.5 0 0 0 2.3-3.9z"/>
+            <path fill="currentColor" d="M16.5 3.2v2.1a7.5 7.5 0 0 1 0 13.4v2.1a9.5 9.5 0 0 0 0-17.6z"/>
+            <path class="slash" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M4 4l16 16"/>
+          </svg>
+        </button>
+        <button type="button" class="btn-nav" id="btnNavBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M15 5L8 12l7 7"/>
+          </svg>
         </button>
       </div>
     </footer>
@@ -968,7 +1290,7 @@
   <script src="js/fg-wallet.js?v=1.0.2"></script>
   <script>
     (function () {
-      const V = '1.3.5';
+      const V = '1.3.6';
       /* 整卵无旋转重焊：左列 19/15/32 外沿与上格竖直对齐 */
       const TRACK_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
       const TRACK_CELLS_M = {
@@ -1844,21 +2166,107 @@
         runRound();
       }
 
-      /* chips */
-      document.getElementById('chips').addEventListener('click', (e) => {
+      /* 底栏：抄手机骰宝（选筹/MAX/限红/账户/注金/喇叭） */
+      let maxMode = false;
+      const SOUND_MUTE_KEY = 'fg_roulette_m_sound_mute';
+      let soundMuted = false;
+      try { soundMuted = localStorage.getItem(SOUND_MUTE_KEY) === '1'; } catch (_) {}
+      function paintMuteBtn() {
+        const btn = document.getElementById('btnSound');
+        if (!btn) return;
+        btn.classList.toggle('muted', !!soundMuted);
+        btn.setAttribute('aria-pressed', soundMuted ? 'true' : 'false');
+        btn.setAttribute('aria-label', soundMuted ? '打开声音' : '关闭声音');
+      }
+      paintMuteBtn();
+      function chipAmt() {
+        if (maxMode) selected = Math.max(10, availableBal());
+        return selected;
+      }
+
+      const limitTip = document.getElementById('limitTip');
+      const btnLimit = document.getElementById('btnLimit');
+      const stakeTip = document.getElementById('stakeTip');
+      const stakeBtn = document.getElementById('stakeBtn');
+      const accountTip = document.getElementById('accountTip');
+      const balHot = document.getElementById('balHot');
+      function setLimitTip(open) {
+        if (!limitTip || !btnLimit) return;
+        limitTip.classList.toggle('show', !!open);
+        btnLimit.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) { setStakeTip(false); setAccountTip(false); }
+      }
+      function setStakeTip(open) {
+        if (!stakeTip || !stakeBtn) return;
+        stakeTip.classList.toggle('show', !!open);
+        stakeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+          setLimitTip(false); setAccountTip(false);
+          const total = totalConfirmed() + totalDraft();
+          const betEl = stakeTip.querySelector('[data-stake-key="total"] [data-col="bet"]');
+          const pnlEl = stakeTip.querySelector('[data-stake-key="total"] [data-col="pnl"]');
+          if (betEl) betEl.textContent = total ? String(total) : '-';
+          if (pnlEl) pnlEl.textContent = '-';
+        }
+      }
+      function setAccountTip(open) {
+        if (!accountTip || !balHot) return;
+        if (open && elBalUser) accountTip.textContent = elBalUser.textContent || '—';
+        accountTip.classList.toggle('show', !!open);
+        balHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) { setLimitTip(false); setStakeTip(false); }
+      }
+      if (btnLimit && limitTip) {
+        btnLimit.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setLimitTip(!limitTip.classList.contains('show'));
+        });
+        limitTip.addEventListener('click', (e) => e.stopPropagation());
+      }
+      if (stakeBtn && stakeTip) {
+        stakeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setStakeTip(!stakeTip.classList.contains('show'));
+        });
+        stakeTip.addEventListener('click', (e) => e.stopPropagation());
+      }
+      if (balHot && accountTip) {
+        balHot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setAccountTip(!accountTip.classList.contains('show'));
+        });
+      }
+      document.addEventListener('click', () => {
+        setStakeTip(false);
+        setLimitTip(false);
+        setAccountTip(false);
+      });
+
+      document.getElementById('chipsRail').addEventListener('click', (e) => {
         const btn = e.target.closest('[data-chip]');
         if (!btn) return;
+        document.querySelectorAll('.chip').forEach((c) => c.classList.remove('sel'));
+        btn.classList.add('sel');
         const v = btn.getAttribute('data-chip');
         if (v === 'max') {
+          maxMode = true;
           selected = Math.max(10, availableBal());
           toast('MAX');
         } else {
-          selected = Number(v) || 10;
+          maxMode = false;
+          selected = Number(v) || 50;
         }
-        document.querySelectorAll('#chips .chip').forEach((c) => {
-          c.classList.toggle('sel', c === btn || (v !== 'max' && c.getAttribute('data-chip') === String(selected)));
-        });
-        if (v === 'max') btn.classList.add('sel');
+      });
+
+      document.getElementById('btnSound').addEventListener('click', () => {
+        soundMuted = !soundMuted;
+        try { localStorage.setItem(SOUND_MUTE_KEY, soundMuted ? '1' : '0'); } catch (_) {}
+        paintMuteBtn();
+        toast(soundMuted ? '已静音' : '声音已开');
+      });
+      document.getElementById('btnNavBack').addEventListener('click', () => {
+        if (app.classList.contains('is-track')) { closeTrack(); return; }
+        location.href = 'lobby.html?v=' + V;
       });
 
       let lastZoneBetAt = 0;
@@ -1885,7 +2293,7 @@
         if (betKey === lastZoneBetKey && now - lastZoneBetAt < 450) return;
         lastZoneBetAt = now;
         lastZoneBetKey = betKey;
-        placeInsideDraft(betKey, selected);
+        placeInsideDraft(betKey, chipAmt());
       });
       /* 弯道全貌：号格单注；绿键 → 主盘法式落筹+变黄 */
       const trackStage = document.getElementById('trackStage');
@@ -1900,7 +2308,7 @@
           lastZoneBetAt = now;
           lastZoneBetKey = betKey;
           if (FRENCH[betKey]) placeFrenchDraft(betKey, selected);
-          else placeInsideDraft(betKey, selected);
+          else placeInsideDraft(betKey, chipAmt());
         });
       }
       document.getElementById('btnTrackIco').addEventListener('click', (e) => {
@@ -1914,12 +2322,9 @@
       document.getElementById('btnConfirm').addEventListener('click', confirmBet);
       document.getElementById('btnBack').addEventListener('click', () => {
         if (app.classList.contains('is-track')) { closeTrack(); return; }
-        location.href = 'lobby.html';
+        location.href = 'lobby.html?v=' + V;
       });
-      document.getElementById('btnMenu').addEventListener('click', () => { location.href = 'lobby.html'; });
-      document.getElementById('btnLimit').addEventListener('click', () => {
-        toast('限红 20 - 5,000');
-      });
+      document.getElementById('btnMenu').addEventListener('click', () => { location.href = 'lobby.html?v=' + V; });
 
       buildBoard();
       buildTrackBoard();

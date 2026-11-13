@@ -1,0 +1,25 @@
+roulette mobile release lock v1.3.6 (2026-11-13)
+
+已验收清单（本包算数）:
+- 底栏整段照抄手机骰宝 game-m：限红 pill「10 - 5,000」+ 限红气泡（文案用电脑轮盘限红）、用户名+金额+账户气泡、注金键+注金明细、齿轮/好路点不开、筹码条滑动（10…5000 同 chips/chip-*.webp）+ 右侧固定 MAX、底栏喇叭静音 + 返回
+- 轮盘玩法不变：绿台/内外注/弯道/开奖/结算仍为轮盘逻辑，仅接到新底栏选筹
+- 沿用 v1.3.5：主键盘完整三列键面、键底绿条已切、缝隙蓝、弯道金黄箭头、整卵焊图/打开左移、顶屏绿布/转盘/黑滑道/开奖红球
+- lobby ROULETTE_M → roulette-m.html?v=1.3.6
+
+未验收、不得当作定版:
+- 成品贴面底栏（已废弃，不得回用）
+- 弯道号格/法式绿成品贴面换色
+- 弯道每一个号格「底格像素蒙格」热区逐格外沿
+- 外注 / 打 / 列注 / 旁注赛道可点与规则对齐电脑
+- 内注分法对齐电脑
+- 电脑轮盘 roulette.html / 手机骰宝 game-m.html 程序（本包未改）
+
+回滚快照:
+- roulette-m.LOCKED-1.3.6.html
+- assets/roulette/LOCKED-roulette-m-1.3.6.txt
+- assets/roulette/LOCKED-m-kbd-face-1.3.6.{webp,jpg,png}
+- assets/roulette/LOCKED-m-kbd-face-preweld-1.3.6.jpg
+- assets/roulette/LOCKED-m-track-face-v-1.3.6.{png,jpg,webp}
+- assets/roulette/LOCKED-m-wheel-felt-bg-1.3.6.jpg
+- assets/roulette/VERSION-m.txt
+- tag roulette-m-v1.3.6
