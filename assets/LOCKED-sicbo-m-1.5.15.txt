@@ -1,0 +1,17 @@
+sicbo-m v1.5.15 lock — 2026-11-13
+
+已验收：
+- 手机大厅点击 → iframe 进 game-m?embed=1
+- 手势内 ShellSfx.primeSicboGesture 只解锁、不提前播
+- 子页 fg-sicbo-ready 后父页再播 welcomeSicbo + startBet
+- 播前 / 桌内播报查 fg_sicbo_m_sound_mute（喇叭关则不出声）
+- 滴答等桌内音走父页 fg-sfx；开喇叭不重播已欢迎后的开始下注
+
+未验收（不得当作本包定版）：
+- 电脑版 game.html 播音
+- 轮盘（roulette-m 1.3.10 另册）
+
+回滚：
+- game-m.LOCKED-1.5.15.html
+- lobby.LOCKED-sicbo-m-1.5.15.html
+- tag sicbo-m-v1.5.15

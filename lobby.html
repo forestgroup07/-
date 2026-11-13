@@ -311,10 +311,10 @@
   <script>
     (function () {
       const GAME_PC = 'game.html?v=1.5.6';
-      const GAME_M = 'game-m.html?v=1.5.6';
+      const GAME_M = 'game-m.html?v=1.5.15';
       const ROULETTE_PC = 'roulette.html?v=1.2.16';
-      const ROULETTE_M = 'roulette-m.html?v=1.3.9';
-      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.3.9';
+      const ROULETTE_M = 'roulette-m.html?v=1.3.10';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.3.10';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -325,15 +325,17 @@
       const GAME = isMobileClient() ? GAME_M : GAME_PC;
       /* 手机轮盘：大厅 iframe 直进（不再走过渡页，避免又慢又丢声音手势） */
       const ROULETTE = isMobileClient() ? ROULETTE_M : ROULETTE_PC;
-      const SHELL_V = '1.3.9';
+      const SHELL_V = '1.3.9f';
       /* 父页播控：解锁禁播滚球长片；欢迎在点击手势内播，避免进桌无欢迎 */
       const ShellSfx = {
         els: Object.create(null),
         src: {
           welcome: 'audio/welcome-roulette.mp3?v=' + SHELL_V,
+          welcomeSicbo: 'audio/welcome.mp3?v=1.5.15',
           startBet: 'audio/start-bet.mp3?v=' + SHELL_V,
           roundOpen: 'audio/round-open-bet.mp3?v=' + SHELL_V,
           stopBet: 'audio/stop-bet.mp3?v=' + SHELL_V,
+          betOk: 'audio/bet-ok.mp3?v=1.5.15',
           tick: 'audio/tick.mp3?v=' + SHELL_V,
           bombTick: 'audio/bomb-tick.mp3?v=' + SHELL_V,
           keyClick: 'audio/key-click.mp3?v=' + SHELL_V,
@@ -350,24 +352,32 @@
           fret0: 0.9,
           fret1: 0.9,
           fret2: 0.9,
+          betOk: 1,
         },
-        voiceKeys: { welcome: 1, startBet: 1, roundOpen: 1, stopBet: 1 },
+        voiceKeys: { welcome: 1, welcomeSicbo: 1, startBet: 1, roundOpen: 1, stopBet: 1 },
         /* 解锁静音试播：禁止 ballRoll/fret（长片会在开局漏出滚球声） */
         unlockPlayKeys: {
-          welcome: 1, startBet: 1, roundOpen: 1, stopBet: 1,
+          welcome: 1, welcomeSicbo: 1, startBet: 1, roundOpen: 1, stopBet: 1,
           tick: 1, bombTick: 1, keyClick: 1,
         },
         ctx: null,
         live: Object.create(null),
         primed: false,
+        heavyScheduled: false,
         embedWelcomeOk: null,
         embedWelcomeP: null,
+        embedKind: null, /* 'roulette' | 'sicbo' */
+        sicboReady: false,
+        isSicboMuted() {
+          try { return localStorage.getItem('fg_sicbo_m_sound_mute') === '1'; } catch (_) { return false; }
+        },
         ensureEl(key) {
           if (this.els[key]) return this.els[key];
           const src = this.src[key];
           if (!src) return null;
           const a = new Audio(src);
-          a.preload = 'auto';
+          /* 欢迎首包用 metadata，避免进桌瞬间与键面图抢满带宽 */
+          a.preload = (key === 'welcome' || key === 'welcomeSicbo') ? 'metadata' : 'auto';
           this.els[key] = a;
           return a;
         },
@@ -397,11 +407,64 @@
           });
           return this.embedWelcomeP;
         },
+        /* 手机骰宝：桌面就绪后再播；播前必查喇叭 */
+        playWelcomeForSicboEmbed() {
+          if (this.isSicboMuted()) {
+            this.embedWelcomeOk = true;
+            this.replyWelcome(true);
+            return Promise.resolve(true);
+          }
+          if (this.embedWelcomeP) return this.embedWelcomeP;
+          this.embedWelcomeP = this.playAwait('welcomeSicbo').then(async (ok) => {
+            if (this.isSicboMuted()) {
+              this.stopVoice();
+              this.embedWelcomeOk = true;
+              this.replyWelcome(true);
+              return true;
+            }
+            this.embedWelcomeOk = !!ok;
+            this.replyWelcome(!!ok);
+            if (ok && !this.isSicboMuted()) {
+              try { await this.playAwait('startBet'); } catch (_) {}
+            }
+            return !!ok;
+          });
+          return this.embedWelcomeP;
+        },
+        /* 手势内只解锁，不出声；等子页 fg-sicbo-ready 再播 */
+        primeSicboGesture() {
+          this.primeLight();
+          ['welcomeSicbo', 'startBet', 'tick', 'bombTick', 'stopBet', 'betOk'].forEach((k) => {
+            const el = this.ensureEl(k);
+            if (!el || this.isSicboMuted()) return;
+            try {
+              el.muted = true;
+              el.volume = 0;
+              const p = el.play();
+              const reset = () => {
+                try { el.pause(); el.currentTime = 0; el.muted = false; el.volume = 1; } catch (_) {}
+              };
+              if (p && p.then) p.then(reset).catch(reset);
+              else reset();
+            } catch (_) {}
+          });
+        },
+        playSicboWelcomeWhenReady() {
+          if (this.embedKind !== 'sicbo') return;
+          if (!this.sicboReady) return;
+          if (this.embedWelcomeOk != null || this.embedWelcomeP) {
+            if (this.embedWelcomeOk != null) this.replyWelcome(this.embedWelcomeOk);
+            return;
+          }
+          void this.playWelcomeForSicboEmbed();
+        },
         resetEmbedWelcome() {
           this.embedWelcomeOk = null;
           this.embedWelcomeP = null;
+          this.sicboReady = false;
         },
-        prime() {
+        /* 进桌瞬时：只解锁 AudioContext + 欢迎，不预拉全套音效（恢复首屏速度） */
+        primeLight() {
           try {
             const AC = window.AudioContext || window.webkitAudioContext;
             if (AC) {
@@ -414,8 +477,11 @@
               src.start(0);
             }
           } catch (_) {}
+          this.ensureEl(this.embedKind === 'sicbo' ? 'welcomeSicbo' : 'welcome');
+        },
+        /* 桌内已出来后再预热其余音效；ballRoll 只 load 不 play */
+        primeHeavy() {
           Object.keys(this.src).forEach((k) => this.ensureEl(k));
-          /* ballRoll 只 ensure+load，禁止 play 解锁 */
           ['ballRoll', 'fret0', 'fret1', 'fret2'].forEach((k) => {
             const el = this.els[k];
             if (!el) return;
@@ -424,6 +490,7 @@
           if (this.primed) return;
           this.primed = true;
           Object.keys(this.unlockPlayKeys).forEach((k) => {
+            if (k === 'welcome') return;
             const el = this.els[k];
             if (!el) return;
             try {
@@ -437,6 +504,22 @@
               else reset();
             } catch (_) {}
           });
+        },
+        scheduleHeavy() {
+          if (this.heavyScheduled) return;
+          this.heavyScheduled = true;
+          const run = () => { try { this.primeHeavy(); } catch (_) {} };
+          try {
+            if (typeof requestIdleCallback === 'function') {
+              requestIdleCallback(run, { timeout: 2800 });
+              return;
+            }
+          } catch (_) {}
+          setTimeout(run, 1800);
+        },
+        prime() {
+          this.primeLight();
+          this.scheduleHeavy();
         },
         stopVoice() {
           Object.keys(this.voiceKeys).forEach((k) => {
@@ -462,10 +545,14 @@
           delete this.live[key];
         },
         /* 口播/报数：优先 ended；手机常不触发 ended → 按片长收尾，避免卡死倒计时 */
-        voiceEstMs: { welcome: 2000, startBet: 1100, roundOpen: 1100, stopBet: 1100, enNum: 1600 },
+        voiceEstMs: { welcome: 2000, welcomeSicbo: 2000, startBet: 1100, roundOpen: 1100, stopBet: 1100, enNum: 1600 },
         playAwait(key, vol) {
           return new Promise((resolve) => {
-            if (!key || key === 'betOk' || key === 'youWin' || key === 'beep') {
+            if (!key || key === 'youWin' || key === 'beep') {
+              resolve(false);
+              return;
+            }
+            if (this.embedKind === 'sicbo' && this.isSicboMuted()) {
               resolve(false);
               return;
             }
@@ -525,7 +612,9 @@
         },
         play(key, vol) {
           if (!key) return;
-          if (key === 'betOk' || key === 'youWin' || key === 'beep') return;
+          if (key === 'youWin' || key === 'beep') return;
+          /* 骰宝桌内：喇叭关着一律不出声 */
+          if (this.embedKind === 'sicbo' && this.isSicboMuted()) return;
           if (key === 'enNum') {
             void this.playAwait('enNum', vol);
             return;
@@ -595,14 +684,23 @@
           const d = ev && ev.data;
           if (!d || typeof d !== 'object') return;
           if (d.type === 'fg-sfx-prime') ShellSfx.prime();
+          if (d.type === 'fg-sicbo-ready') {
+            ShellSfx.sicboReady = true;
+            ShellSfx.playSicboWelcomeWhenReady();
+          }
           if (d.type === 'fg-want-welcome') {
             if (ShellSfx.embedWelcomeOk != null) ShellSfx.replyWelcome(ShellSfx.embedWelcomeOk);
+            else if (ShellSfx.embedKind === 'sicbo') ShellSfx.playSicboWelcomeWhenReady();
             else void ShellSfx.playWelcomeForEmbed();
           }
           if (d.type === 'fg-sfx') {
-            if (d.key === 'welcome' && d.id) {
-              /* 欢迎改由进桌手势播；子页再要 welcome 时复用同一次，防双播 */
-              ShellSfx.playWelcomeForEmbed().then((ok) => ShellSfx.reply(d.id, ok));
+            if ((d.key === 'welcome' || d.key === 'welcomeSicbo') && d.id) {
+              if (ShellSfx.embedKind === 'sicbo') {
+                if (ShellSfx.embedWelcomeOk != null) ShellSfx.reply(d.id, ShellSfx.embedWelcomeOk);
+                else ShellSfx.playSicboWelcomeWhenReady();
+              } else {
+                ShellSfx.playWelcomeForEmbed().then((ok) => ShellSfx.reply(d.id, ok));
+              }
             } else if (d.id) {
               ShellSfx.playAwait(d.key, d.vol).then((ok) => ShellSfx.reply(d.id, ok));
             } else {
@@ -623,18 +721,25 @@
         if (frame) frame.src = 'about:blank';
       }
       function openEmbedShell(url) {
-        ShellSfx.prime();
         ShellSfx.stop('ballRoll');
         ShellSfx.resetEmbedWelcome();
+        ShellSfx.embedKind = /game-m\.html/.test(url) ? 'sicbo' : /roulette-m\.html/.test(url) ? 'roulette' : null;
         const shell = ensureEmbedShell();
         const frame = document.getElementById('fgEmbedFrame');
-        /* 仍在大厅点击手势内：先播欢迎，避免 iframe 里自动播被拦 */
-        if (/roulette-m\.html/.test(url)) {
-          void ShellSfx.playWelcomeForEmbed();
-        }
+        /* 先挂 iframe 出画面，避免父页全套音效与键面图抢 4G 带宽 */
         const join = url.indexOf('?') >= 0 ? '&' : '?';
         frame.src = url + join + 'embed=1';
         shell.classList.add('show');
+        if (ShellSfx.embedKind === 'roulette') {
+          ShellSfx.primeLight();
+          void ShellSfx.playWelcomeForEmbed();
+        } else if (ShellSfx.embedKind === 'sicbo') {
+          /* 手势内只解锁；等子页画面就绪再播，且播前查喇叭 */
+          ShellSfx.primeSicboGesture();
+        } else {
+          ShellSfx.primeLight();
+        }
+        ShellSfx.scheduleHeavy();
       }
       const START_BAL = 2000;
       const ACCOUNT_API = 'api/fg-wallet-account.php';
@@ -763,6 +868,11 @@
       let cat = 'hot';
 
       function enterSicbo() {
+        /* 手机：iframe 进桌 + 父页手势播欢迎（对齐轮盘，避免整页跳转首段全哑） */
+        if (isMobileClient()) {
+          openEmbedShell(GAME_M);
+          return;
+        }
         location.href = GAME;
       }
       function enterRoulette() {
