@@ -313,8 +313,8 @@
       const GAME_PC = 'game.html?v=1.5.6';
       const GAME_M = 'game-m.html?v=1.5.15';
       const ROULETTE_PC = 'roulette.html?v=1.2.16';
-      const ROULETTE_M = 'roulette-m.html?v=1.3.10';
-      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.3.10';
+      const ROULETTE_M = 'roulette-m.html?v=1.3.12';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.3.12';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -462,6 +462,7 @@
           this.embedWelcomeOk = null;
           this.embedWelcomeP = null;
           this.sicboReady = false;
+          this.heavyScheduled = false;
         },
         /* 进桌瞬时：只解锁 AudioContext + 欢迎，不预拉全套音效（恢复首屏速度） */
         primeLight() {
@@ -481,16 +482,25 @@
         },
         /* 桌内已出来后再预热其余音效；ballRoll 只 load 不 play */
         primeHeavy() {
-          Object.keys(this.src).forEach((k) => this.ensureEl(k));
-          ['ballRoll', 'fret0', 'fret1', 'fret2'].forEach((k) => {
-            const el = this.els[k];
-            if (!el) return;
-            try { el.preload = 'auto'; el.load(); } catch (_) {}
+          Object.keys(this.src).forEach((k) => {
+            /* 进轮盘时不要预拉骰宝片，抢键面带宽 */
+            if (this.embedKind === 'roulette' && (k === 'welcomeSicbo' || k === 'betOk')) return;
+            if (this.embedKind === 'sicbo' && (k === 'welcome' || k === 'ballRoll' || k === 'fret0' || k === 'fret1' || k === 'fret2')) return;
+            this.ensureEl(k);
           });
+          if (this.embedKind !== 'sicbo') {
+            ['ballRoll', 'fret0', 'fret1', 'fret2'].forEach((k) => {
+              const el = this.els[k];
+              if (!el) return;
+              try { el.preload = 'auto'; el.load(); } catch (_) {}
+            });
+          }
           if (this.primed) return;
           this.primed = true;
           Object.keys(this.unlockPlayKeys).forEach((k) => {
-            if (k === 'welcome') return;
+            if (k === 'welcome' || k === 'welcomeSicbo') return;
+            if (this.embedKind === 'roulette' && (k === 'welcomeSicbo')) return;
+            if (this.embedKind === 'sicbo' && (k === 'welcome')) return;
             const el = this.els[k];
             if (!el) return;
             try {
@@ -505,21 +515,24 @@
             } catch (_) {}
           });
         },
-        scheduleHeavy() {
+        scheduleHeavy(delayMs) {
           if (this.heavyScheduled) return;
           this.heavyScheduled = true;
           const run = () => { try { this.primeHeavy(); } catch (_) {} };
+          const wait = delayMs == null ? 1800 : delayMs;
           try {
-            if (typeof requestIdleCallback === 'function') {
-              requestIdleCallback(run, { timeout: 2800 });
+            if (typeof requestIdleCallback === 'function' && wait <= 2000) {
+              requestIdleCallback(run, { timeout: Math.max(2800, wait + 500) });
               return;
             }
           } catch (_) {}
-          setTimeout(run, 1800);
+          setTimeout(run, wait);
         },
         prime() {
           this.primeLight();
-          this.scheduleHeavy();
+          /* 轮盘进桌：禁止预拉全套音效（修骰宝时加的 scheduleHeavy 会与键面抢带宽） */
+          if (this.embedKind === 'roulette') return;
+          this.scheduleHeavy(this.embedKind === 'sicbo' ? 2200 : 1800);
         },
         stopVoice() {
           Object.keys(this.voiceKeys).forEach((k) => {
@@ -731,15 +744,17 @@
         frame.src = url + join + 'embed=1';
         shell.classList.add('show');
         if (ShellSfx.embedKind === 'roulette') {
+          /* 只解锁+欢迎；音效按需 ensureEl，绝不 scheduleHeavy 抢键面 */
           ShellSfx.primeLight();
           void ShellSfx.playWelcomeForEmbed();
         } else if (ShellSfx.embedKind === 'sicbo') {
           /* 手势内只解锁；等子页画面就绪再播，且播前查喇叭 */
           ShellSfx.primeSicboGesture();
+          ShellSfx.scheduleHeavy(2200);
         } else {
           ShellSfx.primeLight();
+          ShellSfx.scheduleHeavy(1800);
         }
-        ShellSfx.scheduleHeavy();
       }
       const START_BAL = 2000;
       const ACCOUNT_API = 'api/fg-wallet-account.php';

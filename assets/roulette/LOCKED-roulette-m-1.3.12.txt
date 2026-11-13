@@ -1,0 +1,12 @@
+roulette-m v1.3.12 — 2026-11-13
+
+已验收意图（进桌速度，相对修骰宝声音后的变慢）：
+- 进轮盘 openEmbedShell：primeLight + 欢迎；禁止 scheduleHeavy 预拉全套/骰宝片
+- fg-sfx-prime → prime() 对 roulette 不 scheduleHeavy
+- 键面 webp 优先；ensureBoardFace 仅失败切 jpg（禁止 1.6s 误切双下）
+- felt/wheel-disc 低优先，键面高优先
+- audio preload none（embed 走父页）
+
+未当作本包：骰宝 1.5.15 播音（另册）
+
+回滚：roulette-m.LOCKED-1.3.12.html / tag roulette-m-v1.3.12

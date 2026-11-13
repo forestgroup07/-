@@ -1,0 +1,10 @@
+# 轮盘手机版 v1.3.11 不许再动（进桌速度）
+
+用户硬规则（2026-11-13：进桌画面慢，查因为强制大 jpg + 大厅 scheduleHeavy 抢带宽；已改为 webp 优先）：
+
+1. **禁止**未经用户书面点名同意，修改本版进桌画面速度相关项：
+   - `roulette-m.html` `?v=1.3.11`：键面 **webp 高优 preload + 显示**，`data-fallback` jpg + `ensureBoardFace`（禁止再改回「只预载/只显示大 jpg」导致进桌极慢）
+   - `lobby.html`：`ROULETTE_M ?v=1.3.11`；进轮盘时 `scheduleHeavy(4200)`，且 `primeHeavy` 不预拉 `welcomeSicbo`/`betOk`
+2. 仍须保住：键面不得整块 `#508c87` 空白（失败切 jpg）。
+3. 用户只抱怨/问原因时不要动手；点名「改手机轮盘」才可动。
+4. 与 `one-task-only`、`roulette-m-frozen-1.3.10`、骰宝 `sicbo-m-frozen-1.5.15` 同时生效；冲突时取更严。当前有效手机轮盘冻结以**本版**为准。

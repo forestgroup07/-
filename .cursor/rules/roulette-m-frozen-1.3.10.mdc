@@ -1,0 +1,14 @@
+# 轮盘手机版 v1.3.10 不许再动
+
+用户硬规则（2026-11-13 验收：中间键面不再蓝绿空白；用户书面「已经改好了绝对不能碰」）：
+
+1. **禁止**未经用户书面点名同意，修改、覆盖、还原、优化、部署本定版轮盘**手机版**任何一点，包括但不限于：
+   - `roulette-m.html`、`roulette-m-boot.html`、`lobby.html` 的 `ROULETTE_M` / `ROULETTE_M_BOOT` / 进桌 `openEmbedShell` 与 `ShellSfx` 轻量进桌（`primeLight` / 先挂 iframe）、`assets/roulette/VERSION-m.txt`
+   - 主键盘底图显示链路：`m-kbd-face.jpg` 高优 preload、**禁止**再改回「仅 webp / picture 优先 webp」导致弱网中间整块 `#508c87` 空白；`ensureBoardFace` 失败重拉兜底
+   - 底栏整段、卵源 / 弯道、顶屏绿布 / 黑滑道 / 开奖红球、声音链路等本版沿用资源
+   - 本版 `LOCKED-*` 快照（若已建）与线上 forestgroup.ai 对应资源
+2. 当前有效版本指针：`ROULETTE_M ?v=1.3.10`、`VERSION-m.txt` = `1.3.10`；回滚不得用未含「jpg 键面兜底」的邻近包顶替本项。
+3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
+4. 只有用户明确说「改手机轮盘 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
+5. 改其它项目（含骰宝）时：**禁止**顺手改 `roulette-m.html`；若必须动共用 `lobby.html`，只允许改点名项（如仅 `GAME_M` 版本），**禁止**动 `ROULETTE_M` / `openEmbedShell` / `ShellSfx` 进桌速度与键面相关逻辑。
+6. 本冻结仅手机版；电脑 `roulette.html` 以既有 `roulette-frozen-*` 为准。与 `one-task-only`、`version-lock-gate`、`save-to-git`、`no-fix-then-break`、`roulette-m-frozen-1.3.9` 同时生效；冲突时取更严：默认不动。当前有效手机轮盘冻结以 `roulette-m-frozen-1.3.11` 为准（本版为历史：曾强制 jpg；速度修复见 1.3.11）。
