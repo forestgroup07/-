@@ -5,7 +5,8 @@
 (function (root) {
   'use strict';
 
-  let HOUSE_RAKE_RATE = 0.05;
+  /* 禁止暗抽水：未经用户书面点名，HOUSE_RAKE_RATE 必须为 0（见 .cursor/rules/no-silent-rake.mdc） */
+  let HOUSE_RAKE_RATE = 0;
 
   const SUM_PAYOUT = {
     4: 50, 5: 18, 6: 14, 7: 12, 8: 8,

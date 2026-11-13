@@ -1234,12 +1234,12 @@
   }
   </script>
   <script type="module" src="js/cup-shake-3d.js?v=1.5.0"></script>
-  <script src="js/sicbo-engine.js?v=1.2.1"></script>
-  <script src="js/fg-wallet.js?v=1.0.3"></script>
+  <script src="js/sicbo-engine.js?v=1.2.2"></script>
+  <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
   (function () {
     'use strict';
-    const V = '1.5.3';
+    const V = '1.5.6';
     const START_BAL = 2000;
     const TABLE_MIN = 10;
     const TABLE_MAX = 5000;
@@ -1641,25 +1641,31 @@
       if (voiceBusy || Voice.muted || Voice.dead) return;
       voiceBusy = true;
       try {
-        Voice.unlock();
-        if (Voice.muted) return;
-        /* 欢迎语整次会话只说一次；关喇叭再开绝不再播 */
-        if (!welcomed && !forceStartOnly) {
-          const ok = await Voice.speak('welcome');
-          if (ok) {
-            await new Promise((r) => setTimeout(r, 220));
-            await Voice.speak('startBet');
+        /* 喇叭开着就自动播；失败短重试，不等人手点一次 */
+        for (let i = 0; i < 8; i++) {
+          if (Voice.muted || Voice.dead) return;
+          Voice.unlock();
+          if (!welcomed && !forceStartOnly) {
+            const ok = await Voice.speak('welcome');
+            if (ok) {
+              await new Promise((r) => setTimeout(r, 220));
+              if (!Voice.muted && !Voice.dead) await Voice.speak('startBet');
+              markWelcomed();
+              return;
+            }
+          } else if (forceStartOnly || welcomed) {
+            const ok = await Voice.speak('startBet');
+            if (ok || forceStartOnly) {
+              if (ok) markWelcomed();
+              if (ok) return;
+            }
+          } else {
+            markWelcomed();
+            return;
           }
-          markWelcomed();
-        } else if (forceStartOnly && !welcomed) {
-          /* 已进过桌/已关过喇叭：只补开局提示，仍不播欢迎 */
-          await Voice.speak('startBet');
-          markWelcomed();
-        } else if (forceStartOnly) {
-          await Voice.speak('startBet');
-        } else {
-          markWelcomed();
+          await new Promise((r) => setTimeout(r, 350));
         }
+        if (!welcomed && !forceStartOnly) markWelcomed();
       } finally {
         voiceBusy = false;
       }
@@ -2172,13 +2178,14 @@
       Voice.setMuted(next);
       try { localStorage.setItem(SOUND_MUTE_KEY, next ? '1' : '0'); } catch (_) {}
       if (next) {
-        /* 关喇叭＝当次会话已听过桌面提示，再开不再欢迎 */
+        /* ❌ 开着：静音；当次会话不再播欢迎 */
         markWelcomed();
         try { Voice.stopAll(); } catch (_) {}
       } else {
-        /* 再开喇叭：只恢复声音，不播欢迎/开局口播 */
+        /* 关掉 ❌：立刻开始播放（开局提示） */
         try { Voice.unlock(); } catch (_) {}
         markWelcomed();
+        void kickTableVoice(true);
       }
       toast(next ? '已静音' : '声音已开');
     });
@@ -2341,6 +2348,7 @@
         paintChipsOnCells();
         if (hasBets) {
           const net = res.net;
+          /* 输：只显示「输」+金额，不播语音 */
           toast(net > 0 ? ('赢 +' + Math.round(net)) : net < 0 ? ('输 ' + Math.round(net)) : '平');
         } else {
           toast(dice.join(' · ') + '  = ' + res.info.sum);
@@ -2409,10 +2417,10 @@
 
     Voice.init();
     try { Voice.unlock(); } catch (_) {}
+    /* 仅作 AudioContext 补救；出声不依赖必须先点一下 */
     document.addEventListener('pointerdown', () => {
-      if (Voice.dead) return;
+      if (Voice.dead || Voice.muted) return;
       Voice.unlock();
-      if (!welcomed && phase === 'betting') kickTableVoice(false);
     }, { passive: true });
     const leavePage = () => { try { Voice.silence(); } catch (_) {} };
     window.addEventListener('pagehide', leavePage, true);
