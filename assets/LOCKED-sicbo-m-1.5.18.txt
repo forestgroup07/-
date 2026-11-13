@@ -1,0 +1,19 @@
+sicbo-m v1.5.18 lock — 2026-11-13
+
+已验收：
+- MAX：文案「下注所有余额」成立，落注吃掉全部可用余额（不再被 TABLE_MAX=5000 截断）
+- Voice.silence() 只停声，不再 clearInterval(timerId)；回大厅才单独停表（倒计时不再被 pagehide/停声误冻）
+- 已确认注 persistOpenBets / 进桌 restore / 离桌·刷新 finalizeOpenBets 收官，避免扣款后刷新注单蒸发
+
+未验收（不得当作本包定版）：
+- 电脑版 game.html
+- 轮盘（roulette-m 另册）
+- 手机额度明细 UI（仍无独立额度页；流水在服务器 creditlog）
+
+回滚：
+- game-m.LOCKED-1.5.18.html
+- lobby.LOCKED-sicbo-m-1.5.18.html
+- tag sicbo-m-v1.5.18
+
+线上：https://forestgroup.ai/game-m.html?v=1.5.18
+Lobby: GAME_M → game-m.html?v=1.5.18

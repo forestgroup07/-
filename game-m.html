@@ -1239,7 +1239,7 @@
   <script>
   (function () {
     'use strict';
-    const V = '1.5.15';
+    const V = '1.5.18';
     const START_BAL = 2000;
     const TABLE_MIN = 10;
     const TABLE_MAX = 5000;
@@ -1575,7 +1575,7 @@
         this.dead = true;
         this.pendingKey = null;
         voiceBusy = false;
-        try { if (timerId) { clearInterval(timerId); timerId = null; } } catch (_) {}
+        /* 禁止清 timerId：停声 ≠ 停局；否则 pagehide/回大厅误冻倒计时 */
         Object.keys(this.players).forEach((k) => {
           const el = this.players[k];
           if (!el) return;
@@ -1884,6 +1884,88 @@
     function availableBal() {
       return balance - totalDraft();
     }
+    /* 已确认注落盘：防刷新扣款后注单蒸发（对齐电脑 persistOpenBets / finalizeOpenBets） */
+    const OPEN_BETS_KEY = 'fg_sicbo_m_openbets::' + String(user || 'asdg').trim().toLowerCase();
+    let openBetFinalizing = false;
+    function hasOpenConfirmed() {
+      return Object.keys(confirmed).some((k) => (Math.round(Number(confirmed[k]) || 0) > 0));
+    }
+    function persistOpenBets() {
+      try {
+        const snap = {};
+        let any = false;
+        Object.keys(confirmed).forEach((k) => {
+          const n = Math.round(Number(confirmed[k]) || 0);
+          if (n > 0) { snap[k] = n; any = true; }
+        });
+        if (!any) {
+          localStorage.removeItem(OPEN_BETS_KEY);
+          return;
+        }
+        localStorage.setItem(OPEN_BETS_KEY, JSON.stringify({
+          bets: snap,
+          roundNo,
+          ts: Date.now(),
+        }));
+      } catch (_) {}
+    }
+    function clearOpenBetSnapshot() {
+      try { localStorage.removeItem(OPEN_BETS_KEY); } catch (_) {}
+    }
+    function restoreOpenBetsFromStore() {
+      try {
+        const raw = localStorage.getItem(OPEN_BETS_KEY);
+        if (!raw) return false;
+        const o = JSON.parse(raw);
+        if (!o || !o.bets) return false;
+        let any = false;
+        Object.keys(o.bets).forEach((k) => {
+          const n = Math.round(Number(o.bets[k]) || 0);
+          if (n > 0) {
+            confirmed[k] = n;
+            any = true;
+          }
+        });
+        if (any && o.roundNo != null) {
+          const rn = Math.round(Number(o.roundNo) || 0);
+          if (rn > 0) roundNo = rn;
+        }
+        return any;
+      } catch (_) {
+        return false;
+      }
+    }
+    /** 离桌/刷新：静默结算已确认注；未确认草稿作废 */
+    function finalizeOpenBets() {
+      if (openBetFinalizing) return false;
+      draft = Object.create(null);
+      undoStack = [];
+      if (!hasOpenConfirmed()) restoreOpenBetsFromStore();
+      if (!hasOpenConfirmed()) {
+        clearOpenBetSnapshot();
+        return false;
+      }
+      openBetFinalizing = true;
+      try {
+        const bets = Object.assign({}, confirmed);
+        const dice = E.rollDice();
+        const res = E.settleRound(dice, bets);
+        if (res.returned > 0) {
+          const prevBal = balance;
+          balance += res.returned;
+          saveBal(user, balance, { type: 'payout', note: '离桌收官派彩', source: 'sicbo-m', prev: prevBal });
+        } else {
+          saveBal(user, balance, { skipLog: true });
+        }
+        confirmed = Object.create(null);
+        clearOpenBetSnapshot();
+        return !!(res && res.staked > 0);
+      } catch (_) {
+        return false;
+      } finally {
+        openBetFinalizing = false;
+      }
+    }
     function paintActBar() {
       const betting = phase === 'betting';
       const on = totalDraft() > 0 && betting;
@@ -2129,7 +2211,8 @@
 
     function chipAmount() {
       if (maxMode) {
-        const room = Math.min(TABLE_MAX, availableBal());
+        /* MAX＝全部可用余额（文案「下注所有余额」）；不套单项 TABLE_MAX */
+        const room = availableBal();
         return room >= TABLE_MIN ? room : 0;
       }
       return chip;
@@ -2153,11 +2236,11 @@
       const prevDraft = draft[key] || 0;
       const cur = conf + prevDraft;
       if (maxMode) {
-        /* MAX：把该盘口补到上限（可占其它草稿外的余额） */
+        /* MAX：该盘口草稿吃掉全部可用余额（含收回本格旧草稿） */
         const freed = availableBal() + prevDraft;
-        const want = Math.min(TABLE_MAX - conf, freed);
+        const want = freed;
         if (want < TABLE_MIN && cur === 0) { toast('余额不足'); return; }
-        if (want <= 0 || want === prevDraft) { toast('已达上限'); return; }
+        if (want <= 0 || want === prevDraft) { toast('余额不足'); return; }
         amt = want;
         draft[key] = amt;
         undoStack.push({ key, amt, prev: prevDraft });
@@ -2229,6 +2312,7 @@
       pushBetRecords(betRows);
       draft = Object.create(null);
       undoStack = [];
+      persistOpenBets();
       paintMeta();
       paintChipsOnCells();
       /* 临近收盘只闪一下，避免与马上到来的「停止下注」叠字 */
@@ -2293,6 +2377,8 @@
     let leftForLobby = false;
     function goLobby() {
       leftForLobby = true;
+      try { if (timerId) { clearInterval(timerId); timerId = null; } } catch (_) {}
+      try { finalizeOpenBets(); } catch (_) {}
       try { Voice.silence(); } catch (_) {}
       if (IS_EMBED) {
         try { window.parent.postMessage({ type: 'fg-embed-close' }, '*'); } catch (_) {}
@@ -2368,6 +2454,7 @@
         }
       }
       confirmed = Object.create(null);
+      clearOpenBetSnapshot();
       paintMeta();
       paintChipsOnCells();
       clearHits();
@@ -2472,6 +2559,7 @@
         confirmed = Object.create(null);
         draft = Object.create(null);
         undoStack = [];
+        clearOpenBetSnapshot();
         paintMeta();
         paintChipsOnCells();
         if (hasBets) {
@@ -2553,7 +2641,10 @@
       Voice.unlock();
       if (!welcomed) void kickTableVoice(false, true);
     }, { passive: true });
-    const leavePage = () => { try { Voice.silence(); } catch (_) {} };
+    const leavePage = () => {
+      try { finalizeOpenBets(); } catch (_) {}
+      try { Voice.silence(); } catch (_) {}
+    };
     window.addEventListener('pagehide', leavePage, true);
     window.addEventListener('beforeunload', leavePage, true);
     window.addEventListener('unload', leavePage, true);
@@ -2616,7 +2707,18 @@
       onHide: () => { try { saveBal(user, balance); } catch (_) {} },
       onShow: () => { softPullBalance(); },
     });
-    hydrateAccountFromServer();
+    hydrateAccountFromServer().then(() => {
+      /* 若上次刷新未跑完收官：把已扣款的确认注摆回盘面 */
+      if (restoreOpenBetsFromStore()) {
+        paintMeta();
+        paintChipsOnCells();
+      }
+    }).catch(() => {
+      if (restoreOpenBetsFromStore()) {
+        paintMeta();
+        paintChipsOnCells();
+      }
+    });
     void holdPhaseBanner('开始下注', PHASE_HOLD_MS);
     if (IS_EMBED) {
       /* 画面就绪后再通知父页播欢迎；播前父页会查喇叭开关 */
