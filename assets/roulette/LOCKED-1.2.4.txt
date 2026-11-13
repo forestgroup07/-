@@ -1,14 +1,19 @@
-roulette v1.2.4 lock pack (2026-11-11 — current latest relabel)
-- Status toasts unified with sicbo (#ffe29a / size 52): 开始下注 / 停止下注 / 下注成功
-- Win flash = sicbo-style rouWinGoldPulse 7s
-- Ball fret hops + English n0..n36 + wood-rim light touch
-- Timer: outer arc + pie shorten together; number 2×
-- roulette.html / lobby ROULETTE ?v=1.2.4 / assets/roulette/VERSION
-- Snapshots:
-  - roulette.LOCKED-1.2.4.html
-  - assets/roulette/LOCKED-VERSION-1.2.4.txt
-  - assets/roulette/LOCKED-bet-kbd-dim-mask-1.2.4.png
-  - assets/roulette/LOCKED-wheel-disc-1.2.4.png
-  - audio/roulette-en/n0..n36.mp3
-  - audio/roulette-fret-click-0..2.mp3
-- Do not overwrite this pack without user written rename
+roulette PC v1.2.4 re-lock (2026-11-14)
+
+已验收清单（本包算数）:
+- 开奖球动画底 TOTAL_MS=7600（1.2.14/1.2.2 系）
+- 最上边線注左右可点
+- 小球略放大 3.55%
+- 外圈禁落格声 + Web Audio BufferSource 无缝 loop（消 HTML 两处接缝断音）
+- 外圈四圈递慢：1快→2稍慢→3慢→4更慢，再落格跳动（LAP_SHARE）
+- 下注成功口播 bet-ok；净赢：钱币两下 +「恭喜你赢钱了」
+- 页面号 / lobby ROULETTE_PC / VERSION = 1.2.4
+- 快照：roulette.LOCKED-1.2.4.html
+- 资源：audio/roulette-ball-roll-outer.mp3
+
+未验收、不得当作本定版:
+- 小球第3项（格内间隔跳）——未做
+- 手机轮盘、骰宝
+- 旧同号包另存 *-prev-before-20261114-reclock
+
+回滚只用本包 LOCKED-*；禁止用邻近实验版（1.2.5–1.2.7 工作号）顶替。

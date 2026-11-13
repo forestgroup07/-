@@ -35,7 +35,7 @@
     }
 
     /* 骰宝同款倒计时：戴帽美女与轮盘之间上方 */
-    /* 对标公司：外圈弧 + 内扇形都随 --p 一起变短；白点钉在弧端；数字 2× */
+    /* 对标公司：外圈弧 + 内扇形都随 --p 一起变短；弧端点随环色（绿/红）；数字 2× */
     .timer {
       --p: 1;
       --timer-ring: #6fdc4a;
@@ -77,7 +77,7 @@
       width: 11%;
       height: 11%;
       border-radius: 50%;
-      background: #fff;
+      background: var(--timer-ring);
       box-shadow: 0 0 0.08em rgba(0,0,0,.35);
       left: 50%;
       top: 50%;
@@ -239,11 +239,11 @@
       left: 50%;
       /* top% 越小越靠外圈；外圈≈6.8，号码格中心≈18.3（=50-WHEEL_POCKET_DIST） */
       top: 6.8%;
-      /* 参考片小球：略大于旧 2.35%，远小于 5.3% 过大版 */
-      width: 2.95%;
-      height: 2.95%;
-      min-width: 7px;
-      min-height: 7px;
+      /* 略放大：2.95% → 3.55%（仍远小于曾过大的 5.3%） */
+      width: 3.55%;
+      height: 3.55%;
+      min-width: 9px;
+      min-height: 9px;
       transform: translate(-50%, -50%);
       border-radius: 50%;
       background: radial-gradient(circle at 32% 28%, #fff 0%, #ececec 34%, #c8c8c8 58%, #7a7a7a 82%, #2a2a2a 100%);
@@ -2014,9 +2014,10 @@
       border: 1px solid #555;
       background: #2a2a2a;
       color: #cfcfcf;
+      font-family: inherit;
       font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 26 / var(--sw));
       font-weight: 600;
-      cursor: default;
+      cursor: pointer;
     }
     .records-tab.is-on {
       background: #d7c29a;
@@ -2456,7 +2457,7 @@
         </button>
 
         <button class="btn-act" id="btnRepeat" type="button" aria-label="重复下注">
-          <img class="btn-act-lit" src="assets/roulette/act-btn-faces/repeat.png?v=1.2.30" alt="" draggable="false" decoding="async" aria-hidden="true" />
+          <img class="btn-act-lit" src="assets/roulette/act-btn-faces/undo.png?v=1.2.10" alt="" draggable="false" decoding="async" aria-hidden="true" />
         </button>
         <button class="btn-act" id="btnConfirm" type="button" aria-label="确定">
           <img class="btn-act-lit" src="assets/roulette/act-btn-faces/confirm.png?v=1.2.30" alt="" draggable="false" decoding="async" aria-hidden="true" />
@@ -2602,9 +2603,9 @@
         <div class="records-panel" role="dialog" aria-modal="true" aria-labelledby="recordsTitle">
           <button class="records-close" id="recordsClose" type="button" aria-label="关闭">×</button>
           <div class="records-tabs" id="recordsTitle">
-            <span class="records-tab is-on">投注記錄</span>
-            <span class="records-tab">額度記錄</span>
-            <span class="records-tab">電子遊戲記錄</span>
+            <button type="button" class="records-tab is-on" data-rec-view="bet">投注記錄</button>
+            <button type="button" class="records-tab" data-rec-view="credit">額度記錄</button>
+            <button type="button" class="records-tab" data-rec-view="egame">電子遊戲記錄</button>
           </div>
           <div class="records-filters">
             <label>局號 <input id="recRoundQ" type="text" autocomplete="off" /></label>
@@ -2620,8 +2621,8 @@
           </div>
           <div class="records-table-wrap">
             <table class="records-table">
-              <thead>
-                <tr>
+              <thead id="recordsHead">
+                <tr data-rec-head="bet">
                   <th>投注編號</th>
                   <th>時間</th>
                   <th>靴-局</th>
@@ -2807,13 +2808,16 @@
       <audio id="voStartBet" preload="auto" playsinline></audio>
       <audio id="voRoundOpen" preload="auto" playsinline></audio>
       <audio id="voStopBet" preload="auto" playsinline></audio>
+      <audio id="voBetOk" preload="auto" playsinline></audio>
+      <audio id="voYouWin" preload="auto" playsinline></audio>
       <audio id="voEnNum" preload="auto" playsinline></audio>
       <audio id="sfxTick" preload="auto" playsinline></audio>
       <audio id="sfxBombTick" preload="auto" playsinline></audio>
+      <audio id="sfxCoin" preload="auto" playsinline></audio>
     </div>
   </div>
 
-  <script src="js/fg-wallet.js?v=1.0.1"></script>
+  <script src="js/fg-wallet.js?v=1.0.3"></script>
   <script>
     (async function () {
       const V = '1.2.4';
@@ -2839,7 +2843,7 @@
         }
       }
       const ACCOUNT_ID = currentUser();
-      const ACCOUNT_API = 'api/sicbo-account.php';
+      const ACCOUNT_API = 'api/fg-wallet-account.php';
       const wallet = window.FgWallet.create({
         user: ACCOUNT_ID,
         api: ACCOUNT_API,
@@ -2909,8 +2913,8 @@
       const toastEl = document.getElementById('toastMsg');
       const sfxClick = new Audio('audio/key-click.mp3?v=' + V);
       sfxClick.preload = 'auto';
-      /* 外圈细滚；进内圈后按隔板撞击逐发 short click（参考片） */
-      const sfxBallRoll = new Audio('audio/roulette-ball-roll.mp3?v=' + V);
+      /* 外圈：只用无落格声的干净滚段；进格子后才隔板 click */
+      const sfxBallRoll = new Audio('audio/roulette-ball-roll-outer.mp3?v=' + V);
       const sfxBallBounce = new Audio('audio/roulette-ball-bounce.mp3?v=' + V);
       sfxBallRoll.preload = 'auto';
       sfxBallBounce.preload = 'auto';
@@ -2923,7 +2927,82 @@
       const sfxBallSpin = sfxBallRoll;
       let ballSpinPlaying = false;
       let ballBounceStarted = false;
+      /** false=外圈；true=已进红黑格后才允许隔板声 */
+      let ballInPocketPhase = false;
       let fretClickI = 0;
+      let ballRollWatch = 0;
+      let ballRollBuf = null;
+      let ballRollBufLoading = null;
+      let ballRollSrc = null;
+      let ballRollGain = null;
+      function clearBallRollWatch() {
+        if (ballRollWatch) {
+          clearInterval(ballRollWatch);
+          ballRollWatch = 0;
+        }
+      }
+      function stopBallRollBuffer() {
+        if (ballRollSrc) {
+          try { ballRollSrc.onended = null; } catch (_) {}
+          try { ballRollSrc.stop(); } catch (_) {}
+          try { ballRollSrc.disconnect(); } catch (_) {}
+          ballRollSrc = null;
+        }
+      }
+      function loadBallRollBuffer() {
+        const ctx = ensureAudioCtx();
+        if (!ctx) return Promise.reject(new Error('no-ctx'));
+        if (ballRollBuf) return Promise.resolve(ballRollBuf);
+        if (ballRollBufLoading) return ballRollBufLoading;
+        const url = 'audio/roulette-ball-roll-outer.mp3?v=' + V;
+        ballRollBufLoading = fetch(url)
+          .then((r) => {
+            if (!r.ok) throw new Error('roll-fetch');
+            return r.arrayBuffer();
+          })
+          .then((ab) => ctx.decodeAudioData(ab.slice(0)))
+          .then((buf) => {
+            ballRollBuf = buf;
+            ballRollBufLoading = null;
+            return buf;
+          })
+          .catch((err) => {
+            ballRollBufLoading = null;
+            throw err;
+          });
+        return ballRollBufLoading;
+      }
+      /** Web Audio BufferSource.loop = 无缝；消灭 HTML audio 短 mp3 两处接缝断音 */
+      function startBallRollBuffer() {
+        const ctx = ensureAudioCtx();
+        if (!ctx || !ballRollBuf || soundMuted) return false;
+        stopBallRollBuffer();
+        try {
+          if (ctx.state === 'suspended') ctx.resume();
+          if (!ballRollGain) {
+            ballRollGain = ctx.createGain();
+            ballRollGain.connect(ctx.destination);
+          }
+          ballRollGain.gain.value = 1;
+          const src = ctx.createBufferSource();
+          src.buffer = ballRollBuf;
+          src.loop = true;
+          src.connect(ballRollGain);
+          src.start(0);
+          ballRollSrc = src;
+          return true;
+        } catch (_) {
+          ballRollSrc = null;
+          return false;
+        }
+      }
+      function pauseHtmlBallRoll() {
+        try {
+          sfxBallRoll.loop = false;
+          sfxBallRoll.pause();
+          sfxBallRoll.currentTime = 0;
+        } catch (_) {}
+      }
 
       let toastTimer = 0;
       function showToast(text, ms, kind) {
@@ -2975,46 +3054,70 @@
       /** 用户点过之后才能播；静音预播解锁外圈滚 + 格内跳 */
       function primeBallSpinSfx() {
         ensureAudioCtx();
+        try { loadBallRollBuffer().catch(() => {}); } catch (_) {}
         _primeOne(sfxBallRoll);
         _primeOne(sfxBallBounce);
         sfxFretClicks.forEach(_primeOne);
       }
       function playBallSpinSfx() {
-        /* 外圈阶段只播滚动；进格后改 playFretClick */
+        /* 外圈：Web Audio 无缝 loop（消 HTML 两处接缝）；禁止隔板声 */
         ballSpinPlaying = true;
         ballBounceStarted = false;
+        ballInPocketPhase = false;
         fretClickI = 0;
+        clearBallRollWatch();
+        stopBallRollBuffer();
+        pauseHtmlBallRoll();
         if (soundMuted) return;
         ensureAudioCtx();
         try {
           sfxBallBounce.pause();
           sfxBallBounce.currentTime = 0;
         } catch (_) {}
-        try {
-          sfxBallRoll.muted = false;
-          sfxBallRoll.pause();
-          sfxBallRoll.currentTime = 0;
-          sfxBallRoll.volume = 1;
-          const p = sfxBallRoll.play();
-          if (p && p.catch) {
-            p.catch(() => {
-              try { startBallSpinSynth(false); } catch (_) {}
-            });
+        const fallbackHtmlOrSynth = () => {
+          if (!ballSpinPlaying || ballInPocketPhase || soundMuted) return;
+          try {
+            sfxBallRoll.muted = false;
+            sfxBallRoll.loop = true;
+            sfxBallRoll.volume = 1;
+            const p = sfxBallRoll.play();
+            if (p && p.catch) {
+              p.catch(() => {
+                try { startBallSpinSynth(false); } catch (_) {}
+              });
+            }
+          } catch (_) {
+            try { startBallSpinSynth(false); } catch (__) {}
           }
-        } catch (_) {
-          try { startBallSpinSynth(false); } catch (__) {}
-        }
+        };
+        const kickBuf = () => {
+          if (!ballSpinPlaying || ballInPocketPhase || soundMuted) return;
+          if (startBallRollBuffer()) return;
+          fallbackHtmlOrSynth();
+        };
+        loadBallRollBuffer().then(() => {
+          kickBuf();
+        }).catch(() => {
+          fallbackHtmlOrSynth();
+        });
+        /* BufferSource 被掐断时补踢；正常无缝 loop 不应触发 */
+        ballRollWatch = setInterval(() => {
+          if (!ballSpinPlaying || ballInPocketPhase || soundMuted) {
+            clearBallRollWatch();
+            return;
+          }
+          if (!ballRollSrc) kickBuf();
+        }, 400);
       }
       function stopBallRollOnly() {
-        try {
-          sfxBallRoll.pause();
-          sfxBallRoll.currentTime = 0;
-        } catch (_) {}
+        clearBallRollWatch();
+        stopBallRollBuffer();
+        pauseHtmlBallRoll();
         stopBallSpinSynth();
       }
-      /** 撞一格隔板一声；可重叠短音 */
+      /** 撞一格隔板一声；外圈硬门禁 */
       function playFretClick(vol) {
-        if (soundMuted || !ballSpinPlaying) return;
+        if (soundMuted || !ballSpinPlaying || !ballInPocketPhase) return;
         ballBounceStarted = true;
         const src = sfxFretClicks[fretClickI % sfxFretClicks.length];
         fretClickI++;
@@ -3071,9 +3174,7 @@
         noise.start();
         ballSynthNodes.push(noise);
         if (!withClicks) {
-          setTimeout(() => {
-            if (ballSpinPlaying && !ballBounceStarted) stopBallSpinSynth();
-          }, 4200);
+          /* 外圈兜底沙沙跟到进格，禁止中途掐断、禁止假落格声 */
           return;
         }
         let gap = 0.16;
@@ -3110,11 +3211,11 @@
       function stopBallSpinSfx() {
         ballSpinPlaying = false;
         ballBounceStarted = false;
+        ballInPocketPhase = false;
+        clearBallRollWatch();
+        stopBallRollBuffer();
         stopBallSpinSynth();
-        try {
-          sfxBallRoll.pause();
-          sfxBallRoll.currentTime = 0;
-        } catch (_) {}
+        pauseHtmlBallRoll();
         try {
           sfxBallBounce.pause();
           sfxBallBounce.currentTime = 0;
@@ -3305,9 +3406,11 @@
         Object.keys(pendingBets).forEach((k) => { s += Number(pendingBets[k]) || 0; });
         return s;
       }
+      let pendingUndoStack = [];
       function clearPendingState() {
         pendingBets = Object.create(null);
         lastPendingKey = null;
+        pendingUndoStack = [];
       }
       function currentStakeTotal() {
         let total = pendingTotal();
@@ -3318,9 +3421,21 @@
         if (stakeAmtEl) stakeAmtEl.textContent = fmtStake(currentStakeTotal());
         paintStakePanel();
       }
-      function setBalance(n, flash) {
+      function setBalance(n, flash, meta) {
         const prev = balance;
         balance = Math.max(0, Math.round(Number(n) || 0));
+        const delta = balance - prev;
+        const skipLog = !!(meta && (meta.skipLog || meta.silent));
+        if (!skipLog && delta !== 0) {
+          try {
+            pushCreditRecord({
+              amount: delta,
+              type: (meta && meta.type) || (delta > 0 ? 'credit' : 'debit'),
+              note: (meta && meta.note) || '',
+              source: (meta && meta.source) || 'roulette-pc',
+            });
+          } catch (_) {}
+        }
         saveBal();
         if (balEl) {
           balEl.textContent = fmtBal(balance);
@@ -3349,6 +3464,22 @@
               localStorage.setItem(BAL_KEY, String(balance));
               localStorage.setItem('fg_sicbo_balance', String(balance));
             } catch (_) {}
+          }
+          if (Array.isArray(d.betlog) && d.betlog.length) {
+            try { mergeBetLogFromServer(d.betlog); } catch (_) {}
+          } else {
+            const localBets = loadBetLog();
+            if (localBets.length) {
+              try { scheduleServerSave({ betAppend: localBets.slice(0, 500) }); } catch (_) {}
+            }
+          }
+          if (Array.isArray(d.creditlog) && d.creditlog.length) {
+            try { mergeCreditLogFromServer(d.creditlog); } catch (_) {}
+          } else {
+            const localCredits = loadCreditLog();
+            if (localCredits.length) {
+              try { scheduleServerSave({ creditAppend: localCredits.slice(0, 500) }); } catch (_) {}
+            }
           }
           wallet.dropPendingBalance();
           wallet.markHydrated();
@@ -3500,49 +3631,39 @@
         const total = entries.reduce((s, e) => s + e.amt, 0);
         if (balance < total) { showToast('积分不足', 1200); return false; }
         playClick();
-        setBalance(balance - total);
-        entries.forEach((e) => {
+        setBalance(balance - total, false, { type: 'bet', note: '确认下注', source: 'roulette-pc' });
+        entries.forEach((e, i) => {
           bets[e.key] = (bets[e.key] || 0) + e.amt;
+          recordConfirmedBet(e.key, e.amt, i);
         });
         clearPendingState();
         snapshotConfirmedBets();
         paintLit();
         paintStake();
         showToast('下注成功', 1800, 'success');
+        /* 「下注成功」口播；静音时不出声 */
+        try {
+          if (!Voice.isOff()) void Voice.speak('下注成功');
+        } catch (_) {}
         return true;
       }
-      function repeatBet() {
-        if (!bettingOpen) return;
+      /** 金色态＝撤銷上一步挂单（底图黑底仍显示「重复下注」；无加倍） */
+      function undoBet() {
+        if (!bettingOpen) { showToast('已停止下注，无法撤销', 1200); return; }
         playClick();
-        /* 有挂单：最近点的那笔金额再加一倍（其它挂单不动） */
-        const pendKey = lastPendingKey && (Number(pendingBets[lastPendingKey]) || 0) > 0
-          ? lastPendingKey
-          : Object.keys(pendingBets).find((k) => (Number(pendingBets[k]) || 0) > 0);
-        if (pendKey) {
-          const cur = Number(pendingBets[pendKey]) || 0;
-          const next = cur * 2;
-          const other = pendingTotal() - cur;
-          if (balance < other + next) { showToast('积分不足，无法加倍', 1400); return; }
-          pendingBets[pendKey] = next;
-          lastPendingKey = pendKey;
-          paintLit();
-          paintStake();
-          showToast('加倍 ' + next, 1000);
-          return;
-        }
-        const keys = Object.keys(lastConfirmedBets || {}).filter((k) => (lastConfirmedBets[k] || 0) > 0);
-        if (!keys.length) return;
-        let need = 0;
-        keys.forEach((k) => { need += Number(lastConfirmedBets[k]) || 0; });
-        if (balance < need) return;
-        setBalance(balance - need);
-        keys.forEach((k) => {
-          bets[k] = (bets[k] || 0) + (Number(lastConfirmedBets[k]) || 0);
-        });
-        clearPendingState();
-        snapshotConfirmedBets();
+        if (!pendingUndoStack.length) { showToast('没有可撤销的选择', 1000); return; }
+        const step = pendingUndoStack.pop();
+        const key = step && step.key;
+        if (!key) { showToast('没有可撤销的选择', 1000); return; }
+        const prev = Math.max(0, Number(step.prev) || 0);
+        if (prev > 0) pendingBets[key] = prev;
+        else delete pendingBets[key];
+        lastPendingKey = pendingUndoStack.length
+          ? pendingUndoStack[pendingUndoStack.length - 1].key
+          : null;
         paintLit();
         paintStake();
+        showToast('已撤销', 1000);
       }
       function cancelBet() {
         if (!bettingOpen) { showToast('已停止下注，无法取消', 1200); return; }
@@ -3555,7 +3676,7 @@
       }
       btnConfirm.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); confirmBet(); });
       btnCancel.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); cancelBet(); });
-      btnRepeat.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); repeatBet(); });
+      btnRepeat.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); undoBet(); });
 
       /* 数字盘：按底图像素绝对定位，点一下只出一个号 */
       const RED = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
@@ -3603,6 +3724,8 @@
       /* 热区外扩盖住格间缝；底边少扩，避免压到打/外注 */
       const HIT_PAD_X = 0.20; /* % of stage */
       const HIT_PAD_Y = 0.18;
+      /* 顶行（3/6/…/36）顶边再外扩，方便点最上边全部線注 */
+      const HIT_PAD_Y_TOPROW = 0.36;
       Object.keys(NUM_CELLS).forEach((key) => {
         const n = Number(key);
         const box = NUM_CELLS[n];
@@ -3616,14 +3739,15 @@
         const T = parseFloat(box.top);
         const W = parseFloat(box.width);
         const H = parseFloat(box.height);
+        const padY = (n > 0 && n % 3 === 0) ? HIT_PAD_Y_TOPROW : HIT_PAD_Y;
         const w2 = W + HIT_PAD_X * 2;
-        const h2 = H + HIT_PAD_Y * 2;
+        const h2 = H + padY * 2;
         b.style.left = (L - HIT_PAD_X) + '%';
-        b.style.top = (T - HIT_PAD_Y) + '%';
+        b.style.top = (T - padY) + '%';
         b.style.width = w2 + '%';
         b.style.height = h2 + '%';
         b.dataset.hitPadX = String(HIT_PAD_X / w2);
-        b.dataset.hitPadY = String(HIT_PAD_Y / h2);
+        b.dataset.hitPadY = String(padY / h2);
         nums.appendChild(b);
       });
 
@@ -4258,12 +4382,20 @@
       function numRight(n) { return n <= 33 ? n + 3 : null; }
       function numUp(n) { return (n % 3 === 0) ? null : n + 1; }
       function numDown(n) { return (n % 3 === 1) ? null : n - 1; }
-      function sixLineAtTopJunction(n) {
-        /* 顶行（3/6/…/36）左边线交接：两街共六号，如 36→31..36 */
+      function sixLineAtTopJunctionFromLeft(n) {
+        /* 顶行顶边+左边：两街六号。例：33 左上 → 28..33；36 左上 → 31..36 */
         if (n < 3 || n % 3 !== 0) return null;
-        const rightStreet = n - 2; /* 34 for 36 */
+        const rightStreet = n - 2;
         const leftStreet = rightStreet - 3;
         if (leftStreet < 1) return null;
+        return [leftStreet, leftStreet + 1, leftStreet + 2, rightStreet, rightStreet + 1, rightStreet + 2];
+      }
+      function sixLineAtTopJunctionFromRight(n) {
+        /* 顶行顶边+右边：同上六号。例：30 右上 → 28..33 */
+        if (n < 3 || n % 3 !== 0) return null;
+        const leftStreet = n - 2;
+        const rightStreet = leftStreet + 3;
+        if (rightStreet > 34) return null;
         return [leftStreet, leftStreet + 1, leftStreet + 2, rightStreet, rightStreet + 1, rightStreet + 2];
       }
       function insideBetKey(kind, nums) {
@@ -4303,9 +4435,18 @@
         const edgeR = dR < EDGE_BAND;
         const edgeT = dT < EDGE_BAND;
         const edgeB = dB < EDGE_BAND;
-        /* 顶行上边线 + 左边交接 → 線注六号（例：36 顶边交接 = 31-36） */
-        if (cornerT && cornerL) {
-          const six = sixLineAtTopJunction(n);
+        /*
+         * 最上边全部線注：顶行顶边 + 左/右竖缝都能点中（EDGE_BAND，避免只认窄角）。
+         * 例：30 右上 或 33 左上 → 線注 28-33；3|6、6|9…33|36 同理。
+         */
+        if (edgeT && edgeL) {
+          const six = sixLineAtTopJunctionFromLeft(n);
+          if (six) {
+            return { kind: 'line', nums: six, name: '線注', odds: '1:5', limit: INSIDE_LIMIT.line };
+          }
+        }
+        if (edgeT && edgeR) {
+          const six = sixLineAtTopJunctionFromRight(n);
           if (six) {
             return { kind: 'line', nums: six, name: '線注', odds: '1:5', limit: INSIDE_LIMIT.line };
           }
@@ -4479,7 +4620,7 @@
         if (dock) dock.classList.toggle('is-pending', on);
         if (btnRepeat) {
           btnRepeat.classList.toggle('is-armed', on);
-          btnRepeat.setAttribute('aria-label', on ? '重复下注（挂单可加倍）' : '重复下注');
+          btnRepeat.setAttribute('aria-label', on ? '撤销' : '重复下注');
         }
         if (btnConfirm) {
           btnConfirm.classList.toggle('is-armed', on);
@@ -4600,6 +4741,7 @@
           if (!next) { showToast('请先选择筹码', 1200); return; }
           const other = pendingTotal() - (Number(pendingBets[betKey]) || 0);
           if (balance < other + next) { showToast('积分不足', 1200); return; }
+          pendingUndoStack.push({ key: betKey, prev: Number(pendingBets[betKey]) || 0 });
           pendingBets[betKey] = next;
           lastPendingKey = betKey;
           if (!Object.prototype.hasOwnProperty.call(bets, betKey)) bets[betKey] = 0;
@@ -4636,6 +4778,7 @@
 
       /* 左侧四键：返回 / 下注记录 / 游戏规则 / 联系客服（对齐骰宝） */
       const BET_LOG_KEY = 'fg_roulette_betlog::' + ACCOUNT_ID.trim().toLowerCase();
+      const CREDIT_LOG_KEY = 'fg_creditlog::' + ACCOUNT_ID.trim().toLowerCase();
       function loadBetLog() {
         try {
           const raw = localStorage.getItem(BET_LOG_KEY);
@@ -4646,18 +4789,155 @@
           return [];
         }
       }
-      function saveBetLog(list) {
+      function saveBetLogLocal(list) {
         const clipped = (list || []).slice(0, 2000);
         try {
           localStorage.setItem(BET_LOG_KEY, JSON.stringify(clipped));
         } catch (_) {}
-        scheduleServerSave({ betlog: clipped });
+        return clipped;
+      }
+      function saveBetLog(list) {
+        const clipped = saveBetLogLocal(list);
+        if (clipped.length) scheduleServerSave({ betlog: clipped });
       }
       function pushBetRecords(rows) {
         if (!rows || !rows.length) return;
         const list = loadBetLog();
         for (let i = rows.length - 1; i >= 0; i--) list.unshift(rows[i]);
-        saveBetLog(list);
+        saveBetLogLocal(list);
+        scheduleServerSave({ betAppend: rows.slice() });
+        refreshRecordsIfOpen();
+      }
+      function loadCreditLog() {
+        try {
+          const raw = localStorage.getItem(CREDIT_LOG_KEY);
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch (_) {
+          return [];
+        }
+      }
+      function saveCreditLogLocal(list) {
+        const clipped = (list || []).slice(0, 2000);
+        try {
+          localStorage.setItem(CREDIT_LOG_KEY, JSON.stringify(clipped));
+        } catch (_) {}
+        return clipped;
+      }
+      function saveCreditLog(list) {
+        const clipped = saveCreditLogLocal(list);
+        if (clipped.length) scheduleServerSave({ creditlog: clipped });
+      }
+      function pushCreditRecord(row) {
+        if (!row) return;
+        const ts = Number(row.ts) || Date.now();
+        const amount = Math.round(Number(row.amount) || 0);
+        if (!amount) return;
+        const entry = {
+          id: String(row.id || (String(ts) + String(Math.floor(Math.random() * 90) + 10))),
+          ts,
+          type: String(row.type || (amount > 0 ? 'credit' : 'debit')),
+          amount,
+          balance: Math.max(0, Math.round(Number(row.balance != null ? row.balance : balance) || 0)),
+          note: String(row.note || ''),
+          source: String(row.source || 'roulette-pc'),
+          status: String(row.status || 'ok'),
+        };
+        const list = loadCreditLog();
+        list.unshift(entry);
+        saveCreditLogLocal(list);
+        try { scheduleServerSave({ creditAppend: entry }); } catch (_) {}
+        refreshRecordsIfOpen();
+      }
+      function mergeCreditLogFromServer(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+        const local = loadCreditLog();
+        const map = new Map();
+        local.forEach((r) => { if (r && r.id) map.set(String(r.id), r); });
+        rows.forEach((r) => {
+          if (!r || !r.id) return;
+          const id = String(r.id);
+          const prev = map.get(id);
+          if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(id, r);
+        });
+        const merged = Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+        saveCreditLogLocal(merged.slice(0, 2000));
+      }
+      function mergeBetLogFromServer(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+        const local = loadBetLog();
+        const map = new Map();
+        local.forEach((r) => {
+          const id = r && (r.betId || r.id);
+          if (id) map.set(String(id), r);
+        });
+        rows.forEach((r) => {
+          if (!r) return;
+          const id = r.betId || r.id;
+          if (!id) return;
+          const key = String(id);
+          const prev = map.get(key);
+          if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(key, r);
+        });
+        const merged = Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+        saveBetLogLocal(merged.slice(0, 2000));
+      }
+      let currentRoundId = '';
+      function ensureRoundId() {
+        if (!currentRoundId) {
+          const ts = Date.now();
+          currentRoundId = String(610000000 + (ts % 100000000));
+        }
+        return currentRoundId;
+      }
+      function bumpRoundId() {
+        currentRoundId = '';
+        return ensureRoundId();
+      }
+      function refreshRecordsIfOpen() {
+        if (recordsOverlay && recordsOverlay.classList.contains('show')) {
+          try { paintRecords(); } catch (_) {}
+        }
+      }
+      function newBetId(ts, idx) {
+        return String(ts) + String(idx).padStart(2, '0') + String(Math.floor(Math.random() * 90) + 10);
+      }
+      function marketLabel(key) {
+        if (!key) return '—';
+        const n = numFromKey(key);
+        if (n != null) return '直注 ' + n;
+        const inside = parseInsideBetKey(key);
+        if (inside) {
+          const kindName = ({
+            straight: '直注',
+            split: '分注',
+            street: '街注',
+            corner: '角注',
+            line: '線注',
+          })[inside.kind] || inside.kind;
+          return kindName + ' ' + inside.nums.join('/');
+        }
+        const info = MARKET_INFO[key];
+        if (info && info.name) return info.name;
+        return String(key);
+      }
+      function recordConfirmedBet(key, stake, idx) {
+        const amt = Math.max(0, Math.round(Number(stake) || 0));
+        if (!key || amt <= 0) return;
+        const ts = Date.now();
+        pushBetRecords([{
+          betId: newBetId(ts, idx || 0),
+          ts,
+          roundId: ensureRoundId(),
+          tableId: 'R501',
+          result: '',
+          market: marketLabel(key),
+          key,
+          stake: amt,
+          pnl: 0,
+          status: 'open',
+        }]);
       }
       const backWrap = document.getElementById('backWrap');
       const backHot = document.getElementById('backHot');
@@ -4698,6 +4978,42 @@
       let recPage = 1;
       const REC_PAGE_SIZE = 10;
       let recFilter = { round: '', order: '', from: 0, to: 0 };
+      let recView = 'bet'; /* bet | credit | egame */
+      function creditTypeLabel(t) {
+        const k = String(t || '');
+        if (k === 'recharge') return '充值';
+        if (k === 'bet') return '下注扣款';
+        if (k === 'payout') return '派彩';
+        if (k === 'credit') return '入账';
+        if (k === 'debit') return '出账';
+        if (k === 'adjust') return '调整';
+        return k || '—';
+      }
+      function setRecView(view) {
+        recView = view === 'credit' || view === 'egame' ? view : 'bet';
+        document.querySelectorAll('.records-tab[data-rec-view]').forEach((el) => {
+          el.classList.toggle('is-on', el.getAttribute('data-rec-view') === recView);
+        });
+        const head = document.getElementById('recordsHead');
+        if (head) {
+          if (recView === 'credit') {
+            head.innerHTML = `<tr>
+              <th>流水編號</th><th>時間</th><th>類型</th><th>金額</th>
+              <th>餘額</th><th>來源</th><th>備註</th><th>狀態</th>
+            </tr>`;
+          } else if (recView === 'egame') {
+            head.innerHTML = `<tr><th>記錄</th></tr>`;
+          } else {
+            head.innerHTML = `<tr>
+              <th>投注編號</th><th>時間</th><th>靴-局</th><th>局號</th>
+              <th>遊戲類型</th><th>桌檯編號</th><th>結果</th><th>玩法</th>
+              <th>下注總額</th><th>輸贏</th><th>有效投注</th><th>狀態</th>
+            </tr>`;
+          }
+        }
+        recPage = 1;
+        paintRecords();
+      }
       function fmtRecTime(ts) {
         const d = new Date(ts);
         const p = (n) => String(n).padStart(2, '0');
@@ -4754,9 +5070,10 @@
         const toEl = document.getElementById('recTo');
         if (!fromEl || !toEl) return;
         const now = new Date();
-        /* 公司默认：昨日 12:00:00 至 今日 12:00:00 */
-        const to = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
-        const from = new Date(to.getTime() - 24 * 3600 * 1000);
+        /* 默认覆盖「昨午→明午」，避免今日 12 点后新单被滤掉看不到 */
+        const noonToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
+        const from = new Date(noonToday.getTime() - 24 * 3600 * 1000);
+        const to = new Date(noonToday.getTime() + 24 * 3600 * 1000);
         if (force || !fromEl.value) fromEl.value = fmtDateInput(from);
         if (force || !toEl.value) toEl.value = fmtDateInput(to);
       }
@@ -4789,6 +5106,16 @@
         el.classList.toggle('is-empty', kind === 'empty');
         el.classList.toggle('is-ok', kind === 'ok');
       }
+      function filteredCreditLog() {
+        return loadCreditLog().filter((r) => {
+          if (!r) return false;
+          if (recFilter.order && String(r.id || '').indexOf(recFilter.order) < 0) return false;
+          const ts = Number(r.ts) || 0;
+          if (recFilter.from && ts < recFilter.from) return false;
+          if (recFilter.to && ts > recFilter.to) return false;
+          return true;
+        });
+      }
       function paintRecords() {
         const body = document.getElementById('recordsBody');
         const sumEl = document.getElementById('recordsSum');
@@ -4797,13 +5124,62 @@
         const prevBtn = document.getElementById('recPrev');
         const nextBtn = document.getElementById('recNext');
         if (!body) return;
+        if (recView === 'egame') {
+          body.innerHTML = `<tr class="records-empty"><td colspan="1">暫無電子遊戲記錄</td></tr>`;
+          if (sumEl) sumEl.innerHTML = '';
+          if (totalLabel) totalLabel.textContent = '總計: 0';
+          if (pageLabel) pageLabel.textContent = '1/1';
+          if (prevBtn) prevBtn.disabled = true;
+          if (nextBtn) nextBtn.disabled = true;
+          return;
+        }
+        if (recView === 'credit') {
+          const all = filteredCreditLog();
+          const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
+          if (recPage > pages) recPage = pages;
+          if (recPage < 1) recPage = 1;
+          const start = (recPage - 1) * REC_PAGE_SIZE;
+          const pageRows = all.slice(start, start + REC_PAGE_SIZE);
+          if (!pageRows.length) {
+            body.innerHTML = `<tr class="records-empty"><td colspan="8">暫無額度記錄</td></tr>`;
+          } else {
+            body.innerHTML = pageRows.map((r) => {
+              const amt = Number(r.amount) || 0;
+              const amtCls = amt > 0 ? 'pnl-win' : (amt < 0 ? 'pnl-lose' : '');
+              const amtText = (amt > 0 ? '+' : '') + amt;
+              return `<tr>
+                <td>${r.id || '—'}</td>
+                <td>${fmtRecTime(r.ts)}</td>
+                <td>${creditTypeLabel(r.type)}</td>
+                <td class="${amtCls}">${amtText}</td>
+                <td>${r.balance != null ? r.balance : '—'}</td>
+                <td>${r.source || '—'}</td>
+                <td>${r.note || '—'}</td>
+                <td class="st-ok">${r.status === 'ok' || !r.status ? '成功' : r.status}</td>
+              </tr>`;
+            }).join('');
+          }
+          const pageIn = pageRows.filter((r) => (Number(r.amount) || 0) > 0).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const pageOut = pageRows.filter((r) => (Number(r.amount) || 0) < 0).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const allIn = all.filter((r) => (Number(r.amount) || 0) > 0).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const allOut = all.filter((r) => (Number(r.amount) || 0) < 0).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          if (sumEl) {
+            sumEl.innerHTML =
+              `小計　入账 +${pageIn.toLocaleString('en-US')}　出账 ${pageOut.toLocaleString('en-US')}<br>`
+              + `總計　入账 +${allIn.toLocaleString('en-US')}　出账 ${allOut.toLocaleString('en-US')}`;
+          }
+          if (totalLabel) totalLabel.textContent = `總計: ${all.length}`;
+          if (pageLabel) pageLabel.textContent = `${recPage}/${pages}`;
+          if (prevBtn) prevBtn.disabled = recPage <= 1;
+          if (nextBtn) nextBtn.disabled = recPage >= pages;
+          return;
+        }
         const all = filteredBetLog();
         const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
         if (recPage > pages) recPage = pages;
         if (recPage < 1) recPage = 1;
         const start = (recPage - 1) * REC_PAGE_SIZE;
         const pageRows = all.slice(start, start + REC_PAGE_SIZE);
-        const filtered = !!(recFilter.round || recFilter.order || recFilter.from || recFilter.to);
         if (!pageRows.length) {
           const emptyText = '所選時間沒有記錄';
           body.innerHTML = `<tr class="records-empty"><td colspan="12">${emptyText}</td></tr>`;
@@ -4823,7 +5199,7 @@
               <td>${r.stake}</td>
               <td class="${pnlCls}">${pnl}</td>
               <td>${r.stake}</td>
-              <td class="st-ok">已結算</td>
+              <td class="${r.status === 'open' ? '' : 'st-ok'}">${r.status === 'open' ? '未結算' : '已結算'}</td>
             </tr>`;
           }).join('');
         }
@@ -4854,7 +5230,7 @@
         syncRecFilterFromInputs();
         setRecQueryMsg('');
         recPage = 1;
-        paintRecords();
+        setRecView(recView || 'bet');
         recordsOverlay.classList.add('show');
         recordsOverlay.setAttribute('aria-hidden', 'false');
       }
@@ -4878,6 +5254,12 @@
           openRecords();
         });
       }
+      document.querySelectorAll('.records-tab[data-rec-view]').forEach((tab) => {
+        tab.addEventListener('click', (e) => {
+          e.preventDefault();
+          setRecView(tab.getAttribute('data-rec-view') || 'bet');
+        });
+      });
       if (recordsClose) {
         recordsClose.addEventListener('click', (e) => {
           e.preventDefault();
@@ -5064,7 +5446,7 @@
         /* 与骰宝一致：有无红叉悬停都显示「聲效」 */
         soundTip.classList.toggle('show', !!show);
       }
-      const VOICE_IDS = ['voWelcome', 'voStartBet', 'voRoundOpen', 'voStopBet', 'voEnNum', 'sfxTick', 'sfxBombTick'];
+      const VOICE_IDS = ['voWelcome', 'voStartBet', 'voRoundOpen', 'voStopBet', 'voBetOk', 'voYouWin', 'voEnNum', 'sfxTick', 'sfxBombTick', 'sfxCoin'];
       function stopAllSfx() {
         try {
           sfxClick.pause();
@@ -5431,7 +5813,7 @@
         onShow: () => {
           wallet.pullBalance().then((n) => {
             if (n == null || n === balance) return;
-            setBalance(n, true);
+            setBalance(n, true, { skipLog: true });
           });
         },
       });
@@ -5488,6 +5870,9 @@
           startBet: 'audio/start-bet.mp3?v=' + V,
           roundOpen: 'audio/round-open-bet.mp3?v=' + V,
           stopBet: 'audio/stop-bet.mp3?v=' + V,
+          betOk: 'audio/bet-ok.mp3?v=' + V,
+          youWin: 'audio/you-win.mp3?v=' + V,
+          coin: 'audio/coin-bag.mp3?v=' + V,
           tick: 'audio/tick.mp3?v=' + V,
           bombTick: 'audio/bomb-tick.mp3?v=' + V,
         },
@@ -5496,6 +5881,9 @@
           startBet: document.getElementById('voStartBet'),
           roundOpen: document.getElementById('voRoundOpen'),
           stopBet: document.getElementById('voStopBet'),
+          betOk: document.getElementById('voBetOk'),
+          youWin: document.getElementById('voYouWin'),
+          coin: document.getElementById('sfxCoin'),
           tick: document.getElementById('sfxTick'),
           bombTick: document.getElementById('sfxBombTick'),
         },
@@ -5504,6 +5892,8 @@
           '开始下注': 'startBet',
           '已开局请下注': 'roundOpen',
           '停止下注': 'stopBet',
+          '下注成功': 'betOk',
+          '恭喜你赢钱了': 'youWin',
         },
         _chain: Promise.resolve(),
         init() {
@@ -5589,6 +5979,13 @@
         },
         tick() { this.playQuick('tick', 0.52); },
         bombTick() { this.playQuick('bombTick', 0.62); },
+        /** 与骰宝一致：钱币等短音效用 playEl，等播完 */
+        async playSfx(key) {
+          if (this.isOff()) return false;
+          const el = this.players[key];
+          if (!el) return false;
+          return await this.playEl(el);
+        },
         speak(text) {
           const run = async () => {
             if (this.isOff()) return false;
@@ -5596,7 +5993,7 @@
             const el = key && this.players[key];
             if (!el) return false;
             Object.keys(this.players).forEach((k) => {
-              if (k === 'tick' || k === 'bombTick') return;
+              if (k === 'tick' || k === 'bombTick' || k === 'coin') return;
               const other = this.players[k];
               if (!other || other === el) return;
               try { other.pause(); other.currentTime = 0; } catch (_) {}
@@ -5813,12 +6210,13 @@
         }
         return { win: false, mult: 2 };
       }
-      /** 开奖结算：派彩 + 清空盘面已确定筹码（下一局重新下） */
+      /** 开奖结算：派彩 + 写入下注记录 + 清空盘面已确定筹码 */
       function settleRound(winNum) {
         Object.keys(lastPnl).forEach((k) => { delete lastPnl[k]; });
         let returned = 0;
         let staked = 0;
         let net = 0;
+        const settleLines = [];
         Object.keys(bets).forEach((key) => {
           const stake = Number(bets[key]) || 0;
           if (stake <= 0) return;
@@ -5830,12 +6228,64 @@
             pnl = stake * (r.mult - 1);
           }
           net += pnl;
+          settleLines.push({ key, stake, pnl, win: !!r.win });
           if (STAKE_PANEL_KEYS.indexOf(key) >= 0) lastPnl[key] = pnl;
           bets[key] = 0;
         });
         Object.keys(bets).forEach((k) => { bets[k] = 0; });
         clearPendingState();
-        if (returned > 0) setBalance(balance + returned);
+        if (settleLines.length) {
+          const ts = Date.now();
+          const roundId = ensureRoundId();
+          const resultStr = String(winNum);
+          const meta = Object.create(null);
+          settleLines.forEach((line) => { meta[line.key] = line; });
+          const list = loadBetLog();
+          const openStakeByKey = Object.create(null);
+          let touched = false;
+          for (let i = 0; i < list.length; i++) {
+            const row = list[i];
+            if (!row || row.status !== 'open') continue;
+            const line = row.key ? meta[row.key] : null;
+            const stake = Math.max(0, Math.round(Number(row.stake) || 0));
+            if (!line || stake <= 0) continue;
+            const unit = line.stake > 0 ? (line.pnl / line.stake) : -1;
+            row.result = resultStr;
+            row.pnl = Math.round(stake * unit);
+            row.status = 'settled';
+            if (!row.roundId) row.roundId = roundId;
+            openStakeByKey[row.key] = (openStakeByKey[row.key] || 0) + stake;
+            touched = true;
+          }
+          let extraIdx = 0;
+          settleLines.forEach((line) => {
+            const already = openStakeByKey[line.key] || 0;
+            const rem = Math.max(0, Math.round(line.stake - already));
+            if (rem <= 0) return;
+            const unit = line.stake > 0 ? (line.pnl / line.stake) : -1;
+            list.unshift({
+              betId: newBetId(ts, extraIdx++),
+              ts,
+              roundId,
+              tableId: 'R501',
+              result: resultStr,
+              market: marketLabel(line.key),
+              key: line.key,
+              stake: rem,
+              pnl: Math.round(rem * unit),
+              status: 'settled',
+            });
+            touched = true;
+          });
+          if (touched) {
+            saveBetLog(list);
+            refreshRecordsIfOpen();
+          }
+          bumpRoundId();
+        }
+        if (returned > 0) {
+          setBalance(balance + returned, false, { type: 'payout', note: '开奖派彩', source: 'roulette-pc' });
+        }
         paintLit();
         paintStake();
         paintStakePanel();
@@ -5844,6 +6294,7 @@
           else if (net < 0) showToast('本局輸 ' + Math.round(net), 2200);
           else showToast('本局平', 1600);
         }
+        return { staked, net, returned };
       }
 
       /* 英文报数：按开奖号播预录片（每局不同），不用 speechSynthesis */
@@ -6013,10 +6464,12 @@
       }
 
       /**
-       * 停注后开奖：
-       * A. 外侧滑道快→慢
-       * B. 掉进最内圈红黑格（WHEEL_POCKET_DIST）
-       * C. 在相邻格子隔板间逐格跳动（每过一隔板一声），最终停在开奖格中心
+       * 停注后开奖
+       * 第1项：外圈禁落格声（Web Audio 无缝滚）
+       * 第2项：外圈四圈递慢（1快→2稍慢→3慢→4更慢）再落格跳动；第3项格间隔未做
+       * A. 外侧滑道四圈递慢（干净滚声，无隔板声）
+       * B. 掉进最内圈红黑格
+       * C. 隔板跳动（进格后才允许落格声）
        */
       function runBallAndWheelStop(winNum) {
         const TOTAL_MS = 7600;
@@ -6024,7 +6477,7 @@
         const R_POCKET = 50 - WHEEL_POCKET_DIST; /* 号码格中心：18.3 */
         const DROP_U0 = 0.55;
         const DROP_U1 = 0.61;
-        const RATTLE_END = 0.88; /* 全局 u：隔板跳动结束、贴死开奖格 */
+        const RATTLE_END = 0.88;
         const w0 = stopIdleSpinCapture();
         showBall(true);
         const ballEl = document.getElementById('wheelBall');
@@ -6036,11 +6489,9 @@
         setBallAngle(b0, 0);
 
         const winIdx = Math.max(0, EU_ORDER.indexOf(winNum));
-        const hops = 6 + ((Math.random() * 5) | 0); /* 进格后再跨 6–10 个隔板 */
-        /* 用未折回下标，避免跨 0 时跳格算错 */
+        const hops = 6 + ((Math.random() * 5) | 0);
         const startIdx = winIdx + hops;
 
-        /* 终局球停在开奖格正中（无 jitter）；落点屏幕方位每局随机 */
         const markerCss = Math.random() * 360;
         const markerGeom = ballGeomFromCss(markerCss);
         const wheelTargetLocal = normDeg(markerGeom - pocketAngle(winNum));
@@ -6049,33 +6500,53 @@
         wDelta += 360 * (1 + ((Math.random() * 2) | 0));
         const w1 = w0 + wDelta;
 
+        /* 第2项：外圈正好四圈；每圈匀速、圈与圈递慢（禁止整段 ease 起速糊弄） */
+        const OUTER_LAPS = 4;
         let bDelta = normDeg(b0 - markerCss);
         if (bDelta < 1) bDelta = 360;
-        bDelta += 360 * (9 + ((Math.random() * 3) | 0));
+        bDelta += 360 * (OUTER_LAPS - 1);
+        /* 外圈时间份额：圈1最短=最快 … 圈4最长=最慢；和=1 */
+        const LAP_SHARE = [0.13, 0.20, 0.28, 0.39];
+        const lapEnds = [];
+        {
+          let acc = 0;
+          for (let i = 0; i < OUTER_LAPS; i++) {
+            acc += LAP_SHARE[i];
+            lapEnds.push(acc);
+          }
+          lapEnds[OUTER_LAPS - 1] = 1;
+        }
 
         const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
         const easeOutPow = (t, p) => 1 - Math.pow(1 - t, p);
         const easeInCubic = (t) => t * t * t;
-        const BALL_EASE_P = 2.55;
-        const ballProgress = (u) => 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), BALL_EASE_P);
+        /** 外圈进度 0..1：按圈分段，圈内线性（每圈恒速） */
+        const ballProgress = (u) => {
+          const t = Math.min(1, Math.max(0, u / DROP_U0));
+          let prev = 0;
+          for (let i = 0; i < OUTER_LAPS; i++) {
+            const end = lapEnds[i];
+            if (t <= end || i === OUTER_LAPS - 1) {
+              const local = (t - prev) / Math.max(1e-6, end - prev);
+              return (i + Math.min(1, Math.max(0, local))) / OUTER_LAPS;
+            }
+            prev = end;
+          }
+          return 1;
+        };
         const finalBallCss = () => normDeg(pocketAngle(winNum) + BALL_CSS_TO_GEOM + w1);
 
-        /** 进格后：按格序浮点下标从 startIdx 跳到 winIdx */
         const pocketFloatAt = (u) => {
           if (u <= DROP_U0) return startIdx;
           if (u >= RATTLE_END) return winIdx;
           const t = (u - DROP_U0) / (RATTLE_END - DROP_U0);
           const e = easeOutPow(t, 2.35);
           let f = startIdx - hops * e;
-          /* 早期在隔板间加衰减摆动，看起来像真撞格 */
           const wob = Math.sin(t * Math.PI * (hops * 0.85 + 0.5)) * (1 - e) * 0.42;
           f += wob;
           return f;
         };
-        const localDegFromFloat = (f) => {
-          /* 允许非整数：隔板之间 */
-          return ZERO_CENTER_DEG + f * SLOT;
-        };
+        const localDegFromFloat = (f) => ZERO_CENTER_DEG + f * SLOT;
         const radiusAt = (u, justHit) => {
           if (u < DROP_U0) return R_OUTER;
           if (u < DROP_U1) {
@@ -6120,25 +6591,25 @@
             let ang;
             let justHit = false;
             if (u < DROP_U0) {
+              /* 外圈：干净滚声；ballInPocketPhase=false → 禁止隔板声 */
               ang = b0 - bDelta * ballProgress(u);
             } else {
               if (!dropArmed) {
                 dropArmed = true;
                 stopBallRollOnly();
+                ballInPocketPhase = true; /* 第1项：离开外圈后才允许落格声 */
                 playFretClick(1);
                 lastPocketI = Math.floor(pocketFloatAt(u) + 1e-6);
               }
               const f = pocketFloatAt(u);
-              const pocketI = Math.floor(f + 1e-6); /* 未折回，单调递减 */
+              const pocketI = Math.floor(f + 1e-6);
               if (pocketI !== lastPocketI) {
                 justHit = true;
                 lastPocketI = pocketI;
                 const t = (u - DROP_U0) / Math.max(1e-6, RATTLE_END - DROP_U0);
                 playFretClick(0.95 - Math.min(0.45, t * 0.45));
               }
-              /* 球相对转盘锁定在当前浮点格位 → 叠到转盘角 */
-              const local = localDegFromFloat(f);
-              ang = normDeg(local + BALL_CSS_TO_GEOM + wNow);
+              ang = normDeg(localDegFromFloat(f) + BALL_CSS_TO_GEOM + wNow);
             }
             setBallAngle(ang, 0);
             if (ballEl) ballEl.style.top = radiusAt(u, justHit).toFixed(2) + '%';
@@ -6225,7 +6696,15 @@
           /* 中奖号 = 落点识别号（与报号同一来源） */
           await announceWinNumber(winNum);
           if (gen !== roundGen) return;
-          settleRound(winNum);
+          const pay = settleRound(winNum);
+          /* 与骰宝一致：有确定注且净赢 → 钱币声两下 +「恭喜你赢钱了」 */
+          if (pay && pay.staked > 0 && pay.net > 0 && !Voice.isOff()) {
+            await Voice.playSfx('coin');
+            await sleep(200);
+            await Voice.playSfx('coin');
+            if (gen === roundGen && !Voice.isOff()) await Voice.speak('恭喜你赢钱了');
+          }
+          if (gen !== roundGen) return;
           /* 与骰宝一致：金光闪 7s 后再收开奖条 */
           await sleep(7000);
           if (gen !== roundGen) return;

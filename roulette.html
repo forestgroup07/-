@@ -2820,7 +2820,7 @@
   <script src="js/fg-wallet.js?v=1.0.3"></script>
   <script>
     (async function () {
-      const V = '1.2.3';
+      const V = '1.2.4';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -2931,11 +2931,77 @@
       let ballInPocketPhase = false;
       let fretClickI = 0;
       let ballRollWatch = 0;
+      let ballRollBuf = null;
+      let ballRollBufLoading = null;
+      let ballRollSrc = null;
+      let ballRollGain = null;
       function clearBallRollWatch() {
         if (ballRollWatch) {
           clearInterval(ballRollWatch);
           ballRollWatch = 0;
         }
+      }
+      function stopBallRollBuffer() {
+        if (ballRollSrc) {
+          try { ballRollSrc.onended = null; } catch (_) {}
+          try { ballRollSrc.stop(); } catch (_) {}
+          try { ballRollSrc.disconnect(); } catch (_) {}
+          ballRollSrc = null;
+        }
+      }
+      function loadBallRollBuffer() {
+        const ctx = ensureAudioCtx();
+        if (!ctx) return Promise.reject(new Error('no-ctx'));
+        if (ballRollBuf) return Promise.resolve(ballRollBuf);
+        if (ballRollBufLoading) return ballRollBufLoading;
+        const url = 'audio/roulette-ball-roll-outer.mp3?v=' + V;
+        ballRollBufLoading = fetch(url)
+          .then((r) => {
+            if (!r.ok) throw new Error('roll-fetch');
+            return r.arrayBuffer();
+          })
+          .then((ab) => ctx.decodeAudioData(ab.slice(0)))
+          .then((buf) => {
+            ballRollBuf = buf;
+            ballRollBufLoading = null;
+            return buf;
+          })
+          .catch((err) => {
+            ballRollBufLoading = null;
+            throw err;
+          });
+        return ballRollBufLoading;
+      }
+      /** Web Audio BufferSource.loop = 无缝；消灭 HTML audio 短 mp3 两处接缝断音 */
+      function startBallRollBuffer() {
+        const ctx = ensureAudioCtx();
+        if (!ctx || !ballRollBuf || soundMuted) return false;
+        stopBallRollBuffer();
+        try {
+          if (ctx.state === 'suspended') ctx.resume();
+          if (!ballRollGain) {
+            ballRollGain = ctx.createGain();
+            ballRollGain.connect(ctx.destination);
+          }
+          ballRollGain.gain.value = 1;
+          const src = ctx.createBufferSource();
+          src.buffer = ballRollBuf;
+          src.loop = true;
+          src.connect(ballRollGain);
+          src.start(0);
+          ballRollSrc = src;
+          return true;
+        } catch (_) {
+          ballRollSrc = null;
+          return false;
+        }
+      }
+      function pauseHtmlBallRoll() {
+        try {
+          sfxBallRoll.loop = false;
+          sfxBallRoll.pause();
+          sfxBallRoll.currentTime = 0;
+        } catch (_) {}
       }
 
       let toastTimer = 0;
@@ -2988,24 +3054,28 @@
       /** 用户点过之后才能播；静音预播解锁外圈滚 + 格内跳 */
       function primeBallSpinSfx() {
         ensureAudioCtx();
+        try { loadBallRollBuffer().catch(() => {}); } catch (_) {}
         _primeOne(sfxBallRoll);
         _primeOne(sfxBallBounce);
         sfxFretClicks.forEach(_primeOne);
       }
       function playBallSpinSfx() {
-        /* 外圈只播干净滚声（可 loop）；禁止隔板声；中途断了自动续播 */
+        /* 外圈：Web Audio 无缝 loop（消 HTML 两处接缝）；禁止隔板声 */
         ballSpinPlaying = true;
         ballBounceStarted = false;
         ballInPocketPhase = false;
         fretClickI = 0;
         clearBallRollWatch();
+        stopBallRollBuffer();
+        pauseHtmlBallRoll();
         if (soundMuted) return;
         ensureAudioCtx();
         try {
           sfxBallBounce.pause();
           sfxBallBounce.currentTime = 0;
         } catch (_) {}
-        const kickRoll = () => {
+        const fallbackHtmlOrSynth = () => {
+          if (!ballSpinPlaying || ballInPocketPhase || soundMuted) return;
           try {
             sfxBallRoll.muted = false;
             sfxBallRoll.loop = true;
@@ -3020,28 +3090,29 @@
             try { startBallSpinSynth(false); } catch (__) {}
           }
         };
-        try {
-          sfxBallRoll.pause();
-          sfxBallRoll.currentTime = 0;
-        } catch (_) {}
-        kickRoll();
+        const kickBuf = () => {
+          if (!ballSpinPlaying || ballInPocketPhase || soundMuted) return;
+          if (startBallRollBuffer()) return;
+          fallbackHtmlOrSynth();
+        };
+        loadBallRollBuffer().then(() => {
+          kickBuf();
+        }).catch(() => {
+          fallbackHtmlOrSynth();
+        });
+        /* BufferSource 被掐断时补踢；正常无缝 loop 不应触发 */
         ballRollWatch = setInterval(() => {
           if (!ballSpinPlaying || ballInPocketPhase || soundMuted) {
             clearBallRollWatch();
             return;
           }
-          try {
-            if (sfxBallRoll.paused || sfxBallRoll.ended) kickRoll();
-          } catch (_) {}
-        }, 280);
+          if (!ballRollSrc) kickBuf();
+        }, 400);
       }
       function stopBallRollOnly() {
         clearBallRollWatch();
-        try {
-          sfxBallRoll.loop = false;
-          sfxBallRoll.pause();
-          sfxBallRoll.currentTime = 0;
-        } catch (_) {}
+        stopBallRollBuffer();
+        pauseHtmlBallRoll();
         stopBallSpinSynth();
       }
       /** 撞一格隔板一声；外圈硬门禁 */
@@ -3142,12 +3213,9 @@
         ballBounceStarted = false;
         ballInPocketPhase = false;
         clearBallRollWatch();
+        stopBallRollBuffer();
         stopBallSpinSynth();
-        try {
-          sfxBallRoll.loop = false;
-          sfxBallRoll.pause();
-          sfxBallRoll.currentTime = 0;
-        } catch (_) {}
+        pauseHtmlBallRoll();
         try {
           sfxBallBounce.pause();
           sfxBallBounce.currentTime = 0;
@@ -6396,8 +6464,10 @@
       }
 
       /**
-       * 停注后开奖（第1项只改声：外圈禁落格声；动画仍用 1.2.2/1.2.3 底）
-       * A. 外侧滑道快→慢（干净滚声，无隔板声）
+       * 停注后开奖
+       * 第1项：外圈禁落格声（Web Audio 无缝滚）
+       * 第2项：外圈四圈递慢（1快→2稍慢→3慢→4更慢）再落格跳动；第3项格间隔未做
+       * A. 外侧滑道四圈递慢（干净滚声，无隔板声）
        * B. 掉进最内圈红黑格
        * C. 隔板跳动（进格后才允许落格声）
        */
@@ -6430,15 +6500,40 @@
         wDelta += 360 * (1 + ((Math.random() * 2) | 0));
         const w1 = w0 + wDelta;
 
+        /* 第2项：外圈正好四圈；每圈匀速、圈与圈递慢（禁止整段 ease 起速糊弄） */
+        const OUTER_LAPS = 4;
         let bDelta = normDeg(b0 - markerCss);
         if (bDelta < 1) bDelta = 360;
-        bDelta += 360 * (9 + ((Math.random() * 3) | 0));
+        bDelta += 360 * (OUTER_LAPS - 1);
+        /* 外圈时间份额：圈1最短=最快 … 圈4最长=最慢；和=1 */
+        const LAP_SHARE = [0.13, 0.20, 0.28, 0.39];
+        const lapEnds = [];
+        {
+          let acc = 0;
+          for (let i = 0; i < OUTER_LAPS; i++) {
+            acc += LAP_SHARE[i];
+            lapEnds.push(acc);
+          }
+          lapEnds[OUTER_LAPS - 1] = 1;
+        }
 
         const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
         const easeOutPow = (t, p) => 1 - Math.pow(1 - t, p);
         const easeInCubic = (t) => t * t * t;
-        const BALL_EASE_P = 2.55;
-        const ballProgress = (u) => 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), BALL_EASE_P);
+        /** 外圈进度 0..1：按圈分段，圈内线性（每圈恒速） */
+        const ballProgress = (u) => {
+          const t = Math.min(1, Math.max(0, u / DROP_U0));
+          let prev = 0;
+          for (let i = 0; i < OUTER_LAPS; i++) {
+            const end = lapEnds[i];
+            if (t <= end || i === OUTER_LAPS - 1) {
+              const local = (t - prev) / Math.max(1e-6, end - prev);
+              return (i + Math.min(1, Math.max(0, local))) / OUTER_LAPS;
+            }
+            prev = end;
+          }
+          return 1;
+        };
         const finalBallCss = () => normDeg(pocketAngle(winNum) + BALL_CSS_TO_GEOM + w1);
 
         const pocketFloatAt = (u) => {

@@ -1,0 +1,14 @@
+roulette v1.2.4 lock pack (2026-11-11 — current latest relabel)
+- Status toasts unified with sicbo (#ffe29a / size 52): 开始下注 / 停止下注 / 下注成功
+- Win flash = sicbo-style rouWinGoldPulse 7s
+- Ball fret hops + English n0..n36 + wood-rim light touch
+- Timer: outer arc + pie shorten together; number 2×
+- roulette.html / lobby ROULETTE ?v=1.2.4 / assets/roulette/VERSION
+- Snapshots:
+  - roulette.LOCKED-1.2.4.html
+  - assets/roulette/LOCKED-VERSION-1.2.4.txt
+  - assets/roulette/LOCKED-bet-kbd-dim-mask-1.2.4.png
+  - assets/roulette/LOCKED-wheel-disc-1.2.4.png
+  - audio/roulette-en/n0..n36.mp3
+  - audio/roulette-fret-click-0..2.mp3
+- Do not overwrite this pack without user written rename
