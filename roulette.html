@@ -2817,7 +2817,7 @@
   <script src="js/fg-wallet.js?v=1.0.3"></script>
   <script>
     (async function () {
-      const V = '1.2.14';
+      const V = '1.2.2';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -3620,6 +3620,8 @@
       /* 热区外扩盖住格间缝；底边少扩，避免压到打/外注 */
       const HIT_PAD_X = 0.20; /* % of stage */
       const HIT_PAD_Y = 0.18;
+      /* 顶行（3/6/…/36）顶边再外扩，方便点最上边全部線注 */
+      const HIT_PAD_Y_TOPROW = 0.36;
       Object.keys(NUM_CELLS).forEach((key) => {
         const n = Number(key);
         const box = NUM_CELLS[n];
@@ -3633,14 +3635,15 @@
         const T = parseFloat(box.top);
         const W = parseFloat(box.width);
         const H = parseFloat(box.height);
+        const padY = (n > 0 && n % 3 === 0) ? HIT_PAD_Y_TOPROW : HIT_PAD_Y;
         const w2 = W + HIT_PAD_X * 2;
-        const h2 = H + HIT_PAD_Y * 2;
+        const h2 = H + padY * 2;
         b.style.left = (L - HIT_PAD_X) + '%';
-        b.style.top = (T - HIT_PAD_Y) + '%';
+        b.style.top = (T - padY) + '%';
         b.style.width = w2 + '%';
         b.style.height = h2 + '%';
         b.dataset.hitPadX = String(HIT_PAD_X / w2);
-        b.dataset.hitPadY = String(HIT_PAD_Y / h2);
+        b.dataset.hitPadY = String(padY / h2);
         nums.appendChild(b);
       });
 
@@ -4275,12 +4278,20 @@
       function numRight(n) { return n <= 33 ? n + 3 : null; }
       function numUp(n) { return (n % 3 === 0) ? null : n + 1; }
       function numDown(n) { return (n % 3 === 1) ? null : n - 1; }
-      function sixLineAtTopJunction(n) {
-        /* 顶行（3/6/…/36）左边线交接：两街共六号，如 36→31..36 */
+      function sixLineAtTopJunctionFromLeft(n) {
+        /* 顶行顶边+左边：两街六号。例：33 左上 → 28..33；36 左上 → 31..36 */
         if (n < 3 || n % 3 !== 0) return null;
-        const rightStreet = n - 2; /* 34 for 36 */
+        const rightStreet = n - 2;
         const leftStreet = rightStreet - 3;
         if (leftStreet < 1) return null;
+        return [leftStreet, leftStreet + 1, leftStreet + 2, rightStreet, rightStreet + 1, rightStreet + 2];
+      }
+      function sixLineAtTopJunctionFromRight(n) {
+        /* 顶行顶边+右边：同上六号。例：30 右上 → 28..33 */
+        if (n < 3 || n % 3 !== 0) return null;
+        const leftStreet = n - 2;
+        const rightStreet = leftStreet + 3;
+        if (rightStreet > 34) return null;
         return [leftStreet, leftStreet + 1, leftStreet + 2, rightStreet, rightStreet + 1, rightStreet + 2];
       }
       function insideBetKey(kind, nums) {
@@ -4320,9 +4331,18 @@
         const edgeR = dR < EDGE_BAND;
         const edgeT = dT < EDGE_BAND;
         const edgeB = dB < EDGE_BAND;
-        /* 顶行上边线 + 左边交接 → 線注六号（例：36 顶边交接 = 31-36） */
-        if (cornerT && cornerL) {
-          const six = sixLineAtTopJunction(n);
+        /*
+         * 最上边全部線注：顶行顶边 + 左/右竖缝都能点中（EDGE_BAND，避免只认窄角）。
+         * 例：30 右上 或 33 左上 → 線注 28-33；3|6、6|9…33|36 同理。
+         */
+        if (edgeT && edgeL) {
+          const six = sixLineAtTopJunctionFromLeft(n);
+          if (six) {
+            return { kind: 'line', nums: six, name: '線注', odds: '1:5', limit: INSIDE_LIMIT.line };
+          }
+        }
+        if (edgeT && edgeR) {
+          const six = sixLineAtTopJunctionFromRight(n);
           if (six) {
             return { kind: 'line', nums: six, name: '線注', odds: '1:5', limit: INSIDE_LIMIT.line };
           }

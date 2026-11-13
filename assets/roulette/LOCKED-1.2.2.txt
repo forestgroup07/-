@@ -1,6 +1,17 @@
-roulette v1.2.2 lock pack (2026-11-10)
-- roulette.html / lobby ROULETTE ?v=1.2.2 / assets/roulette/VERSION
-- snapshot: roulette.LOCKED-1.2.2.html
-- includes: track masks through 1.2.7 lineage on disk; left toolbar four hotspots
-  (back / bet records / rules / CS) ported from sicbo UX
-- do not overwrite this pack without user written rename
+roulette PC v1.2.2 re-lock (2026-11-14)
+
+已验收清单（本包算数）:
+- 开奖球动画：回到 git fff20a9 / 原 1.2.14 同款 TOTAL_MS=7600 逻辑（非其后球速/格子层/滚声实验）
+- 最上边線注：顶行 3|6|…|33|36 交接左右两侧均可点中六号線注
+  （sixLineAtTopJunctionFromLeft/FromRight + edgeT&&edgeL/R + 顶行 HIT_PAD_Y_TOPROW）
+- 页面号 / lobby ROULETTE_PC / assets/roulette/VERSION = 1.2.2
+- 快照：roulette.LOCKED-1.2.2.html
+
+未验收、不得当作本定版（明确排除）:
+- 其后 1.2.26–1.2.29 球速曲线 / 格子层径向 / 滚声跟手实验（已放弃）
+- 手机轮盘、骰宝 PC/手机
+- 旧包 2026-11-10 的 1.2.2 左栏热区定版：已另存
+  roulette.LOCKED-1.2.2-prev-20261110.html
+  assets/roulette/LOCKED-1.2.2-prev-20261110.txt
+
+回滚只用本包 LOCKED-*；禁止用邻近实验版顶替。
