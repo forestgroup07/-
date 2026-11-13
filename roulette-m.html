@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>輪盤 R501 · 手机版</title>
   <!-- 关键资源已在 roulette-m-boot 预热；此处只 preload 一张键盘 webp，避免抢带宽 -->
-  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.3.7" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.3.8" type="image/webp" fetchpriority="high" />
   <style>
     :root {
       --bg: #0a1210;
@@ -1215,8 +1215,8 @@
         <div class="board-face-wrap" id="boardFaceWrap">
           <div class="board-pan-inner" id="boardPanInner">
             <picture>
-              <source type="image/webp" srcset="assets/roulette/m-kbd-face.webp?v=1.3.7" />
-              <img class="board-face" id="boardFace" src="assets/roulette/m-kbd-face.jpg?v=1.3.7" alt="" width="1479" height="2059" decoding="async" fetchpriority="high" loading="eager" draggable="false" />
+              <source type="image/webp" srcset="assets/roulette/m-kbd-face.webp?v=1.3.8" />
+              <img class="board-face" id="boardFace" src="assets/roulette/m-kbd-face.jpg?v=1.3.8" alt="" width="1479" height="2059" decoding="async" fetchpriority="high" loading="eager" draggable="false" />
             </picture>
             <div class="board-grid" id="boardGrid" aria-label="下注键盘"></div>
             <!-- 卵已焊进底图；此处仅打开态热区 -->
@@ -1345,7 +1345,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '1.3.7';
+      const V = '1.3.8';
       /* 整卵无旋转重焊：左列 19/15/32 外沿与上格竖直对齐 */
       const TRACK_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
       const TRACK_CELLS_M = {
@@ -2299,7 +2299,6 @@
         draft = Object.create(null);
         undoStack = [];
         paintBets();
-        toast('下注成功');
         holdPhaseBanner('下注成功', 1400);
         return true;
       }
