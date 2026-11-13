@@ -8,9 +8,9 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>骰宝 S602 · 手机版</title>
   <!-- 第一步：与电脑版同款空盅底图 + 三维实心骰 -->
-  <link rel="preload" as="image" href="assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.8" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.5.0" type="image/jpeg" fetchpriority="high" />
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/cup-shake-3d.js?v=1.4.8" />
+  <link rel="modulepreload" href="js/cup-shake-3d.js?v=1.5.0" />
   <style>
     :root {
       --bg: #0a1210;
@@ -25,7 +25,7 @@
       --muted: #9bb8b0;
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
-      --v: 1.4.8m18;
+      --v: 1.5.0;
       --row-h: 56px;
       --row-gap: 4px;
     }
@@ -633,7 +633,74 @@
       color: var(--gold2); font-size: .68rem; font-weight: 600;
       background: rgba(0,0,0,.25);
     }
+    /* 限红说明：玩法+彩池全文抄电脑版；一字不动电脑程序；字小、上拉看全 */
+    .limit-tip {
+      position: absolute;
+      left: 3%;
+      bottom: calc(100% + 8px);
+      width: min(86vw, 320px);
+      max-height: min(58vh, 420px);
+      z-index: 52;
+      padding: 0.5rem 0.55rem 0.4rem;
+      border-radius: 10px;
+      border: 1px solid rgba(232, 199, 106, 0.55);
+      background: rgba(0, 0, 0, 0.88);
+      color: #f0f0f0;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+    }
+    .limit-tip.show { display: flex; }
+    .limit-tip::after {
+      content: "";
+      position: absolute;
+      left: 16%;
+      bottom: -7px;
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 8px solid rgba(0, 0, 0, 0.88);
+    }
+    .limit-tip-scroll {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      flex: 1 1 auto;
+      min-height: 0;
+      padding-right: 4px;
+    }
+    .limit-tip-sec-title {
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0 0.35rem;
+      margin-top: 0.15rem;
+      border-bottom: 1px solid rgba(232, 199, 106, 0.55);
+      margin-bottom: 0.1rem;
+    }
+    .limit-tip-sec-title:first-child { margin-top: 0; }
+    .limit-tip-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 0.66rem;
+      line-height: 1.25;
+    }
+    .limit-tip-row .k { color: #f0f0f0; font-weight: 500; }
+    .limit-tip-row .v {
+      color: #e8e8e8;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      white-space: nowrap;
+    }
     .bal-wrap {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -641,7 +708,17 @@
       gap: 1px;
       min-width: 0;
       line-height: 1.15;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      font: inherit;
+      color: inherit;
     }
+    .bal-wrap:focus,
+    .bal-wrap:focus-visible { outline: none; }
     .bal-wrap .bal-user {
       color: rgba(255, 255, 255, 0.92);
       font-size: clamp(0.62rem, 2.6vw, 0.74rem);
@@ -668,13 +745,155 @@
       background: radial-gradient(circle at 30% 30%, #e8f7ef, #7ecf9a 55%, #3a9a6a 78%);
       box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35), 0 0 0 1px rgba(0,0,0,.25);
     }
-    .stake-wrap {
-      display: flex; align-items: center; gap: .25rem;
-      color: #fff; font-size: .78rem; font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      min-width: 3.2rem; justify-content: flex-end;
+    /* 点用户名/金额 → 黑气泡账户（公司同款） */
+    .account-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%) translateY(4px);
+      z-index: 55;
+      padding: 0.38rem 0.72rem;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.92);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      line-height: 1.3;
+      white-space: nowrap;
+      display: none;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
     }
-    .stake-wrap .ico-coin { font-size: .85rem; opacity: .9; }
+    .account-tip.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .account-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 7px solid rgba(0, 0, 0, 0.92);
+    }
+    /* 注金键：左筹码堆图标 + 数字 + 右浅黄▲；点开玩法/下注/输赢 */
+    .stake-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .45rem;
+      min-width: 5.2rem;
+      height: 30px;
+      padding: 0 .55rem 0 .42rem;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f2f2f2;
+      font-size: .8rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .stake-btn .stake-coin {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      display: block;
+    }
+    .stake-btn .stake-num {
+      flex: 1 1 auto;
+      text-align: center;
+      min-width: 1.2em;
+    }
+    .stake-btn .stake-caret {
+      width: 0;
+      height: 0;
+      flex: 0 0 auto;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 6px solid #e8d5a0;
+      margin-top: -1px;
+    }
+    .stake-btn[aria-expanded="true"] .stake-caret {
+      border-bottom: 0;
+      border-top: 6px solid #e8d5a0;
+    }
+    .stake-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 10px);
+      transform: translateX(-50%);
+      width: min(86vw, 340px);
+      z-index: 50;
+      padding: 0.55rem 0.75rem 0.7rem;
+      border-radius: 10px;
+      background: rgba(8, 28, 26, 0.88);
+      color: #f3f3f3;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      display: none;
+      flex-direction: column;
+      gap: 0.12rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      pointer-events: auto;
+    }
+    .stake-tip.show { display: flex; }
+    .stake-tip::after {
+      content: "";
+      position: absolute;
+      right: 18%;
+      bottom: -7px;
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 8px solid rgba(8, 28, 26, 0.88);
+    }
+    .stake-tip-head,
+    .stake-tip-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      align-items: center;
+      column-gap: 0.4rem;
+      min-height: 1.4em;
+    }
+    .stake-tip-head {
+      color: #e8c76a;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding-bottom: 0.28rem;
+      margin-bottom: 0.12rem;
+      border-bottom: 1px solid rgba(232, 199, 106, 0.45);
+    }
+    .stake-tip-head span:nth-child(2),
+    .stake-tip-head span:nth-child(3),
+    .stake-tip-row span:nth-child(2),
+    .stake-tip-row span:nth-child(3) {
+      text-align: center;
+    }
+    .stake-tip-row span:first-child {
+      color: #f0f0f0;
+      font-weight: 600;
+    }
+    .stake-tip-row.is-total {
+      margin-top: 0.18rem;
+      padding-top: 0.32rem;
+      border-top: 1px solid rgba(232, 199, 106, 0.45);
+      font-weight: 800;
+      color: #e8c76a;
+    }
+    .stake-tip-row .is-win { color: #7dff9f; }
+    .stake-tip-row .is-lose { color: #ff8d8d; }
+    .stake-tip-row .is-flat { color: #c8d09b; }
     .dock-actions {
       display: grid;
       grid-template-columns: 36px 1fr auto;
@@ -686,6 +905,15 @@
       background: rgba(255,255,255,.06);
       color: var(--gold2); font-size: 1.05rem;
       display: grid; place-items: center;
+    }
+    /* 设置键 / 好路推荐：保留外观，点不开 */
+    .btn-gear.is-locked,
+    .btn-gear:disabled,
+    .btn-road.is-locked,
+    .btn-road:disabled {
+      opacity: 0.55;
+      pointer-events: none;
+      cursor: default;
     }
     /* 左滑筹码条 + 右侧固定 MAX */
     .chips-rail {
@@ -817,7 +1045,7 @@
         </div>
       </div>
       <div class="video-well" id="videoWell">
-        <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.4.8" alt="" width="1280" height="720" decoding="async" fetchpriority="high" draggable="false" />
+        <img class="video-feed" id="videoFeed" src="assets/eu-concept/cup-screen-empty-nodice.jpg?v=1.5.0" alt="" width="1280" height="720" decoding="async" fetchpriority="high" draggable="false" />
         <div class="cup-stereo" id="cupStereo" aria-hidden="true">
           <div class="cup3d-layer" id="cup3dLayer" aria-hidden="true">
             <canvas id="cup3dCanvas" width="768" height="768" aria-hidden="true"></canvas>
@@ -882,15 +1110,70 @@
         </button>
       </div>
       <div class="dock-meta">
-        <button type="button" class="limit-pill" id="btnLimit">10 - 5,000 ▾</button>
-        <div class="bal-wrap">
+        <button type="button" class="limit-pill" id="btnLimit" aria-label="限红说明" aria-expanded="false" aria-controls="limitTip">10 - 5,000 ▾</button>
+        <button type="button" class="bal-wrap" id="balHot" aria-label="账户" aria-expanded="false" aria-controls="accountTip">
+          <span class="account-tip" id="accountTip" role="tooltip">—</span>
           <span class="bal-user" id="balUser">—</span>
           <span class="bal-amt"><span class="c" aria-hidden="true"></span><span id="balText">0.00</span></span>
+        </button>
+        <button type="button" class="stake-btn" id="stakeBtn" aria-label="本局注金明细" aria-expanded="false" aria-controls="stakeTip">
+          <svg class="stake-coin" viewBox="0 0 24 24" aria-hidden="true">
+            <ellipse cx="12" cy="17.2" rx="7.2" ry="2.4" fill="#9aa3ad"/>
+            <ellipse cx="12" cy="14.6" rx="7.2" ry="2.4" fill="#c5ced6"/>
+            <ellipse cx="12" cy="12" rx="7.2" ry="2.4" fill="#dfe6ec"/>
+            <ellipse cx="12" cy="9.4" rx="7.2" ry="2.6" fill="#eef3f7" stroke="#b8c2cc" stroke-width="0.6"/>
+            <text x="12" y="10.3" text-anchor="middle" font-size="6.5" font-weight="700" fill="#6a7380">$</text>
+          </svg>
+          <span class="stake-num" id="stakeText">0</span>
+          <span class="stake-caret" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="stake-tip" id="stakeTip" role="dialog" aria-label="本局下注">
+        <div class="stake-tip-head">
+          <span>玩法</span><span>下注</span><span>输赢</span>
         </div>
-        <div class="stake-wrap"><span class="ico-coin">🪙</span><span id="stakeText">0</span></div>
+        <div class="stake-tip-row" data-stake-key="big"><span>大</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="small"><span>小</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="odd"><span>单</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="even"><span>双</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="wrap"><span>全围</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row is-total" data-stake-key="total"><span>总计:</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+      </div>
+      <div class="limit-tip" id="limitTip" role="dialog" aria-label="限红说明">
+        <div class="limit-tip-scroll">
+          <!-- 全文照抄电脑版 game.html limitTip，禁止改电脑程序 -->
+          <div class="limit-tip-sec-title">玩法限红</div>
+          <div class="limit-tip-row"><span class="k">大/小</span><span class="v">10 - 5,000</span></div>
+          <div class="limit-tip-row"><span class="k">单/双</span><span class="v">10 - 5,000</span></div>
+          <div class="limit-tip-row"><span class="k">全围</span><span class="v">1 - 416</span></div>
+          <div class="limit-tip-row"><span class="k">围1~围6</span><span class="v">1 - 66</span></div>
+          <div class="limit-tip-row"><span class="k">对子1~对子6</span><span class="v">3 - 1,250</span></div>
+          <div class="limit-tip-row"><span class="k">单点1~单点6</span><span class="v">10 - 5,000</span></div>
+          <div class="limit-tip-row"><span class="k">组合</span><span class="v">4 - 2,000</span></div>
+          <div class="limit-tip-row"><span class="k">和值9/10/11/12</span><span class="v">4 - 1,666</span></div>
+          <div class="limit-tip-row"><span class="k">和值8/13</span><span class="v">3 - 1,250</span></div>
+          <div class="limit-tip-row"><span class="k">和值7/14</span><span class="v">2 - 833</span></div>
+          <div class="limit-tip-row"><span class="k">和值6/15</span><span class="v">2 - 714</span></div>
+          <div class="limit-tip-row"><span class="k">和值5/16</span><span class="v">2 - 555</span></div>
+          <div class="limit-tip-row"><span class="k">和值4/17</span><span class="v">1 - 200</span></div>
+          <div class="limit-tip-sec-title">彩池限红</div>
+          <div class="limit-tip-row"><span class="k">大/小差额限红</span><span class="v">1.20M</span></div>
+          <div class="limit-tip-row"><span class="k">单/双差额限红</span><span class="v">1.20M</span></div>
+          <div class="limit-tip-row"><span class="k">全围总额限红</span><span class="v">50,000</span></div>
+          <div class="limit-tip-row"><span class="k">围1-围6总额限红</span><span class="v">8,000</span></div>
+          <div class="limit-tip-row"><span class="k">对子1-对子6总额限红</span><span class="v">150,000</span></div>
+          <div class="limit-tip-row"><span class="k">单点1-单点6总额限红</span><span class="v">1.20M</span></div>
+          <div class="limit-tip-row"><span class="k">组合总额限红</span><span class="v">240,000</span></div>
+          <div class="limit-tip-row"><span class="k">和值9/10/11/12总额限红</span><span class="v">200,000</span></div>
+          <div class="limit-tip-row"><span class="k">和值8/13总额限红</span><span class="v">150,000</span></div>
+          <div class="limit-tip-row"><span class="k">和值7/14总额限红</span><span class="v">100,000</span></div>
+          <div class="limit-tip-row"><span class="k">和值6/15总额限红</span><span class="v">85,714</span></div>
+          <div class="limit-tip-row"><span class="k">和值5/16总额限红</span><span class="v">66,666</span></div>
+          <div class="limit-tip-row"><span class="k">和值4/17总额限红</span><span class="v">24,000</span></div>
+        </div>
       </div>
       <div class="dock-actions">
-        <button type="button" class="btn-gear" id="btnGear" aria-label="设置">⚙</button>
+        <button type="button" class="btn-gear is-locked" id="btnGear" aria-label="设置（暂不可用）" aria-disabled="true" disabled>⚙</button>
         <div class="chips-rail" id="chipsRail">
           <div class="chips" id="chips" aria-label="筹码，左右滑动切换">
             <button type="button" class="chip" data-chip="10" aria-label="10" style="background-image:url('chips/chip-10.webp?v=1.2.1')"></button>
@@ -905,7 +1188,7 @@
           </div>
           <button type="button" class="chip max" data-chip="max" aria-label="MAX">MAX</button>
         </div>
-        <button type="button" class="btn-road" id="btnRoad">好路推荐</button>
+        <button type="button" class="btn-road is-locked" id="btnRoad" aria-label="好路推荐（暂不可用）" aria-disabled="true" disabled>好路推荐</button>
       </div>
       <div class="dock-nav" aria-label="底部导航">
         <button type="button" class="btn-nav" id="btnSound" aria-label="声音" aria-pressed="false">
@@ -950,13 +1233,13 @@
     }
   }
   </script>
-  <script type="module" src="js/cup-shake-3d.js?v=1.4.8"></script>
+  <script type="module" src="js/cup-shake-3d.js?v=1.5.0"></script>
   <script src="js/sicbo-engine.js?v=1.2.1"></script>
   <script src="js/fg-wallet.js?v=1.0.2"></script>
   <script>
   (function () {
     'use strict';
-    const V = '1.4.8m18';
+    const V = '1.5.2';
     const START_BAL = 2000;
     const TABLE_MIN = 10;
     const TABLE_MAX = 5000;
@@ -973,7 +1256,7 @@
     const DIE_CACHE = Object.create(null);
     function warmDieFaces() {
       for (let n = 1; n <= 6; n++) {
-        const url = dieSrc(n);
+        const url = classicDieSrc(n);
         const img = new Image();
         img.decoding = 'async';
         img.src = url;
@@ -1023,19 +1306,144 @@
     function scheduleServerSave(partial) {
       wallet.schedule(partial || {});
     }
-    function saveBal(uid, n) {
-      const v = wallet.writeLocal(n);
+    const CREDIT_LOG_KEY = 'fg_creditlog::' + String(user || 'asdg').toLowerCase();
+    const BET_LOG_KEY = 'fg_sicbo_betlog::' + String(user || 'asdg').toLowerCase();
+    function loadCreditLog() {
+      try {
+        const raw = localStorage.getItem(CREDIT_LOG_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch (_) { return []; }
+    }
+    function saveCreditLogLocal(list) {
+      const clipped = (list || []).slice(0, 2000);
+      try { localStorage.setItem(CREDIT_LOG_KEY, JSON.stringify(clipped)); } catch (_) {}
+      return clipped;
+    }
+    function loadBetLog() {
+      try {
+        const raw = localStorage.getItem(BET_LOG_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch (_) { return []; }
+    }
+    function saveBetLogLocal(list) {
+      const clipped = (list || []).slice(0, 2000);
+      try { localStorage.setItem(BET_LOG_KEY, JSON.stringify(clipped)); } catch (_) {}
+      return clipped;
+    }
+    function pushCreditRecord(row) {
+      if (!row) return null;
+      const amount = Math.round(Number(row.amount) || 0);
+      if (!amount) return null;
+      const ts = Number(row.ts) || Date.now();
+      const entry = {
+        id: String(row.id || (String(ts) + String(Math.floor(Math.random() * 90) + 10))),
+        ts,
+        type: String(row.type || (amount > 0 ? 'credit' : 'debit')),
+        amount,
+        balance: Math.max(0, Math.round(Number(row.balance != null ? row.balance : balance) || 0)),
+        note: String(row.note || ''),
+        source: String(row.source || 'sicbo-m'),
+        status: String(row.status || 'ok'),
+      };
+      const list = loadCreditLog();
+      list.unshift(entry);
+      saveCreditLogLocal(list);
+      return entry;
+    }
+    function pushBetRecords(rows) {
+      if (!rows || !rows.length) return;
+      const list = loadBetLog();
+      for (let i = rows.length - 1; i >= 0; i--) list.unshift(rows[i]);
+      saveBetLogLocal(list);
+      scheduleServerSave({ betAppend: rows.slice() });
+    }
+    function mergeCreditLogFromServer(rows) {
+      if (!Array.isArray(rows) || !rows.length) return;
+      const local = loadCreditLog();
+      const map = new Map();
+      local.forEach((r) => { if (r && r.id) map.set(String(r.id), r); });
+      rows.forEach((r) => {
+        if (!r || !r.id) return;
+        const id = String(r.id);
+        const prev = map.get(id);
+        if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(id, r);
+      });
+      const merged = Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+      saveCreditLogLocal(merged.slice(0, 2000));
+    }
+    function mergeBetLogFromServer(rows) {
+      if (!Array.isArray(rows) || !rows.length) return;
+      const local = loadBetLog();
+      const map = new Map();
+      local.forEach((r) => {
+        const id = r && (r.betId || r.id);
+        if (id) map.set(String(id), r);
+      });
+      rows.forEach((r) => {
+        if (!r) return;
+        const id = r.betId || r.id;
+        if (!id) return;
+        const key = String(id);
+        const prev = map.get(key);
+        if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(key, r);
+      });
+      const merged = Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+      saveBetLogLocal(merged.slice(0, 2000));
+    }
+    function saveBal(uid, n, meta) {
+      const next = Math.max(0, Math.round(Number(n) || 0));
+      /* 允许调用方先改了 balance；prev 优先用 meta.prev，否则用当前 balance（若已等于 next 则 delta=0） */
+      const prev = (meta && meta.prev != null)
+        ? Math.max(0, Math.round(Number(meta.prev) || 0))
+        : balance;
+      const v = wallet.writeLocal(next);
+      balance = v;
+      const delta = v - prev;
+      const skipLog = !!(meta && (meta.skipLog || meta.silent));
+      let entry = null;
+      if (!skipLog && delta !== 0) {
+        entry = pushCreditRecord({
+          amount: delta,
+          type: (meta && meta.type) || (delta > 0 ? 'credit' : 'debit'),
+          note: (meta && meta.note) || '',
+          source: (meta && meta.source) || 'sicbo-m',
+          balance: v,
+        });
+      }
+      const payload = { balance: v };
+      if (entry) payload.creditAppend = entry;
       /* 水合后立刻上报（keepalive），避免手机输赢只留在本机、电脑刷新看不到 */
       if (wallet.isHydrated()) {
-        wallet.post({ balance: v }, true);
+        wallet.post(payload, true);
       } else {
-        scheduleServerSave({ balance: v });
+        scheduleServerSave(payload);
       }
       return v;
     }
     async function hydrateAccountFromServer() {
       const res = await wallet.hydrate();
       balance = res.balance;
+      const doc = res && res.doc;
+      if (doc && Array.isArray(doc.creditlog) && doc.creditlog.length) {
+        try { mergeCreditLogFromServer(doc.creditlog); } catch (_) {}
+      } else {
+        const localCredits = loadCreditLog();
+        if (localCredits.length) {
+          try { scheduleServerSave({ creditAppend: localCredits.slice(0, 500) }); } catch (_) {}
+        }
+      }
+      if (doc && Array.isArray(doc.betlog) && doc.betlog.length) {
+        try { mergeBetLogFromServer(doc.betlog); } catch (_) {}
+      } else {
+        const localBets = loadBetLog();
+        if (localBets.length) {
+          try { scheduleServerSave({ betAppend: localBets.slice(0, 500) }); } catch (_) {}
+        }
+      }
       paintMeta();
     }
     async function softPullBalance() {
@@ -1277,14 +1685,21 @@
     const elTimerNum = document.getElementById('timerNum');
     const elBal = document.getElementById('balText');
     const elBalUser = document.getElementById('balUser');
+    const balHot = document.getElementById('balHot');
+    const accountTip = document.getElementById('accountTip');
     if (elBalUser) elBalUser.textContent = user;
+    if (accountTip) accountTip.textContent = user || '—';
     const elStake = document.getElementById('stakeText');
+    const stakeBtn = document.getElementById('stakeBtn');
+    const stakeTip = document.getElementById('stakeTip');
     const elRound = document.getElementById('roundId');
     const elResult = document.getElementById('resultDice');
     const elToast = document.getElementById('toast');
     const elPhase = document.getElementById('phaseBanner');
     const sheet = document.getElementById('sheet');
     let phaseBannerToken = 0;
+    const STAKE_PANEL_KEYS = ['big', 'small', 'odd', 'even', 'wrap'];
+    let lastPnl = { big: null, small: null, odd: null, even: null, wrap: null };
 
     function fmt(n) {
       return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1346,11 +1761,70 @@
       actBar.classList.toggle('show', on);
       document.getElementById('app').classList.toggle('betting-closed', !betting);
     }
+    function fmtStakeCell(n) {
+      return n > 0 ? String(n) : '-';
+    }
+    function fmtPnlCell(n) {
+      if (n == null) return { text: '-', cls: '' };
+      if (n > 0) return { text: '+' + Math.round(n), cls: 'is-win' };
+      if (n < 0) return { text: String(Math.round(n)), cls: 'is-lose' };
+      return { text: '0', cls: 'is-flat' };
+    }
+    function paintStakePanel() {
+      if (!stakeTip) return;
+      let betTotal = 0;
+      let pnlTotal = 0;
+      let pnlAny = false;
+      STAKE_PANEL_KEYS.forEach((key) => {
+        const row = stakeTip.querySelector('[data-stake-key="' + key + '"]');
+        if (!row) return;
+        const stake = (confirmed[key] || 0) + (draft[key] || 0);
+        betTotal += stake;
+        row.querySelector('[data-col="bet"]').textContent = fmtStakeCell(stake);
+        const fmtP = fmtPnlCell(lastPnl[key]);
+        const cell = row.querySelector('[data-col="pnl"]');
+        cell.textContent = fmtP.text;
+        cell.className = fmtP.cls;
+        if (lastPnl[key] != null) {
+          pnlAny = true;
+          pnlTotal += lastPnl[key];
+        }
+      });
+      const totalRow = stakeTip.querySelector('[data-stake-key="total"]');
+      if (totalRow) {
+        totalRow.querySelector('[data-col="bet"]').textContent = fmtStakeCell(betTotal);
+        const cell = totalRow.querySelector('[data-col="pnl"]');
+        const fmtP = pnlAny ? fmtPnlCell(pnlTotal) : fmtPnlCell(null);
+        cell.textContent = fmtP.text;
+        cell.className = fmtP.cls;
+      }
+    }
+    function setAccountTip(open) {
+      if (!accountTip || !balHot) return;
+      accountTip.classList.toggle('show', !!open);
+      balHot.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        accountTip.textContent = (elBalUser && elBalUser.textContent) || user || '—';
+        setStakeTip(false);
+        setLimitTip(false);
+      }
+    }
+    function setStakeTip(open) {
+      if (!stakeTip || !stakeBtn) return;
+      stakeTip.classList.toggle('show', !!open);
+      stakeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        paintStakePanel();
+        setAccountTip(false);
+        setLimitTip(false);
+      }
+    }
     function paintMeta() {
       elBal.textContent = fmt(balance);
       elStake.textContent = String(totalConfirmed() + totalDraft());
       elRound.textContent = '局号: ' + roundNo;
       paintActBar();
+      paintStakePanel();
     }
     const CHIP_DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
     function chipArtFor(stake) {
@@ -1606,8 +2080,24 @@
       Object.keys(draft).forEach((k) => {
         confirmed[k] = (confirmed[k] || 0) + (draft[k] || 0);
       });
+      const prevBal = balance;
       balance -= total;
-      saveBal(user, balance);
+      saveBal(user, balance, { type: 'bet', note: '确认下注', source: 'sicbo-m', prev: prevBal });
+      const ts = Date.now();
+      const betRows = Object.keys(draft).filter((k) => (Number(draft[k]) || 0) > 0).map((k, i) => ({
+        betId: String(ts) + String(i).padStart(2, '0') + String(Math.floor(Math.random() * 90) + 10),
+        ts,
+        roundId: String(roundNo),
+        tableId: 'S601',
+        result: '',
+        market: k,
+        key: k,
+        stake: Math.round(Number(draft[k]) || 0),
+        pnl: 0,
+        status: 'open',
+        source: 'sicbo-m',
+      }));
+      pushBetRecords(betRows);
       draft = Object.create(null);
       undoStack = [];
       paintMeta();
@@ -1635,6 +2125,27 @@
       e.stopPropagation();
       cancelDraft();
     });
+
+    if (stakeBtn && stakeTip) {
+      stakeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = !stakeTip.classList.contains('show');
+        setStakeTip(open);
+        if (open) setLimitTip(false);
+      });
+      stakeTip.addEventListener('click', (e) => e.stopPropagation());
+      document.addEventListener('click', () => {
+        setStakeTip(false);
+        setLimitTip(false);
+        setAccountTip(false);
+      });
+    }
+    if (balHot && accountTip) {
+      balHot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setAccountTip(!accountTip.classList.contains('show'));
+      });
+    }
 
     document.getElementById('chipsRail').addEventListener('click', (e) => {
       const btn = e.target.closest('[data-chip]');
@@ -1675,13 +2186,26 @@
       clearAllBets(true);
       goLobby();
     }));
-    document.getElementById('btnGear').addEventListener('click', () => openSheet('设置', '音效与限红沿用演示默认：10 - 5,000。取消本局注单可点确定。', () => {
-      clearAllBets(true);
-      toast('已撤销本局注单');
-      closeSheet();
-    }));
-    document.getElementById('btnLimit').addEventListener('click', () => openSheet('限红', '本桌限红 10 - 5,000。大小单双遇围骰作废该注。', null));
-    document.getElementById('btnRoad').addEventListener('click', () => openSheet('好路推荐', '演示版暂不提供路纸推送，开奖后请看顶部骰点与中奖高亮。', null));
+    /* 设置键点不开：不绑定打开逻辑 */
+    const limitTip = document.getElementById('limitTip');
+    const btnLimit = document.getElementById('btnLimit');
+    function setLimitTip(open) {
+      if (!limitTip || !btnLimit) return;
+      limitTip.classList.toggle('show', !!open);
+      btnLimit.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        setStakeTip(false);
+        setAccountTip(false);
+      }
+    }
+    if (btnLimit && limitTip) {
+      btnLimit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setLimitTip(!limitTip.classList.contains('show'));
+      });
+      limitTip.addEventListener('click', (e) => e.stopPropagation());
+    }
+    /* 好路推荐点不开：不绑定打开逻辑 */
 
     function openSheet(title, body, onOk) {
       document.getElementById('sheetTitle').textContent = title;
@@ -1703,8 +2227,9 @@
       if (refundConfirmed) {
         const t = totalConfirmed();
         if (t > 0) {
+          const prevBal = balance;
           balance += t;
-          saveBal(user, balance);
+          saveBal(user, balance, { type: 'adjust', note: '退还注金', source: 'sicbo-m', prev: prevBal });
         }
       }
       confirmed = Object.create(null);
@@ -1740,8 +2265,8 @@
         const face = document.createElement('span');
         face.className = 'die-face';
         face.setAttribute('aria-label', String(n));
-        /* 用已预热的小图作背景，不新建大图请求 */
-        face.style.backgroundImage = `url('${dieSrc(n)}')`;
+        /* 经典白骰；框仍 24×24，大小不变 */
+        face.style.backgroundImage = `url('${classicDieSrc(n)}')`;
         if (i === 0) top.appendChild(face);
         else bot.appendChild(face);
       });
@@ -1796,8 +2321,19 @@
           const el = document.querySelector('.cell[data-bet="' + k + '"]');
           if (el) el.classList.add('hit');
         });
-        balance += res.returned;
-        saveBal(user, balance);
+        if (res.returned > 0) {
+          const prevBal = balance;
+          balance += res.returned;
+          saveBal(user, balance, { type: 'payout', note: '开奖派彩', source: 'sicbo-m', prev: prevBal });
+        } else {
+          saveBal(user, balance, { skipLog: true });
+        }
+        lastPnl = { big: null, small: null, odd: null, even: null, wrap: null };
+        if (res.pnl) {
+          STAKE_PANEL_KEYS.forEach((k) => {
+            if (res.pnl[k] != null) lastPnl[k] = res.pnl[k];
+          });
+        }
         confirmed = Object.create(null);
         draft = Object.create(null);
         undoStack = [];
@@ -1832,6 +2368,7 @@
       roundNo += 1;
       phase = 'betting';
       secLeft = BET_SEC;
+      lastPnl = { big: null, small: null, odd: null, even: null, wrap: null };
       paintMeta();
       setTimerFace(secLeft);
       hideToast();

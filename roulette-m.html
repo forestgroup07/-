@@ -602,21 +602,40 @@
       z-index: 5;
       cursor: pointer;
     }
+    /* 落注：手机骰宝同款真筹码图 */
+    .bet-chip,
     .chip-on {
       position: absolute;
-      left: 50%; top: 50%;
+      left: 50%;
+      top: 50%;
+      width: 44%;
+      max-width: 38px;
+      height: auto;
+      aspect-ratio: 1;
+      object-fit: contain;
       transform: translate(-50%, -50%);
-      min-width: 1.35em;
-      padding: .05em .28em;
-      border-radius: 999px;
-      background: rgba(0,0,0,.72);
-      border: 1px solid rgba(240, 211, 146, .65);
-      color: #ffe29a;
-      font-size: .58rem;
-      font-weight: 800;
-      line-height: 1.2;
+      padding: 0;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: transparent;
+      font-size: 0;
+      line-height: 0;
       pointer-events: none;
       z-index: 6;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+    }
+    .bet-chip.is-pending {
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 0 2px rgba(255, 224, 138, 0.85));
+      outline: 2px solid rgba(255, 224, 138, 0.9);
+      outline-offset: 1px;
+      border-radius: 50%;
+    }
+    #trackNumsM .hit .bet-chip,
+    #trackFrench .hit .bet-chip {
+      width: 56%;
+      max-width: 34px;
     }
     /* 亮层铺满蒙版格（与底图格对齐） */
     .board-grid .n.is-lit,
@@ -645,24 +664,51 @@
       border-top: 1px solid rgba(90, 200, 170, .2);
       padding: .35rem .55rem 0;
     }
+    /* 确认三键：照抄手机骰宝 — 浮在底栏上方，保证可点 */
     .act-bar {
       display: none;
-      grid-template-columns: repeat(3, 1fr);
-      gap: .45rem;
-      margin-bottom: .35rem;
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% - 2px);
+      transform: translateX(-50%);
+      z-index: 60;
+      width: min(88%, 360px);
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      box-shadow: none;
+      grid-template-columns: 1fr 1.28fr 1fr;
+      gap: 10px;
+      pointer-events: none;
     }
     .act-bar.show { display: grid; }
     .act-btn {
-      height: 40px;
+      height: 46px;
+      border: 0;
       border-radius: 999px;
+      padding: 0;
+      overflow: visible;
+      pointer-events: auto;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
       background: linear-gradient(180deg, #fff4b8 0%, #f7e68a 48%, #efd66a 100%);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.65),
         inset 0 -1px 0 rgba(180, 140, 40, 0.28),
         0 3px 8px rgba(0, 0, 0, 0.28);
-      display: grid; place-items: center;
+      display: grid;
+      place-items: center;
     }
-    .act-btn .act-ico { width: 28px; height: 28px; display: block; pointer-events: none; }
+    .act-btn:active { filter: brightness(1.04); transform: scale(.98); }
+    .act-btn .act-ico {
+      width: 28px;
+      height: 28px;
+      display: block;
+      pointer-events: none;
+    }
+    .act-btn#btnUndo .act-ico { width: 30px; height: 30px; }
+    .act-btn#btnConfirm .act-ico { width: 30px; height: 30px; }
     .dock-meta {
       display: flex; align-items: center; justify-content: space-between;
       gap: .4rem; margin-bottom: .35rem;
@@ -1290,7 +1336,7 @@
   <script src="js/fg-wallet.js?v=1.0.2"></script>
   <script>
     (function () {
-      const V = '1.3.6';
+      const V = '1.3.11';
       /* 整卵无旋转重焊：左列 19/15/32 外沿与上格竖直对齐 */
       const TRACK_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
       const TRACK_CELLS_M = {
@@ -1700,10 +1746,120 @@
         });
       }
       function layoutPcFrame() {}
-      function setBalance(n) {
+      const CREDIT_LOG_KEY = 'fg_creditlog::' + String(user || 'asdg').toLowerCase();
+      const BET_LOG_KEY = 'fg_roulette_betlog::' + String(user || 'asdg').toLowerCase();
+      function loadCreditLog() {
+        try {
+          const raw = localStorage.getItem(CREDIT_LOG_KEY);
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch (_) { return []; }
+      }
+      function saveCreditLogLocal(list) {
+        const clipped = (list || []).slice(0, 2000);
+        try { localStorage.setItem(CREDIT_LOG_KEY, JSON.stringify(clipped)); } catch (_) {}
+        return clipped;
+      }
+      function loadBetLog() {
+        try {
+          const raw = localStorage.getItem(BET_LOG_KEY);
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch (_) { return []; }
+      }
+      function saveBetLogLocal(list) {
+        const clipped = (list || []).slice(0, 2000);
+        try { localStorage.setItem(BET_LOG_KEY, JSON.stringify(clipped)); } catch (_) {}
+        return clipped;
+      }
+      function pushCreditRecord(row) {
+        if (!row) return null;
+        const amount = Math.round(Number(row.amount) || 0);
+        if (!amount) return null;
+        const ts = Number(row.ts) || Date.now();
+        const entry = {
+          id: String(row.id || (String(ts) + String(Math.floor(Math.random() * 90) + 10))),
+          ts,
+          type: String(row.type || (amount > 0 ? 'credit' : 'debit')),
+          amount,
+          balance: Math.max(0, Math.round(Number(row.balance != null ? row.balance : balance) || 0)),
+          note: String(row.note || ''),
+          source: String(row.source || 'roulette-m'),
+          status: String(row.status || 'ok'),
+        };
+        const list = loadCreditLog();
+        list.unshift(entry);
+        saveCreditLogLocal(list);
+        return entry;
+      }
+      function pushBetRecords(rows) {
+        if (!rows || !rows.length) return;
+        const list = loadBetLog();
+        for (let i = rows.length - 1; i >= 0; i--) list.unshift(rows[i]);
+        saveBetLogLocal(list);
+        const payload = { betAppend: rows.slice() };
+        if (wallet.isHydrated && wallet.isHydrated()) wallet.post(payload, true);
+        else wallet.schedule(payload);
+      }
+      function mergeCreditLogFromServer(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+        const local = loadCreditLog();
+        const map = new Map();
+        local.forEach((r) => { if (r && r.id) map.set(String(r.id), r); });
+        rows.forEach((r) => {
+          if (!r || !r.id) return;
+          const id = String(r.id);
+          const prev = map.get(id);
+          if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(id, r);
+        });
+        const merged = Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+        saveCreditLogLocal(merged.slice(0, 2000));
+      }
+      function mergeBetLogFromServer(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+        const local = loadBetLog();
+        const map = new Map();
+        local.forEach((r) => {
+          const id = r && (r.betId || r.id);
+          if (id) map.set(String(id), r);
+        });
+        rows.forEach((r) => {
+          if (!r) return;
+          const id = r.betId || r.id;
+          if (!id) return;
+          const key = String(id);
+          const prev = map.get(key);
+          if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(key, r);
+        });
+        const merged = Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+        saveBetLogLocal(merged.slice(0, 2000));
+      }
+      function setBalance(n, meta) {
+        const prev = balance;
         balance = Math.max(0, Math.round(Number(n) || 0));
+        const delta = balance - prev;
+        const skipLog = !!(meta && (meta.skipLog || meta.silent));
+        let entry = null;
+        if (!skipLog && delta !== 0) {
+          entry = pushCreditRecord({
+            amount: delta,
+            type: (meta && meta.type) || (delta > 0 ? 'credit' : 'debit'),
+            note: (meta && meta.note) || '',
+            source: (meta && meta.source) || 'roulette-m',
+            balance,
+          });
+        }
         wallet.writeLocal(balance);
-        wallet.schedulePost({ balance }, 180);
+        /* FgWallet API：schedule；水合后立刻 post；附带额度流水 */
+        const payload = { balance };
+        if (entry) payload.creditAppend = entry;
+        if (wallet.isHydrated && wallet.isHydrated()) {
+          wallet.post(payload, true);
+        } else {
+          wallet.schedule(payload);
+        }
         paintMeta();
       }
       function paintMeta() {
@@ -1823,46 +1979,59 @@
           }
         });
       }
+      const CHIP_DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+      function chipArtFor(stake) {
+        let d = CHIP_DENOMS[0];
+        const s = Number(stake) || 0;
+        for (let i = 0; i < CHIP_DENOMS.length; i++) {
+          const n = CHIP_DENOMS[i];
+          if (n <= s) d = n;
+          else break;
+        }
+        return d;
+      }
+      function chipSrc(n) {
+        return 'chips/chip-' + n + '.webp?v=1.2.1';
+      }
+      function makeBetChipEl(stake, pending) {
+        const img = document.createElement('img');
+        img.className = 'bet-chip chip-on' + (pending ? ' is-pending' : '');
+        img.alt = '';
+        img.draggable = false;
+        img.src = chipSrc(chipArtFor(stake));
+        return img;
+      }
       function paintBets() {
         if (!boardGrid) return;
-        boardGrid.querySelectorAll('.chip-on').forEach((el) => el.remove());
+        boardGrid.querySelectorAll('.chip-on, .bet-chip').forEach((el) => el.remove());
         boardGrid.querySelectorAll('.n, .zero').forEach((el) => el.classList.remove('has-bet'));
         const trackRoot = document.getElementById('trackStage');
         if (trackRoot) {
-          trackRoot.querySelectorAll('.chip-on').forEach((el) => el.remove());
+          trackRoot.querySelectorAll('.chip-on, .bet-chip').forEach((el) => el.remove());
           trackRoot.querySelectorAll('.hit').forEach((el) => el.classList.remove('has-bet'));
         }
         activeBetKeys().forEach((key) => {
+          const pend = Number(draft[key]) || 0;
+          const conf = Number(confirmed[key]) || 0;
+          const stake = pend > 0 ? pend : conf;
+          if (!(stake > 0)) return;
+          const pending = pend > 0;
           const place = chipPlacementFor(key);
           if (place && place.host) {
-            const pend = Number(draft[key]) || 0;
-            const conf = Number(confirmed[key]) || 0;
-            const stake = pend > 0 ? pend : conf;
-            if (stake > 0) {
-              const mark = document.createElement('span');
-              mark.className = 'chip-on';
-              mark.textContent = String(stake);
-              mark.style.left = place.left + '%';
-              mark.style.top = place.top + '%';
-              place.host.appendChild(mark);
-              place.host.classList.add('has-bet');
-            }
+            const mark = makeBetChipEl(stake, pending);
+            mark.style.left = place.left + '%';
+            mark.style.top = place.top + '%';
+            place.host.appendChild(mark);
+            place.host.classList.add('has-bet');
           }
           if (trackRoot) {
             const tHost = trackRoot.querySelector('[data-bet="' + key + '"]');
             if (tHost) {
-              const pend = Number(draft[key]) || 0;
-              const conf = Number(confirmed[key]) || 0;
-              const stake = pend > 0 ? pend : conf;
-              if (stake > 0) {
-                const mark = document.createElement('span');
-                mark.className = 'chip-on';
-                mark.textContent = String(stake);
-                mark.style.left = '50%';
-                mark.style.top = '50%';
-                tHost.appendChild(mark);
-                tHost.classList.add('has-bet');
-              }
+              const mark = makeBetChipEl(stake, pending);
+              mark.style.left = '50%';
+              mark.style.top = '50%';
+              tHost.appendChild(mark);
+              tHost.classList.add('has-bet');
             }
           }
         });
@@ -2011,8 +2180,9 @@
         paintBets();
       }
       function undoBet() {
+        if (phase !== 'betting') { toast('已停止下注'); return; }
         const last = undoStack.pop();
-        if (!last) return;
+        if (!last) { toast('没有可撤销的注'); return; }
         if (last.mode === 'french' && last.prev) {
           Object.keys(last.prev).forEach((key) => {
             const v = Math.max(0, Number(last.prev[key]) || 0);
@@ -2030,23 +2200,42 @@
         paintBets();
       }
       function cancelDraft() {
+        if (phase !== 'betting') { toast('已停止下注'); return; }
+        if (!Object.keys(draft).length) { toast('没有挂单'); return; }
         draft = Object.create(null);
         undoStack = [];
         paintBets();
+        toast('已取消挂单');
       }
       function confirmBet() {
-        if (phase !== 'betting') return false;
+        if (phase !== 'betting') { toast('已停止下注'); return false; }
         const keys = Object.keys(draft).filter((k) => (Number(draft[k]) || 0) > 0);
         if (!keys.length) { toast('请先选择下注位置'); return false; }
         const total = sumMap(draft);
         if (balance < total) { toast('积分不足'); return false; }
-        setBalance(balance - total);
+        setBalance(balance - total, { type: 'bet', note: '确认下注', source: 'roulette-m' });
+        const ts = Date.now();
+        const betRows = keys.map((k, i) => ({
+          betId: String(ts) + String(i).padStart(2, '0') + String(Math.floor(Math.random() * 90) + 10),
+          ts,
+          roundId: String(roundId || ''),
+          tableId: 'R501',
+          result: '',
+          market: k,
+          key: k,
+          stake: Math.round(Number(draft[k]) || 0),
+          pnl: 0,
+          status: 'open',
+          source: 'roulette-m',
+        }));
+        pushBetRecords(betRows);
         keys.forEach((k) => {
           confirmed[k] = (Number(confirmed[k]) || 0) + (Number(draft[k]) || 0);
         });
         draft = Object.create(null);
         undoStack = [];
         paintBets();
+        toast('下注成功');
         holdPhaseBanner('下注成功', 1400);
         return true;
       }
@@ -2089,7 +2278,9 @@
         confirmed = Object.create(null);
         draft = Object.create(null);
         undoStack = [];
-        if (returned > 0) setBalance(balance + returned);
+        if (returned > 0) {
+          setBalance(balance + returned, { type: 'payout', note: '开奖派彩', source: 'roulette-m' });
+        }
         paintBets();
         if (returned > 0) toast('本局贏 +' + returned, 2000);
       }
@@ -2317,9 +2508,18 @@
         if (app.classList.contains('is-track')) closeTrack();
         else openTrack();
       });
-      document.getElementById('btnUndo').addEventListener('click', undoBet);
-      document.getElementById('btnCancel').addEventListener('click', cancelDraft);
-      document.getElementById('btnConfirm').addEventListener('click', confirmBet);
+      function bindActBtn(id, fn) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          fn();
+        });
+      }
+      bindActBtn('btnUndo', undoBet);
+      bindActBtn('btnCancel', cancelDraft);
+      bindActBtn('btnConfirm', confirmBet);
       document.getElementById('btnBack').addEventListener('click', () => {
         if (app.classList.contains('is-track')) { closeTrack(); return; }
         location.href = 'lobby.html?v=' + V;
@@ -2356,8 +2556,26 @@
       window.addEventListener('resize', layoutPcFrame);
       if (window.visualViewport) window.visualViewport.addEventListener('resize', layoutPcFrame);
 
-      wallet.hydrate().then((n) => {
+      wallet.hydrate().then((res) => {
+        const n = res && typeof res === 'object' && res.balance != null ? res.balance : res;
         if (n != null && Number.isFinite(Number(n))) balance = Math.max(0, Math.round(Number(n)));
+        const doc = res && res.doc;
+        if (doc && Array.isArray(doc.creditlog) && doc.creditlog.length) {
+          try { mergeCreditLogFromServer(doc.creditlog); } catch (_) {}
+        } else {
+          const localCredits = loadCreditLog();
+          if (localCredits.length) {
+            try { wallet.schedule({ creditAppend: localCredits.slice(0, 500) }); } catch (_) {}
+          }
+        }
+        if (doc && Array.isArray(doc.betlog) && doc.betlog.length) {
+          try { mergeBetLogFromServer(doc.betlog); } catch (_) {}
+        } else {
+          const localBets = loadBetLog();
+          if (localBets.length) {
+            try { wallet.schedule({ betAppend: localBets.slice(0, 500) }); } catch (_) {}
+          }
+        }
         paintMeta();
       }).catch(() => {});
 

@@ -35,7 +35,7 @@
     }
 
     /* 骰宝同款倒计时：戴帽美女与轮盘之间上方 */
-    /* 对标公司：外圈弧 + 内扇形都随 --p 一起变短；白点钉在弧端；数字 2× */
+    /* 对标公司：外圈弧 + 内扇形都随 --p 一起变短；弧端点随环色（绿/红）；数字 2× */
     .timer {
       --p: 1;
       --timer-ring: #6fdc4a;
@@ -77,7 +77,7 @@
       width: 11%;
       height: 11%;
       border-radius: 50%;
-      background: #fff;
+      background: var(--timer-ring);
       box-shadow: 0 0 0.08em rgba(0,0,0,.35);
       left: 50%;
       top: 50%;
@@ -2014,9 +2014,10 @@
       border: 1px solid #555;
       background: #2a2a2a;
       color: #cfcfcf;
+      font-family: inherit;
       font-size: calc(min(100vw, 100vh * var(--sw) / var(--sh)) * 26 / var(--sw));
       font-weight: 600;
-      cursor: default;
+      cursor: pointer;
     }
     .records-tab.is-on {
       background: #d7c29a;
@@ -2456,7 +2457,7 @@
         </button>
 
         <button class="btn-act" id="btnRepeat" type="button" aria-label="重复下注">
-          <img class="btn-act-lit" src="assets/roulette/act-btn-faces/undo.png?v=1.2.9" alt="" draggable="false" decoding="async" aria-hidden="true" />
+          <img class="btn-act-lit" src="assets/roulette/act-btn-faces/undo.png?v=1.2.10" alt="" draggable="false" decoding="async" aria-hidden="true" />
         </button>
         <button class="btn-act" id="btnConfirm" type="button" aria-label="确定">
           <img class="btn-act-lit" src="assets/roulette/act-btn-faces/confirm.png?v=1.2.30" alt="" draggable="false" decoding="async" aria-hidden="true" />
@@ -2602,9 +2603,9 @@
         <div class="records-panel" role="dialog" aria-modal="true" aria-labelledby="recordsTitle">
           <button class="records-close" id="recordsClose" type="button" aria-label="关闭">×</button>
           <div class="records-tabs" id="recordsTitle">
-            <span class="records-tab is-on">投注記錄</span>
-            <span class="records-tab">額度記錄</span>
-            <span class="records-tab">電子遊戲記錄</span>
+            <button type="button" class="records-tab is-on" data-rec-view="bet">投注記錄</button>
+            <button type="button" class="records-tab" data-rec-view="credit">額度記錄</button>
+            <button type="button" class="records-tab" data-rec-view="egame">電子遊戲記錄</button>
           </div>
           <div class="records-filters">
             <label>局號 <input id="recRoundQ" type="text" autocomplete="off" /></label>
@@ -2620,8 +2621,8 @@
           </div>
           <div class="records-table-wrap">
             <table class="records-table">
-              <thead>
-                <tr>
+              <thead id="recordsHead">
+                <tr data-rec-head="bet">
                   <th>投注編號</th>
                   <th>時間</th>
                   <th>靴-局</th>
@@ -2816,7 +2817,7 @@
   <script src="js/fg-wallet.js?v=1.0.1"></script>
   <script>
     (async function () {
-      const V = '1.2.9';
+      const V = '1.2.13';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -3320,9 +3321,21 @@
         if (stakeAmtEl) stakeAmtEl.textContent = fmtStake(currentStakeTotal());
         paintStakePanel();
       }
-      function setBalance(n, flash) {
+      function setBalance(n, flash, meta) {
         const prev = balance;
         balance = Math.max(0, Math.round(Number(n) || 0));
+        const delta = balance - prev;
+        const skipLog = !!(meta && (meta.skipLog || meta.silent));
+        if (!skipLog && delta !== 0) {
+          try {
+            pushCreditRecord({
+              amount: delta,
+              type: (meta && meta.type) || (delta > 0 ? 'credit' : 'debit'),
+              note: (meta && meta.note) || '',
+              source: (meta && meta.source) || 'roulette-pc',
+            });
+          } catch (_) {}
+        }
         saveBal();
         if (balEl) {
           balEl.textContent = fmtBal(balance);
@@ -3351,6 +3364,22 @@
               localStorage.setItem(BAL_KEY, String(balance));
               localStorage.setItem('fg_sicbo_balance', String(balance));
             } catch (_) {}
+          }
+          if (Array.isArray(d.betlog) && d.betlog.length) {
+            try { mergeBetLogFromServer(d.betlog); } catch (_) {}
+          } else {
+            const localBets = loadBetLog();
+            if (localBets.length) {
+              try { scheduleServerSave({ betAppend: localBets.slice(0, 500) }); } catch (_) {}
+            }
+          }
+          if (Array.isArray(d.creditlog) && d.creditlog.length) {
+            try { mergeCreditLogFromServer(d.creditlog); } catch (_) {}
+          } else {
+            const localCredits = loadCreditLog();
+            if (localCredits.length) {
+              try { scheduleServerSave({ creditAppend: localCredits.slice(0, 500) }); } catch (_) {}
+            }
           }
           wallet.dropPendingBalance();
           wallet.markHydrated();
@@ -3502,9 +3531,10 @@
         const total = entries.reduce((s, e) => s + e.amt, 0);
         if (balance < total) { showToast('积分不足', 1200); return false; }
         playClick();
-        setBalance(balance - total);
-        entries.forEach((e) => {
+        setBalance(balance - total, false, { type: 'bet', note: '确认下注', source: 'roulette-pc' });
+        entries.forEach((e, i) => {
           bets[e.key] = (bets[e.key] || 0) + e.amt;
+          recordConfirmedBet(e.key, e.amt, i);
         });
         clearPendingState();
         snapshotConfirmedBets();
@@ -4624,6 +4654,7 @@
 
       /* 左侧四键：返回 / 下注记录 / 游戏规则 / 联系客服（对齐骰宝） */
       const BET_LOG_KEY = 'fg_roulette_betlog::' + ACCOUNT_ID.trim().toLowerCase();
+      const CREDIT_LOG_KEY = 'fg_creditlog::' + ACCOUNT_ID.trim().toLowerCase();
       function loadBetLog() {
         try {
           const raw = localStorage.getItem(BET_LOG_KEY);
@@ -4634,18 +4665,155 @@
           return [];
         }
       }
-      function saveBetLog(list) {
+      function saveBetLogLocal(list) {
         const clipped = (list || []).slice(0, 2000);
         try {
           localStorage.setItem(BET_LOG_KEY, JSON.stringify(clipped));
         } catch (_) {}
-        scheduleServerSave({ betlog: clipped });
+        return clipped;
+      }
+      function saveBetLog(list) {
+        const clipped = saveBetLogLocal(list);
+        if (clipped.length) scheduleServerSave({ betlog: clipped });
       }
       function pushBetRecords(rows) {
         if (!rows || !rows.length) return;
         const list = loadBetLog();
         for (let i = rows.length - 1; i >= 0; i--) list.unshift(rows[i]);
-        saveBetLog(list);
+        saveBetLogLocal(list);
+        scheduleServerSave({ betAppend: rows.slice() });
+        refreshRecordsIfOpen();
+      }
+      function loadCreditLog() {
+        try {
+          const raw = localStorage.getItem(CREDIT_LOG_KEY);
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch (_) {
+          return [];
+        }
+      }
+      function saveCreditLogLocal(list) {
+        const clipped = (list || []).slice(0, 2000);
+        try {
+          localStorage.setItem(CREDIT_LOG_KEY, JSON.stringify(clipped));
+        } catch (_) {}
+        return clipped;
+      }
+      function saveCreditLog(list) {
+        const clipped = saveCreditLogLocal(list);
+        if (clipped.length) scheduleServerSave({ creditlog: clipped });
+      }
+      function pushCreditRecord(row) {
+        if (!row) return;
+        const ts = Number(row.ts) || Date.now();
+        const amount = Math.round(Number(row.amount) || 0);
+        if (!amount) return;
+        const entry = {
+          id: String(row.id || (String(ts) + String(Math.floor(Math.random() * 90) + 10))),
+          ts,
+          type: String(row.type || (amount > 0 ? 'credit' : 'debit')),
+          amount,
+          balance: Math.max(0, Math.round(Number(row.balance != null ? row.balance : balance) || 0)),
+          note: String(row.note || ''),
+          source: String(row.source || 'roulette-pc'),
+          status: String(row.status || 'ok'),
+        };
+        const list = loadCreditLog();
+        list.unshift(entry);
+        saveCreditLogLocal(list);
+        try { scheduleServerSave({ creditAppend: entry }); } catch (_) {}
+        refreshRecordsIfOpen();
+      }
+      function mergeCreditLogFromServer(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+        const local = loadCreditLog();
+        const map = new Map();
+        local.forEach((r) => { if (r && r.id) map.set(String(r.id), r); });
+        rows.forEach((r) => {
+          if (!r || !r.id) return;
+          const id = String(r.id);
+          const prev = map.get(id);
+          if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(id, r);
+        });
+        const merged = Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+        saveCreditLogLocal(merged.slice(0, 2000));
+      }
+      function mergeBetLogFromServer(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+        const local = loadBetLog();
+        const map = new Map();
+        local.forEach((r) => {
+          const id = r && (r.betId || r.id);
+          if (id) map.set(String(id), r);
+        });
+        rows.forEach((r) => {
+          if (!r) return;
+          const id = r.betId || r.id;
+          if (!id) return;
+          const key = String(id);
+          const prev = map.get(key);
+          if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(key, r);
+        });
+        const merged = Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+        saveBetLogLocal(merged.slice(0, 2000));
+      }
+      let currentRoundId = '';
+      function ensureRoundId() {
+        if (!currentRoundId) {
+          const ts = Date.now();
+          currentRoundId = String(610000000 + (ts % 100000000));
+        }
+        return currentRoundId;
+      }
+      function bumpRoundId() {
+        currentRoundId = '';
+        return ensureRoundId();
+      }
+      function refreshRecordsIfOpen() {
+        if (recordsOverlay && recordsOverlay.classList.contains('show')) {
+          try { paintRecords(); } catch (_) {}
+        }
+      }
+      function newBetId(ts, idx) {
+        return String(ts) + String(idx).padStart(2, '0') + String(Math.floor(Math.random() * 90) + 10);
+      }
+      function marketLabel(key) {
+        if (!key) return '—';
+        const n = numFromKey(key);
+        if (n != null) return '直注 ' + n;
+        const inside = parseInsideBetKey(key);
+        if (inside) {
+          const kindName = ({
+            straight: '直注',
+            split: '分注',
+            street: '街注',
+            corner: '角注',
+            line: '線注',
+          })[inside.kind] || inside.kind;
+          return kindName + ' ' + inside.nums.join('/');
+        }
+        const info = MARKET_INFO[key];
+        if (info && info.name) return info.name;
+        return String(key);
+      }
+      function recordConfirmedBet(key, stake, idx) {
+        const amt = Math.max(0, Math.round(Number(stake) || 0));
+        if (!key || amt <= 0) return;
+        const ts = Date.now();
+        pushBetRecords([{
+          betId: newBetId(ts, idx || 0),
+          ts,
+          roundId: ensureRoundId(),
+          tableId: 'R501',
+          result: '',
+          market: marketLabel(key),
+          key,
+          stake: amt,
+          pnl: 0,
+          status: 'open',
+        }]);
       }
       const backWrap = document.getElementById('backWrap');
       const backHot = document.getElementById('backHot');
@@ -4686,6 +4854,42 @@
       let recPage = 1;
       const REC_PAGE_SIZE = 10;
       let recFilter = { round: '', order: '', from: 0, to: 0 };
+      let recView = 'bet'; /* bet | credit | egame */
+      function creditTypeLabel(t) {
+        const k = String(t || '');
+        if (k === 'recharge') return '充值';
+        if (k === 'bet') return '下注扣款';
+        if (k === 'payout') return '派彩';
+        if (k === 'credit') return '入账';
+        if (k === 'debit') return '出账';
+        if (k === 'adjust') return '调整';
+        return k || '—';
+      }
+      function setRecView(view) {
+        recView = view === 'credit' || view === 'egame' ? view : 'bet';
+        document.querySelectorAll('.records-tab[data-rec-view]').forEach((el) => {
+          el.classList.toggle('is-on', el.getAttribute('data-rec-view') === recView);
+        });
+        const head = document.getElementById('recordsHead');
+        if (head) {
+          if (recView === 'credit') {
+            head.innerHTML = `<tr>
+              <th>流水編號</th><th>時間</th><th>類型</th><th>金額</th>
+              <th>餘額</th><th>來源</th><th>備註</th><th>狀態</th>
+            </tr>`;
+          } else if (recView === 'egame') {
+            head.innerHTML = `<tr><th>記錄</th></tr>`;
+          } else {
+            head.innerHTML = `<tr>
+              <th>投注編號</th><th>時間</th><th>靴-局</th><th>局號</th>
+              <th>遊戲類型</th><th>桌檯編號</th><th>結果</th><th>玩法</th>
+              <th>下注總額</th><th>輸贏</th><th>有效投注</th><th>狀態</th>
+            </tr>`;
+          }
+        }
+        recPage = 1;
+        paintRecords();
+      }
       function fmtRecTime(ts) {
         const d = new Date(ts);
         const p = (n) => String(n).padStart(2, '0');
@@ -4742,9 +4946,10 @@
         const toEl = document.getElementById('recTo');
         if (!fromEl || !toEl) return;
         const now = new Date();
-        /* 公司默认：昨日 12:00:00 至 今日 12:00:00 */
-        const to = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
-        const from = new Date(to.getTime() - 24 * 3600 * 1000);
+        /* 默认覆盖「昨午→明午」，避免今日 12 点后新单被滤掉看不到 */
+        const noonToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
+        const from = new Date(noonToday.getTime() - 24 * 3600 * 1000);
+        const to = new Date(noonToday.getTime() + 24 * 3600 * 1000);
         if (force || !fromEl.value) fromEl.value = fmtDateInput(from);
         if (force || !toEl.value) toEl.value = fmtDateInput(to);
       }
@@ -4777,6 +4982,16 @@
         el.classList.toggle('is-empty', kind === 'empty');
         el.classList.toggle('is-ok', kind === 'ok');
       }
+      function filteredCreditLog() {
+        return loadCreditLog().filter((r) => {
+          if (!r) return false;
+          if (recFilter.order && String(r.id || '').indexOf(recFilter.order) < 0) return false;
+          const ts = Number(r.ts) || 0;
+          if (recFilter.from && ts < recFilter.from) return false;
+          if (recFilter.to && ts > recFilter.to) return false;
+          return true;
+        });
+      }
       function paintRecords() {
         const body = document.getElementById('recordsBody');
         const sumEl = document.getElementById('recordsSum');
@@ -4785,13 +5000,62 @@
         const prevBtn = document.getElementById('recPrev');
         const nextBtn = document.getElementById('recNext');
         if (!body) return;
+        if (recView === 'egame') {
+          body.innerHTML = `<tr class="records-empty"><td colspan="1">暫無電子遊戲記錄</td></tr>`;
+          if (sumEl) sumEl.innerHTML = '';
+          if (totalLabel) totalLabel.textContent = '總計: 0';
+          if (pageLabel) pageLabel.textContent = '1/1';
+          if (prevBtn) prevBtn.disabled = true;
+          if (nextBtn) nextBtn.disabled = true;
+          return;
+        }
+        if (recView === 'credit') {
+          const all = filteredCreditLog();
+          const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
+          if (recPage > pages) recPage = pages;
+          if (recPage < 1) recPage = 1;
+          const start = (recPage - 1) * REC_PAGE_SIZE;
+          const pageRows = all.slice(start, start + REC_PAGE_SIZE);
+          if (!pageRows.length) {
+            body.innerHTML = `<tr class="records-empty"><td colspan="8">暫無額度記錄</td></tr>`;
+          } else {
+            body.innerHTML = pageRows.map((r) => {
+              const amt = Number(r.amount) || 0;
+              const amtCls = amt > 0 ? 'pnl-win' : (amt < 0 ? 'pnl-lose' : '');
+              const amtText = (amt > 0 ? '+' : '') + amt;
+              return `<tr>
+                <td>${r.id || '—'}</td>
+                <td>${fmtRecTime(r.ts)}</td>
+                <td>${creditTypeLabel(r.type)}</td>
+                <td class="${amtCls}">${amtText}</td>
+                <td>${r.balance != null ? r.balance : '—'}</td>
+                <td>${r.source || '—'}</td>
+                <td>${r.note || '—'}</td>
+                <td class="st-ok">${r.status === 'ok' || !r.status ? '成功' : r.status}</td>
+              </tr>`;
+            }).join('');
+          }
+          const pageIn = pageRows.filter((r) => (Number(r.amount) || 0) > 0).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const pageOut = pageRows.filter((r) => (Number(r.amount) || 0) < 0).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const allIn = all.filter((r) => (Number(r.amount) || 0) > 0).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const allOut = all.filter((r) => (Number(r.amount) || 0) < 0).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          if (sumEl) {
+            sumEl.innerHTML =
+              `小計　入账 +${pageIn.toLocaleString('en-US')}　出账 ${pageOut.toLocaleString('en-US')}<br>`
+              + `總計　入账 +${allIn.toLocaleString('en-US')}　出账 ${allOut.toLocaleString('en-US')}`;
+          }
+          if (totalLabel) totalLabel.textContent = `總計: ${all.length}`;
+          if (pageLabel) pageLabel.textContent = `${recPage}/${pages}`;
+          if (prevBtn) prevBtn.disabled = recPage <= 1;
+          if (nextBtn) nextBtn.disabled = recPage >= pages;
+          return;
+        }
         const all = filteredBetLog();
         const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
         if (recPage > pages) recPage = pages;
         if (recPage < 1) recPage = 1;
         const start = (recPage - 1) * REC_PAGE_SIZE;
         const pageRows = all.slice(start, start + REC_PAGE_SIZE);
-        const filtered = !!(recFilter.round || recFilter.order || recFilter.from || recFilter.to);
         if (!pageRows.length) {
           const emptyText = '所選時間沒有記錄';
           body.innerHTML = `<tr class="records-empty"><td colspan="12">${emptyText}</td></tr>`;
@@ -4811,7 +5075,7 @@
               <td>${r.stake}</td>
               <td class="${pnlCls}">${pnl}</td>
               <td>${r.stake}</td>
-              <td class="st-ok">已結算</td>
+              <td class="${r.status === 'open' ? '' : 'st-ok'}">${r.status === 'open' ? '未結算' : '已結算'}</td>
             </tr>`;
           }).join('');
         }
@@ -4842,7 +5106,7 @@
         syncRecFilterFromInputs();
         setRecQueryMsg('');
         recPage = 1;
-        paintRecords();
+        setRecView(recView || 'bet');
         recordsOverlay.classList.add('show');
         recordsOverlay.setAttribute('aria-hidden', 'false');
       }
@@ -4866,6 +5130,12 @@
           openRecords();
         });
       }
+      document.querySelectorAll('.records-tab[data-rec-view]').forEach((tab) => {
+        tab.addEventListener('click', (e) => {
+          e.preventDefault();
+          setRecView(tab.getAttribute('data-rec-view') || 'bet');
+        });
+      });
       if (recordsClose) {
         recordsClose.addEventListener('click', (e) => {
           e.preventDefault();
@@ -5419,7 +5689,7 @@
         onShow: () => {
           wallet.pullBalance().then((n) => {
             if (n == null || n === balance) return;
-            setBalance(n, true);
+            setBalance(n, true, { skipLog: true });
           });
         },
       });
@@ -5801,12 +6071,13 @@
         }
         return { win: false, mult: 2 };
       }
-      /** 开奖结算：派彩 + 清空盘面已确定筹码（下一局重新下） */
+      /** 开奖结算：派彩 + 写入下注记录 + 清空盘面已确定筹码 */
       function settleRound(winNum) {
         Object.keys(lastPnl).forEach((k) => { delete lastPnl[k]; });
         let returned = 0;
         let staked = 0;
         let net = 0;
+        const settleLines = [];
         Object.keys(bets).forEach((key) => {
           const stake = Number(bets[key]) || 0;
           if (stake <= 0) return;
@@ -5818,12 +6089,64 @@
             pnl = stake * (r.mult - 1);
           }
           net += pnl;
+          settleLines.push({ key, stake, pnl, win: !!r.win });
           if (STAKE_PANEL_KEYS.indexOf(key) >= 0) lastPnl[key] = pnl;
           bets[key] = 0;
         });
         Object.keys(bets).forEach((k) => { bets[k] = 0; });
         clearPendingState();
-        if (returned > 0) setBalance(balance + returned);
+        if (settleLines.length) {
+          const ts = Date.now();
+          const roundId = ensureRoundId();
+          const resultStr = String(winNum);
+          const meta = Object.create(null);
+          settleLines.forEach((line) => { meta[line.key] = line; });
+          const list = loadBetLog();
+          const openStakeByKey = Object.create(null);
+          let touched = false;
+          for (let i = 0; i < list.length; i++) {
+            const row = list[i];
+            if (!row || row.status !== 'open') continue;
+            const line = row.key ? meta[row.key] : null;
+            const stake = Math.max(0, Math.round(Number(row.stake) || 0));
+            if (!line || stake <= 0) continue;
+            const unit = line.stake > 0 ? (line.pnl / line.stake) : -1;
+            row.result = resultStr;
+            row.pnl = Math.round(stake * unit);
+            row.status = 'settled';
+            if (!row.roundId) row.roundId = roundId;
+            openStakeByKey[row.key] = (openStakeByKey[row.key] || 0) + stake;
+            touched = true;
+          }
+          let extraIdx = 0;
+          settleLines.forEach((line) => {
+            const already = openStakeByKey[line.key] || 0;
+            const rem = Math.max(0, Math.round(line.stake - already));
+            if (rem <= 0) return;
+            const unit = line.stake > 0 ? (line.pnl / line.stake) : -1;
+            list.unshift({
+              betId: newBetId(ts, extraIdx++),
+              ts,
+              roundId,
+              tableId: 'R501',
+              result: resultStr,
+              market: marketLabel(line.key),
+              key: line.key,
+              stake: rem,
+              pnl: Math.round(rem * unit),
+              status: 'settled',
+            });
+            touched = true;
+          });
+          if (touched) {
+            saveBetLog(list);
+            refreshRecordsIfOpen();
+          }
+          bumpRoundId();
+        }
+        if (returned > 0) {
+          setBalance(balance + returned, false, { type: 'payout', note: '开奖派彩', source: 'roulette-pc' });
+        }
         paintLit();
         paintStake();
         paintStakePanel();
