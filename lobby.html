@@ -248,6 +248,23 @@
       .nav-item { padding: .65rem .55rem; font-size: .78rem; }
       .card .thumb { height: 96px; }
     }
+    /* 手机进桌：同页 iframe，保留点击手势才能自动出声；也避免过渡页二次跳转变慢 */
+    #fgEmbedShell {
+      position: fixed; inset: 0; z-index: 99999;
+      display: none; background: #000;
+    }
+    #fgEmbedShell.show { display: block; }
+    #fgEmbedShell iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      border: 0; background: #000;
+    }
+    #fgEmbedClose {
+      position: absolute; top: max(8px, env(safe-area-inset-top));
+      left: max(8px, env(safe-area-inset-left));
+      z-index: 2; width: 36px; height: 36px; border: 0; border-radius: 50%;
+      background: rgba(0,0,0,.55); color: #f0d392; font-size: 22px; line-height: 36px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -293,11 +310,11 @@
 
   <script>
     (function () {
-      const GAME_PC = 'game.html?v=1.5.4';
-      const GAME_M = 'game-m.html?v=1.5.3';
-      const ROULETTE_PC = 'roulette.html?v=1.2.14';
-      const ROULETTE_M = 'roulette-m.html?v=1.3.8';
-      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.3.8';
+      const GAME_PC = 'game.html?v=1.5.6';
+      const GAME_M = 'game-m.html?v=1.5.5';
+      const ROULETTE_PC = 'roulette.html?v=1.2.16';
+      const ROULETTE_M = 'roulette-m.html?v=1.3.9';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.3.9';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -306,8 +323,319 @@
         return false;
       }
       const GAME = isMobileClient() ? GAME_M : GAME_PC;
-      /* 手机轮盘：先过渡页预热大图，再进主桌（主桌秒开） */
-      const ROULETTE = isMobileClient() ? ROULETTE_M_BOOT : ROULETTE_PC;
+      /* 手机轮盘：大厅 iframe 直进（不再走过渡页，避免又慢又丢声音手势） */
+      const ROULETTE = isMobileClient() ? ROULETTE_M : ROULETTE_PC;
+      const SHELL_V = '1.3.9';
+      /* 父页播控：解锁禁播滚球长片；欢迎在点击手势内播，避免进桌无欢迎 */
+      const ShellSfx = {
+        els: Object.create(null),
+        src: {
+          welcome: 'audio/welcome-roulette.mp3?v=' + SHELL_V,
+          startBet: 'audio/start-bet.mp3?v=' + SHELL_V,
+          roundOpen: 'audio/round-open-bet.mp3?v=' + SHELL_V,
+          stopBet: 'audio/stop-bet.mp3?v=' + SHELL_V,
+          tick: 'audio/tick.mp3?v=' + SHELL_V,
+          bombTick: 'audio/bomb-tick.mp3?v=' + SHELL_V,
+          keyClick: 'audio/key-click.mp3?v=' + SHELL_V,
+          ballRoll: 'audio/roulette-ball-roll.mp3?v=' + SHELL_V,
+          fret0: 'audio/roulette-fret-click-0.mp3?v=' + SHELL_V,
+          fret1: 'audio/roulette-fret-click-1.mp3?v=' + SHELL_V,
+          fret2: 'audio/roulette-fret-click-2.mp3?v=' + SHELL_V,
+        },
+        defaultVol: {
+          tick: 0.52,
+          bombTick: 0.62,
+          keyClick: 0.7,
+          ballRoll: 1,
+          fret0: 0.9,
+          fret1: 0.9,
+          fret2: 0.9,
+        },
+        voiceKeys: { welcome: 1, startBet: 1, roundOpen: 1, stopBet: 1 },
+        /* 解锁静音试播：禁止 ballRoll/fret（长片会在开局漏出滚球声） */
+        unlockPlayKeys: {
+          welcome: 1, startBet: 1, roundOpen: 1, stopBet: 1,
+          tick: 1, bombTick: 1, keyClick: 1,
+        },
+        ctx: null,
+        live: Object.create(null),
+        primed: false,
+        embedWelcomeOk: null,
+        embedWelcomeP: null,
+        ensureEl(key) {
+          if (this.els[key]) return this.els[key];
+          const src = this.src[key];
+          if (!src) return null;
+          const a = new Audio(src);
+          a.preload = 'auto';
+          this.els[key] = a;
+          return a;
+        },
+        reply(id, ok) {
+          if (!id) return;
+          try {
+            const frame = document.getElementById('fgEmbedFrame');
+            if (frame && frame.contentWindow) {
+              frame.contentWindow.postMessage({ type: 'fg-sfx-done', id: id, ok: !!ok }, '*');
+            }
+          } catch (_) {}
+        },
+        replyWelcome(ok) {
+          try {
+            const frame = document.getElementById('fgEmbedFrame');
+            if (frame && frame.contentWindow) {
+              frame.contentWindow.postMessage({ type: 'fg-welcome', ok: !!ok }, '*');
+            }
+          } catch (_) {}
+        },
+        playWelcomeForEmbed() {
+          if (this.embedWelcomeP) return this.embedWelcomeP;
+          this.embedWelcomeP = this.playAwait('welcome').then((ok) => {
+            this.embedWelcomeOk = !!ok;
+            this.replyWelcome(!!ok);
+            return !!ok;
+          });
+          return this.embedWelcomeP;
+        },
+        resetEmbedWelcome() {
+          this.embedWelcomeOk = null;
+          this.embedWelcomeP = null;
+        },
+        prime() {
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+              this.ctx = this.ctx || new AC();
+              if (this.ctx.state === 'suspended') this.ctx.resume();
+              const buf = this.ctx.createBuffer(1, 1, 22050);
+              const src = this.ctx.createBufferSource();
+              src.buffer = buf;
+              src.connect(this.ctx.destination);
+              src.start(0);
+            }
+          } catch (_) {}
+          Object.keys(this.src).forEach((k) => this.ensureEl(k));
+          /* ballRoll 只 ensure+load，禁止 play 解锁 */
+          ['ballRoll', 'fret0', 'fret1', 'fret2'].forEach((k) => {
+            const el = this.els[k];
+            if (!el) return;
+            try { el.preload = 'auto'; el.load(); } catch (_) {}
+          });
+          if (this.primed) return;
+          this.primed = true;
+          Object.keys(this.unlockPlayKeys).forEach((k) => {
+            const el = this.els[k];
+            if (!el) return;
+            try {
+              el.muted = true;
+              el.volume = 0;
+              const p = el.play();
+              const reset = () => {
+                try { el.pause(); el.currentTime = 0; el.muted = false; el.volume = 1; } catch (_) {}
+              };
+              if (p && p.then) p.then(reset).catch(reset);
+              else reset();
+            } catch (_) {}
+          });
+        },
+        stopVoice() {
+          Object.keys(this.voiceKeys).forEach((k) => {
+            const el = this.els[k];
+            if (!el) return;
+            try { el.pause(); el.currentTime = 0; el.onended = null; el.onerror = null; } catch (_) {}
+          });
+          if (this.live.enNum) {
+            try { this.live.enNum.pause(); this.live.enNum.currentTime = 0; } catch (_) {}
+            delete this.live.enNum;
+          }
+        },
+        stop(key) {
+          if (key === 'ballRoll') {
+            const a = this.live.ballRoll || this.els.ballRoll;
+            if (a) try { a.pause(); a.currentTime = 0; } catch (_) {}
+            delete this.live.ballRoll;
+            return;
+          }
+          const a = this.live[key] || this.els[key];
+          if (!a) return;
+          try { a.pause(); a.currentTime = 0; } catch (_) {}
+          delete this.live[key];
+        },
+        /* 口播/报数：优先 ended；手机常不触发 ended → 按片长收尾，避免卡死倒计时 */
+        voiceEstMs: { welcome: 2000, startBet: 1100, roundOpen: 1100, stopBet: 1100, enNum: 1600 },
+        playAwait(key, vol) {
+          return new Promise((resolve) => {
+            if (!key || key === 'betOk' || key === 'youWin' || key === 'beep') {
+              resolve(false);
+              return;
+            }
+            let done = false;
+            const finish = (ok) => {
+              if (done) return;
+              done = true;
+              resolve(!!ok);
+            };
+            const armDuration = (el, fallbackMs) => {
+              let ms = fallbackMs;
+              try {
+                if (el && el.duration && isFinite(el.duration) && el.duration > 0) {
+                  ms = Math.round(el.duration * 1000) + 120;
+                }
+              } catch (_) {}
+              setTimeout(() => finish(true), Math.min(8000, Math.max(400, ms)));
+            };
+            try {
+              if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+              if (key === 'enNum') {
+                this.stopVoice();
+                const n = Math.max(0, Math.min(36, Number(vol) || 0));
+                const a = new Audio('audio/roulette-en/n' + n + '.mp3?v=' + SHELL_V);
+                a.volume = 1;
+                this.live.enNum = a;
+                a.onended = () => finish(true);
+                a.onerror = () => finish(false);
+                const p = a.play();
+                if (p && p.then) p.then(() => armDuration(a, this.voiceEstMs.enNum)).catch(() => finish(false));
+                else armDuration(a, this.voiceEstMs.enNum);
+                return;
+              }
+              if (!this.voiceKeys[key] || !this.src[key]) {
+                this.play(key, vol);
+                finish(true);
+                return;
+              }
+              this.stopVoice();
+              const el = this.ensureEl(key);
+              if (!el) { finish(false); return; }
+              el.muted = false;
+              el.volume = 1;
+              try { el.onended = null; el.onerror = null; } catch (_) {}
+              el.pause();
+              el.currentTime = 0;
+              el.onended = () => finish(true);
+              el.onerror = () => finish(false);
+              const est = this.voiceEstMs[key] || 1200;
+              const p = el.play();
+              if (p && p.then) p.then(() => armDuration(el, est)).catch(() => finish(false));
+              else armDuration(el, est);
+            } catch (_) {
+              finish(false);
+            }
+          });
+        },
+        play(key, vol) {
+          if (!key) return;
+          if (key === 'betOk' || key === 'youWin' || key === 'beep') return;
+          if (key === 'enNum') {
+            void this.playAwait('enNum', vol);
+            return;
+          }
+          const src = this.src[key];
+          if (!src) return;
+          try {
+            if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            const dv = this.defaultVol[key];
+            const v = vol != null ? vol : (dv != null ? dv : 1);
+            if (this.voiceKeys[key]) {
+              this.stopVoice();
+              const el = this.ensureEl(key);
+              if (!el) return;
+              el.muted = false;
+              el.volume = 1;
+              el.pause();
+              el.currentTime = 0;
+              const p = el.play();
+              if (p && p.catch) p.catch(() => {});
+              return;
+            }
+            if (key === 'ballRoll') {
+              this.stop('ballRoll');
+              const el = this.ensureEl(key);
+              if (!el) return;
+              el.muted = false;
+              el.volume = v;
+              el.pause();
+              el.currentTime = 0;
+              this.live.ballRoll = el;
+              const p = el.play();
+              if (p && p.catch) p.catch(() => {});
+              return;
+            }
+            if (key === 'tick' || key === 'bombTick' || key === 'keyClick') {
+              const el = this.ensureEl(key);
+              if (!el) return;
+              el.muted = false;
+              el.pause();
+              el.currentTime = 0;
+              el.volume = v;
+              const p = el.play();
+              if (p && p.catch) p.catch(() => {});
+              return;
+            }
+            const base = this.ensureEl(key);
+            if (!base) return;
+            const a = base.cloneNode();
+            a.muted = false;
+            a.volume = v;
+            const p = a.play();
+            if (p && p.catch) p.catch(() => {});
+          } catch (_) {}
+        },
+      };
+      function ensureEmbedShell() {
+        let shell = document.getElementById('fgEmbedShell');
+        if (shell) return shell;
+        shell = document.createElement('div');
+        shell.id = 'fgEmbedShell';
+        shell.innerHTML = '<iframe id="fgEmbedFrame" allow="autoplay *; fullscreen *" title="roulette"></iframe>'
+          + '<button type="button" id="fgEmbedClose" aria-label="返回大厅">×</button>';
+        document.body.appendChild(shell);
+        document.getElementById('fgEmbedClose').addEventListener('click', () => closeEmbedShell());
+        window.addEventListener('message', (ev) => {
+          const d = ev && ev.data;
+          if (!d || typeof d !== 'object') return;
+          if (d.type === 'fg-sfx-prime') ShellSfx.prime();
+          if (d.type === 'fg-want-welcome') {
+            if (ShellSfx.embedWelcomeOk != null) ShellSfx.replyWelcome(ShellSfx.embedWelcomeOk);
+            else void ShellSfx.playWelcomeForEmbed();
+          }
+          if (d.type === 'fg-sfx') {
+            if (d.key === 'welcome' && d.id) {
+              /* 欢迎改由进桌手势播；子页再要 welcome 时复用同一次，防双播 */
+              ShellSfx.playWelcomeForEmbed().then((ok) => ShellSfx.reply(d.id, ok));
+            } else if (d.id) {
+              ShellSfx.playAwait(d.key, d.vol).then((ok) => ShellSfx.reply(d.id, ok));
+            } else {
+              ShellSfx.play(d.key, d.vol);
+            }
+          }
+          if (d.type === 'fg-sfx-stop') ShellSfx.stop(d.key);
+          if (d.type === 'fg-embed-close') closeEmbedShell();
+        });
+        return shell;
+      }
+      function closeEmbedShell() {
+        try { ShellSfx.stop('ballRoll'); ShellSfx.stopVoice(); } catch (_) {}
+        ShellSfx.resetEmbedWelcome();
+        const shell = document.getElementById('fgEmbedShell');
+        const frame = document.getElementById('fgEmbedFrame');
+        if (shell) shell.classList.remove('show');
+        if (frame) frame.src = 'about:blank';
+      }
+      function openEmbedShell(url) {
+        ShellSfx.prime();
+        ShellSfx.stop('ballRoll');
+        ShellSfx.resetEmbedWelcome();
+        const shell = ensureEmbedShell();
+        const frame = document.getElementById('fgEmbedFrame');
+        /* 仍在大厅点击手势内：先播欢迎，避免 iframe 里自动播被拦 */
+        if (/roulette-m\.html/.test(url)) {
+          void ShellSfx.playWelcomeForEmbed();
+        }
+        const join = url.indexOf('?') >= 0 ? '&' : '?';
+        frame.src = url + join + 'embed=1';
+        shell.classList.add('show');
+      }
       const START_BAL = 2000;
       const ACCOUNT_API = 'api/fg-wallet-account.php';
       function currentUser() {
@@ -438,6 +766,10 @@
         location.href = GAME;
       }
       function enterRoulette() {
+        if (isMobileClient()) {
+          openEmbedShell(ROULETTE_M);
+          return;
+        }
         location.href = ROULETTE;
       }
 

@@ -1,0 +1,30 @@
+roulette mobile release lock v1.3.9 (2026-11-13)
+
+用户书面：把此版本存为轮盘手机 1.3.9 并计入 git。
+
+已验收清单（本包算数）:
+- 沿用盘面/底栏/四缝蓝/弯道箭头/顶屏绿布/黑滑道/开奖红球等 UI（自 1.3.7 起）
+- 声音：电脑同款片源；大厅 iframe 父页播控；进桌欢迎手势播、成功才打标；静音不重播局态；解锁禁 ballRoll 漏音
+- 打/列可点：1-12、13-24、25-36、第一列/第二列/第三列热区
+- 打/列下注金额跟电脑：点一下覆盖为当前筹码面额（非累加）
+- 弯道打开热区不遮挡底行列键
+- lobby ROULETTE_M → roulette-m.html?v=1.3.9；VERSION-m.txt=1.3.9
+
+未验收、不得当作定版:
+- 弯道成品换色 / 弯道逐格底格蒙格热区
+- 外注旁注赛道规则对齐电脑（未点名项）
+- 内注分法对齐电脑（未点名项）
+- 电脑轮盘 roulette.html / 手机骰宝 game-m.html
+- BET_SEC 与电脑 30 秒对齐（未点名）
+
+回滚快照:
+- roulette-m.LOCKED-1.3.9.html
+- roulette-m-boot.LOCKED-1.3.9.html
+- lobby.LOCKED-roulette-m-1.3.9.html
+- assets/roulette/LOCKED-roulette-m-1.3.9.txt
+- assets/roulette/LOCKED-m-kbd-face-1.3.9.{webp,jpg,png}
+- assets/roulette/LOCKED-m-kbd-face-preweld-1.3.9.jpg
+- assets/roulette/LOCKED-m-track-face-v-1.3.9.{png,jpg,webp}
+- assets/roulette/LOCKED-m-wheel-felt-bg-1.3.9.jpg
+- assets/roulette/VERSION-m.txt
+- tag roulette-m-v1.3.9
