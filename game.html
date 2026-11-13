@@ -3890,10 +3890,10 @@
   </script>
   <script type="module" src="js/cup-shake-3d.js?v=1.5.1"></script>
   <script src="js/sicbo-engine.js?v=1.0.31"></script>
-  <script src="js/fg-wallet.js?v=1.0.3"></script>
+  <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (async function () {
-      const V = '1.5.4';
+      const V = '1.5.18';
       const START_BAL = 2000;
       function currentUser() {
         try {
@@ -5978,8 +5978,9 @@
           resultPay.classList.add('win');
           showBoardOutcome('win');
         } else if (pay.net < 0) {
-          resultPay.textContent = '';
-          resultPay.classList.add('flat');
+          /* 输：只显示「输」+金额，不口播 */
+          resultPay.textContent = `输 ${pay.net}`;
+          resultPay.classList.add('lose');
           showBoardOutcome('lose');
         } else {
           resultPay.textContent = '打平';
@@ -6470,7 +6471,8 @@
         return gen === roundGen && !Voice.dead;
       }
       function whenAudioReady() {
-        if (Voice.unlocked && !Voice.dead) return Promise.resolve();
+        /* 喇叭开着即可播，不等人手点一次才解锁 */
+        if (!Voice.dead) return Promise.resolve();
         return new Promise((resolve) => { unlockWaiters.push(resolve); });
       }
       function notifyAudioReady() {
@@ -6516,8 +6518,8 @@
 
         /*
          * 几百人大厅：第一次进桌接到「正在进行」的一局（随机剩余秒），
-         * 自动说一句「欢迎进入骰宝游戏」；中途进桌不重念「开始下注」。
-         * 「开始下注」只留屏，不占用倒计时；倒计时照常开跑。
+         * 自动欢迎；随后同样口播+留屏「开始下注」（与后续整局开局一致）。
+         * 口播与倒计时并行：不 await，绝不推迟开秒；欢迎→开始下注走 Voice 队列。
          */
         const midJoin = !joinedLiveHall;
         joinedLiveHall = true;
@@ -6535,8 +6537,8 @@
 
         notifyAudioReady();
         if (midJoin) playWelcomeOnce();
-        /* 与倒计时并行：不 await，绝不推迟开秒 */
-        if (!midJoin) void holdPhaseBanner('开始下注', gen);
+        /* 首进与每局开盘都要「开始下注」；与倒计时并行，不 await */
+        void holdPhaseBanner('开始下注', gen);
 
         for (let t = startSec; t >= 1; t--) {
           if (!stillThisRound(gen)) { bail(); return; }
@@ -6662,6 +6664,9 @@
       // 上次关页留下的「已确定未结算」注：进页静默收官（不播恭喜）
       try { finalizeOpenBets(); } catch (_) {}
       setTimerDisplay(BET_SECS);
+      /* 先套静音记忆，再开局：❌ 时绝不出声；开着则自动播 */
+      try { Voice.setMuted(!!soundMutedInit); } catch (_) { /* ignore */ }
+      try { Voice.unlock(); } catch (_) { /* ignore */ }
       runRound();
 
       function visibleDenoms() {
@@ -7211,7 +7216,13 @@
         e.stopPropagation();
         const next = !Voice.muted;
         setVoiceMuted(next);
-        if (!next) Voice.unlock();
+        if (!next) {
+          /* 关掉 ❌：立刻允许并尝试开播 */
+          Voice.unlock();
+          notifyAudioReady();
+          if (!welcomePlayed) void playWelcomeOnce();
+          else if (Voice.canPlay() && bettingOpen) void Voice.speak('开始下注');
+        }
       });
       if (liveSoundHot) {
         liveSoundHot.addEventListener('mouseenter', () => showLiveSoundTip(true));

@@ -1,0 +1,25 @@
+sicbo PC lock v1.5.18
+Scope: 电脑版 only（game.html + 进站过渡页电脑横屏轮换）；手机另册 sicbo-m-v1.5.18。
+Date: 2026-11-13
+Note: 用户书面「请把电脑版也存为1.5.18 并计入git仓库」。
+      线上对齐 https://forestgroup.ai/game.html?v=1.5.18
+
+PC: game.html / game.LOCKED-1.5.18.html
+Loading: loading.html / loading.LOCKED-1.5.18.html
+  横屏幸运轮 ↔ 横屏富贵三宝（强制轮换）
+  lucky-pc / sanbao-pc + LOCKED-*-1.5.18.jpg
+Shake: js/cup-shake-3d.LOCKED-1.5.18.js
+Wallet: js/fg-wallet.LOCKED-1.5.18.js
+Empty cup: assets/eu-concept/LOCKED-cup-screen-empty-nodice-1.5.18.jpg
+Lobby: GAME_PC → game.html?v=1.5.18
+VERSION: 1.5.18
+
+已验收清单（本包算数）:
+- 进桌首进：欢迎后口播+留屏「开始下注」（midJoin 也播；与后续整局开盘一致；不 await、不挡倒计时）
+- 电脑盘面沿用既有：空盅+三维骰、局态留屏、珠盘、倒计时、跨端钱包、过渡页横屏轮换
+
+未验收、不得当作本定版:
+- 手机 game-m（见 sicbo-m-v1.5.18 / sicbo-m-frozen-1.5.18）
+- 轮盘 / Live2D / 购买激活等
+
+冻结: 未经用户书面同意，禁止改电脑版任何程序/资源/部署。

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Forest Group · 載入中</title>
+  <script>
+    /* 最早选出本机要显示的海报并 preload，手机只要小图 */
+    (function () {
+      try {
+        if (sessionStorage.getItem('fg_sicbo_auth') !== '1') return;
+      } catch (_) { return; }
+      var ua = navigator.userAgent || '';
+      var isM = false;
+      try { isM = !!(window.matchMedia && window.matchMedia('(max-width: 900px)').matches); } catch (_) {}
+      if (!isM) isM = /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      var v = '1.5.1m5';
+      var list = isM
+        ? ['assets/loading-posters/lucky-m.webp?v=' + v, 'assets/loading-posters/sanbao-m.webp?v=' + v]
+        : ['assets/loading-posters/lucky-pc.jpg?v=' + v, 'assets/loading-posters/sanbao-pc.jpg?v=' + v];
+      var jpgFallback = isM
+        ? ['assets/loading-posters/lucky-m.jpg?v=' + v, 'assets/loading-posters/sanbao-m.jpg?v=' + v]
+        : list.slice();
+      var key = isM ? 'fg_load_poster_idx_m' : 'fg_load_poster_idx_pc';
+      var last = -1;
+      try {
+        var s = sessionStorage.getItem(key) || localStorage.getItem(key);
+        if (s === '0' || s === '1') last = +s;
+      } catch (_) {}
+      var idx = last === 0 ? 1 : 0;
+      try { sessionStorage.setItem(key, String(idx)); localStorage.setItem(key, String(idx)); } catch (_) {}
+      window.__FG_LOAD__ = { isM: isM, idx: idx, webp: list[idx], jpg: jpgFallback[idx], otherWebp: list[1 - idx], otherJpg: jpgFallback[1 - idx], v: v };
+      function pre(href, type) {
+        var l = document.createElement('link');
+        l.rel = 'preload';
+        l.as = 'image';
+        l.href = href;
+        if (type) l.type = type;
+        document.head.appendChild(l);
+      }
+      /* 只预载本张（优先 webp），另一张后台 */
+      if (isM) pre(list[idx], 'image/webp');
+      else pre(list[idx], 'image/jpeg');
+      var img = new Image();
+      img.decoding = 'async';
+      img.src = isM ? list[idx] : list[idx];
+      window.__FG_LOAD__.bootImg = img;
+    })();
+  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    .load {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: #000;
+      overflow: hidden;
+    }
+    .load > .poster {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+      background: #000;
+    }
+    .bar-wrap {
+      position: absolute;
+      left: 50%;
+      bottom: max(3.2%, env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      z-index: 2;
+      width: min(640px, 86vw);
+      text-align: center;
+      pointer-events: none;
+    }
+    .bar {
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.16);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(212,176,106,.28);
+    }
+    .bar > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #c9973a, #f0d392, #ffe9a8);
+    }
+    .txt {
+      margin-top: .45rem;
+      color: #f5e6c8;
+      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+      font-size: clamp(12px, 1.6vw, 15px);
+      letter-spacing: 0.12em;
+      text-shadow: 0 2px 8px rgba(0,0,0,.85);
+    }
+  </style>
+</head>
+<body>
+  <div class="load" id="load">
+    <img class="poster" id="poster" alt="" decoding="sync" fetchpriority="high" />
+    <div class="bar-wrap">
+      <div class="bar"><i id="fill"></i></div>
+      <div class="txt" id="txt">進入遊戲中... 0%</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      try {
+        if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
+          location.replace('index.html?v=v1.0.35');
+          return;
+        }
+      } catch (_) { /* ignore */ }
+
+      var meta = window.__FG_LOAD__ || null;
+      var poster = document.getElementById('poster');
+      var fill = document.getElementById('fill');
+      var txt = document.getElementById('txt');
+      var LOBBY = 'lobby.html?v=1.5.1b';
+      /* 恢复接近旧版手感：海报已缓存时几乎一闪就进大厅 */
+      var HOLD_MS = 450;
+      var started = false;
+
+      /* 提前预取大厅，跳转更快 */
+      try {
+        var pl = document.createElement('link');
+        pl.rel = 'prefetch';
+        pl.href = LOBBY;
+        document.head.appendChild(pl);
+      } catch (_) {}
+
+      function startProgress() {
+        if (started) return;
+        started = true;
+        var t0 = performance.now();
+        function frame(now) {
+          var p = Math.min(1, (now - t0) / HOLD_MS);
+          var pct = Math.round(p * 100);
+          fill.style.width = pct + '%';
+          txt.textContent = '進入遊戲中... ' + pct + '%';
+          if (p < 1) requestAnimationFrame(frame);
+          else location.replace(LOBBY);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      function pickUrl() {
+        if (!meta) return 'assets/loading-posters/lucky-m.jpg?v=1.5.1m5';
+        /* 手机优先 webp；不支持则 jpg */
+        if (meta.isM) {
+          var canvas = document.createElement('canvas');
+          if (canvas.toDataURL) {
+            try {
+              if (canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0) return meta.webp;
+            } catch (_) {}
+          }
+          return meta.jpg;
+        }
+        return meta.jpg || meta.webp;
+      }
+
+      var url = pickUrl();
+      /* 立刻挂图，不等 decode；缓存命中则马上开进度 */
+      poster.onload = startProgress;
+      poster.onerror = function () {
+        if (meta && url === meta.webp) {
+          poster.onerror = startProgress;
+          poster.src = meta.jpg;
+          return;
+        }
+        startProgress();
+      };
+      poster.src = url;
+      if (poster.complete && poster.naturalWidth) startProgress();
+
+      /* 预热下一张（小图） */
+      if (meta) {
+        var other = new Image();
+        other.src = meta.isM ? (meta.otherWebp || meta.otherJpg) : meta.otherJpg;
+      }
+    })();
+  </script>
+</body>
+</html>
