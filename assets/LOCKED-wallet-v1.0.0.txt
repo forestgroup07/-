@@ -1,0 +1,22 @@
+Forest Group 统一钱包定版 wallet-v1.0.0
+日期：2026-11-13
+Git tag：wallet-v1.0.0
+Commit：fff20a9（及本说明提交）
+
+已验收 / 本包算数
+- MySQL 库 fg_wallet：一账号一余额，全游戏共用
+- API：api/fg-wallet-account.php + api/fg-wallet-db.php
+- 流水只追加；空数组不清空；裸 balance 上调/下调均不改钱
+- 行锁 FOR UPDATE + (account_id, tx_id) 幂等
+- 四端已指向 fg-wallet-account（页面号维持当时部署：PC骰宝 1.5.4 / 手机骰宝 1.5.3 / PC轮盘 1.2.14 / 手机轮盘 1.3.12）
+- Schema：server/sql/fg-wallet-schema.sql
+- 说明：server/sql/fg-wallet-ARCHITECTURE.txt
+
+未验收、不得当作本定版
+- 正式 50 万在线压测报告 / 读写分离与连接池调参
+- Redis 展示缓存
+- 把四端彻底去掉兼容 balance 字段（仅服务端已忽略）
+
+回滚
+- git checkout wallet-v1.0.0 -- api/fg-wallet-*.php js/fg-wallet.js server/sql/fg-wallet-*
+- 勿用邻近游戏定版号顶替本钱包包

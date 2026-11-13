@@ -1,4 +1,5 @@
 Forest Group 统一钱包 — 50 万同时在线架构（2026-11-13）
+定版：wallet-v1.0.0（见 assets/LOCKED-wallet-v1.0.0.txt）
 
 目标
 - 同一账号跨全部游戏（电脑+手机+未来几十款）共用一个余额
