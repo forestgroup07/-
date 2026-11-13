@@ -1,0 +1,13 @@
+roulette v1.2.3 lock pack (2026-11-11 relock — current latest)
+- Status toasts at 18↔21 gap (开始下注 / 停止下注 / 下注成功)
+- English win call: audio/roulette-en/n0..n36.mp3 (per result)
+- Ball: outer roll → inner pocket fret hops + fret-click SFX → settle in win pocket
+- Prior pack content retained: inside-bet hit seams, stop-bet dim mask, history/tray/act keys
+- roulette.html / lobby ROULETTE ?v=1.2.3 / assets/roulette/VERSION
+- Snapshots:
+  - roulette.LOCKED-1.2.3.html
+  - assets/roulette/LOCKED-VERSION-1.2.3.txt
+  - assets/roulette/LOCKED-bet-kbd-dim-mask-1.2.3.png
+  - audio/roulette-en/n0..n36.mp3
+  - audio/roulette-fret-click-0..2.mp3
+- Do not overwrite this pack without user written rename

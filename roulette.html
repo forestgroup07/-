@@ -239,11 +239,11 @@
       left: 50%;
       /* top% 越小越靠外圈；外圈≈6.8，号码格中心≈18.3（=50-WHEEL_POCKET_DIST） */
       top: 6.8%;
-      /* 参考片小球：略大于旧 2.35%，远小于 5.3% 过大版 */
-      width: 2.95%;
-      height: 2.95%;
-      min-width: 7px;
-      min-height: 7px;
+      /* 略放大：2.95% → 3.55%（仍远小于曾过大的 5.3%） */
+      width: 3.55%;
+      height: 3.55%;
+      min-width: 9px;
+      min-height: 9px;
       transform: translate(-50%, -50%);
       border-radius: 50%;
       background: radial-gradient(circle at 32% 28%, #fff 0%, #ececec 34%, #c8c8c8 58%, #7a7a7a 82%, #2a2a2a 100%);
@@ -2808,16 +2808,19 @@
       <audio id="voStartBet" preload="auto" playsinline></audio>
       <audio id="voRoundOpen" preload="auto" playsinline></audio>
       <audio id="voStopBet" preload="auto" playsinline></audio>
+      <audio id="voBetOk" preload="auto" playsinline></audio>
+      <audio id="voYouWin" preload="auto" playsinline></audio>
       <audio id="voEnNum" preload="auto" playsinline></audio>
       <audio id="sfxTick" preload="auto" playsinline></audio>
       <audio id="sfxBombTick" preload="auto" playsinline></audio>
+      <audio id="sfxCoin" preload="auto" playsinline></audio>
     </div>
   </div>
 
   <script src="js/fg-wallet.js?v=1.0.3"></script>
   <script>
     (async function () {
-      const V = '1.2.2';
+      const V = '1.2.3';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -2910,8 +2913,8 @@
       const toastEl = document.getElementById('toastMsg');
       const sfxClick = new Audio('audio/key-click.mp3?v=' + V);
       sfxClick.preload = 'auto';
-      /* 外圈细滚；进内圈后按隔板撞击逐发 short click（参考片） */
-      const sfxBallRoll = new Audio('audio/roulette-ball-roll.mp3?v=' + V);
+      /* 外圈：只用无落格声的干净滚段；进格子后才隔板 click */
+      const sfxBallRoll = new Audio('audio/roulette-ball-roll-outer.mp3?v=' + V);
       const sfxBallBounce = new Audio('audio/roulette-ball-bounce.mp3?v=' + V);
       sfxBallRoll.preload = 'auto';
       sfxBallBounce.preload = 'auto';
@@ -2924,7 +2927,16 @@
       const sfxBallSpin = sfxBallRoll;
       let ballSpinPlaying = false;
       let ballBounceStarted = false;
+      /** false=外圈；true=已进红黑格后才允许隔板声 */
+      let ballInPocketPhase = false;
       let fretClickI = 0;
+      let ballRollWatch = 0;
+      function clearBallRollWatch() {
+        if (ballRollWatch) {
+          clearInterval(ballRollWatch);
+          ballRollWatch = 0;
+        }
+      }
 
       let toastTimer = 0;
       function showToast(text, ms, kind) {
@@ -2981,41 +2993,60 @@
         sfxFretClicks.forEach(_primeOne);
       }
       function playBallSpinSfx() {
-        /* 外圈阶段只播滚动；进格后改 playFretClick */
+        /* 外圈只播干净滚声（可 loop）；禁止隔板声；中途断了自动续播 */
         ballSpinPlaying = true;
         ballBounceStarted = false;
+        ballInPocketPhase = false;
         fretClickI = 0;
+        clearBallRollWatch();
         if (soundMuted) return;
         ensureAudioCtx();
         try {
           sfxBallBounce.pause();
           sfxBallBounce.currentTime = 0;
         } catch (_) {}
+        const kickRoll = () => {
+          try {
+            sfxBallRoll.muted = false;
+            sfxBallRoll.loop = true;
+            sfxBallRoll.volume = 1;
+            const p = sfxBallRoll.play();
+            if (p && p.catch) {
+              p.catch(() => {
+                try { startBallSpinSynth(false); } catch (_) {}
+              });
+            }
+          } catch (_) {
+            try { startBallSpinSynth(false); } catch (__) {}
+          }
+        };
         try {
-          sfxBallRoll.muted = false;
           sfxBallRoll.pause();
           sfxBallRoll.currentTime = 0;
-          sfxBallRoll.volume = 1;
-          const p = sfxBallRoll.play();
-          if (p && p.catch) {
-            p.catch(() => {
-              try { startBallSpinSynth(false); } catch (_) {}
-            });
+        } catch (_) {}
+        kickRoll();
+        ballRollWatch = setInterval(() => {
+          if (!ballSpinPlaying || ballInPocketPhase || soundMuted) {
+            clearBallRollWatch();
+            return;
           }
-        } catch (_) {
-          try { startBallSpinSynth(false); } catch (__) {}
-        }
+          try {
+            if (sfxBallRoll.paused || sfxBallRoll.ended) kickRoll();
+          } catch (_) {}
+        }, 280);
       }
       function stopBallRollOnly() {
+        clearBallRollWatch();
         try {
+          sfxBallRoll.loop = false;
           sfxBallRoll.pause();
           sfxBallRoll.currentTime = 0;
         } catch (_) {}
         stopBallSpinSynth();
       }
-      /** 撞一格隔板一声；可重叠短音 */
+      /** 撞一格隔板一声；外圈硬门禁 */
       function playFretClick(vol) {
-        if (soundMuted || !ballSpinPlaying) return;
+        if (soundMuted || !ballSpinPlaying || !ballInPocketPhase) return;
         ballBounceStarted = true;
         const src = sfxFretClicks[fretClickI % sfxFretClicks.length];
         fretClickI++;
@@ -3072,9 +3103,7 @@
         noise.start();
         ballSynthNodes.push(noise);
         if (!withClicks) {
-          setTimeout(() => {
-            if (ballSpinPlaying && !ballBounceStarted) stopBallSpinSynth();
-          }, 4200);
+          /* 外圈兜底沙沙跟到进格，禁止中途掐断、禁止假落格声 */
           return;
         }
         let gap = 0.16;
@@ -3111,8 +3140,11 @@
       function stopBallSpinSfx() {
         ballSpinPlaying = false;
         ballBounceStarted = false;
+        ballInPocketPhase = false;
+        clearBallRollWatch();
         stopBallSpinSynth();
         try {
+          sfxBallRoll.loop = false;
           sfxBallRoll.pause();
           sfxBallRoll.currentTime = 0;
         } catch (_) {}
@@ -3541,6 +3573,10 @@
         paintLit();
         paintStake();
         showToast('下注成功', 1800, 'success');
+        /* 「下注成功」口播；静音时不出声 */
+        try {
+          if (!Voice.isOff()) void Voice.speak('下注成功');
+        } catch (_) {}
         return true;
       }
       /** 金色态＝撤銷上一步挂单（底图黑底仍显示「重复下注」；无加倍） */
@@ -5342,7 +5378,7 @@
         /* 与骰宝一致：有无红叉悬停都显示「聲效」 */
         soundTip.classList.toggle('show', !!show);
       }
-      const VOICE_IDS = ['voWelcome', 'voStartBet', 'voRoundOpen', 'voStopBet', 'voEnNum', 'sfxTick', 'sfxBombTick'];
+      const VOICE_IDS = ['voWelcome', 'voStartBet', 'voRoundOpen', 'voStopBet', 'voBetOk', 'voYouWin', 'voEnNum', 'sfxTick', 'sfxBombTick', 'sfxCoin'];
       function stopAllSfx() {
         try {
           sfxClick.pause();
@@ -5766,6 +5802,9 @@
           startBet: 'audio/start-bet.mp3?v=' + V,
           roundOpen: 'audio/round-open-bet.mp3?v=' + V,
           stopBet: 'audio/stop-bet.mp3?v=' + V,
+          betOk: 'audio/bet-ok.mp3?v=' + V,
+          youWin: 'audio/you-win.mp3?v=' + V,
+          coin: 'audio/coin-bag.mp3?v=' + V,
           tick: 'audio/tick.mp3?v=' + V,
           bombTick: 'audio/bomb-tick.mp3?v=' + V,
         },
@@ -5774,6 +5813,9 @@
           startBet: document.getElementById('voStartBet'),
           roundOpen: document.getElementById('voRoundOpen'),
           stopBet: document.getElementById('voStopBet'),
+          betOk: document.getElementById('voBetOk'),
+          youWin: document.getElementById('voYouWin'),
+          coin: document.getElementById('sfxCoin'),
           tick: document.getElementById('sfxTick'),
           bombTick: document.getElementById('sfxBombTick'),
         },
@@ -5782,6 +5824,8 @@
           '开始下注': 'startBet',
           '已开局请下注': 'roundOpen',
           '停止下注': 'stopBet',
+          '下注成功': 'betOk',
+          '恭喜你赢钱了': 'youWin',
         },
         _chain: Promise.resolve(),
         init() {
@@ -5867,6 +5911,13 @@
         },
         tick() { this.playQuick('tick', 0.52); },
         bombTick() { this.playQuick('bombTick', 0.62); },
+        /** 与骰宝一致：钱币等短音效用 playEl，等播完 */
+        async playSfx(key) {
+          if (this.isOff()) return false;
+          const el = this.players[key];
+          if (!el) return false;
+          return await this.playEl(el);
+        },
         speak(text) {
           const run = async () => {
             if (this.isOff()) return false;
@@ -5874,7 +5925,7 @@
             const el = key && this.players[key];
             if (!el) return false;
             Object.keys(this.players).forEach((k) => {
-              if (k === 'tick' || k === 'bombTick') return;
+              if (k === 'tick' || k === 'bombTick' || k === 'coin') return;
               const other = this.players[k];
               if (!other || other === el) return;
               try { other.pause(); other.currentTime = 0; } catch (_) {}
@@ -6175,6 +6226,7 @@
           else if (net < 0) showToast('本局輸 ' + Math.round(net), 2200);
           else showToast('本局平', 1600);
         }
+        return { staked, net, returned };
       }
 
       /* 英文报数：按开奖号播预录片（每局不同），不用 speechSynthesis */
@@ -6344,10 +6396,10 @@
       }
 
       /**
-       * 停注后开奖：
-       * A. 外侧滑道快→慢
-       * B. 掉进最内圈红黑格（WHEEL_POCKET_DIST）
-       * C. 在相邻格子隔板间逐格跳动（每过一隔板一声），最终停在开奖格中心
+       * 停注后开奖（第1项只改声：外圈禁落格声；动画仍用 1.2.2/1.2.3 底）
+       * A. 外侧滑道快→慢（干净滚声，无隔板声）
+       * B. 掉进最内圈红黑格
+       * C. 隔板跳动（进格后才允许落格声）
        */
       function runBallAndWheelStop(winNum) {
         const TOTAL_MS = 7600;
@@ -6355,7 +6407,7 @@
         const R_POCKET = 50 - WHEEL_POCKET_DIST; /* 号码格中心：18.3 */
         const DROP_U0 = 0.55;
         const DROP_U1 = 0.61;
-        const RATTLE_END = 0.88; /* 全局 u：隔板跳动结束、贴死开奖格 */
+        const RATTLE_END = 0.88;
         const w0 = stopIdleSpinCapture();
         showBall(true);
         const ballEl = document.getElementById('wheelBall');
@@ -6367,11 +6419,9 @@
         setBallAngle(b0, 0);
 
         const winIdx = Math.max(0, EU_ORDER.indexOf(winNum));
-        const hops = 6 + ((Math.random() * 5) | 0); /* 进格后再跨 6–10 个隔板 */
-        /* 用未折回下标，避免跨 0 时跳格算错 */
+        const hops = 6 + ((Math.random() * 5) | 0);
         const startIdx = winIdx + hops;
 
-        /* 终局球停在开奖格正中（无 jitter）；落点屏幕方位每局随机 */
         const markerCss = Math.random() * 360;
         const markerGeom = ballGeomFromCss(markerCss);
         const wheelTargetLocal = normDeg(markerGeom - pocketAngle(winNum));
@@ -6391,22 +6441,17 @@
         const ballProgress = (u) => 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), BALL_EASE_P);
         const finalBallCss = () => normDeg(pocketAngle(winNum) + BALL_CSS_TO_GEOM + w1);
 
-        /** 进格后：按格序浮点下标从 startIdx 跳到 winIdx */
         const pocketFloatAt = (u) => {
           if (u <= DROP_U0) return startIdx;
           if (u >= RATTLE_END) return winIdx;
           const t = (u - DROP_U0) / (RATTLE_END - DROP_U0);
           const e = easeOutPow(t, 2.35);
           let f = startIdx - hops * e;
-          /* 早期在隔板间加衰减摆动，看起来像真撞格 */
           const wob = Math.sin(t * Math.PI * (hops * 0.85 + 0.5)) * (1 - e) * 0.42;
           f += wob;
           return f;
         };
-        const localDegFromFloat = (f) => {
-          /* 允许非整数：隔板之间 */
-          return ZERO_CENTER_DEG + f * SLOT;
-        };
+        const localDegFromFloat = (f) => ZERO_CENTER_DEG + f * SLOT;
         const radiusAt = (u, justHit) => {
           if (u < DROP_U0) return R_OUTER;
           if (u < DROP_U1) {
@@ -6451,25 +6496,25 @@
             let ang;
             let justHit = false;
             if (u < DROP_U0) {
+              /* 外圈：干净滚声；ballInPocketPhase=false → 禁止隔板声 */
               ang = b0 - bDelta * ballProgress(u);
             } else {
               if (!dropArmed) {
                 dropArmed = true;
                 stopBallRollOnly();
+                ballInPocketPhase = true; /* 第1项：离开外圈后才允许落格声 */
                 playFretClick(1);
                 lastPocketI = Math.floor(pocketFloatAt(u) + 1e-6);
               }
               const f = pocketFloatAt(u);
-              const pocketI = Math.floor(f + 1e-6); /* 未折回，单调递减 */
+              const pocketI = Math.floor(f + 1e-6);
               if (pocketI !== lastPocketI) {
                 justHit = true;
                 lastPocketI = pocketI;
                 const t = (u - DROP_U0) / Math.max(1e-6, RATTLE_END - DROP_U0);
                 playFretClick(0.95 - Math.min(0.45, t * 0.45));
               }
-              /* 球相对转盘锁定在当前浮点格位 → 叠到转盘角 */
-              const local = localDegFromFloat(f);
-              ang = normDeg(local + BALL_CSS_TO_GEOM + wNow);
+              ang = normDeg(localDegFromFloat(f) + BALL_CSS_TO_GEOM + wNow);
             }
             setBallAngle(ang, 0);
             if (ballEl) ballEl.style.top = radiusAt(u, justHit).toFixed(2) + '%';
@@ -6556,7 +6601,15 @@
           /* 中奖号 = 落点识别号（与报号同一来源） */
           await announceWinNumber(winNum);
           if (gen !== roundGen) return;
-          settleRound(winNum);
+          const pay = settleRound(winNum);
+          /* 与骰宝一致：有确定注且净赢 → 钱币声两下 +「恭喜你赢钱了」 */
+          if (pay && pay.staked > 0 && pay.net > 0 && !Voice.isOff()) {
+            await Voice.playSfx('coin');
+            await sleep(200);
+            await Voice.playSfx('coin');
+            if (gen === roundGen && !Voice.isOff()) await Voice.speak('恭喜你赢钱了');
+          }
+          if (gen !== roundGen) return;
           /* 与骰宝一致：金光闪 7s 后再收开奖条 */
           await sleep(7000);
           if (gen !== roundGen) return;

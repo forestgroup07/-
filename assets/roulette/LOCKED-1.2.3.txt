@@ -1,13 +1,20 @@
-roulette v1.2.3 lock pack (2026-11-11 relock — current latest)
-- Status toasts at 18↔21 gap (开始下注 / 停止下注 / 下注成功)
-- English win call: audio/roulette-en/n0..n36.mp3 (per result)
-- Ball: outer roll → inner pocket fret hops + fret-click SFX → settle in win pocket
-- Prior pack content retained: inside-bet hit seams, stop-bet dim mask, history/tray/act keys
-- roulette.html / lobby ROULETTE ?v=1.2.3 / assets/roulette/VERSION
-- Snapshots:
-  - roulette.LOCKED-1.2.3.html
-  - assets/roulette/LOCKED-VERSION-1.2.3.txt
-  - assets/roulette/LOCKED-bet-kbd-dim-mask-1.2.3.png
-  - audio/roulette-en/n0..n36.mp3
-  - audio/roulette-fret-click-0..2.mp3
-- Do not overwrite this pack without user written rename
+roulette PC v1.2.3 re-lock (2026-11-14)
+
+已验收清单（本包算数）:
+- 开奖球动画底：1.2.14/重锁1.2.2 同款 TOTAL_MS=7600（非其后球速实验）
+- 最上边線注左右可点（FromLeft/FromRight + 顶行热区）
+- 小球略放大 3.55%
+- 外圈禁落格声：roulette-ball-roll-outer.mp3 + ballInPocketPhase 门禁
+- 外圈滚声修复：去掉 outer mp3 开头静音；外圈断播自动续播（ballRollWatch）
+- 下注成功口播 bet-ok
+- 净赢：钱币声两下 +「恭喜你赢钱了」（与骰宝同料 you-win / coin-bag）
+- 页面号 / lobby ROULETTE_PC / VERSION = 1.2.3
+- 快照：roulette.LOCKED-1.2.3.html
+- 资源：audio/roulette-ball-roll-outer.mp3（trim 版；bak-before-trim 另存）
+
+未验收、不得当作本定版:
+- 小球第2项（前段再放慢）、第3项（格内间隔跳）——未做
+- 手机轮盘、骰宝
+- 旧同号包另存 *-prev-before-20261114
+
+回滚只用本包 LOCKED-*；禁止用邻近实验版顶替。
