@@ -2820,7 +2820,7 @@
   <script src="js/fg-wallet.js?v=1.0.3"></script>
   <script>
     (async function () {
-      const V = '1.2.4';
+      const V = '1.2.5';
       const BET_SECS = 30;
       /* 面额顺序与骰宝一致 */
       const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
@@ -6505,8 +6505,8 @@
         let bDelta = normDeg(b0 - markerCss);
         if (bDelta < 1) bDelta = 360;
         bDelta += 360 * (OUTER_LAPS - 1);
-        /* 外圈时间份额：圈1最短=最快 … 圈4最长=最慢；和=1 */
-        const LAP_SHARE = [0.13, 0.20, 0.28, 0.39];
+        /* 外圈时间份额：圈1最短=最快 … 圈4最长=最慢；和=1（2/3/4 再降） */
+        const LAP_SHARE = [0.04, 0.23, 0.31, 0.42];
         const lapEnds = [];
         {
           let acc = 0;

@@ -1,0 +1,15 @@
+roulette PC v1.2.5 re-lock (2026-11-14)
+
+已验收清单（本包算数）:
+- 继承 v1.2.4：線注、小球放大、外圈禁落格声、Web Audio 无缝滚、下注成功/赢钱口播
+- 外圈四圈递慢微调：LAP_SHARE = [0.04, 0.23, 0.31, 0.42]（2/3/4 再放慢，末圈→落格更缓）
+- 页面号 / lobby ROULETTE_PC / VERSION = 1.2.5
+- 快照：roulette.LOCKED-1.2.5.html
+- 资源：audio/roulette-ball-roll-outer.mp3
+
+未验收、不得当作本定版:
+- 小球第3项（格内间隔跳）——未做
+- 手机轮盘、骰宝
+- 旧同号包另存 roulette.LOCKED-1.2.5-prev-before-20261114-reclock.html
+
+回滚只用本包 LOCKED-*；禁止用邻近实验号顶替。

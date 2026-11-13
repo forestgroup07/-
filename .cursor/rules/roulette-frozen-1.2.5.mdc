@@ -1,0 +1,12 @@
+# 轮盘电脑版 v1.2.5 不许再动（2026-11-14 重锁）
+
+用户硬规则（2026-11-14 定版 `1.2.5` 电脑版起生效；覆盖同号旧包含义，旧包见 `*-prev-before-20261114-reclock`）：
+
+1. **禁止**未经用户书面点名同意，修改、覆盖、还原、优化、部署本定版轮盘**电脑版**点名范围内内容，包括：
+   - `roulette.html`、`lobby.html` 的 `ROULETTE_PC ?v=1.2.5`、`assets/roulette/VERSION`
+   - 外圈 Web Audio 无缝滚声、外圈四圈递慢（LAP_SHARE 0.04/0.23/0.31/0.42）、線注、小球放大、下注成功/赢钱口播
+   - 本版 `LOCKED-*` 与线上对应资源
+2. 定版快照：`roulette.LOCKED-1.2.5.html`、`assets/roulette/LOCKED-1.2.5.txt`、`assets/roulette/LOCKED-VERSION-1.2.5.txt`、`audio/roulette-ball-roll-outer.mp3`
+3. 用户只描述问题 / 抱怨 / 问「理解嘛」：只解释，不动手。
+4. 只有明确「改轮盘 / 修某某 / 写入 / 部署」并点名后，才可改；一次一项。
+5. 当前有效电脑轮盘冻结以**本版**为准。未进本定版：格内间隔跳第3项。与 `one-item-no-side-effect`、`version-lock-gate`、`save-to-git` 同时生效。

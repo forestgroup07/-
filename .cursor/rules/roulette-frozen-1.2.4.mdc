@@ -9,4 +9,4 @@
 2. 定版快照：`roulette.LOCKED-1.2.4.html`、`assets/roulette/LOCKED-1.2.4.txt`、`assets/roulette/LOCKED-VERSION-1.2.4.txt`、`audio/roulette-ball-roll-outer.mp3`
 3. 用户只描述问题 / 抱怨 / 问「理解嘛」：只解释，不动手。
 4. 只有明确「改轮盘 / 修某某 / 写入 / 部署」并点名后，才可改；一次一项。
-5. 当前有效电脑轮盘冻结以**本版**为准。未进本定版：格内间隔跳第3项。与 `one-item-no-side-effect`、`version-lock-gate`、`save-to-git` 同时生效。
+5. 当前有效电脑轮盘冻结以 `roulette-frozen-1.2.5` 为准（本版为历史定版）。未进本定版：格内间隔跳第3项。与 `one-item-no-side-effect`、`version-lock-gate`、`save-to-git` 同时生效。
