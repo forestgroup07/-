@@ -22,4 +22,4 @@ alwaysApply: true
    - git commit / tag 标明 `roulette-m-v1.3.14`
 3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
 4. 只有用户明确说「改手机轮盘 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
-5. 本冻结仅手机版。未进本定版：轨迹步骤1、外圈 loop、隔板、欢迎改进桌内再播。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git` 同时生效；冲突时取更严：默认不动。当前有效手机轮盘冻结以**本版**为准（取代 `1.3.15` / `1.3.12` 为当前指针）。
+5. 本冻结仅手机版。未进本定版：轨迹步骤1、外圈 loop、隔板、欢迎改进桌内再播。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git` 同时生效；冲突时取更严：默认不动。当前有效手机轮盘冻结以 `roulette-m-frozen-1.4.0` 为准（本版为历史定版）。

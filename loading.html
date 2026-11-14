@@ -15,7 +15,7 @@
       var isM = false;
       try { isM = !!(window.matchMedia && window.matchMedia('(max-width: 900px)').matches); } catch (_) {}
       if (!isM) isM = /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-      var v = '1.5.1m4';
+      var v = '1.4.0';
       var list = isM
         ? ['assets/loading-posters/lucky-m.webp?v=' + v, 'assets/loading-posters/sanbao-m.webp?v=' + v]
         : ['assets/loading-posters/lucky-pc.jpg?v=' + v, 'assets/loading-posters/sanbao-pc.jpg?v=' + v];
@@ -121,7 +121,7 @@
     (function () {
       try {
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
-          location.replace('index.html?v=v1.0.35');
+          location.replace('index.html?v=v1.0.36');
           return;
         }
       } catch (_) { /* ignore */ }
@@ -130,7 +130,7 @@
       var poster = document.getElementById('poster');
       var fill = document.getElementById('fill');
       var txt = document.getElementById('txt');
-      var LOBBY = 'lobby.html?v=1.5.1';
+      var LOBBY = 'lobby.html?v=1.4.0';
       /* 恢复接近旧版手感：海报已缓存时几乎一闪就进大厅 */
       var HOLD_MS = 450;
       var started = false;
@@ -159,7 +159,7 @@
       }
 
       function pickUrl() {
-        if (!meta) return 'assets/loading-posters/lucky-m.jpg?v=1.5.1m4';
+        if (!meta) return 'assets/loading-posters/lucky-m.jpg?v=1.4.0';
         /* 手机优先 webp；不支持则 jpg */
         if (meta.isM) {
           var canvas = document.createElement('canvas');

@@ -5,13 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Forest Group · 登录注册</title>
-  <!-- 手机过渡海报：登录页猛预热（webp 优先，体积小） -->
-  <link rel="preload" as="image" href="assets/loading-posters/lucky-m.webp?v=1.5.1m4" type="image/webp" />
-  <link rel="preload" as="image" href="assets/loading-posters/sanbao-m.webp?v=1.5.1m4" type="image/webp" />
-  <link rel="preload" as="image" href="assets/loading-posters/lucky-m.jpg?v=1.5.1m4" type="image/jpeg" />
-  <link rel="preload" as="image" href="assets/loading-posters/sanbao-m.jpg?v=1.5.1m4" type="image/jpeg" />
-  <link rel="preload" as="image" href="assets/loading-posters/lucky-pc.jpg?v=1.5.1m4" type="image/jpeg" media="(min-width: 901px)" />
-  <link rel="preload" as="image" href="assets/loading-posters/sanbao-pc.jpg?v=1.5.1m4" type="image/jpeg" media="(min-width: 901px)" />
+  <!-- 打开网站加速：手机只预热 webp；不再预拉 jpg 双份；电脑海报仅宽屏 -->
+  <link rel="preload" as="image" href="assets/loading-posters/lucky-m.webp?v=1.4.0" type="image/webp" media="(max-width: 900px)" />
+  <link rel="preload" as="image" href="assets/loading-posters/sanbao-m.webp?v=1.4.0" type="image/webp" media="(max-width: 900px)" />
+  <link rel="preload" as="image" href="assets/loading-posters/lucky-pc.jpg?v=1.4.0" type="image/jpeg" media="(min-width: 901px)" />
+  <link rel="preload" as="image" href="assets/loading-posters/sanbao-pc.jpg?v=1.4.0" type="image/jpeg" media="(min-width: 901px)" />
   <style>
     :root {
       --gold: #d4b06a;
@@ -295,10 +293,10 @@
 
   <script>
   (function () {
-    const V = 'v1.0.35';
-    const NEXT = 'loading.html?v=1.5.1m4';
+    const V = 'v1.0.36';
+    const NEXT = 'loading.html?v=1.4.0';
     const AUTH_API = 'api/sicbo-auth.php';
-    const POSTER_V = '1.5.1m4';
+    const POSTER_V = '1.4.0';
     const MOBILE_POSTERS = [
       'assets/loading-posters/lucky-m.webp?v=' + POSTER_V,
       'assets/loading-posters/sanbao-m.webp?v=' + POSTER_V
@@ -318,7 +316,7 @@
       try {
         const pl = document.createElement('link');
         pl.rel = 'prefetch';
-        pl.href = 'lobby.html?v=1.5.1';
+        pl.href = 'lobby.html?v=1.4.0';
         document.head.appendChild(pl);
       } catch (_) {}
     })();
@@ -367,18 +365,11 @@
       }
     } catch (_) {}
 
+    /* 打开/刷新登录页：必须重新输密码，禁止凭旧会话自动跳进 */
     try {
       const last = localStorage.getItem('fg_sicbo_last_user');
       if (last) document.getElementById('loginUser').value = last;
-      if (sessionStorage.getItem('fg_sicbo_auth') === '1') {
-        let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
-        if (!u && last) {
-          u = last.trim();
-          sessionStorage.setItem('fg_sicbo_user', u);
-        }
-        location.replace(NEXT);
-        return;
-      }
+      sessionStorage.removeItem('fg_sicbo_auth');
     } catch (_) {}
 
     function bindEye(btnId, inputId) {
