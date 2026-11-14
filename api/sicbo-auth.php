@@ -5,6 +5,7 @@
  *   { action: "register", user, password, nick, contactType, contact, email, referrerCode }
  *   contactType: whatsapp | telegram
  *   { action: "login", user, password }
+ *   { action: "change_password", user, oldPassword, newPassword }
  *   { action: "check_ref", referrerCode }
  * GET ?check_ref=CODE
  *
@@ -295,6 +296,25 @@ if ($action === 'register') {
   $codes[$myCode] = $user;
   save_codes($codes);
 
+  ok(['user' => public_user($doc)]);
+}
+
+if ($action === 'change_password') {
+  $user = sanitize_user($body['user'] ?? '');
+  $oldPass = (string)($body['oldPassword'] ?? '');
+  $newPass = (string)($body['newPassword'] ?? '');
+  if ($user === '') bad(400, '请先登录');
+  if ($oldPass === '' || $newPass === '') bad(400, '请填写完整密码');
+  /* 对标公司改密页：6-10 位字母数字 */
+  if (!preg_match('/^[A-Za-z0-9]{6,10}$/', $newPass)) {
+    bad(400, '请输入6-10个字母、数字组成的字符串密码');
+  }
+  if ($oldPass === $newPass) bad(400, '新密码不能与旧密码相同');
+  $doc = load_user($user);
+  if (!$doc || empty($doc['passHash'])) bad(401, '账号或密码错误');
+  if (!password_verify($oldPass, $doc['passHash'])) bad(401, '旧密码错误');
+  $doc['passHash'] = password_hash($newPass, PASSWORD_DEFAULT);
+  save_user($doc);
   ok(['user' => public_user($doc)]);
 }
 

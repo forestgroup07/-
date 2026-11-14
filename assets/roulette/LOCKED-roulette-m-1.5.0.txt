@@ -1,0 +1,28 @@
+roulette-m v1.5.0 — 2026-11-14
+用户书面：「现在把轮盘手机存入git仓库1.5版本 并储存」；前序「这几个活干的漂亮」→ 本包号 1.5.0
+
+已验收清单（本包算数）：
+- 右上圆形三横线菜单；半屏黑版侧栏（小人头像 + 动态账号/金额）
+- 保留入口：公告（空纸）/ 语言 / 下注记录 / 额度记录 / 修改密码 / 游戏规则 / 退出（回大厅）
+- 语言：菜单内右侧窄条（不换页），可选 简体中文 / English / Bahasa Indonesia / Tiếng Việt / ภาษาไทย
+- 游戏规则：电脑版 roulette.html 全文 + 羊皮纸样式
+- 修改密码：公司样式页 + api/sicbo-auth.php action=change_password 真改密
+- 下注记录 / 额度记录：公司表样式；本账号全部流水（轮盘+骰宝本地合并 + 服务器水合）；查询/分页/汇总；开奖回写输赢
+- 沿用并继续有效：进桌深色垫底、禁 scheduleHeavy 抢键面、键面 webp 优先、下注成功 betOk、开奖大球 3.55%/min 9px、趋势/赔率入口等 1.4.x 已验收桌内能力
+
+未验收、不得当作本定版：
+- 整站 UI 多语言文案翻译（仅存语言选项，未全页替换文案）
+- 公告后台发布（现为空纸）
+- 轨迹 LAP_SHARE / 外圈 loop / 隔板 fret 作为必保宣传项
+- 骰宝电脑版 / 手机骰宝盘面玩法（未点名重锁）
+- 登录页海报重锁（沿用 1.4.0 登录相关快照，本包未改登录页图）
+
+回滚：
+  roulette-m.LOCKED-1.5.0.html
+  roulette-m-boot.LOCKED-1.5.0.html
+  lobby.LOCKED-roulette-m-1.5.0.html
+  api/sicbo-auth.LOCKED-roulette-m-1.5.0.php
+  assets/roulette/LOCKED-roulette-m-1.5.0.txt
+  assets/roulette/VERSION-m.txt = 1.5.0
+  tag roulette-m-v1.5.0
+验收：https://forestgroup.ai/roulette-m.html?v=1.5.0
