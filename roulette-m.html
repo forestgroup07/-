@@ -2429,7 +2429,7 @@
         </button>
       </div>
       <div class="dock-meta">
-        <button type="button" class="limit-pill" id="btnLimit" aria-label="限红说明" aria-expanded="false" aria-controls="limitTip">10 - 5,000 ▾</button>
+        <button type="button" class="limit-pill" id="btnLimit" aria-label="限红说明" aria-expanded="false" aria-controls="limitTip">10 - 20,000 ▾</button>
         <button type="button" class="bal-wrap" id="balHot" aria-label="账户" aria-expanded="false" aria-controls="accountTip">
           <span class="account-tip" id="accountTip" role="tooltip">—</span>
           <span class="bal-user" id="balUser">—</span>
@@ -2468,9 +2468,9 @@
           <div class="limit-tip-row"><span class="k">角注</span><span class="v">3 - 625</span></div>
           <div class="limit-tip-row"><span class="k">列 1/2/3</span><span class="v">10 - 2,500</span></div>
           <div class="limit-tip-row"><span class="k">打 1/2/3</span><span class="v">10 - 2,500</span></div>
-          <div class="limit-tip-row"><span class="k">紅/黑</span><span class="v">10 - 5,000</span></div>
-          <div class="limit-tip-row"><span class="k">大/小</span><span class="v">10 - 5,000</span></div>
-          <div class="limit-tip-row"><span class="k">單/雙</span><span class="v">10 - 5,000</span></div>
+          <div class="limit-tip-row"><span class="k">紅/黑</span><span class="v">10 - 20,000</span></div>
+          <div class="limit-tip-row"><span class="k">大/小</span><span class="v">10 - 20,000</span></div>
+          <div class="limit-tip-row"><span class="k">單/雙</span><span class="v">10 - 20,000</span></div>
           <div class="limit-tip-sec-title">彩池限紅</div>
           <div class="limit-tip-row"><span class="k">直注总额限红</span><span class="v">5,000</span></div>
           <div class="limit-tip-row"><span class="k">分注总额限红</span><span class="v">10,000</span></div>
@@ -2496,6 +2496,8 @@
             <button type="button" class="chip" data-chip="1000" aria-label="1000" style="background-image:url('chips/chip-1000.webp?v=1.2.1')"></button>
             <button type="button" class="chip" data-chip="2000" aria-label="2000" style="background-image:url('chips/chip-2000.webp?v=1.2.1')"></button>
             <button type="button" class="chip" data-chip="5000" aria-label="5000" style="background-image:url('chips/chip-5000.webp?v=1.2.1')"></button>
+            <button type="button" class="chip" data-chip="10000" aria-label="10k" style="background-image:url('chips/chip-10000.webp?v=1.5.1b')"></button>
+            <button type="button" class="chip" data-chip="20000" aria-label="20k" style="background-image:url('chips/chip-20000.webp?v=1.5.1b')"></button>
           </div>
           <button type="button" class="chip max" data-chip="max" aria-label="MAX">MAX</button>
         </div>
@@ -2870,7 +2872,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '1.5.0';
+      const V = '1.6.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -3032,10 +3034,10 @@
         black: [3.75, 49.6844, 12.0, 14.1169],
         odd:   [3.75, 63.8012, 12.0, 14.1169],
         big:   [3.75, 77.9181, 12.0, 14.1169],
-        /* 打：左条与数字列之间 */
-        d1: [15.48, 7.33, 13.50, 27.93],
-        d2: [15.48, 35.65, 13.50, 28.02],
-        d3: [15.48, 64.01, 13.50, 28.02],
+        /* 打：左缘对齐键面像素（约 x=201/1200），勿盖缝隙蓝 #508c87，否则 is-lit 黄会多铺一条缝 */
+        d1: [16.75, 7.33, 12.23, 27.93],
+        d2: [16.75, 35.65, 12.23, 28.02],
+        d3: [16.75, 64.01, 12.23, 28.02],
         /* 列：34/35/36 下方三格（与数字列对齐） */
         col1: [29.48, 91.45, 14.87, 7.38],
         col2: [44.96, 91.70, 15.01, 7.14],
@@ -3072,7 +3074,7 @@
       const ZERO_CENTER_DEG = 113.5;
       const WHEEL_POCKET_DIST = 31.7;
       const BALL_CSS_TO_GEOM = 90;
-      const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+      const DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
       /* —— 以下内注判定自电脑 roulette.html 原样迁入 —— */
       const INSIDE_LIMIT = {
         straight: '1 - 142',
@@ -4224,7 +4226,7 @@
           }
         });
       }
-      const CHIP_DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+      const CHIP_DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
       function chipArtFor(stake) {
         let d = CHIP_DENOMS[0];
         const s = Number(stake) || 0;
@@ -4236,7 +4238,8 @@
         return d;
       }
       function chipSrc(n) {
-        return 'chips/chip-' + n + '.webp?v=1.2.1';
+        const bust = (n === 10000 || n === 20000) ? '1.5.1b' : '1.2.1';
+        return 'chips/chip-' + n + '.webp?v=' + bust;
       }
       function makeBetChipEl(stake, pending) {
         const img = document.createElement('img');
@@ -4740,6 +4743,7 @@
       }
 
       const TABLE_MIN = 10;
+      const TABLE_MAX = 20000; /* 一次最多可下注 20k */
       function addDraft(key, amt) {
         if (phase !== 'betting') return;
         /* MAX：与骰宝一样，该盘口吃掉全部可用余额（覆盖，不累加） */
@@ -4750,25 +4754,36 @@
         playClick();
         const a = Math.max(0, Math.round(Number(amt) || 0));
         if (!key || a <= 0) return;
+        const prev = Number(draft[key]) || 0;
+        const conf = Number(confirmed[key]) || 0;
+        if (conf + prev + a > TABLE_MAX) {
+          toast('单项上限 ' + TABLE_MAX);
+          return;
+        }
         if (availableBal() < a) { toast('积分不足'); return; }
-        draft[key] = (Number(draft[key]) || 0) + a;
+        draft[key] = prev + a;
         undoStack.push({ key, amt: a });
         paintBets();
       }
-      /* 电脑同款：内注点一下覆盖该盘口为当前筹码；MAX＝全部可用余额 */
+      /* 电脑同款：内注点一下覆盖该盘口为当前筹码；MAX＝全部可用余额（仍封顶 TABLE_MAX） */
       function placeInsideDraft(key, amt) {
         if (phase !== 'betting') return;
         if (!key) return;
         const prevDraft = Number(draft[key]) || 0;
+        const conf = Number(confirmed[key]) || 0;
         let next;
         if (maxMode) {
-          const want = availableBal() + prevDraft;
+          const want = Math.min(TABLE_MAX - conf, availableBal() + prevDraft);
           if (want < TABLE_MIN) { toast('余额不足'); return; }
           if (want <= 0 || want === prevDraft) { toast('余额不足'); return; }
           next = want;
         } else {
           next = Math.max(0, Math.round(Number(amt) || 0));
           if (next <= 0) return;
+          if (conf + next > TABLE_MAX) {
+            toast('单项上限 ' + TABLE_MAX);
+            return;
+          }
           const other = totalDraft() - prevDraft;
           if (availableBal() < other + next) { toast('积分不足'); return; }
         }

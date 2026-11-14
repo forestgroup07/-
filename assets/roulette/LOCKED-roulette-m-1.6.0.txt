@@ -1,0 +1,25 @@
+roulette-m v1.6.0 — 2026-11-15
+用户书面：「请把这轮盘手机定位1.6版本」；本包号 1.6.0（自工作中 1.5.2 升锁）
+
+已验收清单（本包算数）：
+- 底栏筹码：5000 后增加紫底「10k」(10000)、绿底「20k」(20000)；图源分别复制 chip-10 / chip-20 抹字重写；滑动点选同既有筹码条
+- 一次单项上限 TABLE_MAX = 20000；限红 pill / 紅黑大小单双文案 10 - 20,000
+- 打键 1-12 / 13-24 / 25-36：热区左缘按键面像素收进（OUTSIDE_FACE d* left 16.75），禁止 is-lit 黄层盖进缝隙蓝多铺一条缝
+- 沿用并继续有效：1.5.0 圆形菜单半屏黑版侧栏、改密、下注/额度记录、进桌深色垫底、禁 scheduleHeavy 抢键面、键面 webp 优先、betOk、开奖大球 3.55%/min 9px、喇叭三分叉等
+
+未验收、不得当作本定版：
+- 打键成品贴面换色整包重绘（本包仅热区收缝，未改 m-kbd-face 像素色）
+- 整站 UI 多语言文案、公告后台
+- 轨迹 LAP_SHARE / 外圈 loop / 隔板 fret 作为必保宣传项
+- 手机骰宝筹码/上限（另册；本包未重锁骰宝）
+- 电脑版轮盘
+
+回滚：
+  roulette-m.LOCKED-1.6.0.html
+  roulette-m-boot.LOCKED-1.6.0.html
+  lobby.LOCKED-roulette-m-1.6.0.html
+  chips/LOCKED-chip-{10000,20000}-roulette-m-1.6.0.{webp,png}
+  assets/roulette/LOCKED-roulette-m-1.6.0.txt
+  assets/roulette/VERSION-m.txt = 1.6.0
+  tag roulette-m-v1.6.0
+验收：https://forestgroup.ai/roulette-m.html?v=1.6.0
