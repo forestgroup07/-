@@ -1,0 +1,23 @@
+sicbo-m v1.8.0 lock — 2026-11-15
+用户书面：「把此骰宝游戏定为1.8 并计入git 封存」；此前确认「现在就是对的」并完成步骤1–5验收。
+
+已验收清单（本包算数）：
+- 手机骰宝口播「只子页播」（步骤1–5）：父页对 sicbo 不代播；子页 Voice.playEl / playQuick；静音只认 Voice.muted + fg_sicbo_m_sound_mute
+- 喇叭三分叉（关→开只解锁；开但未确认可播→只解锁；已能播→才静音）；开喇叭不补欢迎/开始下注/下注成功
+- 进桌默认静音；开喇叭后「下注成功 / 停止下注 / 滴答」正确；父页 dice 禁止 scheduleHeavy / primeHeavy 代播链
+- 沿用 v1.7.0 已验收：趋势键+公司同款趋势图 / roadHistory；圆形三横菜单；电脑版骰宝规则全文；赢钱仅金币响
+
+未验收、不得当作本定版：
+- 进桌默认开喇叭 / 开喇叭补播「开始下注」（用户书面「都不改」）
+- 电脑版 game.html / 骰宝电脑冻结包
+- 轮盘手机/电脑
+- 整站多语言文案落地、公告后台内容
+
+回滚：
+- game-m.LOCKED-1.8.0.html
+- lobby.LOCKED-sicbo-m-1.8.0.html
+- assets/LOCKED-sicbo-m-1.8.0.txt
+- tag sicbo-m-v1.8.0
+
+验收：https://forestgroup.ai/game-m.html?v=1.8.0
+Lobby: GAME_M → game-m.html?v=1.8.0

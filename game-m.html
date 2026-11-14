@@ -2165,7 +2165,7 @@
         </button>
       </div>
       <div class="dock-meta">
-        <button type="button" class="limit-pill" id="btnLimit" aria-label="限红说明" aria-expanded="false" aria-controls="limitTip">10 - 5,000 ▾</button>
+        <button type="button" class="limit-pill" id="btnLimit" aria-label="限红说明" aria-expanded="false" aria-controls="limitTip">10 - 20,000 ▾</button>
         <button type="button" class="bal-wrap" id="balHot" aria-label="账户" aria-expanded="false" aria-controls="accountTip">
           <span class="account-tip" id="accountTip" role="tooltip">—</span>
           <span class="bal-user" id="balUser">—</span>
@@ -2198,12 +2198,12 @@
         <div class="limit-tip-scroll">
           <!-- 全文照抄电脑版 game.html limitTip，禁止改电脑程序 -->
           <div class="limit-tip-sec-title">玩法限红</div>
-          <div class="limit-tip-row"><span class="k">大/小</span><span class="v">10 - 5,000</span></div>
-          <div class="limit-tip-row"><span class="k">单/双</span><span class="v">10 - 5,000</span></div>
+          <div class="limit-tip-row"><span class="k">大/小</span><span class="v">10 - 20,000</span></div>
+          <div class="limit-tip-row"><span class="k">单/双</span><span class="v">10 - 20,000</span></div>
           <div class="limit-tip-row"><span class="k">全围</span><span class="v">1 - 416</span></div>
           <div class="limit-tip-row"><span class="k">围1~围6</span><span class="v">1 - 66</span></div>
           <div class="limit-tip-row"><span class="k">对子1~对子6</span><span class="v">3 - 1,250</span></div>
-          <div class="limit-tip-row"><span class="k">单点1~单点6</span><span class="v">10 - 5,000</span></div>
+          <div class="limit-tip-row"><span class="k">单点1~单点6</span><span class="v">10 - 20,000</span></div>
           <div class="limit-tip-row"><span class="k">组合</span><span class="v">4 - 2,000</span></div>
           <div class="limit-tip-row"><span class="k">和值9/10/11/12</span><span class="v">4 - 1,666</span></div>
           <div class="limit-tip-row"><span class="k">和值8/13</span><span class="v">3 - 1,250</span></div>
@@ -2240,6 +2240,8 @@
             <button type="button" class="chip" data-chip="1000" aria-label="1000" style="background-image:url('chips/chip-1000.webp?v=1.2.1')"></button>
             <button type="button" class="chip" data-chip="2000" aria-label="2000" style="background-image:url('chips/chip-2000.webp?v=1.2.1')"></button>
             <button type="button" class="chip" data-chip="5000" aria-label="5000" style="background-image:url('chips/chip-5000.webp?v=1.2.1')"></button>
+            <button type="button" class="chip" data-chip="10000" aria-label="10k" style="background-image:url('chips/chip-10000.webp?v=1.6.12')"></button>
+            <button type="button" class="chip" data-chip="20000" aria-label="20k" style="background-image:url('chips/chip-20000.webp?v=1.6.12')"></button>
           </div>
           <button type="button" class="chip max" data-chip="max" aria-label="MAX">MAX</button>
         </div>
@@ -2698,10 +2700,10 @@
   <script>
   (function () {
     'use strict';
-    const V = '1.7.0';
+    const V = '1.8.0';
     const START_BAL = 2000;
     const TABLE_MIN = 10;
-    const TABLE_MAX = 5000;
+    const TABLE_MAX = 20000; /* 一次最多可下注 20k（与手机轮盘一致） */
     const BET_SEC = 22;
     const PHASE_HOLD_MS = 5000;
     const STOP_BET_HOLD_MS = 3000;
@@ -2950,52 +2952,9 @@
     function markWelcomed() {
       welcomed = true;
     }
-    let sfxReqSeq = 0;
-    const PARENT_SFX = {
-      welcome: 'welcomeSicbo',
-      startBet: 'startBet',
-      stopBet: 'stopBet',
-      betOk: 'betOk',
-      tick: 'tick',
-      bomb: 'bombTick',
-    };
-    function postParentSfx(key, vol) {
-      if (!IS_EMBED || Voice.muted || Voice.dead) return false;
-      const pk = PARENT_SFX[key] || key;
-      try {
-        const msg = { type: 'fg-sfx', key: pk };
-        if (vol != null) msg.vol = vol;
-        window.parent.postMessage(msg, '*');
-        return true;
-      } catch (_) { return false; }
-    }
-    function postParentSfxAwait(key) {
-      if (!IS_EMBED) return Promise.resolve(false);
-      if (Voice.muted || Voice.dead) return Promise.resolve(false);
-      const pk = PARENT_SFX[key] || key;
-      return new Promise((resolve) => {
-        const id = 'sfx' + (++sfxReqSeq) + '_' + Date.now();
-        let done = false;
-        const finish = (ok) => {
-          if (done) return;
-          done = true;
-          try { window.removeEventListener('message', onMsg); } catch (_) {}
-          resolve(!!ok);
-        };
-        const onMsg = (ev) => {
-          const d = ev && ev.data;
-          if (!d || d.type !== 'fg-sfx-done' || d.id !== id) return;
-          finish(!!d.ok);
-        };
-        try {
-          window.addEventListener('message', onMsg);
-          window.parent.postMessage({ type: 'fg-sfx', key: pk, id: id }, '*');
-          setTimeout(() => finish(false), key === 'welcome' ? 2800 : 1600);
-        } catch (_) {
-          finish(false);
-        }
-      });
-    }
+    /* 步骤3：口播/短效只走本页 Voice；静音只认 this.muted + SOUND_MUTE_KEY */
+    /* 步骤4：audioUnlockedOk — 浏览器是否已允许播；喇叭三分叉用 */
+    let audioUnlockedOk = false;
     const Voice = {
       unlocked: false,
       muted: false,
@@ -3175,7 +3134,7 @@
           el.onerror = () => done(false);
           const p = el.play();
           if (p && typeof p.then === 'function') {
-            p.then(() => {}).catch(() => done(false));
+            p.then(() => { audioUnlockedOk = true; }).catch(() => done(false));
             setTimeout(() => {
               if (!settled && el.paused) done(false);
             }, 800);
@@ -3185,16 +3144,13 @@
         });
       },
       async speak(key) {
+        /* 步骤2：embed 也子页自播（对齐电脑版）；静音直接 false，不再请父页代播 */
         if (this.muted || this.dead) return false;
-        if (IS_EMBED) return postParentSfxAwait(key);
         return this.playEl(this.players[key]);
       },
       playQuick(key, vol) {
+        /* 步骤2：滴答/倒计时本机播；静音不出声 */
         if (this.muted || this.dead) return;
-        if (IS_EMBED) {
-          postParentSfx(key, vol == null ? undefined : vol);
-          return;
-        }
         const el = this.players[key];
         if (!el) return;
         try {
@@ -3294,7 +3250,7 @@
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       btn.setAttribute('aria-label', on ? '打开声音' : '关闭声音');
     }
-    /* 一进桌喇叭必须关闭（与轮盘一致）；大厅父页靠同一 key 跳过自动欢迎 */
+    /* 步骤3：进桌默认静音——唯一真相 Voice.muted，并写 SOUND_MUTE_KEY 供 revive */
     try { localStorage.setItem(SOUND_MUTE_KEY, '1'); } catch (_) {}
     Voice.setMuted(true);
     markWelcomed(); /* 静音进桌：开喇叭也不补欢迎 */
@@ -3533,7 +3489,7 @@
       paintActBar();
       paintStakePanel();
     }
-    const CHIP_DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+    const CHIP_DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
     function chipArtFor(stake) {
       let d = CHIP_DENOMS[0];
       for (let i = 0; i < CHIP_DENOMS.length; i++) {
@@ -3544,7 +3500,8 @@
       return d;
     }
     function chipSrc(n) {
-      return 'chips/chip-' + n + '.webp?v=' + V;
+      const bust = (n === 10000 || n === 20000) ? '1.5.1b' : V;
+      return 'chips/chip-' + n + '.webp?v=' + bust;
     }
     function paintChipsOnCells() {
       document.querySelectorAll('.cell[data-bet]').forEach((btn) => {
@@ -3707,8 +3664,8 @@
 
     function chipAmount() {
       if (maxMode) {
-        /* MAX＝全部可用余额（文案「下注所有余额」）；不套单项 TABLE_MAX */
-        const room = availableBal();
+        /* MAX＝可用余额，但仍封顶 TABLE_MAX（与手机轮盘一致） */
+        const room = Math.min(TABLE_MAX, availableBal());
         return room >= TABLE_MIN ? room : 0;
       }
       return chip;
@@ -3732,9 +3689,9 @@
       const prevDraft = draft[key] || 0;
       const cur = conf + prevDraft;
       if (maxMode) {
-        /* MAX：该盘口草稿吃掉全部可用余额（含收回本格旧草稿） */
+        /* MAX：该盘口草稿吃掉可用余额（含收回本格旧草稿），封顶 TABLE_MAX */
         const freed = availableBal() + prevDraft;
-        const want = freed;
+        const want = Math.min(TABLE_MAX - conf, freed);
         if (want < TABLE_MIN && cur === 0) { toast('余额不足'); return; }
         if (want <= 0 || want === prevDraft) { toast('余额不足'); return; }
         amt = want;
@@ -4679,18 +4636,27 @@
     document.getElementById('btnBack').addEventListener('click', goLobby);
     document.getElementById('btnNavBack').addEventListener('click', goLobby);
     document.getElementById('btnSound').addEventListener('click', () => {
-      const next = !Voice.muted;
-      Voice.setMuted(next);
-      try { localStorage.setItem(SOUND_MUTE_KEY, next ? '1' : '0'); } catch (_) {}
-      if (next) {
-        try { Voice.stopAll(); } catch (_) {}
-      } else {
-        /* 开喇叭＝只解锁可出声；禁止欢迎 / 开始下注 / 下注成功 */
+      /* 步骤4 / 三分叉：关→开只解锁；开但未确认可播→只解锁；已能播→才静音。禁止误切、禁止补欢迎/开始下注 */
+      if (Voice.muted) {
+        Voice.setMuted(false);
+        try { localStorage.setItem(SOUND_MUTE_KEY, '0'); } catch (_) {}
         markWelcomed();
         Voice.pendingKey = null;
-        try { Voice.unlock(); } catch (_) {}
+        try { Voice.unlock(); audioUnlockedOk = true; } catch (_) { audioUnlockedOk = true; }
+        toast('声音已开');
+        return;
       }
-      toast(next ? '已静音' : '声音已开');
+      if (!audioUnlockedOk) {
+        markWelcomed();
+        Voice.pendingKey = null;
+        try { Voice.unlock(); audioUnlockedOk = true; } catch (_) { audioUnlockedOk = true; }
+        toast('声音已开');
+        return;
+      }
+      Voice.setMuted(true);
+      try { localStorage.setItem(SOUND_MUTE_KEY, '1'); } catch (_) {}
+      try { Voice.stopAll(); } catch (_) {}
+      toast('已静音');
     });
     /* 顶栏菜单已按用户要求去掉；返回仍用左上/底栏返回 */
     /* 设置键点不开：不绑定打开逻辑 */
@@ -4933,9 +4899,12 @@
     document.addEventListener('pointerdown', (e) => {
       if (Voice.muted) return;
       if (e.target && e.target.closest && e.target.closest('#btnSound')) return;
-      if (!welcomed) Voice.pendingKey = 'welcome';
-      Voice.unlock();
-      if (!welcomed) void kickTableVoice(false, true);
+      /* 步骤4：未静音时手势只子页 unlock；不补局态口播（welcomed 已在静音进桌打标） */
+      try { Voice.unlock(); audioUnlockedOk = true; } catch (_) { audioUnlockedOk = true; }
+      if (!welcomed) {
+        Voice.pendingKey = 'welcome';
+        void kickTableVoice(false, true);
+      }
     }, { passive: true });
     const leavePage = () => {
       try { finalizeOpenBets(); } catch (_) {}
@@ -5017,7 +4986,7 @@
     });
     void holdPhaseBanner('开始下注', PHASE_HOLD_MS);
     if (IS_EMBED) {
-      /* 画面就绪后再通知父页播欢迎；播前父页会查喇叭开关 */
+      /* 步骤5：只揭桌；口播/解锁全在子页。fg-sfx-prime 仅触发父页极轻 AudioContext（不 scheduleHeavy） */
       window.addEventListener('message', (ev) => {
         const d = ev && ev.data;
         if (!d || d.type !== 'fg-welcome') return;
@@ -5031,6 +5000,7 @@
       });
       try { window.parent.postMessage({ type: 'fg-sfx-prime' }, '*'); } catch (_) {}
     } else {
+      /* 非 embed：静音进桌已 markWelcomed，此处 kick 会被 muted 挡掉 */
       kickTableVoice(false);
     }
     timerId = setInterval(tick, 1000);

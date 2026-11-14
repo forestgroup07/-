@@ -277,7 +277,7 @@
     }
   </style>
   <!-- 轮盘首页首开：预取轮盘页+键面；禁止预取骰宝抢带宽 -->
-  <link rel="prefetch" href="roulette-m.html?v=1.6.0" as="document">
+  <link rel="prefetch" href="roulette-m.html?v=1.6.12" as="document">
   <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.5.0" type="image/webp" fetchpriority="high">
 </head>
 <body>
@@ -324,10 +324,10 @@
   <script>
     (function () {
       const GAME_PC = 'game.html?v=1.5.18';
-      const GAME_M = 'game-m.html?v=1.7.1';
+      const GAME_M = 'game-m.html?v=1.8.0';
       const ROULETTE_PC = 'roulette.html?v=1.2.8';
-      const ROULETTE_M = 'roulette-m.html?v=1.6.0';
-      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.6.0';
+      const ROULETTE_M = 'roulette-m.html?v=1.6.12';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.6.12';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -338,7 +338,7 @@
       const GAME = isMobileClient() ? GAME_M : GAME_PC;
       /* 手机轮盘：大厅 iframe 直进（不再走过渡页，避免又慢又丢声音手势） */
       const ROULETTE = isMobileClient() ? ROULETTE_M : ROULETTE_PC;
-      const SHELL_V = '1.3.9f';
+      const SHELL_V = '1.3.9g';
       /* 父页播控：解锁禁播滚球长片；欢迎在点击手势内播，避免进桌无欢迎 */
       const ShellSfx = {
         els: Object.create(null),
@@ -381,9 +381,7 @@
         embedWelcomeP: null,
         embedKind: null, /* 'roulette' | 'sicbo' */
         sicboReady: false,
-        isSicboMuted() {
-          try { return localStorage.getItem('fg_sicbo_m_sound_mute') === '1'; } catch (_) { return false; }
-        },
+        /* 步骤3：骰宝静音只认子页 Voice.muted + fg_sicbo_m_sound_mute；父页不再代查/代判 */
         ensureEl(key) {
           if (this.els[key]) return this.els[key];
           const src = this.src[key];
@@ -420,54 +418,20 @@
           });
           return this.embedWelcomeP;
         },
-        /* 手机骰宝：桌面就绪后再播；播前必查喇叭 */
-        playWelcomeForSicboEmbed() {
-          if (this.isSicboMuted()) {
-            this.embedWelcomeOk = true;
-            this.replyWelcome(true);
-            return Promise.resolve(true);
-          }
-          if (this.embedWelcomeP) return this.embedWelcomeP;
-          this.embedWelcomeP = this.playAwait('welcomeSicbo').then(async (ok) => {
-            if (this.isSicboMuted()) {
-              this.stopVoice();
-              this.embedWelcomeOk = true;
-              this.replyWelcome(true);
-              return true;
-            }
-            this.embedWelcomeOk = !!ok;
-            this.replyWelcome(!!ok);
-            if (ok && !this.isSicboMuted()) {
-              try { await this.playAwait('startBet'); } catch (_) {}
-            }
-            return !!ok;
-          });
-          return this.embedWelcomeP;
-        },
-        /* 手势内只解锁 AudioContext + 欢迎片；禁止点进桌瞬间 play 多路音抢首屏带宽 */
+        /* 步骤4/5：骰宝父页极轻解锁——只 AudioContext；不 ensureEl 口播片、不真播、不 scheduleHeavy */
         primeSicboGesture() {
-          this.primeLight();
-          const el = this.ensureEl('welcomeSicbo');
-          if (!el || this.isSicboMuted()) return;
           try {
-            el.muted = true;
-            el.volume = 0;
-            const p = el.play();
-            const reset = () => {
-              try { el.pause(); el.currentTime = 0; el.muted = false; el.volume = 1; } catch (_) {}
-            };
-            if (p && p.then) p.then(reset).catch(reset);
-            else reset();
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+              this.ctx = this.ctx || new AC();
+              if (this.ctx.state === 'suspended') this.ctx.resume();
+              const buf = this.ctx.createBuffer(1, 1, 22050);
+              const src = this.ctx.createBufferSource();
+              src.buffer = buf;
+              src.connect(this.ctx.destination);
+              src.start(0);
+            }
           } catch (_) {}
-        },
-        playSicboWelcomeWhenReady() {
-          if (this.embedKind !== 'sicbo') return;
-          if (!this.sicboReady) return;
-          if (this.embedWelcomeOk != null || this.embedWelcomeP) {
-            if (this.embedWelcomeOk != null) this.replyWelcome(this.embedWelcomeOk);
-            return;
-          }
-          void this.playWelcomeForSicboEmbed();
         },
         resetEmbedWelcome() {
           this.embedWelcomeOk = null;
@@ -493,25 +457,23 @@
         },
         /* 桌内已出来后再预热其余音效；ballRoll 只 load 不 play */
         primeHeavy() {
+          /* 步骤5：骰宝永不走 heavy（防漏音 / 抢带宽） */
+          if (this.embedKind === 'sicbo') return;
           Object.keys(this.src).forEach((k) => {
             /* 进轮盘时不要预拉骰宝片，抢键面带宽 */
             if (this.embedKind === 'roulette' && (k === 'welcomeSicbo' || k === 'betOk')) return;
-            if (this.embedKind === 'sicbo' && (k === 'welcome' || k === 'ballRoll' || k === 'fret0' || k === 'fret1' || k === 'fret2')) return;
             this.ensureEl(k);
           });
-          if (this.embedKind !== 'sicbo') {
-            ['ballRoll', 'fret0', 'fret1', 'fret2'].forEach((k) => {
-              const el = this.els[k];
-              if (!el) return;
-              try { el.preload = 'auto'; el.load(); } catch (_) {}
-            });
-          }
+          ['ballRoll', 'fret0', 'fret1', 'fret2'].forEach((k) => {
+            const el = this.els[k];
+            if (!el) return;
+            try { el.preload = 'auto'; el.load(); } catch (_) {}
+          });
           if (this.primed) return;
           this.primed = true;
           Object.keys(this.unlockPlayKeys).forEach((k) => {
             if (k === 'welcome' || k === 'welcomeSicbo') return;
             if (this.embedKind === 'roulette' && (k === 'welcomeSicbo' || k === 'betOk')) return;
-            if (this.embedKind === 'sicbo' && (k === 'welcome')) return;
             const el = this.els[k];
             if (!el) return;
             try {
@@ -527,6 +489,8 @@
           });
         },
         scheduleHeavy(delayMs) {
+          /* 步骤5：骰宝禁止 scheduleHeavy */
+          if (this.embedKind === 'sicbo') return;
           if (this.heavyScheduled) return;
           this.heavyScheduled = true;
           const run = () => { try { this.primeHeavy(); } catch (_) {} };
@@ -540,10 +504,14 @@
           setTimeout(run, wait);
         },
         prime() {
+          /* 步骤5：骰宝不走 prime→scheduleHeavy；轮盘禁 heavy 抢键面 */
+          if (this.embedKind === 'sicbo') {
+            this.primeSicboGesture();
+            return;
+          }
           this.primeLight();
-          /* 轮盘进桌：禁止预拉全套音效（修骰宝时加的 scheduleHeavy 会与键面抢带宽） */
           if (this.embedKind === 'roulette') return;
-          this.scheduleHeavy(this.embedKind === 'sicbo' ? 2200 : 1800);
+          this.scheduleHeavy(1800);
         },
         stopVoice() {
           Object.keys(this.voiceKeys).forEach((k) => {
@@ -576,7 +544,8 @@
               resolve(false);
               return;
             }
-            if (this.embedKind === 'sicbo' && this.isSicboMuted()) {
+            /* 步骤1：骰宝桌内父页一律不代播（含未静音），杜绝漏音 */
+            if (this.embedKind === 'sicbo') {
               resolve(false);
               return;
             }
@@ -637,8 +606,8 @@
         play(key, vol) {
           if (!key) return;
           if (key === 'youWin' || key === 'beep') return;
-          /* 骰宝桌内：喇叭关着一律不出声 */
-          if (this.embedKind === 'sicbo' && this.isSicboMuted()) return;
+          /* 步骤1：骰宝桌内父页一律不代播 */
+          if (this.embedKind === 'sicbo') return;
           if (key === 'enNum') {
             void this.playAwait('enNum', vol);
             return;
@@ -725,28 +694,37 @@
         window.addEventListener('message', (ev) => {
           const d = ev && ev.data;
           if (!d || typeof d !== 'object') return;
-          if (d.type === 'fg-sfx-prime') ShellSfx.prime();
+          if (d.type === 'fg-sfx-prime') {
+            /* 步骤4：骰宝只极轻 AudioContext；轮盘仍走原 prime */
+            if (ShellSfx.embedKind === 'sicbo') ShellSfx.primeSicboGesture();
+            else ShellSfx.prime();
+          }
           if (d.type === 'fg-sicbo-ready') {
             ShellSfx.sicboReady = true;
             revealEmbed();
-            ShellSfx.playSicboWelcomeWhenReady();
+            /* 步骤1：只揭桌，不代播欢迎/开始下注 */
+            ShellSfx.embedWelcomeOk = true;
+            ShellSfx.replyWelcome(true);
           }
           if (d.type === 'fg-embed-ready' || d.type === 'fg-roulette-ready') {
             revealEmbed();
           }
           if (d.type === 'fg-want-welcome') {
-            if (ShellSfx.embedWelcomeOk != null) ShellSfx.replyWelcome(ShellSfx.embedWelcomeOk);
-            else if (ShellSfx.embedKind === 'sicbo') ShellSfx.playSicboWelcomeWhenReady();
-            else void ShellSfx.playWelcomeForEmbed();
+            if (ShellSfx.embedKind === 'sicbo') {
+              ShellSfx.embedWelcomeOk = true;
+              ShellSfx.replyWelcome(true);
+            } else if (ShellSfx.embedWelcomeOk != null) {
+              ShellSfx.replyWelcome(ShellSfx.embedWelcomeOk);
+            } else {
+              void ShellSfx.playWelcomeForEmbed();
+            }
           }
           if (d.type === 'fg-sfx') {
-            if ((d.key === 'welcome' || d.key === 'welcomeSicbo') && d.id) {
-              if (ShellSfx.embedKind === 'sicbo') {
-                if (ShellSfx.embedWelcomeOk != null) ShellSfx.reply(d.id, ShellSfx.embedWelcomeOk);
-                else ShellSfx.playSicboWelcomeWhenReady();
-              } else {
-                ShellSfx.playWelcomeForEmbed().then((ok) => ShellSfx.reply(d.id, ok));
-              }
+            if (ShellSfx.embedKind === 'sicbo') {
+              /* 步骤1：骰宝父页不代播任何 fg-sfx */
+              if (d.id) ShellSfx.reply(d.id, false);
+            } else if ((d.key === 'welcome' || d.key === 'welcomeSicbo') && d.id) {
+              ShellSfx.playWelcomeForEmbed().then((ok) => ShellSfx.reply(d.id, ok));
             } else if (d.id) {
               ShellSfx.playAwait(d.key, d.vol).then((ok) => ShellSfx.reply(d.id, ok));
             } else {
@@ -805,7 +783,7 @@
             } catch (_) {}
           })();
         } else if (ShellSfx.embedKind === 'sicbo') {
-          /* 方案A：手势内只解锁；欢迎仍等子页 fg-sicbo-ready；禁止 scheduleHeavy 抢首屏 */
+          /* 步骤5：进桌手势只极轻 AudioContext；口播全子页 */
           ShellSfx.primeSicboGesture();
         } else {
           ShellSfx.primeLight();
@@ -956,7 +934,7 @@
       let cat = 'hot';
 
       function enterSicbo() {
-        /* 手机：iframe 进桌；进桌前写静音，父页不自动播欢迎，桌内喇叭关闭 */
+        /* 手机：iframe 进桌；只写子页静音 key（步骤3单一真相），父页不据此代播 */
         if (isMobileClient()) {
           try { localStorage.setItem('fg_sicbo_m_sound_mute', '1'); } catch (_) {}
           openEmbedShell(GAME_M);
