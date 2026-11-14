@@ -22,4 +22,4 @@ alwaysApply: true
 4. 只有用户明确说「改手机骰宝 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
 5. 本冻结仅手机版；电脑 `game.html` 以 `sicbo-pc-frozen-1.5.0` 为准。与 `one-task-only`、`sicbo-frozen`、`save-to-git`、`version-lock-gate` 同时生效；冲突时取更严：默认不动。
 
-当前有效手机冻结以 `sicbo-m-frozen-1.5.18` 为准（本版为历史定版）。
+当前有效手机冻结以 `sicbo-m-frozen-1.60` 为准（本版为历史定版）。

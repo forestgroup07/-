@@ -1,0 +1,25 @@
+sicbo-m v1.60 lock — 2026-11-14
+用户书面：「把此版本的手机骰宝 定为1.60 并计入git 储存」→ 本包号 1.60
+
+已验收清单（本包算数）：
+- 进桌喇叭默认关闭（HTML muted + Voice.setMuted + localStorage）；父页同步跳过自动欢迎
+- 点开喇叭只解锁出声：不播欢迎 / 开始下注 / 下注成功
+- 有确定注且净赢：只响金币两下（audio/coin-bag.mp3），不播「恭喜你赢钱了」
+- 手机仍 iframe 进桌（大厅 openEmbedShell）；余额 lean/流水既有行为沿用
+- 沿用既有盘面/盅屏/经典骰等已验收能力（本包不重验视觉像素）
+
+未验收、不得当作本定版：
+- 电脑版 game.html / 骰宝电脑冻结包
+- 轮盘手机/电脑（roulette-m 另册）
+- 手机骰宝整页进桌（未改）
+- 开喇叭补播局态口播（已明确禁止，不进本包）
+
+回滚：
+- game-m.LOCKED-1.60.html
+- lobby.LOCKED-sicbo-m-1.60.html
+- assets/LOCKED-sicbo-m-1.60.txt
+- audio/LOCKED-coin-bag-1.60.mp3
+- tag sicbo-m-v1.60
+
+验收：https://forestgroup.ai/game-m.html?v=1.60
+Lobby: GAME_M → game-m.html?v=1.60

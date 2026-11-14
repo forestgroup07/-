@@ -212,12 +212,12 @@
     .card.sicbo .thumb {
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
-        url("assets/lobby-sicbo-thumb.webp?v=1.5.1d") center 12% / cover no-repeat;
+        url("assets/lobby-sicbo-thumb.webp?v=1.4.5") center 12% / cover no-repeat;
     }
     .card.roulette .thumb {
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
-        url("assets/lobby-roulette-thumb.webp?v=1.5.1d") center 20% / cover no-repeat;
+        url("assets/lobby-roulette-thumb.webp?v=1.4.5") center 20% / cover no-repeat;
     }
     .card .meta {
       padding: .65rem .75rem .75rem;
@@ -248,43 +248,37 @@
       .nav-item { padding: .65rem .55rem; font-size: .78rem; }
       .card .thumb { height: 96px; }
     }
-    /* 手机进桌：同页 iframe；封面垫底消灭黑屏，子页就绪再揭开 */
+    /* 手机进桌：透明壳压住大厅（仍看得见大厅）→ 子页就绪再淡入，禁止黑屏 */
     #fgEmbedShell {
       position: fixed; inset: 0; z-index: 99999;
-      display: none; background: #0a0c10;
+      display: none; background: transparent;
     }
     #fgEmbedShell.show { display: block; }
+    #fgEmbedShell.is-ready { background: #0a0c10; }
     #fgEmbedShell iframe {
       position: absolute; inset: 0; width: 100%; height: 100%;
       border: 0; background: transparent;
-    }
-    #fgEmbedCover {
-      position: absolute; inset: 0; z-index: 1;
-      background: #0a0c10;
-      opacity: 1;
-      transition: opacity .18s ease;
-      pointer-events: none;
-    }
-    #fgEmbedCover.hide {
       opacity: 0;
-      visibility: hidden;
     }
-    #fgEmbedCover img {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover; object-position: center;
-      display: block;
-      background: #0a0c10;
-    }
+    #fgEmbedShell.is-ready iframe { opacity: 1; }
+    #fgEmbedCover { display: none !important; }
     #fgEmbedClose {
       position: absolute; top: max(8px, env(safe-area-inset-top));
       left: max(8px, env(safe-area-inset-left));
       z-index: 3; width: 36px; height: 36px; border: 0; border-radius: 50%;
       background: rgba(0,0,0,.55); color: #f0d392; font-size: 22px; line-height: 36px;
       cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #fgEmbedShell.is-ready #fgEmbedClose {
+      opacity: 1;
+      pointer-events: auto;
     }
   </style>
-  <link rel="prefetch" href="game-m.html?v=1.5.18" as="document">
+  <!-- 轮盘首页首开：预取轮盘页+键面；禁止预取骰宝抢带宽 -->
+  <link rel="prefetch" href="roulette-m.html?v=1.4.7" as="document">
+  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.4.7" type="image/webp" fetchpriority="high">
 </head>
 <body>
   <div class="app">
@@ -330,10 +324,10 @@
   <script>
     (function () {
       const GAME_PC = 'game.html?v=1.5.18';
-      const GAME_M = 'game-m.html?v=1.5.18';
+      const GAME_M = 'game-m.html?v=1.60';
       const ROULETTE_PC = 'roulette.html?v=1.2.8';
-      const ROULETTE_M = 'roulette-m.html?v=1.4.0';
-      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.4.0';
+      const ROULETTE_M = 'roulette-m.html?v=1.4.7';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.4.7';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -701,7 +695,15 @@
           } catch (_) {}
         },
       };
-      let embedCoverTimer = 0;
+      let embedReadyTimer = 0;
+      function revealEmbed() {
+        if (embedReadyTimer) {
+          clearTimeout(embedReadyTimer);
+          embedReadyTimer = 0;
+        }
+        const shell = document.getElementById('fgEmbedShell');
+        if (shell) shell.classList.add('is-ready');
+      }
       function ensureEmbedShell() {
         let shell = document.getElementById('fgEmbedShell');
         if (shell) return shell;
@@ -709,16 +711,15 @@
         shell.id = 'fgEmbedShell';
         shell.innerHTML = ''
           + '<iframe id="fgEmbedFrame" allow="autoplay *; fullscreen *" title="game"></iframe>'
-          + '<div id="fgEmbedCover" aria-hidden="true"><img id="fgEmbedCoverImg" alt="" decoding="async" fetchpriority="high" /></div>'
           + '<button type="button" id="fgEmbedClose" aria-label="返回大厅">×</button>';
         document.body.appendChild(shell);
         document.getElementById('fgEmbedClose').addEventListener('click', () => closeEmbedShell());
         const frame = document.getElementById('fgEmbedFrame');
         if (frame) {
           frame.addEventListener('load', () => {
-            /* HTML 到了仍可能白/黑一帧；短延迟后再揭，真正揭开靠 ready */
-            if (embedCoverTimer) clearTimeout(embedCoverTimer);
-            embedCoverTimer = setTimeout(hideEmbedCover, 900);
+            /* 兜底：HTML 到了仍无 ready 时，最长再等一会揭开，绝不长期黑屏 */
+            if (embedReadyTimer) clearTimeout(embedReadyTimer);
+            embedReadyTimer = setTimeout(revealEmbed, 1600);
           });
         }
         window.addEventListener('message', (ev) => {
@@ -727,11 +728,11 @@
           if (d.type === 'fg-sfx-prime') ShellSfx.prime();
           if (d.type === 'fg-sicbo-ready') {
             ShellSfx.sicboReady = true;
-            hideEmbedCover();
+            revealEmbed();
             ShellSfx.playSicboWelcomeWhenReady();
           }
           if (d.type === 'fg-embed-ready' || d.type === 'fg-roulette-ready') {
-            hideEmbedCover();
+            revealEmbed();
           }
           if (d.type === 'fg-want-welcome') {
             if (ShellSfx.embedWelcomeOk != null) ShellSfx.replyWelcome(ShellSfx.embedWelcomeOk);
@@ -757,32 +758,16 @@
         });
         return shell;
       }
-      function showEmbedCover(kind) {
-        const cover = document.getElementById('fgEmbedCover');
-        const img = document.getElementById('fgEmbedCoverImg');
-        if (!cover || !img) return;
-        /* 骰宝/轮盘：只用深色垫底，禁止盖海报大图（进桌会先闪图再出游戏） */
-        try { img.removeAttribute('src'); img.style.display = 'none'; } catch (_) {}
-        cover.classList.remove('hide');
-        if (embedCoverTimer) clearTimeout(embedCoverTimer);
-        /* 绝不为封面卡死：就绪即揭；最长 1.2s */
-        embedCoverTimer = setTimeout(hideEmbedCover, 1200);
-      }
-      function hideEmbedCover() {
-        if (embedCoverTimer) {
-          clearTimeout(embedCoverTimer);
-          embedCoverTimer = 0;
-        }
-        const cover = document.getElementById('fgEmbedCover');
-        if (cover) cover.classList.add('hide');
-      }
       function closeEmbedShell() {
         try { ShellSfx.stop('ballRoll'); ShellSfx.stopVoice(); } catch (_) {}
         ShellSfx.resetEmbedWelcome();
-        hideEmbedCover();
+        if (embedReadyTimer) {
+          clearTimeout(embedReadyTimer);
+          embedReadyTimer = 0;
+        }
         const shell = document.getElementById('fgEmbedShell');
         const frame = document.getElementById('fgEmbedFrame');
-        if (shell) shell.classList.remove('show');
+        if (shell) shell.classList.remove('show', 'is-ready');
         if (frame) frame.src = 'about:blank';
         /* 从桌内返回：立刻刷新顶栏真实余额 */
         syncBalFromServer(currentUser()).then((n) => {
@@ -795,9 +780,11 @@
         ShellSfx.embedKind = /game-m\.html/.test(url) ? 'sicbo' : /roulette-m\.html/.test(url) ? 'roulette' : null;
         const shell = ensureEmbedShell();
         const frame = document.getElementById('fgEmbedFrame');
-        /* 先封面后 iframe：点击瞬间有图，禁止长时间黑屏 */
-        showEmbedCover(ShellSfx.embedKind);
+        /* 点进桌：大厅不卸、不盖黑/海报；子页 ready 再淡入桌面 */
+        shell.classList.remove('is-ready');
         shell.classList.add('show');
+        if (embedReadyTimer) clearTimeout(embedReadyTimer);
+        embedReadyTimer = setTimeout(revealEmbed, 2200);
         const join = url.indexOf('?') >= 0 ? '&' : '?';
         frame.src = url + join + 'embed=1';
         if (ShellSfx.embedKind === 'roulette') {
@@ -969,16 +956,18 @@
       let cat = 'hot';
 
       function enterSicbo() {
-        /* 手机：iframe 进桌 + 父页手势播欢迎（对齐轮盘，避免整页跳转首段全哑） */
+        /* 手机：iframe 进桌；进桌前写静音，父页不自动播欢迎，桌内喇叭关闭 */
         if (isMobileClient()) {
+          try { localStorage.setItem('fg_sicbo_m_sound_mute', '1'); } catch (_) {}
           openEmbedShell(GAME_M);
           return;
         }
         location.href = GAME;
       }
       function enterRoulette() {
+        /* 整页进桌（用户书面同意）；桌内默认静音，不依赖 iframe 手势 */
         if (isMobileClient()) {
-          openEmbedShell(ROULETTE_M);
+          location.href = ROULETTE_M;
           return;
         }
         location.href = ROULETTE;
