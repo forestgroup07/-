@@ -1,0 +1,17 @@
+roulette-m v1.3.14 — 2026-11-14
+用户书面：「把此版本定为1.3 并计入git」→ 本包号 1.3.14（线上 ?v=1.3.14）
+
+已验收清单（本包算数）：
+- 基线回滚自 1.3.12（进桌速度：禁止 scheduleHeavy 抢键面；键面 webp 优先）
+- 确定下注后播「下注成功」（betOk；void 不挡倒计时）；大厅 voiceKeys+短预热
+- 开奖大球 .wheel-ball 3.55% / min 9px
+
+未验收、不得当作本定版：
+- 步骤1 电脑轨迹 LAP_SHARE（曾 1.3.15，已回滚，不进本包）
+- 步骤2 外圈片 + loop（曾 1.3.16，已回滚）
+- 步骤3 隔板 fret
+- 欢迎改到「进桌画面内再播」（仅口头确认，未改）
+
+回滚：roulette-m.LOCKED-1.3.14.html / roulette-m-boot.LOCKED-1.3.14.html /
+      lobby.LOCKED-roulette-m-1.3.14.html / tag roulette-m-v1.3.14
+验收：https://forestgroup.ai/roulette-m.html?v=1.3.14

@@ -313,8 +313,8 @@
       const GAME_PC = 'game.html?v=1.5.18';
       const GAME_M = 'game-m.html?v=1.5.18';
       const ROULETTE_PC = 'roulette.html?v=1.2.8';
-      const ROULETTE_M = 'roulette-m.html?v=1.3.15';
-      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.3.15';
+      const ROULETTE_M = 'roulette-m.html?v=1.3.14';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.3.14';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -484,7 +484,7 @@
         primeHeavy() {
           Object.keys(this.src).forEach((k) => {
             /* 进轮盘时不要预拉骰宝片，抢键面带宽 */
-            if (this.embedKind === 'roulette' && (k === 'welcomeSicbo')) return;
+            if (this.embedKind === 'roulette' && (k === 'welcomeSicbo' || k === 'betOk')) return;
             if (this.embedKind === 'sicbo' && (k === 'welcome' || k === 'ballRoll' || k === 'fret0' || k === 'fret1' || k === 'fret2')) return;
             this.ensureEl(k);
           });
@@ -499,7 +499,7 @@
           this.primed = true;
           Object.keys(this.unlockPlayKeys).forEach((k) => {
             if (k === 'welcome' || k === 'welcomeSicbo') return;
-            if (this.embedKind === 'roulette' && (k === 'welcomeSicbo')) return;
+            if (this.embedKind === 'roulette' && (k === 'welcomeSicbo' || k === 'betOk')) return;
             if (this.embedKind === 'sicbo' && (k === 'welcome')) return;
             const el = this.els[k];
             if (!el) return;
@@ -744,7 +744,7 @@
         frame.src = url + join + 'embed=1';
         shell.classList.add('show');
         if (ShellSfx.embedKind === 'roulette') {
-          /* 只解锁+欢迎；短预热 betOk（下注成功）；绝不 scheduleHeavy 抢键面 */
+          /* 只解锁+欢迎；短预热 betOk（下注成功可播）；绝不 scheduleHeavy 抢键面 */
           ShellSfx.primeLight();
           (function primeBetOk() {
             const el = ShellSfx.ensureEl('betOk');
