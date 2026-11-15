@@ -2872,7 +2872,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '2.0.0';
+      const V = '2.1.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -5096,7 +5096,8 @@
       /**
        * 开奖轨迹（分步对齐电脑）：
        * 步骤1：外圈四圈递慢 — OUTER_MS / LAP_SHARE（已定 1.9.0）
-       * 步骤3（本版）：入格末速衔接 + 匀减速；终点锁开奖格心（不落两格缝上）
+       * 步骤3：入格末速衔接 + 匀减速
+       * 停稳硬规则：终点必须整数格心，不许压隔板线 / 不许压数字格边（严于电脑）
        * 未做：步骤2 滚球声、步骤4 隔板 fret 轮播声
        */
       function runBallAndWheelStop(winNum) {
@@ -5104,12 +5105,12 @@
         const OUTER_MS = 4180;
         const OUTER_LAPS = 4;
         const LAP_SHARE = [0.04, 0.23, 0.31, 0.42];
-        /* 步骤3：下落 / 格内 / 停稳 — 照抄电脑 */
+        /* 步骤3：下落 / 格内 / 停稳 */
         const DROP_MS = 420;
-        const SETTLE_MS = 550;
+        const SETTLE_MS = 720; /* 略加长，便于看清锁格心 */
         const R_OUTER = 6.8;
         const R_POCKET = 50 - WHEEL_POCKET_DIST;
-        const R_SETTLE = R_POCKET + 1.15; /* 略偏心窝，整球在格内、勿停隔板上 */
+        const R_SETTLE = R_POCKET + 1.15; /* 径向停在格窝内 */
 
         const w0 = stopIdleSpinCapture();
         showBall(true);
@@ -5180,14 +5181,21 @@
         if (bDelta < 1) bDelta = 360;
         bDelta += 360 * (OUTER_LAPS - 1);
 
-        const finalBallCss = () => normDeg(pocketAngle(winNum) + BALL_CSS_TO_GEOM + w1);
-        /* 格内：s=2t-t² 匀减速到 0；终点锁 winIdx 格心 */
+        /* 开奖格正中心 — 仅停稳段/终态使用，运动中不提前硬吸（防蹦） */
+        const pocketCenterCss = (wheelDeg) =>
+          normDeg(ZERO_CENTER_DEG + winIdx * SLOT + BALL_CSS_TO_GEOM + wheelDeg);
+        const finalBallCss = () => pocketCenterCss(w1);
+        /*
+          格内全程 s=2t-t² 自然匀减速滑向 winIdx（t=1 时 f 连续到达格心）。
+          禁止半路 |f-winIdx|<=0.5 硬吸——那会造成「最后一下蹦到中间」。
+          停稳段再锁整数格心，保证不压线。
+        */
         const pocketFloatAt = (u) => {
           if (u <= DROP_U0) return startIdx;
           if (u >= RATTLE_END) return winIdx;
           const t = (u - DROP_U0) / Math.max(1e-6, RATTLE_END - DROP_U0);
           const tt = Math.min(1, Math.max(0, t));
-          const s = 2 * tt - tt * tt;
+          const s = 2 * tt - tt * tt; /* s'(0)=2 → 承接外圈末速；s'(1)=0 → 到格心速度为 0 */
           return startIdx - hops * s;
         };
         const localDegFromFloat = (f) => ZERO_CENTER_DEG + f * SLOT;
@@ -5197,12 +5205,10 @@
             const t = (u - DROP_U0) / (DROP_U1 - DROP_U0);
             return R_OUTER + (R_SETTLE - R_OUTER) * easeInCubic(t);
           }
-          if (u < RATTLE_END) {
-            const t = (u - DROP_U1) / Math.max(1e-6, RATTLE_END - DROP_U1);
-            const amp = (1 - t) * (1 - t) * (justHit ? 1.7 : 0.85);
-            return R_SETTLE - amp;
-          }
-          return R_SETTLE;
+          if (u >= RATTLE_END) return R_SETTLE;
+          const t = (u - DROP_U1) / Math.max(1e-6, RATTLE_END - DROP_U1);
+          const amp = (1 - t) * (1 - t) * (justHit ? 1.7 : 0.85);
+          return R_SETTLE - amp;
         };
 
         playBallSpinSfx();
@@ -5217,8 +5223,9 @@
             if (settled) return;
             settled = true;
             if (raf) cancelAnimationFrame(raf);
-            const endCss = finalBallCss();
+            /* 终态锁格心（此时速度已到 0，与运动连续） */
             setWheelAngle(w1, 0);
+            const endCss = finalBallCss();
             setBallAngle(endCss, 0);
             wheelAngle = normDeg(w1);
             ballAngle = normDeg(endCss);
@@ -5235,6 +5242,9 @@
             let justHit = false;
             if (u < DROP_U0) {
               ang = b0 - bDelta * ballProgress(u);
+            } else if (u >= RATTLE_END) {
+              /* 运动已自然到格心后：保持整数格心，不压线 */
+              ang = pocketCenterCss(wNow);
             } else {
               if (!dropArmed) {
                 dropArmed = true;
@@ -5242,7 +5252,6 @@
                 lastFret = Math.floor(startIdx - 0.5 + 1e-6);
               }
               const f = pocketFloatAt(u);
-              /* 隔板=半格；过隔板才算撞（声步骤4再接真 fret；此处只驱动半径顿挫） */
               const fretI = Math.floor(f - 0.5 + 1e-9);
               if (u >= DROP_U1 && fretI !== lastFret) {
                 justHit = true;
@@ -5250,6 +5259,7 @@
                 const t = (u - DROP_U1) / Math.max(1e-6, RATTLE_END - DROP_U1);
                 playFretClick(0.95 - Math.min(0.4, t * 0.4));
               }
+              /* 连续角度：随 f 滑行，最后自然贴近 winIdx 格心 */
               ang = normDeg(localDegFromFloat(f) + BALL_CSS_TO_GEOM + wNow);
             }
             setBallAngle(ang, 0);
