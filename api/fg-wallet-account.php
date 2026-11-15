@@ -37,9 +37,18 @@ function fg_api_doc(PDO $pdo, int $accountId, string $user): array {
   $bets = fg_list_bets($pdo, $accountId, 200);
   $creditlog = [];
   foreach ($ledger as $e) {
+    /* 额度时间：优先 MySQL UNIX_TIMESTAMP；勿用 PRC strtotime(created_at)（会少 8 小时） */
     $ts = 0;
-    if (!empty($e['created_at'])) {
-      $ts = (int)(strtotime((string)$e['created_at']) * 1000);
+    if (isset($e['created_unix']) && $e['created_unix'] !== null && $e['created_unix'] !== '') {
+      $ts = (int)round(((float)$e['created_unix']) * 1000);
+    } elseif (!empty($e['created_at'])) {
+      try {
+        $raw = preg_replace('/\.\d+$/', '', (string)$e['created_at']);
+        $dt = new DateTimeImmutable($raw ?: 'now', new DateTimeZone('UTC'));
+        $ts = ((int)$dt->getTimestamp()) * 1000;
+      } catch (Throwable $ex) {
+        $ts = 0;
+      }
     }
     $creditlog[] = [
       'id' => $e['tx_id'],
@@ -98,7 +107,22 @@ if ($method === 'GET') {
   if ($user === '') fg_api_bad(400, 'user required');
   try {
     $aid = fg_ensure_account($pdo, $user);
-    echo json_encode(['ok' => true, 'data' => fg_api_doc($pdo, $aid, $user)], JSON_UNESCAPED_UNICODE);
+    /* lean=1：大厅顶栏只要余额，不拉整包流水（手机打开更快、数字能及时刷新） */
+    $lean = isset($_GET['lean']) && (string)$_GET['lean'] !== '' && (string)$_GET['lean'] !== '0';
+    if ($lean) {
+      $bal = fg_get_balance($pdo, $aid);
+      echo json_encode([
+        'ok' => true,
+        'data' => [
+          'user' => $user,
+          'balance' => $bal,
+          'version' => fg_wallet_version($pdo, $aid),
+          'updatedAt' => (int)round(microtime(true) * 1000),
+        ],
+      ], JSON_UNESCAPED_UNICODE);
+    } else {
+      echo json_encode(['ok' => true, 'data' => fg_api_doc($pdo, $aid, $user)], JSON_UNESCAPED_UNICODE);
+    }
   } catch (Throwable $e) {
     fg_api_bad(500, 'read failed');
   }

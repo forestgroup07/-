@@ -268,8 +268,13 @@ function fg_set_balance_with_adjust(PDO $pdo, int $accountId, int $newBal, strin
 
 function fg_list_ledger(PDO $pdo, int $accountId, int $limit = 200): array {
   $limit = max(1, min(500, $limit));
+  /* created_unix：避免 PHP PRC 对 UTC 墙钟 created_at 再偏 -8h */
   $st = $pdo->prepare(
-    "SELECT * FROM fg_ledger WHERE account_id = ? AND status = 'ok' ORDER BY id DESC LIMIT {$limit}"
+    "SELECT l.*, UNIX_TIMESTAMP(l.created_at) AS created_unix
+     FROM fg_ledger l
+     WHERE l.account_id = ? AND l.status = 'ok'
+     ORDER BY l.id DESC
+     LIMIT {$limit}"
   );
   $st->execute([$accountId]);
   return $st->fetchAll();

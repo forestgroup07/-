@@ -2706,6 +2706,7 @@
           <table class="rec-table">
             <thead>
               <tr>
+                <th>游戏</th>
                 <th>时间</th>
                 <th>类别</th>
                 <th>交易前余额</th>
@@ -2878,7 +2879,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '2.5.0';
+      const V = '2.6.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -4191,6 +4192,7 @@
         const amount = Math.round(Number(row.amount) || 0);
         if (!amount) return null;
         const ts = Number(row.ts) || Date.now();
+        const src = String(row.source || 'roulette-m');
         const entry = {
           id: String(row.id || (String(ts) + String(Math.floor(Math.random() * 90) + 10))),
           ts,
@@ -4198,8 +4200,11 @@
           amount,
           balance: Math.max(0, Math.round(Number(row.balance != null ? row.balance : balance) || 0)),
           note: String(row.note || ''),
-          source: String(row.source || 'roulette-m'),
+          source: src,
           status: String(row.status || 'ok'),
+          /* 标清游戏：写入 game_code / tableId，供额度表「游戏」列与服务器字段 */
+          game_code: String(row.game_code || row.gameCode || (/sicbo/i.test(src) ? 'sicbo' : 'roulette')),
+          tableId: String(row.tableId || (/sicbo/i.test(src) ? 'S601' : 'R501')),
         };
         const list = loadCreditLog();
         list.unshift(entry);
@@ -4313,12 +4318,16 @@
         if (force || !toEl.value) toEl.value = fmtDateInputLocal(to);
       }
       function betGameLabel(r) {
-        const tid = String((r && r.tableId) || '');
-        const src = String((r && r.source) || '');
-        if (/^S/i.test(tid) || /sicbo/i.test(src)) return '骰宝 ' + (tid || 'S601');
-        if (/^R/i.test(tid) || /roulette/i.test(src)) return '轮盘 ' + (tid || 'R501');
-        if (tid) return tid;
-        return '轮盘 R501';
+        const code = String((r && (r.game_code || r.gameCode)) || '').toLowerCase();
+        const tid = String((r && (r.tableId || r.table_code)) || '');
+        const src = String((r && (r.source || r.client_code)) || '');
+        /* 只显示游戏名，不带 S601/R501 */
+        if (code === 'sicbo' || /^S/i.test(tid) || /sicbo/i.test(src)) return '骰宝';
+        if (code === 'roulette' || /^R/i.test(tid) || /roulette/i.test(src)) return '轮盘';
+        return '轮盘';
+      }
+      function creditGameLabel(r) {
+        return betGameLabel(r);
       }
       function betMarketLabel(r) {
         const k = String((r && (r.market || r.key)) || '');
@@ -4425,7 +4434,7 @@
         const start = (creditRecPage - 1) * REC_PAGE_SIZE;
         const pageRows = all.slice(start, start + REC_PAGE_SIZE);
         if (!pageRows.length) {
-          body.innerHTML = '<tr class="rec-empty"><td colspan="5">暂无额度记录</td></tr>';
+          body.innerHTML = '<tr class="rec-empty"><td colspan="6">暂无额度记录</td></tr>';
         } else {
           body.innerHTML = pageRows.map((r) => {
             const amt = Number(r.amount) || 0;
@@ -4433,6 +4442,7 @@
             const before = Math.max(0, after - amt);
             const amtCls = amt > 0 ? 'pnl-win' : (amt < 0 ? 'pnl-lose' : '');
             return '<tr>'
+              + '<td class="rec-game">' + creditGameLabel(r) + '</td>'
               + '<td class="rec-time">' + fmtRecShortTime(r.ts) + '</td>'
               + '<td>' + creditCatLabel(r.type) + '</td>'
               + '<td>' + fmtRecMoney(before) + '</td>'
@@ -4497,6 +4507,8 @@
             type: (meta && meta.type) || (delta > 0 ? 'credit' : 'debit'),
             note: (meta && meta.note) || '',
             source: (meta && meta.source) || 'roulette-m',
+            game_code: (meta && (meta.game_code || meta.gameCode)) || 'roulette',
+            tableId: (meta && meta.tableId) || 'R501',
             balance,
           });
         }
@@ -5284,7 +5296,7 @@
         if (!ids || !ids.length) return;
         const idset = new Set(ids.map((x) => String(x)));
         const list = loadBetLog();
-        let changed = false;
+        const updated = [];
         list.forEach((r) => {
           if (!r) return;
           const id = String(r.betId || r.id || '');
@@ -5292,9 +5304,18 @@
           if (r.status === 'cancelled') return;
           r.status = 'cancelled';
           r.pnl = 0;
-          changed = true;
+          if (!r.game_code && !r.gameCode) r.game_code = 'roulette';
+          if (!r.tableId) r.tableId = 'R501';
+          if (!r.source) r.source = 'roulette-m';
+          updated.push(r);
         });
-        if (changed) saveBetLogLocal(list);
+        if (updated.length) {
+          saveBetLogLocal(list);
+          /* 永久追加：撤销状态用 betAppend，禁止整包 betlog 覆盖 */
+          const payload = { betAppend: updated.slice() };
+          if (wallet.isHydrated && wallet.isHydrated()) wallet.post(payload, true);
+          else wallet.schedule(payload);
+        }
       }
       function revokeConfirmedAmount(key, wantAmt) {
         const have = Math.round(Number(confirmed[key]) || 0);
@@ -5453,6 +5474,7 @@
           ts,
           roundId: String(roundId || ''),
           tableId: 'R501',
+          game_code: 'roulette',
           result: '',
           market: k,
           key: k,
@@ -5530,21 +5552,41 @@
           settleLines.push({ key: k, stake, pnl });
           if (STAKE_PANEL_KEYS.indexOf(k) >= 0) lastPnl[k] = pnl;
         });
+        /* 改4：先收集本局确认注 betId，再清空栈——只结本桌本局 */
+        const thisRoundBetIds = new Set();
+        confirmUndoStack.forEach((batch) => {
+          (batch && batch.betIds ? batch.betIds : []).forEach((id) => {
+            if (id != null && id !== '') thisRoundBetIds.add(String(id));
+          });
+        });
         confirmed = Object.create(null);
         draft = Object.create(null);
         undoStack = [];
         confirmUndoStack = [];
-        /* 回写本账号未结下注记录（对标电脑版），供下注记录页显示输赢 */
+        /* 回写未结注 → settled；永久用 betAppend（禁止整包 betlog） */
         if (settleLines.length) {
           const meta = Object.create(null);
           settleLines.forEach((line) => { meta[line.key] = line; });
           const list = loadBetLog();
-          let touched = false;
+          const updated = [];
           const resultStr = String(win);
           const rid = String(roundId || '');
           for (let i = 0; i < list.length; i++) {
             const row = list[i];
             if (!row || row.status !== 'open') continue;
+            const code = String(row.game_code || row.gameCode || '').toLowerCase();
+            const tid = String(row.tableId || row.table_code || '');
+            const src = String(row.source || '');
+            const id = String(row.betId || row.id || '');
+            /* 禁止结骰宝 / 非轮盘桌 */
+            if (code === 'sicbo' || /^S/i.test(tid) || /sicbo/i.test(src)) continue;
+            if (tid && !/^R/i.test(tid) && code !== 'roulette' && !/roulette/i.test(src) && !thisRoundBetIds.has(id)) {
+              continue;
+            }
+            const inThisRoundIds = id && thisRoundBetIds.has(id);
+            const sameRound = !!(rid && String(row.roundId || '') === rid);
+            /* 必须本局：优先本局 betId；否则须局号一致。无局号又不在本局 id 里 → 跳过 */
+            if (!inThisRoundIds && !sameRound) continue;
             const line = row.key ? meta[row.key] : null;
             const stake = Math.max(0, Math.round(Number(row.stake) || 0));
             if (!line || stake <= 0) continue;
@@ -5553,17 +5595,26 @@
             row.pnl = Math.round(stake * unit);
             row.status = 'settled';
             if (!row.roundId) row.roundId = rid;
-            touched = true;
+            if (!row.game_code && !row.gameCode) row.game_code = 'roulette';
+            if (!row.tableId) row.tableId = 'R501';
+            if (!row.source) row.source = 'roulette-m';
+            updated.push(row);
           }
-          if (touched) {
-            const clipped = saveBetLogLocal(list);
-            const payload = { betlog: clipped.slice(0, 500) };
+          if (updated.length) {
+            saveBetLogLocal(list);
+            const payload = { betAppend: updated.slice() };
             if (wallet.isHydrated && wallet.isHydrated()) wallet.post(payload, true);
             else wallet.schedule(payload);
           }
         }
         if (returned > 0) {
-          setBalance(balance + returned, { type: 'payout', note: '开奖派彩', source: 'roulette-m' });
+          setBalance(balance + returned, {
+            type: 'payout',
+            note: '开奖派彩',
+            source: 'roulette-m',
+            game_code: 'roulette',
+            tableId: 'R501',
+          });
         }
         paintBets();
         return { staked, net, returned };
