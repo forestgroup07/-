@@ -1,0 +1,29 @@
+baccarat-m v1.0.1 — 2026-11-15
+用户书面：「请存到git 完美」+「1.0.1」
+自 1.0.0 壳升锁；用户确认本版完美。
+
+已验收清单（本包算数）：
+- 竖屏壳：顶屏蓝红 + 绿台整图；桌号 B601；大厅 BACCARAT_M ?v=1.0.1
+- 顶栏 chrome：左上返回+桌名 / 右上圆形三横 / 右下金色趋势标
+- 底栏喇叭条（左喇叭 · 右返回）；绿台禁左右滑
+- 绿台五侧键繁体文案（任意對子/閒對/幸運六/莊對/完美對子）+ 主鍵閒/和/莊
+- 顶屏发牌：無底色塊；閒/莊品字牌（兩正牌+補牌虛框+點數）；藍紅中線對齊「幸運六」運字正中
+- 顶屏高度：相对原壳约收 0.3cm（clamp 237px / 38.7vh / 309px），下面珠盘路严丝合缝不露黑框
+- 图质：2× 重制清晰（禁止锐化当清晰）；繁体 UI
+- 原图：src-top-blue-red（中缝已居中）、src-green-full
+
+未验收、不得当作本定版：
+- 蒙格落注可点 / 真发牌翻牌逻辑 / 口播局态
+- 账户充值、规则全文后台、整站多语言开关内容
+- 电脑版；骰宝/轮盘（另册冻结不动）
+
+回滚：
+  baccarat-m.LOCKED-1.0.1.html
+  lobby.LOCKED-baccarat-m-1.0.1.html
+  assets/baccarat/LOCKED-baccarat-m-1.0.1.txt
+  assets/baccarat/LOCKED-src-top-blue-red-1.0.1.png
+  assets/baccarat/LOCKED-src-green-full-1.0.1.png
+  assets/baccarat/LOCKED-cards-1.0.1/
+  assets/baccarat/VERSION-m.txt = 1.0.1
+  tag baccarat-m-v1.0.1
+验收：https://forestgroup.ai/baccarat-m.html?v=1.0.1

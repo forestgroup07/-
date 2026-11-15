@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a120e" />
-  <title>百家乐 · 竖屏壳 v1.0.0</title>
+  <title>百家樂 B601 · 豎屏殼 v1.0.1</title>
   <style>
+    :root {
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
     * { box-sizing: border-box; }
     html, body {
       margin: 0;
@@ -16,6 +19,8 @@
       font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
       -webkit-tap-highlight-color: transparent;
       overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
     }
     .app {
       width: 100%;
@@ -28,44 +33,27 @@
       flex-direction: column;
       position: relative;
       overflow: hidden;
-    }
-    .topbar {
-      position: absolute;
-      left: 0; right: 0; top: 0;
-      z-index: 3;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.4rem 0.55rem;
-      pointer-events: none;
-    }
-    .topbar button { pointer-events: auto; }
-    .btn-back {
-      width: 28px; height: 28px; border-radius: 50%;
-      border: 0; background: rgba(0,0,0,.45); color: #fff;
-      font-size: 1.1rem; line-height: 1;
-      display: grid; place-items: center;
-    }
-    .btn-menu {
-      width: 30px; height: 30px; border-radius: 50%;
-      border: 0; background: rgba(0,0,0,.42);
-      display: grid; place-items: center; color: #fff;
+      overscroll-behavior: none;
+      touch-action: none;
     }
     .shell {
       flex: 1 1 auto;
       min-height: 0;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
     }
-    /* 顶屏：高度对齐骰宝 .stage */
+    /* 顶屏：高度对齐骰宝 .stage；略增高以容纳品字牌位 */
     .shell-cards {
       flex: 0 0 auto;
-      height: clamp(220px, 36vh, 300px);
+      height: clamp(237px, 38.7vh, 309px);
       position: relative;
       overflow: hidden;
       background: #193565;
     }
-    .shell-cards img {
+    .shell-cards > .stage-bg {
       display: block;
       width: 100%;
       height: 100%;
@@ -75,61 +63,416 @@
       user-select: none;
       -webkit-user-drag: none;
     }
-    /* 下面：你给的绿台整图 */
+    /* 顶屏发牌区：无底色块；蓝红中线对齐幸运六「运」字正中；閒/莊各半居中 */
+    .deal-board {
+      position: absolute;
+      z-index: 4;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      pointer-events: none;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      padding: 0;
+    }
+    .deal-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      padding-top: 1.1rem;
+    }
+    .deal-side.is-player,
+    .deal-side.is-banker {
+      align-items: center;
+    }
+    .deal-head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+      margin-bottom: 0.45rem;
+      line-height: 1;
+    }
+    .deal-side.is-banker .deal-head { flex-direction: row-reverse; }
+    .deal-label {
+      font-weight: 800;
+      font-size: clamp(1.55rem, 7.2vw, 2.15rem);
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+    }
+    .deal-side.is-player .deal-label { color: #5ec8ff; }
+    .deal-side.is-banker .deal-label { color: #ff6b7a; }
+    .deal-score {
+      font-weight: 800;
+      font-size: clamp(1.35rem, 6.2vw, 1.85rem);
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+    }
+    .deal-side.is-player .deal-score { color: #7ad4ff; }
+    .deal-side.is-banker .deal-score { color: #ff8a95; }
+    .deal-pin {
+      --card-w: clamp(44px, 14.5vw, 62px);
+      --card-h: calc(var(--card-w) * 1.41);
+      --card-gap: 0.28rem;
+      display: grid;
+      grid-template-columns: var(--card-w) var(--card-w);
+      grid-template-rows: var(--card-h) var(--card-h);
+      gap: var(--card-gap);
+      justify-content: center;
+    }
+    .deal-side.is-player .deal-pin,
+    .deal-side.is-banker .deal-pin {
+      justify-content: center;
+    }
+    .card-slot {
+      width: var(--card-w);
+      height: var(--card-h);
+      border-radius: 5px;
+      position: relative;
+    }
+    .card-slot.is-main-1 { grid-column: 1; grid-row: 1; }
+    .card-slot.is-main-2 { grid-column: 2; grid-row: 1; }
+    .card-slot.is-draw {
+      grid-column: 1 / span 2;
+      grid-row: 2;
+      justify-self: center;
+    }
+    .card-face {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+      background: #1a1a1a;
+    }
+    .card-dash {
+      width: 100%;
+      height: 100%;
+      border-radius: 5px;
+      border: 2px dashed rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+    }
+    .deal-side.is-player .card-dash { border-color: rgba(94, 200, 255, 0.65); }
+    .deal-side.is-banker .card-dash { border-color: rgba(255, 107, 122, 0.65); }
+    /* 对标骰宝 game-m 顶栏：左上返回+桌名 / 右上圆形三横 */
+    .topbar {
+      position: absolute;
+      z-index: 5;
+      left: 0; right: 0; top: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: .55rem .7rem 0;
+      pointer-events: none;
+    }
+    .topbar button { pointer-events: auto; }
+    .top-left { display: flex; align-items: center; gap: .4rem; }
+    .btn-back {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 0;
+      background: rgba(0,0,0,.35);
+      color: #fff;
+      display: grid; place-items: center;
+      font-size: 1rem; line-height: 1;
+      padding: 0;
+      cursor: pointer;
+    }
+    .table-name {
+      font-size: .95rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+      text-shadow: 0 1px 3px #000;
+    }
+    .top-right { display: flex; align-items: center; gap: .55rem; }
+    .btn-menu-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.42);
+      border: 0;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+    }
+    .btn-menu-circle svg {
+      display: block;
+      width: 15px;
+      height: 15px;
+      pointer-events: none;
+    }
+    /* 对标骰宝：顶屏右下角金色趋势标 */
+    .btn-trend-ico {
+      position: absolute;
+      z-index: 8;
+      right: .7rem;
+      top: auto;
+      bottom: .7rem;
+      width: 2.05rem;
+      height: 2.05rem;
+      padding: 0;
+      border: 0;
+      border-radius: 0.42rem;
+      background: linear-gradient(180deg, #f0e0b8 0%, #dcc48a 55%, #c9ad6e 100%);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      display: grid;
+      place-items: center;
+      -webkit-tap-highlight-color: transparent;
+      pointer-events: auto;
+      cursor: default;
+    }
+    .btn-trend-ico svg {
+      display: block;
+      width: 1.25rem;
+      height: 1.25rem;
+      pointer-events: none;
+    }
+    /* 下面：绿台整图 — 宽度铺满消左右边；只禁左右滑 */
     .shell-green {
       flex: 1 1 auto;
       min-height: 0;
       position: relative;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
       background: #0a120e;
+      overscroll-behavior-x: none;
+      overscroll-behavior-y: contain;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
     }
     .shell-green img {
       display: block;
       width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center top;
+      height: auto;
+      max-width: 100%;
+      object-fit: fill;
       pointer-events: none;
       user-select: none;
       -webkit-user-drag: none;
+      touch-action: none;
     }
+    /* 对标骰宝/轮盘：最底喇叭条（左喇叭 · 右返回） */
+    .dock {
+      flex: 0 0 auto;
+      position: relative;
+      background: linear-gradient(180deg, #0d2c28, #081a18);
+      border-top: 1px solid rgba(90, 200, 170, .2);
+      padding: 0 .55rem 0;
+    }
+    .dock-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0;
+      padding: .12rem .15rem calc(.08rem + var(--safe-b));
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .btn-nav {
+      width: 40px; height: 36px;
+      border: 0;
+      border-radius: 999px;
+      display: grid; place-items: center;
+      color: #d7e6e0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-nav:active { background: rgba(255,255,255,.08); }
+    .btn-nav svg { width: 22px; height: 22px; display: block; }
+    .btn-nav.muted { color: #8a9a94; opacity: .72; }
+    .btn-nav.muted .slash { display: block; }
+    .btn-nav .slash { display: none; }
   </style>
 </head>
 <body>
   <div class="app" id="app">
-    <div class="topbar">
-      <button type="button" class="btn-back" id="btnBack" aria-label="返回">‹</button>
-      <button type="button" class="btn-menu" id="btnMenu" aria-label="菜单" disabled>☰</button>
-    </div>
-    <div class="shell" aria-label="百家乐首页">
-      <section class="shell-cards" aria-label="顶屏蓝红">
-        <img src="assets/baccarat/src-top-blue-red.png?v=1.0.0" alt="蓝红顶屏" width="834" height="462" decoding="async" />
+    <div class="shell" aria-label="百家樂首頁">
+      <section class="shell-cards" aria-label="頂屏藍紅" id="stage">
+        <img class="stage-bg" src="assets/baccarat/src-top-blue-red.png?v=1.0.1" alt="藍紅頂屏" width="1668" height="924" decoding="async" />
+        <div class="deal-board" id="dealBoard" aria-label="發牌區">
+          <div class="deal-side is-player" data-side="player">
+            <div class="deal-head">
+              <span class="deal-label">閒</span>
+              <span class="deal-score" id="scorePlayer">0</span>
+            </div>
+            <div class="deal-pin" aria-label="閒家牌位">
+              <div class="card-slot is-main-1">
+                <img class="card-face" id="cardP1" src="assets/baccarat/cards/back-0.png?v=1.0.1" alt="閒牌1" width="68" height="96" decoding="async" draggable="false" />
+              </div>
+              <div class="card-slot is-main-2">
+                <img class="card-face" id="cardP2" src="assets/baccarat/cards/back-1.png?v=1.0.1" alt="閒牌2" width="68" height="96" decoding="async" draggable="false" />
+              </div>
+              <div class="card-slot is-draw" aria-label="閒補牌位">
+                <div class="card-dash" id="cardP3"></div>
+              </div>
+            </div>
+          </div>
+          <div class="deal-side is-banker" data-side="banker">
+            <div class="deal-head">
+              <span class="deal-label">莊</span>
+              <span class="deal-score" id="scoreBanker">0</span>
+            </div>
+            <div class="deal-pin" aria-label="莊家牌位">
+              <div class="card-slot is-main-1">
+                <img class="card-face" id="cardB1" src="assets/baccarat/cards/back-2.png?v=1.0.1" alt="莊牌1" width="68" height="96" decoding="async" draggable="false" />
+              </div>
+              <div class="card-slot is-main-2">
+                <img class="card-face" id="cardB2" src="assets/baccarat/cards/back-3.png?v=1.0.1" alt="莊牌2" width="68" height="96" decoding="async" draggable="false" />
+              </div>
+              <div class="card-slot is-draw" aria-label="莊補牌位">
+                <div class="card-dash" id="cardB3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="topbar">
+          <div class="top-left">
+            <button type="button" class="btn-back" id="btnBack" aria-label="返回">‹</button>
+            <div class="table-name">百家樂 B601</div>
+          </div>
+          <div class="top-right">
+            <button type="button" class="btn-menu-circle" id="btnMenu" aria-label="選單" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <g fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+                  <path d="M5 7h14" />
+                  <path d="M5 12h14" />
+                  <path d="M5 17h14" />
+                </g>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn-trend-ico" id="btnTrendIco" aria-label="開獎趨勢" aria-disabled="true" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <g fill="#1a1205">
+              <rect x="4.2" y="14.2" width="3.4" height="5.2" rx="0.55" />
+              <rect x="10.3" y="10.4" width="3.4" height="9" rx="0.55" />
+              <rect x="16.4" y="6.2" width="3.4" height="13.2" rx="0.55" />
+            </g>
+            <g fill="none" stroke="#1a1205" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5.9 12.2 L10.8 8.1 L14.2 9.6 L18.2 5.4" />
+            </g>
+            <g fill="#1a1205">
+              <circle cx="5.9" cy="12.2" r="1.15" />
+              <circle cx="10.8" cy="8.1" r="1.15" />
+              <circle cx="14.2" cy="9.6" r="1.15" />
+              <circle cx="18.2" cy="5.4" r="1.15" />
+            </g>
+          </svg>
+        </button>
       </section>
-      <section class="shell-green" aria-label="绿台">
-        <img src="assets/baccarat/src-green-full.png?v=1.0.0" alt="绿台整图" width="868" height="862" decoding="async" />
+      <section class="shell-green" aria-label="綠台">
+        <img src="assets/baccarat/src-green-full.png?v=1.0.1" alt="綠台整圖" width="1728" height="1720" decoding="async" />
       </section>
     </div>
+    <footer class="dock">
+      <div class="dock-nav" aria-label="底部導航">
+        <button type="button" class="btn-nav muted" id="btnSound" aria-label="打開聲音" aria-pressed="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.3-3.9v7.8a4.5 4.5 0 0 0 2.3-3.9z"/>
+            <path fill="currentColor" d="M16.5 3.2v2.1a7.5 7.5 0 0 1 0 13.4v2.1a9.5 9.5 0 0 0 0-17.6z"/>
+            <path class="slash" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M4 4l16 16"/>
+          </svg>
+        </button>
+        <button type="button" class="btn-nav" id="btnNavBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M15 5L8 12l7 7"/>
+          </svg>
+        </button>
+      </div>
+    </footer>
   </div>
   <script>
     (function () {
-      const V = '1.0.0';
+      const V = '1.0.1';
+      /* 禁止整页左右滑；绿台区仅允许纵向 */
+      try {
+        document.addEventListener('touchmove', function (e) {
+          if (e.touches && e.touches.length > 1) {
+            e.preventDefault();
+            return;
+          }
+          var t = e.target;
+          var green = t && t.closest ? t.closest('.shell-green') : null;
+          if (!green) {
+            e.preventDefault();
+          }
+        }, { passive: false });
+      } catch (_) {}
+      const MUTE_KEY = 'fg_baccarat_m_sound_mute';
       try {
         if (window.parent && window.parent !== window) {
           window.parent.postMessage({ type: 'fg-embed-ready' }, '*');
         }
       } catch (_) {}
+
+      function goLobby() {
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'fg-embed-close' }, '*');
+            return;
+          }
+        } catch (_) {}
+        location.href = 'lobby.html?v=' + encodeURIComponent(V);
+      }
+
       const btnBack = document.getElementById('btnBack');
-      if (btnBack) {
-        btnBack.addEventListener('click', function () {
-          try {
-            if (window.parent && window.parent !== window) {
-              window.parent.postMessage({ type: 'fg-embed-close' }, '*');
-              return;
-            }
-          } catch (_) {}
-          location.href = 'lobby.html?v=' + encodeURIComponent(V);
+      const btnNavBack = document.getElementById('btnNavBack');
+      if (btnBack) btnBack.addEventListener('click', goLobby);
+      if (btnNavBack) btnNavBack.addEventListener('click', goLobby);
+
+      /* 进桌默认静音（同骰宝/轮盘）；喇叭仅 UI 三分叉预备：有 ❌ 才取消静音 */
+      const btnSound = document.getElementById('btnSound');
+      let muted = true;
+      try {
+        const saved = localStorage.getItem(MUTE_KEY);
+        if (saved === '0') muted = false;
+        if (saved === '1') muted = true;
+      } catch (_) {}
+      function paintSound() {
+        if (!btnSound) return;
+        btnSound.classList.toggle('muted', muted);
+        btnSound.setAttribute('aria-pressed', muted ? 'true' : 'false');
+        btnSound.setAttribute('aria-label', muted ? '打開聲音' : '關閉聲音');
+      }
+      paintSound();
+      if (btnSound) {
+        btnSound.addEventListener('click', function () {
+          if (muted) {
+            muted = false;
+          } else {
+            muted = true;
+          }
+          try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (_) {}
+          paintSound();
         });
       }
+
+      /* 閒/莊點數：隨牌面更新（現背面先 0；開牌後 setSideScore） */
+      const scorePlayerEl = document.getElementById('scorePlayer');
+      const scoreBankerEl = document.getElementById('scoreBanker');
+      function setSideScore(side, n) {
+        const v = Math.max(0, Math.min(9, Number(n) || 0));
+        const el = side === 'banker' ? scoreBankerEl : scorePlayerEl;
+        if (el) el.textContent = String(v);
+      }
+      window.FgBaccaratDeal = {
+        setSideScore: setSideScore,
+        setScores: function (player, banker) {
+          setSideScore('player', player);
+          setSideScore('banker', banker);
+        }
+      };
+      setSideScore('player', 0);
+      setSideScore('banker', 0);
     })();
   </script>
 </body>

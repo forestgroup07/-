@@ -17,4 +17,4 @@
    - git commit / tag 标明 `baccarat-m-v1.0.0`
 3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
 4. 只有用户明确说「改百家乐 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
-5. 本冻结仅百家乐手机竖屏；骰宝 / 轮盘另册冻结不动。未进本定版：chrome 顶栏字、牌面叠层、蒙格热区、账户、规则、口播。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git` 同时生效；冲突时取更严：默认不动。当前有效百家乐冻结以**本版**为准。
+5. 本冻结仅百家乐手机竖屏；骰宝 / 轮盘另册冻结不动。未进本定版：chrome 顶栏字、牌面叠层、蒙格热区、账户、规则、口播。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git` 同时生效；冲突时取更严：默认不动。当前有效百家乐冻结以 `baccarat-m-frozen-1.0.1` 为准（本版为历史定版）。
