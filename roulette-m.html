@@ -2872,7 +2872,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '1.8.0';
+      const V = '1.9.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -5094,13 +5094,20 @@
         return wheelAngle;
       }
       /**
-       * 电脑同款开奖轨迹：外圈滚→掉入口袋→隔板跳动；配 roll + fret 音效
+       * 开奖轨迹（分步对齐电脑）：
+       * 步骤1（本版）：外圈四圈递慢 — OUTER_MS / LAP_SHARE 与电脑同值
+       * 未做：入格末速衔接、隔板声轮播（后续步骤）
        */
       function runBallAndWheelStop(winNum) {
-        const TOTAL_MS = 7600;
+        /* 步骤1：外圈时长与四圈份额 — 照抄电脑 roulette.html（已验收勿改份额） */
+        const OUTER_MS = 4180;
+        const OUTER_LAPS = 4;
+        const LAP_SHARE = [0.04, 0.23, 0.31, 0.42];
+        const AFTER_MS = 3420; /* 入格段暂沿用原总长差，步骤3再改 */
+        const TOTAL_MS = OUTER_MS + AFTER_MS;
         const R_OUTER = 6.8;
         const R_POCKET = 50 - WHEEL_POCKET_DIST;
-        const DROP_U0 = 0.55;
+        const DROP_U0 = OUTER_MS / TOTAL_MS;
         const DROP_U1 = 0.61;
         const RATTLE_END = 0.88;
         const w0 = stopIdleSpinCapture();
@@ -5124,15 +5131,40 @@
         wDelta += 360 * (1 + ((Math.random() * 2) | 0));
         const w1 = w0 + wDelta;
 
-        let bDelta = normDeg(b0 - markerCss);
-        if (bDelta < 1) bDelta = 360;
-        bDelta += 360 * (9 + ((Math.random() * 3) | 0));
-
         const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
         const easeOutPow = (t, p) => 1 - Math.pow(1 - t, p);
         const easeInCubic = (t) => t * t * t;
-        const BALL_EASE_P = 2.55;
-        const ballProgress = (u) => 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), BALL_EASE_P);
+
+        const lapEnds = [];
+        {
+          let acc = 0;
+          for (let i = 0; i < OUTER_LAPS; i++) {
+            acc += LAP_SHARE[i];
+            lapEnds.push(acc);
+          }
+          lapEnds[OUTER_LAPS - 1] = 1;
+        }
+        /* 外圈进度：按 LAP_SHARE 分段，每圈越来越慢（电脑同款） */
+        const ballProgress = (u) => {
+          const t = Math.min(1, Math.max(0, u / DROP_U0));
+          let prev = 0;
+          for (let i = 0; i < OUTER_LAPS; i++) {
+            const end = lapEnds[i];
+            if (t <= end || i === OUTER_LAPS - 1) {
+              const local = (t - prev) / Math.max(1e-6, end - prev);
+              return (i + Math.min(1, Math.max(0, local))) / OUTER_LAPS;
+            }
+            prev = end;
+          }
+          return 1;
+        };
+        /* 外圈终点对齐将入格的 startIdx（电脑同款），保证四圈落点可接步骤3 */
+        const dropW = w0 + wDelta * easeOutCubic(DROP_U0);
+        const alignCss = normDeg(ZERO_CENTER_DEG + startIdx * SLOT + BALL_CSS_TO_GEOM + dropW);
+        let bDelta = normDeg(b0 - alignCss);
+        if (bDelta < 1) bDelta = 360;
+        bDelta += 360 * (OUTER_LAPS - 1);
+
         const finalBallCss = () => normDeg(pocketAngle(winNum) + BALL_CSS_TO_GEOM + w1);
         const pocketFloatAt = (u) => {
           if (u <= DROP_U0) return startIdx;

@@ -1,0 +1,22 @@
+roulette-m v1.9.0 — 2026-11-15
+用户书面：「你先把此版本定位1.9 计入git」；自工作中 1.8.1 升锁
+
+已验收清单（本包算数）：
+- 沿用 v1.8.0：法式跑道再点撤挂单/撤销预备/❌对预备没反应；10k/20k、TABLE_MAX、打键热区、侧栏、betOk、开奖大球、喇叭三分叉等
+- 开奖小球步骤1：外圈四圈递慢，数值照抄电脑 — OUTER_MS=4180、OUTER_LAPS=4、LAP_SHARE=[0.04,0.23,0.31,0.42]；外圈终点对齐将入格 startIdx
+
+未验收、不得当作本定版：
+- 步骤2 外圈滚球声对齐
+- 步骤3 外圈→格间下落与末速衔接（DROP/POCKET_MS）
+- 步骤4 格间隔板 fret-0/1/2 轮播与音量递减
+- 打键贴面换色、整站多语言、公告后台
+- 电脑版轮盘；手机骰宝（另册 v2.0.0）
+
+回滚：
+  roulette-m.LOCKED-1.9.0.html
+  roulette-m-boot.LOCKED-1.9.0.html
+  lobby.LOCKED-roulette-m-1.9.0.html
+  assets/roulette/LOCKED-roulette-m-1.9.0.txt
+  assets/roulette/VERSION-m.txt = 1.9.0
+  tag roulette-m-v1.9.0
+验收：https://forestgroup.ai/roulette-m.html?v=1.9.0
