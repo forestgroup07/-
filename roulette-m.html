@@ -2872,7 +2872,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '2.1.6';
+      const V = '2.2.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -3552,6 +3552,9 @@
       let ballSynthTimer = 0;
       let ballSynthNodes = [];
       let ballRollStartedOk = false;
+      let fretBufs = [null, null, null];
+      let fretBufsLoading = null;
+      let fretOutGain = null;
       function ballSfxMuted() {
         return !!(Voice && Voice.muted);
       }
@@ -3658,9 +3661,35 @@
           else reset();
         } catch (_) {}
       }
+      function loadFretBuffers() {
+        const ctx = ensureBallAudioCtx();
+        if (!ctx) return Promise.reject(new Error('no-ctx'));
+        if (fretBufs[0] && fretBufs[1] && fretBufs[2]) return Promise.resolve(fretBufs);
+        if (fretBufsLoading) return fretBufsLoading;
+        fretBufsLoading = Promise.all([0, 1, 2].map((i) => {
+          const url = 'audio/roulette-fret-click-' + i + '.mp3?v=' + V;
+          return fetch(url)
+            .then((r) => {
+              if (!r.ok) throw new Error('fret-fetch');
+              return r.arrayBuffer();
+            })
+            .then((ab) => ctx.decodeAudioData(ab.slice(0)));
+        }))
+          .then((bufs) => {
+            fretBufs = bufs;
+            fretBufsLoading = null;
+            return bufs;
+          })
+          .catch((err) => {
+            fretBufsLoading = null;
+            throw err;
+          });
+        return fretBufsLoading;
+      }
       function primeBallSpinSfx() {
         ensureBallAudioCtx();
         try { loadBallRollBuffer().catch(() => {}); } catch (_) {}
+        try { loadFretBuffers().catch(() => {}); } catch (_) {}
         _primeOneBall(sfxBallRoll);
         _primeOneBall(sfxBallBounce);
         sfxFretClicks.forEach(_primeOneBall);
@@ -3776,6 +3805,7 @@
           if (startBallRollBuffer()) return;
           fallbackHtmlOrSynth();
         };
+        try { loadFretBuffers().catch(() => {}); } catch (_) {}
         loadBallRollBuffer().then(() => {
           kickBuf();
         }).catch(() => {
@@ -3796,17 +3826,40 @@
         pauseHtmlBallRoll();
         stopBallSpinSynth();
       }
-      /** 撞一格隔板一声；外圈硬门禁（电脑同款） */
+      /** 撞一格隔板一声；优先 Web Audio（手机中途 HTML Audio 常被拦） */
       function playFretClick(vol) {
         if (ballSfxMuted() || !ballSpinPlaying || !ballInPocketPhase) return;
         ballBounceStarted = true;
-        const src = sfxFretClicks[fretClickI % sfxFretClicks.length];
+        const idx = fretClickI % 3;
         fretClickI++;
-        if (!src) return;
+        const v = vol == null ? 0.9 : vol;
+        const ctx = ensureBallAudioCtx();
+        const buf = fretBufs[idx];
+        if (ctx && buf) {
+          try {
+            if (ctx.state === 'suspended') ctx.resume();
+            if (!fretOutGain) {
+              fretOutGain = ctx.createGain();
+              fretOutGain.connect(ctx.destination);
+            }
+            fretOutGain.gain.value = 1;
+            const src = ctx.createBufferSource();
+            const g = ctx.createGain();
+            g.gain.value = Math.max(0.05, Math.min(1, v));
+            src.buffer = buf;
+            src.connect(g);
+            g.connect(fretOutGain);
+            src.start(0);
+            return;
+          } catch (_) {}
+        }
+        /* HTML 兜底 */
+        const html = sfxFretClicks[idx];
+        if (!html) return;
         try {
-          const a = src.cloneNode();
-          a.volume = vol == null ? 0.9 : vol;
+          const a = html.cloneNode();
           a.muted = false;
+          a.volume = Math.max(0.05, Math.min(1, v));
           const p = a.play();
           if (p && p.catch) p.catch(() => {});
         } catch (_) {}
@@ -5402,7 +5455,7 @@
        * 步骤1：外圈四圈递慢 — OUTER_MS / LAP_SHARE（已定 1.9.0）
        * 步骤3：入格末速衔接 + 匀减速；停稳锁格心
        * 步骤2：滚球声贯穿外圈+数字圈；DROP_U1 进格间才停 roll
-       * 未做：步骤4 隔板 fret 轮播真声
+       * 步骤4：进格间立刻接隔板 fret-0/1/2（先停 roll → 再开门禁 → 首击无缝）
        */
       function runBallAndWheelStop(winNum) {
         /* 步骤1：外圈 — 照抄电脑（份额勿改） */
@@ -5550,8 +5603,8 @@
             } else if (u >= RATTLE_END) {
               /* 运动已自然到格心后：保持整数格心，不压线 */
               if (!ballInPocketPhase) {
-                ballInPocketPhase = true;
                 stopBallRollOnly();
+                ballInPocketPhase = true;
               }
               ang = pocketCenterCss(wNow);
             } else {
@@ -5560,14 +5613,17 @@
                 /* 落入数字圈：继续完整滚球声，此处不停 roll */
                 lastFret = Math.floor(startIdx - 0.5 + 1e-6);
               }
-              /* 真正进入格间（半径已落到格窝）才停滚球；隔板声步骤4 */
-              if (u >= DROP_U1 && !ballInPocketPhase) {
-                ballInPocketPhase = true;
-                stopBallRollOnly();
-              }
               const f = pocketFloatAt(u);
               const fretI = Math.floor(f - 0.5 + 1e-9);
-              if (u >= DROP_U1 && fretI !== lastFret) {
+              /* 进格间：先停 roll → 开门禁 → 立刻首击，再随过隔板轮播 fret-0/1/2 */
+              if (u >= DROP_U1 && !ballInPocketPhase) {
+                stopBallRollOnly();
+                ballInPocketPhase = true;
+                justHit = true;
+                lastFret = fretI;
+                try { loadFretBuffers().catch(() => {}); } catch (_) {}
+                playFretClick(0.95);
+              } else if (u >= DROP_U1 && fretI !== lastFret) {
                 justHit = true;
                 lastFret = fretI;
                 const t = (u - DROP_U1) / Math.max(1e-6, RATTLE_END - DROP_U1);

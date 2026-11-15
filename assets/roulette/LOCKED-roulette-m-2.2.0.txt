@@ -1,0 +1,26 @@
+roulette-m v2.2.0 — 2026-11-15
+用户书面：「把这个版本定位为2.2版本 这个轮盘不要动了」
+自工作中 2.1.8 升锁
+
+已验收清单（本包算数）：
+- 沿用 v2.1.0：步骤1 外圈四圈递慢 OUTER_MS/LAP_SHARE；步骤3 入格自然匀减速；停稳锁格心
+- 沿用 v1.8.0：法式撤销预备、10k/20k、侧栏、betOk、喇叭三分叉等
+- 步骤2 外圈滚球：outer-cont 连续长片单次播放（禁止短 outer loop 接缝间断）；DROP_U1 停 roll
+- 步骤4 进格间隔板：先停 roll → 立刻 Web Audio 播 fret-0/1/2 轮播（音量渐弱）；手机不用易被拦的中途 HTML Audio
+- 资源：audio/roulette-ball-roll-outer-cont.mp3、audio/roulette-fret-click-0/1/2.mp3
+
+未验收、不得当作本定版：
+- 打键贴面换色、整站多语言、公告后台
+- 电脑版轮盘（另册；用户书面别管电脑）
+- 手机骰宝（另册 v2.0.0）
+
+回滚：
+  roulette-m.LOCKED-2.2.0.html
+  roulette-m-boot.LOCKED-2.2.0.html
+  lobby.LOCKED-roulette-m-2.2.0.html
+  assets/roulette/LOCKED-roulette-m-2.2.0.txt
+  audio/roulette-ball-roll-outer-cont.mp3
+  audio/roulette-fret-click-0.mp3 / 1 / 2
+  assets/roulette/VERSION-m.txt = 2.2.0
+  tag roulette-m-v2.2.0
+验收：https://forestgroup.ai/roulette-m.html?v=2.2.0
