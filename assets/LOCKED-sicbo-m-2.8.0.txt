@@ -1,0 +1,25 @@
+sicbo-m v2.8.0 lock — 2026-11-15
+用户书面：「请讲骰宝和轮盘定位2.8 并存入git」→ 定版 2.8.0
+（与手机轮盘同号统一封存）
+
+已验收清单（本包算数）：
+- 沿用 v2.7.0：口播只子页、喇叭三分叉、默认静音、趋势/菜单/规则、撤销↩️/❌、记录分页铺满、额度「撤销」、记录×回侧栏、共用流水与 fg-game-ledger.js
+- 底栏筹码 chip-200 / chip-500 / chip-1000 彩色圆盘居中矫正（共用 chips/）
+- 上述三枚缓存参数 ?v=1.2.2c
+
+未验收、不得当作本定版：
+- 电脑版 game.html / 骰宝电脑冻结包
+- 百家乐（另册）
+- 整站多语言、公告后台
+- 选中态 CSS（translateY/scale）改动（本包未改）
+
+回滚：
+- game-m.LOCKED-2.8.0.html
+- lobby.LOCKED-sicbo-m-2.8.0.html
+- assets/LOCKED-sicbo-m-2.8.0.txt
+- chips/LOCKED-chip-{200,500,1000}-m-2.8.0.{webp,png}
+- js/fg-game-ledger.LOCKED-2.8.0.js
+- tag sicbo-m-v2.8.0
+
+验收：https://forestgroup.ai/game-m.html?v=2.8.0
+Lobby: GAME_M → game-m.html?v=2.8.0

@@ -1,0 +1,25 @@
+roulette-m v2.8.0 — 2026-11-15
+用户书面：「请讲骰宝和轮盘定位2.8 并存入git」→ 定版 2.8.0
+
+已验收清单（本包算数）：
+- 沿用 v2.7.0：合并流水、游戏列、永久 append、结算本桌本局、额度时间、隐藏局号、WA/coin-bag/喇叭三分叉、小球/outer-cont/fret、跑道规则、10k/20k、侧栏、记录分页铺满、额度「撤销」、记录×回侧栏、fg-game-ledger.js
+- 底栏筹码 chip-200 / chip-500 / chip-1000 彩色圆盘居中矫正（共用 chips/）
+- 上述三枚缓存参数 ?v=1.2.2c
+
+未验收、不得当作本定版：
+- 打键贴面换色、整站多语言、公告后台
+- 电脑版轮盘
+- 英文开奖报数（仍关）
+- 百家乐（另册）
+- 选中态 CSS（translateY/scale）改动（本包未改）
+
+回滚：
+  roulette-m.LOCKED-2.8.0.html
+  roulette-m-boot.LOCKED-2.8.0.html
+  lobby.LOCKED-roulette-m-2.8.0.html
+  assets/roulette/LOCKED-roulette-m-2.8.0.txt
+  chips/LOCKED-chip-{200,500,1000}-m-2.8.0.{webp,png}
+  js/fg-game-ledger.LOCKED-2.8.0.js
+  assets/roulette/VERSION-m.txt = 2.8.0
+  tag roulette-m-v2.8.0
+验收：https://forestgroup.ai/roulette-m.html?v=2.8.0
