@@ -1,0 +1,25 @@
+roulette-m v2.7.0 — 2026-11-15
+用户书面：「请把此两个游戏最后全部存为2.7 然后计入git 封存…放到服务器上」→「定版」
+
+已验收清单（本包算数）：
+- 沿用 v2.6.0：合并流水、游戏列骰宝/轮盘、永久 betAppend/creditAppend、结算只结本桌本局、额度时间 UNIX_TIMESTAMP、隐藏局号、WA 口播、coin-bag、喇叭三分叉、小球/outer-cont/fret、跑道规则、10k/20k、侧栏等
+- 记录分页按可视高度铺满（measureRecPageSize；不再锁死 8 行）
+- 额度类别「其他」改为「撤销」（含筛选下拉文案）
+- 记录页：大厅进桌壳左上 × 已去掉；记录右上 × 关闭后回侧栏菜单
+- 共用 js/fg-game-ledger.js（游戏标签 / 结算辅助 / 分页测量）
+
+未验收、不得当作本定版：
+- 打键贴面换色、整站多语言、公告后台
+- 电脑版轮盘
+- 英文开奖报数（仍关）
+- 新游戏（须另开，禁止改本包）
+
+回滚：
+  roulette-m.LOCKED-2.7.0.html
+  roulette-m-boot.LOCKED-2.7.0.html
+  lobby.LOCKED-roulette-m-2.7.0.html
+  assets/roulette/LOCKED-roulette-m-2.7.0.txt
+  js/fg-game-ledger.LOCKED-2.7.0.js
+  assets/roulette/VERSION-m.txt = 2.7.0
+  tag roulette-m-v2.7.0
+验收：https://forestgroup.ai/roulette-m.html?v=2.7.0

@@ -262,19 +262,8 @@
     }
     #fgEmbedShell.is-ready iframe { opacity: 1; }
     #fgEmbedCover { display: none !important; }
-    #fgEmbedClose {
-      position: absolute; top: max(8px, env(safe-area-inset-top));
-      left: max(8px, env(safe-area-inset-left));
-      z-index: 3; width: 36px; height: 36px; border: 0; border-radius: 50%;
-      background: rgba(0,0,0,.55); color: #f0d392; font-size: 22px; line-height: 36px;
-      cursor: pointer;
-      opacity: 0;
-      pointer-events: none;
-    }
-    #fgEmbedShell.is-ready #fgEmbedClose {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    /* 进桌壳左上 × 已去掉：子页自带返回；避免盖住记录页标题 */
+    #fgEmbedClose { display: none !important; }
   </style>
   <!-- 轮盘首页首开：预取轮盘页+键面；禁止预取骰宝抢带宽 -->
   <link rel="prefetch" href="roulette-m.html?v=1.6.12" as="document">
@@ -324,10 +313,10 @@
   <script>
     (function () {
       const GAME_PC = 'game.html?v=1.5.18';
-      const GAME_M = 'game-m.html?v=2.0.0';
+      const GAME_M = 'game-m.html?v=2.7.0';
       const ROULETTE_PC = 'roulette.html?v=1.2.11';
-      const ROULETTE_M = 'roulette-m.html?v=2.6.0';
-      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.6.0';
+      const ROULETTE_M = 'roulette-m.html?v=2.7.0';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.7.0';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -693,11 +682,9 @@
         if (shell) return shell;
         shell = document.createElement('div');
         shell.id = 'fgEmbedShell';
-        shell.innerHTML = ''
-          + '<iframe id="fgEmbedFrame" allow="autoplay *; fullscreen *" title="game"></iframe>'
-          + '<button type="button" id="fgEmbedClose" aria-label="返回大厅">×</button>';
+        /* 不再挂左上 ×：桌内用返回箭头 ‹ 回大厅 */
+        shell.innerHTML = '<iframe id="fgEmbedFrame" allow="autoplay *; fullscreen *" title="game"></iframe>';
         document.body.appendChild(shell);
-        document.getElementById('fgEmbedClose').addEventListener('click', () => closeEmbedShell());
         const frame = document.getElementById('fgEmbedFrame');
         if (frame) {
           frame.addEventListener('load', () => {

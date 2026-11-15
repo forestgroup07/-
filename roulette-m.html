@@ -2691,7 +2691,7 @@
                 <option value="all">全部</option>
                 <option value="bet">下注</option>
                 <option value="settle">结算</option>
-                <option value="other">其他</option>
+                <option value="other">撤销</option>
               </select>
             </label>
           </div>
@@ -2877,9 +2877,10 @@
   </div>
 
   <script src="js/fg-wallet.js?v=1.0.4"></script>
+  <script src="js/fg-game-ledger.js?v=1.0.1"></script>
   <script>
     (function () {
-      const V = '2.6.0';
+      const V = '2.7.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -4278,9 +4279,23 @@
         add(loadExtraBetLog('fg_sicbo_betlog::' + String(user || 'asdg').toLowerCase()));
         return Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
       }
-      const REC_PAGE_SIZE = 8;
+      let recPageSize = 10;
       let betRecPage = 1;
       let creditRecPage = 1;
+      let _recFitBusy = false;
+      function measureRecPageSize(sheetId) {
+        const L = window.FgGameLedger;
+        if (L && L.measureRecPageSize) return L.measureRecPageSize(sheetId, recPageSize);
+        return Math.max(8, recPageSize || 10);
+      }
+      function fitRecPageSize(sheetId, paintFn) {
+        if (_recFitBusy) return;
+        const fitted = measureRecPageSize(sheetId);
+        if (fitted === recPageSize) return;
+        _recFitBusy = true;
+        recPageSize = fitted;
+        try { paintFn(); } finally { _recFitBusy = false; }
+      }
       const betRecFilter = { round: '', order: '', from: 0, to: 0 };
       const creditRecFilter = { type: 'all', from: 0, to: 0 };
       function fmtRecMoney(n) {
@@ -4318,12 +4333,11 @@
         if (force || !toEl.value) toEl.value = fmtDateInputLocal(to);
       }
       function betGameLabel(r) {
-        const code = String((r && (r.game_code || r.gameCode)) || '').toLowerCase();
-        const tid = String((r && (r.tableId || r.table_code)) || '');
-        const src = String((r && (r.source || r.client_code)) || '');
-        /* 只显示游戏名，不带 S601/R501 */
-        if (code === 'sicbo' || /^S/i.test(tid) || /sicbo/i.test(src)) return '骰宝';
-        if (code === 'roulette' || /^R/i.test(tid) || /roulette/i.test(src)) return '轮盘';
+        const L = window.FgGameLedger;
+        if (L && L.gameLabel) {
+          const name = L.gameLabel(r);
+          return name === '—' ? '轮盘' : name;
+        }
         return '轮盘';
       }
       function creditGameLabel(r) {
@@ -4350,7 +4364,8 @@
         if (t === 'bet' || t === 'debit') return '下注';
         if (t === 'credit' || t === 'settle' || t === 'payout' || t === 'win') return '结算';
         if (t === 'recharge') return '充值';
-        return '其他';
+        if (t === 'refund' || t === 'undo' || t === 'cancel') return '撤销';
+        return '撤销';
       }
       function creditCatGroup(type) {
         const t = String(type || '').toLowerCase();
@@ -4384,12 +4399,14 @@
         const prevBtn = document.getElementById('betPrev');
         const nextBtn = document.getElementById('betNext');
         if (!body) return;
+        const nextSize = measureRecPageSize('betLogSheet');
+        if (nextSize !== recPageSize) recPageSize = nextSize;
         const all = filteredAllBetLog();
-        const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
+        const pages = Math.max(1, Math.ceil(all.length / recPageSize) || 1);
         if (betRecPage > pages) betRecPage = pages;
         if (betRecPage < 1) betRecPage = 1;
-        const start = (betRecPage - 1) * REC_PAGE_SIZE;
-        const pageRows = all.slice(start, start + REC_PAGE_SIZE);
+        const start = (betRecPage - 1) * recPageSize;
+        const pageRows = all.slice(start, start + recPageSize);
         if (!pageRows.length) {
           body.innerHTML = '<tr class="rec-empty"><td colspan="5">所选时间没有记录</td></tr>';
         } else {
@@ -4419,6 +4436,7 @@
         if (pageLabel) pageLabel.textContent = betRecPage + ' / ' + pages;
         if (prevBtn) prevBtn.disabled = betRecPage <= 1;
         if (nextBtn) nextBtn.disabled = betRecPage >= pages;
+        requestAnimationFrame(() => fitRecPageSize('betLogSheet', paintBetRecords));
       }
       function paintCreditRecords() {
         const body = document.getElementById('creditRecBody');
@@ -4427,12 +4445,14 @@
         const prevBtn = document.getElementById('creditPrev');
         const nextBtn = document.getElementById('creditNext');
         if (!body) return;
+        const nextSize = measureRecPageSize('creditLogSheet');
+        if (nextSize !== recPageSize) recPageSize = nextSize;
         const all = filteredAllCreditLog();
-        const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
+        const pages = Math.max(1, Math.ceil(all.length / recPageSize) || 1);
         if (creditRecPage > pages) creditRecPage = pages;
         if (creditRecPage < 1) creditRecPage = 1;
-        const start = (creditRecPage - 1) * REC_PAGE_SIZE;
-        const pageRows = all.slice(start, start + REC_PAGE_SIZE);
+        const start = (creditRecPage - 1) * recPageSize;
+        const pageRows = all.slice(start, start + recPageSize);
         if (!pageRows.length) {
           body.innerHTML = '<tr class="rec-empty"><td colspan="6">暂无额度记录</td></tr>';
         } else {
@@ -4463,6 +4483,7 @@
         if (pageLabel) pageLabel.textContent = creditRecPage + ' / ' + pages;
         if (prevBtn) prevBtn.disabled = creditRecPage <= 1;
         if (nextBtn) nextBtn.disabled = creditRecPage >= pages;
+        requestAnimationFrame(() => fitRecPageSize('creditLogSheet', paintCreditRecords));
       }
       function syncBetFilterFromInputs() {
         betRecFilter.round = ((document.getElementById('betRoundQ') || {}).value || '').trim();
@@ -4481,8 +4502,11 @@
         initRecDateDefaults('betFrom', 'betTo', false);
         syncBetFilterFromInputs();
         betRecPage = 1;
-        paintBetRecords();
         openSheetById('betLogSheet');
+        requestAnimationFrame(() => {
+          recPageSize = measureRecPageSize('betLogSheet');
+          paintBetRecords();
+        });
       }
       function openCreditRecords() {
         setLangPopOpen(false);
@@ -4490,8 +4514,11 @@
         initRecDateDefaults('creditFrom', 'creditTo', false);
         syncCreditFilterFromInputs();
         creditRecPage = 1;
-        paintCreditRecords();
         openSheetById('creditLogSheet');
+        requestAnimationFrame(() => {
+          recPageSize = measureRecPageSize('creditLogSheet');
+          paintCreditRecords();
+        });
       }
       function setBalance(n, meta) {
         const prev = balance;
@@ -6386,7 +6413,12 @@
       const btnCreditLog = document.getElementById('btnCreditLog');
       if (btnCreditLog) btnCreditLog.addEventListener('click', openCreditRecords);
       document.querySelectorAll('[data-rec-close]').forEach((btn) => {
-        btn.addEventListener('click', () => closeSheetById(btn.getAttribute('data-rec-close')));
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-rec-close');
+          closeSheetById(id);
+          /* 右边 × = 回上一页（侧栏菜单），不是回大厅 */
+          if (id === 'betLogSheet' || id === 'creditLogSheet') setSideMenuOpen(true);
+        });
       });
       const betQueryBtn = document.getElementById('betQueryBtn');
       if (betQueryBtn) betQueryBtn.addEventListener('click', () => {

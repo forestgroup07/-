@@ -23,4 +23,4 @@ alwaysApply: true
    - git commit / tag 标明 `sicbo-m-v2.0.0`
 3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
 4. 只有用户明确说「改手机骰宝 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
-5. 本冻结仅手机版；电脑 `game.html` 以既有 `sicbo-pc-frozen-*` 为准。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git` 同时生效；冲突时取更严：默认不动。当前有效手机冻结以**本版**为准（取代 `1.9.0`）。
+5. 本冻结仅手机版；电脑 `game.html` 以既有 `sicbo-pc-frozen-*` 为准。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git` 同时生效；冲突时取更严：默认不动。当前有效手机冻结以 `sicbo-m-frozen-2.7.0` 为准（本版为历史定版）。

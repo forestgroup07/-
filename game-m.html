@@ -2428,7 +2428,7 @@
                 <option value="all">全部</option>
                 <option value="bet">下注</option>
                 <option value="settle">结算</option>
-                <option value="other">其他</option>
+                <option value="other">撤销</option>
               </select>
             </label>
           </div>
@@ -2443,6 +2443,7 @@
           <table class="rec-table">
             <thead>
               <tr>
+                <th>游戏</th>
                 <th>时间</th>
                 <th>类别</th>
                 <th>交易前余额</th>
@@ -2697,10 +2698,12 @@
   <script type="module" src="js/cup-shake-3d.js?v=1.5.0"></script>
   <script src="js/sicbo-engine.js?v=1.2.2"></script>
   <script src="js/fg-wallet.js?v=1.0.4"></script>
+  <script src="js/fg-game-ledger.js?v=1.0.1"></script>
   <script>
   (function () {
     'use strict';
-    const V = '2.0.0';
+    const V = '2.7.0';
+    const LEDGER = window.FgGameLedger;
     const START_BAL = 2000;
     const TABLE_MIN = 10;
     const TABLE_MAX = 20000; /* 一次最多可下注 20k（与手机轮盘一致） */
@@ -2796,20 +2799,10 @@
       return clipped;
     }
     function pushCreditRecord(row) {
-      if (!row) return null;
-      const amount = Math.round(Number(row.amount) || 0);
-      if (!amount) return null;
-      const ts = Number(row.ts) || Date.now();
-      const entry = {
-        id: String(row.id || (String(ts) + String(Math.floor(Math.random() * 90) + 10))),
-        ts,
-        type: String(row.type || (amount > 0 ? 'credit' : 'debit')),
-        amount,
-        balance: Math.max(0, Math.round(Number(row.balance != null ? row.balance : balance) || 0)),
-        note: String(row.note || ''),
-        source: String(row.source || 'sicbo-m'),
-        status: String(row.status || 'ok'),
-      };
+      const entry = LEDGER && LEDGER.buildCreditEntry
+        ? LEDGER.buildCreditEntry(row, balance, { source: 'sicbo-m', game_code: 'sicbo', tableId: 'S601' })
+        : null;
+      if (!entry) return null;
       const list = loadCreditLog();
       list.unshift(entry);
       saveCreditLogLocal(list);
@@ -2872,6 +2865,8 @@
           type: (meta && meta.type) || (delta > 0 ? 'credit' : 'debit'),
           note: (meta && meta.note) || '',
           source: (meta && meta.source) || 'sicbo-m',
+          game_code: (meta && (meta.game_code || meta.gameCode)) || 'sicbo',
+          tableId: (meta && meta.tableId) || 'S601',
           balance: v,
         });
       }
@@ -3753,19 +3748,14 @@
 
     function markBetIdsCancelled(ids) {
       if (!ids || !ids.length) return;
-      const idset = new Set(ids.map((x) => String(x)));
       const list = loadBetLog();
-      let changed = false;
-      list.forEach((r) => {
-        if (!r) return;
-        const id = String(r.betId || r.id || '');
-        if (!idset.has(id)) return;
-        if (r.status === 'cancelled') return;
-        r.status = 'cancelled';
-        r.pnl = 0;
-        changed = true;
-      });
-      if (changed) saveBetLogLocal(list);
+      const updated = (LEDGER && LEDGER.markCancelled)
+        ? LEDGER.markCancelled(list, ids, { game_code: 'sicbo', tableId: 'S601', source: 'sicbo-m' })
+        : [];
+      if (updated.length) {
+        saveBetLogLocal(list);
+        scheduleServerSave({ betAppend: updated.slice() });
+      }
     }
     function refundConfirmedAmount(amt, note) {
       const n = Math.round(Number(amt) || 0);
@@ -3905,6 +3895,7 @@
         ts,
         roundId: String(roundNo),
         tableId: 'S601',
+        game_code: 'sicbo',
         result: '',
         market: k,
         key: k,
@@ -4411,9 +4402,23 @@
       } catch (_) {}
       return Array.from(map.values()).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
     }
-    const REC_PAGE_SIZE = 8;
+    let recPageSize = 10;
     let betRecPage = 1;
     let creditRecPage = 1;
+    let _recFitBusy = false;
+    function measureRecPageSize(sheetId) {
+      const L = window.FgGameLedger;
+      if (L && L.measureRecPageSize) return L.measureRecPageSize(sheetId, recPageSize);
+      return Math.max(8, recPageSize || 10);
+    }
+    function fitRecPageSize(sheetId, paintFn) {
+      if (_recFitBusy) return;
+      const fitted = measureRecPageSize(sheetId);
+      if (fitted === recPageSize) return;
+      _recFitBusy = true;
+      recPageSize = fitted;
+      try { paintFn(); } finally { _recFitBusy = false; }
+    }
     const betRecFilter = { round: '', order: '', from: 0, to: 0 };
     const creditRecFilter = { type: 'all', from: 0, to: 0 };
     function fmtRecMoney(n) {
@@ -4451,10 +4456,10 @@
       if (force || !toEl.value) toEl.value = fmtDateInputLocal(to);
     }
     function betGameLabel(r) {
-      const tid = String((r && r.tableId) || '');
-      const src = String((r && r.source) || '');
-      if (/^R/i.test(tid) || /roulette/i.test(src)) return '轮盘 ' + (tid || 'R501');
-      return '骰宝 ' + (tid || 'S602');
+      return (LEDGER && LEDGER.gameLabel) ? LEDGER.gameLabel(r) : '骰宝';
+    }
+    function creditGameLabel(r) {
+      return betGameLabel(r);
     }
     function betMarketLabel(r) {
       const k = String((r && (r.market || r.key)) || '');
@@ -4468,7 +4473,8 @@
       if (t === 'bet' || t === 'debit') return '下注';
       if (t === 'credit' || t === 'settle' || t === 'payout' || t === 'win') return '结算';
       if (t === 'recharge') return '充值';
-      return '其他';
+      if (t === 'refund' || t === 'undo' || t === 'cancel') return '撤销';
+      return '撤销';
     }
     function creditCatGroup(type) {
       const t = String(type || '').toLowerCase();
@@ -4502,12 +4508,14 @@
       const prevBtn = document.getElementById('betPrev');
       const nextBtn = document.getElementById('betNext');
       if (!body) return;
+      const nextSize = measureRecPageSize('betLogSheet');
+      if (nextSize !== recPageSize) recPageSize = nextSize;
       const all = filteredAllBetLog();
-      const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
+      const pages = Math.max(1, Math.ceil(all.length / recPageSize) || 1);
       if (betRecPage > pages) betRecPage = pages;
       if (betRecPage < 1) betRecPage = 1;
-      const start = (betRecPage - 1) * REC_PAGE_SIZE;
-      const pageRows = all.slice(start, start + REC_PAGE_SIZE);
+      const start = (betRecPage - 1) * recPageSize;
+      const pageRows = all.slice(start, start + recPageSize);
       if (!pageRows.length) {
         body.innerHTML = '<tr class="rec-empty"><td colspan="5">所选时间没有记录</td></tr>';
       } else {
@@ -4537,6 +4545,7 @@
       if (pageLabel) pageLabel.textContent = betRecPage + ' / ' + pages;
       if (prevBtn) prevBtn.disabled = betRecPage <= 1;
       if (nextBtn) nextBtn.disabled = betRecPage >= pages;
+      requestAnimationFrame(() => fitRecPageSize('betLogSheet', paintBetRecords));
     }
     function paintCreditRecords() {
       const body = document.getElementById('creditRecBody');
@@ -4545,14 +4554,16 @@
       const prevBtn = document.getElementById('creditPrev');
       const nextBtn = document.getElementById('creditNext');
       if (!body) return;
+      const nextSize = measureRecPageSize('creditLogSheet');
+      if (nextSize !== recPageSize) recPageSize = nextSize;
       const all = filteredAllCreditLog();
-      const pages = Math.max(1, Math.ceil(all.length / REC_PAGE_SIZE) || 1);
+      const pages = Math.max(1, Math.ceil(all.length / recPageSize) || 1);
       if (creditRecPage > pages) creditRecPage = pages;
       if (creditRecPage < 1) creditRecPage = 1;
-      const start = (creditRecPage - 1) * REC_PAGE_SIZE;
-      const pageRows = all.slice(start, start + REC_PAGE_SIZE);
+      const start = (creditRecPage - 1) * recPageSize;
+      const pageRows = all.slice(start, start + recPageSize);
       if (!pageRows.length) {
-        body.innerHTML = '<tr class="rec-empty"><td colspan="5">暂无额度记录</td></tr>';
+        body.innerHTML = '<tr class="rec-empty"><td colspan="6">暂无额度记录</td></tr>';
       } else {
         body.innerHTML = pageRows.map((r) => {
           const amt = Number(r.amount) || 0;
@@ -4560,6 +4571,7 @@
           const before = Math.max(0, after - amt);
           const amtCls = amt > 0 ? 'pnl-win' : (amt < 0 ? 'pnl-lose' : '');
           return '<tr>'
+            + '<td class="rec-game">' + creditGameLabel(r) + '</td>'
             + '<td class="rec-time">' + fmtRecShortTime(r.ts) + '</td>'
             + '<td>' + creditCatLabel(r.type) + '</td>'
             + '<td>' + fmtRecMoney(before) + '</td>'
@@ -4580,6 +4592,7 @@
       if (pageLabel) pageLabel.textContent = creditRecPage + ' / ' + pages;
       if (prevBtn) prevBtn.disabled = creditRecPage <= 1;
       if (nextBtn) nextBtn.disabled = creditRecPage >= pages;
+      requestAnimationFrame(() => fitRecPageSize('creditLogSheet', paintCreditRecords));
     }
     function syncBetFilterFromInputs() {
       betRecFilter.round = ((document.getElementById('betRoundQ') || {}).value || '').trim();
@@ -4598,8 +4611,11 @@
       initRecDateDefaults('betFrom', 'betTo', false);
       syncBetFilterFromInputs();
       betRecPage = 1;
-      paintBetRecords();
       openSheetById('betLogSheet');
+      requestAnimationFrame(() => {
+        recPageSize = measureRecPageSize('betLogSheet');
+        paintBetRecords();
+      });
     }
     function openCreditRecords() {
       setLangPopOpen(false);
@@ -4607,8 +4623,11 @@
       initRecDateDefaults('creditFrom', 'creditTo', false);
       syncCreditFilterFromInputs();
       creditRecPage = 1;
-      paintCreditRecords();
       openSheetById('creditLogSheet');
+      requestAnimationFrame(() => {
+        recPageSize = measureRecPageSize('creditLogSheet');
+        paintCreditRecords();
+      });
     }
     const btnMenuEl = document.getElementById('btnMenu');
     if (btnMenuEl) btnMenuEl.addEventListener('click', () => setSideMenuOpen(true));
@@ -4654,7 +4673,12 @@
     const btnCreditLog = document.getElementById('btnCreditLog');
     if (btnCreditLog) btnCreditLog.addEventListener('click', openCreditRecords);
     document.querySelectorAll('[data-rec-close]').forEach((btn) => {
-      btn.addEventListener('click', () => closeSheetById(btn.getAttribute('data-rec-close')));
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-rec-close');
+        closeSheetById(id);
+        /* 右边 × = 回上一页（侧栏菜单），不是回大厅 */
+        if (id === 'betLogSheet' || id === 'creditLogSheet') setSideMenuOpen(true);
+      });
     });
     const betQueryBtn = document.getElementById('betQueryBtn');
     if (betQueryBtn) betQueryBtn.addEventListener('click', () => {
@@ -4939,11 +4963,16 @@
       /* 未确认草稿作废，不扣余额；封盘后不可再撤确认注 */
       draft = Object.create(null);
       undoStack = [];
+      /* 先收本局 betId，再清空栈——结账只动本桌本局 */
+      const thisRoundBetIds = (LEDGER && LEDGER.collectBetIds)
+        ? LEDGER.collectBetIds(confirmUndoStack)
+        : new Set();
       confirmUndoStack = [];
       paintActBar();
       const dice = E.rollDice();
       const bets = Object.assign({}, confirmed);
       const hasBets = totalConfirmed() > 0;
+      const settleRoundId = String(roundNo || '');
 
       const runSettle = () => {
         showResultDice(dice);
@@ -4962,7 +4991,14 @@
         if (res.returned > 0) {
           const prevBal = balance;
           balance += res.returned;
-          saveBal(user, balance, { type: 'payout', note: '开奖派彩', source: 'sicbo-m', prev: prevBal });
+          saveBal(user, balance, {
+            type: 'payout',
+            note: '开奖派彩',
+            source: 'sicbo-m',
+            game_code: 'sicbo',
+            tableId: 'S601',
+            prev: prevBal,
+          });
         } else {
           saveBal(user, balance, { skipLog: true });
         }
@@ -4972,6 +5008,36 @@
             if (res.pnl[k] != null) lastPnl[k] = res.pnl[k];
           });
         }
+        /* 投注记录：本局 open → settled，betAppend 永久写入 */
+        try {
+          const meta = Object.create(null);
+          Object.keys(bets).forEach((k) => {
+            const stake = Math.round(Number(bets[k]) || 0);
+            if (stake <= 0) return;
+            const pnl = (res.pnl && res.pnl[k] != null)
+              ? Number(res.pnl[k])
+              : -stake;
+            meta[k] = { key: k, stake, pnl };
+          });
+          if (Object.keys(meta).length && LEDGER && LEDGER.settleOpenBets) {
+            const list = loadBetLog();
+            const resultStr = (dice || []).join(',');
+            const updated = LEDGER.settleOpenBets({
+              list,
+              meta,
+              roundId: settleRoundId,
+              thisRoundBetIds,
+              gameCode: 'sicbo',
+              tableId: 'S601',
+              source: 'sicbo-m',
+              result: resultStr,
+            });
+            if (updated.length) {
+              saveBetLogLocal(list);
+              scheduleServerSave({ betAppend: updated.slice() });
+            }
+          }
+        } catch (_) {}
         confirmed = Object.create(null);
         draft = Object.create(null);
         undoStack = [];
