@@ -147,7 +147,11 @@
       inset: 0;
       pointer-events: none;
     }
-    #trackNumsM { z-index: 2; }
+    #trackNumsM {
+      z-index: 2;
+      /* 用户书面：跑道号格禁止下注；只看法式绿键 */
+      pointer-events: none !important;
+    }
     #trackFrench { z-index: 3; } /* 中间绿键压在号格 AABB 之上 */
     #trackFrench .hit,
     #trackNumsM .hit {
@@ -2872,7 +2876,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '2.2.0';
+      const V = '2.3.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -3083,8 +3087,10 @@
         corner: '3 - 625',
         line: '4 - 1,000',
       };
-      const EDGE_BAND = 0.34;
-      const CORNER_BAND = 0.20;
+      /* 分注/角注边带；街注外缘（手机=3/6/9…右缘贴跑道）必须更窄，否则点 6/9 格心易变歪边街注 */
+      const EDGE_BAND = 0.22;
+      const STREET_EDGE_BAND = 0.10;
+      const CORNER_BAND = 0.18;
       function numLeft(n) { return n >= 4 ? n - 3 : null; }
       function numRight(n) { return n <= 33 ? n + 3 : null; }
       function numUp(n) { return (n % 3 === 0) ? null : n + 1; }
@@ -3177,14 +3183,19 @@
         if (edgeT) {
           const U = numUp(n);
           if (U != null) return { kind: 'split', nums: [n, U], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
-          const base = n - 2;
-          return { kind: 'street', nums: [base, base + 1, base + 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+          /* 外缘街注（手机竖盘=6/9/12 右缘）：只认贴边，格心/大半格一律直注 */
+          if (dT < STREET_EDGE_BAND) {
+            const base = n - 2;
+            return { kind: 'street', nums: [base, base + 1, base + 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+          }
         }
         if (edgeB) {
           const D = numDown(n);
           if (D != null) return { kind: 'split', nums: [n, D], name: '分注', odds: '1:17', limit: INSIDE_LIMIT.split };
-          const base = n;
-          return { kind: 'street', nums: [base, base + 1, base + 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+          if (dB < STREET_EDGE_BAND) {
+            const base = n;
+            return { kind: 'street', nums: [base, base + 1, base + 2], name: '街注', odds: '1:11', limit: INSIDE_LIMIT.street };
+          }
         }
         return { kind: 'straight', nums: [n], name: '直注', odds: '1:35', limit: INSIDE_LIMIT.straight };
       }
@@ -4388,7 +4399,8 @@
               left = 100;
               top = (nums[2] === 3) ? 18 : 82;
             } else {
-              hostN = nums[2]; left = 50; top = 0;
+              /* top 略内收：手机映射后筹码留在格内，不压跑道缝 */
+              hostN = nums[2]; left = 50; top = 12;
             }
           } else if (kind === 'line' && nums.length === 6) {
             hostN = nums[5]; left = 0; top = 0;
@@ -4398,8 +4410,12 @@
           /* 电脑锚点% → 手机竖盘（与 screenToPc 互逆：屏X=1-电脑Y，屏Y=电脑X） */
           const el = numHitEl(hostN);
           if (el) {
-            const mLeft = 100 - top;
-            const mTop = left;
+            let mLeft = 100 - top;
+            let mTop = left;
+            /* 街注落在右列时再夹一下，避免视觉压进跑道 */
+            if (kind === 'street' && nums[0] !== 0) {
+              mLeft = Math.min(88, Math.max(12, mLeft));
+            }
             return { host: el, left: mLeft, top: mTop };
           }
         }
@@ -4509,8 +4525,10 @@
             place.host.appendChild(mark);
             place.host.classList.add('has-bet');
           }
-          if (trackRoot) {
-            const tHost = trackRoot.querySelector('[data-bet="' + key + '"]');
+          /* 弯道：只在法式绿键上落筹；禁止号格镜像筹码（会贴在 6/9 右缘像「歪点」） */
+          const frRoot = document.getElementById('trackFrench');
+          if (frRoot) {
+            const tHost = frRoot.querySelector('[data-bet="' + key + '"]');
             if (tHost) {
               const mark = makeBetChipEl(stake, pending);
               mark.style.left = '50%';
@@ -5951,20 +5969,19 @@
         lastZoneBetKey = betKey;
         placeInsideDraft(betKey, chipAmt());
       });
-      /* 弯道全貌：号格单注；绿键 → 主盘法式落筹+变黄 */
+      /* 弯道：只看法式绿键；号格禁止下注（用户书面） */
       const trackStage = document.getElementById('trackStage');
       if (trackStage) {
         trackStage.addEventListener('click', (e) => {
-          const btn = e.target.closest('[data-bet]');
+          const btn = e.target.closest('#trackFrench [data-bet]');
           if (!btn || !trackStage.contains(btn)) return;
           const betKey = btn.getAttribute('data-bet');
-          if (!betKey) return;
+          if (!betKey || !FRENCH[betKey]) return;
           const now = Date.now();
           if (betKey === lastZoneBetKey && now - lastZoneBetAt < 450) return;
           lastZoneBetAt = now;
           lastZoneBetKey = betKey;
-          if (FRENCH[betKey]) placeFrenchDraft(betKey, chipAmt());
-          else placeInsideDraft(betKey, chipAmt());
+          placeFrenchDraft(betKey, chipAmt());
         });
       }
       document.getElementById('btnTrackIco').addEventListener('click', (e) => {
