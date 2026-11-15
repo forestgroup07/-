@@ -2872,7 +2872,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '1.9.0';
+      const V = '2.0.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -5095,21 +5095,22 @@
       }
       /**
        * 开奖轨迹（分步对齐电脑）：
-       * 步骤1（本版）：外圈四圈递慢 — OUTER_MS / LAP_SHARE 与电脑同值
-       * 未做：入格末速衔接、隔板声轮播（后续步骤）
+       * 步骤1：外圈四圈递慢 — OUTER_MS / LAP_SHARE（已定 1.9.0）
+       * 步骤3（本版）：入格末速衔接 + 匀减速；终点锁开奖格心（不落两格缝上）
+       * 未做：步骤2 滚球声、步骤4 隔板 fret 轮播声
        */
       function runBallAndWheelStop(winNum) {
-        /* 步骤1：外圈时长与四圈份额 — 照抄电脑 roulette.html（已验收勿改份额） */
+        /* 步骤1：外圈 — 照抄电脑（份额勿改） */
         const OUTER_MS = 4180;
         const OUTER_LAPS = 4;
         const LAP_SHARE = [0.04, 0.23, 0.31, 0.42];
-        const AFTER_MS = 3420; /* 入格段暂沿用原总长差，步骤3再改 */
-        const TOTAL_MS = OUTER_MS + AFTER_MS;
+        /* 步骤3：下落 / 格内 / 停稳 — 照抄电脑 */
+        const DROP_MS = 420;
+        const SETTLE_MS = 550;
         const R_OUTER = 6.8;
         const R_POCKET = 50 - WHEEL_POCKET_DIST;
-        const DROP_U0 = OUTER_MS / TOTAL_MS;
-        const DROP_U1 = 0.61;
-        const RATTLE_END = 0.88;
+        const R_SETTLE = R_POCKET + 1.15; /* 略偏心窝，整球在格内、勿停隔板上 */
+
         const w0 = stopIdleSpinCapture();
         showBall(true);
         const ballEl = document.getElementById('wheelBall');
@@ -5121,8 +5122,8 @@
         setBallAngle(b0, 0);
 
         const winIdx = Math.max(0, EU_ORDER.indexOf(winNum));
-        const hops = 6 + ((Math.random() * 5) | 0);
-        const startIdx = winIdx + hops;
+        let hops = 6 + ((Math.random() * 5) | 0);
+        let startIdx = winIdx + hops;
         const markerCss = Math.random() * 360;
         const markerGeom = ballGeomFromCss(markerCss);
         const wheelTargetLocal = normDeg(markerGeom - pocketAngle(winNum));
@@ -5132,7 +5133,6 @@
         const w1 = w0 + wDelta;
 
         const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-        const easeOutPow = (t, p) => 1 - Math.pow(1 - t, p);
         const easeInCubic = (t) => t * t * t;
 
         const lapEnds = [];
@@ -5144,7 +5144,23 @@
           }
           lapEnds[OUTER_LAPS - 1] = 1;
         }
-        /* 外圈进度：按 LAP_SHARE 分段，每圈越来越慢（电脑同款） */
+
+        /* 外圈末速 → 定格内时长：匀减速 D=v0*T/2，避免快→慢一刀切 */
+        const bDeltaApprox = 360 * OUTER_LAPS;
+        const vArm0 = (bDeltaApprox / OUTER_LAPS) / (LAP_SHARE[3] * OUTER_MS); /* deg/ms */
+        const pocketDeg = hops * SLOT;
+        let POCKET_MS = Math.round(2 * pocketDeg / Math.max(1e-6, vArm0));
+        POCKET_MS = Math.max(2600, Math.min(4200, POCKET_MS));
+        {
+          const needHops = Math.max(4, Math.round((vArm0 * POCKET_MS) / (2 * SLOT)));
+          hops = needHops;
+          startIdx = winIdx + hops;
+        }
+        const TOTAL_MS = OUTER_MS + DROP_MS + POCKET_MS + SETTLE_MS;
+        const DROP_U0 = OUTER_MS / TOTAL_MS;
+        const DROP_U1 = (OUTER_MS + DROP_MS) / TOTAL_MS;
+        const RATTLE_END = (OUTER_MS + DROP_MS + POCKET_MS) / TOTAL_MS;
+
         const ballProgress = (u) => {
           const t = Math.min(1, Math.max(0, u / DROP_U0));
           let prev = 0;
@@ -5158,7 +5174,6 @@
           }
           return 1;
         };
-        /* 外圈终点对齐将入格的 startIdx（电脑同款），保证四圈落点可接步骤3 */
         const dropW = w0 + wDelta * easeOutCubic(DROP_U0);
         const alignCss = normDeg(ZERO_CENTER_DEG + startIdx * SLOT + BALL_CSS_TO_GEOM + dropW);
         let bDelta = normDeg(b0 - alignCss);
@@ -5166,35 +5181,35 @@
         bDelta += 360 * (OUTER_LAPS - 1);
 
         const finalBallCss = () => normDeg(pocketAngle(winNum) + BALL_CSS_TO_GEOM + w1);
+        /* 格内：s=2t-t² 匀减速到 0；终点锁 winIdx 格心 */
         const pocketFloatAt = (u) => {
           if (u <= DROP_U0) return startIdx;
           if (u >= RATTLE_END) return winIdx;
-          const t = (u - DROP_U0) / (RATTLE_END - DROP_U0);
-          const e = easeOutPow(t, 2.35);
-          let f = startIdx - hops * e;
-          f += Math.sin(t * Math.PI * (hops * 0.85 + 0.5)) * (1 - e) * 0.42;
-          return f;
+          const t = (u - DROP_U0) / Math.max(1e-6, RATTLE_END - DROP_U0);
+          const tt = Math.min(1, Math.max(0, t));
+          const s = 2 * tt - tt * tt;
+          return startIdx - hops * s;
         };
         const localDegFromFloat = (f) => ZERO_CENTER_DEG + f * SLOT;
         const radiusAt = (u, justHit) => {
           if (u < DROP_U0) return R_OUTER;
           if (u < DROP_U1) {
             const t = (u - DROP_U0) / (DROP_U1 - DROP_U0);
-            return R_OUTER + (R_POCKET - R_OUTER) * easeInCubic(t);
+            return R_OUTER + (R_SETTLE - R_OUTER) * easeInCubic(t);
           }
           if (u < RATTLE_END) {
-            const t = (u - DROP_U1) / (RATTLE_END - DROP_U1);
-            const amp = (1 - t) * (1 - t) * (justHit ? 1.6 : 1.1);
-            return R_POCKET - amp;
+            const t = (u - DROP_U1) / Math.max(1e-6, RATTLE_END - DROP_U1);
+            const amp = (1 - t) * (1 - t) * (justHit ? 1.7 : 0.85);
+            return R_SETTLE - amp;
           }
-          return R_POCKET;
+          return R_SETTLE;
         };
 
         playBallSpinSfx();
         const t0 = performance.now();
         let raf = 0;
         let dropArmed = false;
-        let lastPocketI = -999;
+        let lastFret = -999;
 
         return new Promise((resolve) => {
           let settled = false;
@@ -5207,7 +5222,7 @@
             setBallAngle(endCss, 0);
             wheelAngle = normDeg(w1);
             ballAngle = normDeg(endCss);
-            if (ballEl) ballEl.style.top = R_POCKET.toFixed(2) + '%';
+            if (ballEl) ballEl.style.top = R_SETTLE.toFixed(2) + '%';
             stopBallSpinSfx();
             resolve();
           };
@@ -5224,19 +5239,18 @@
               if (!dropArmed) {
                 dropArmed = true;
                 stopBallRollOnly();
-                playFretClick(1);
-                lastPocketI = Math.floor(pocketFloatAt(u) + 1e-6);
+                lastFret = Math.floor(startIdx - 0.5 + 1e-6);
               }
               const f = pocketFloatAt(u);
-              const pocketI = Math.floor(f + 1e-6);
-              if (pocketI !== lastPocketI) {
+              /* 隔板=半格；过隔板才算撞（声步骤4再接真 fret；此处只驱动半径顿挫） */
+              const fretI = Math.floor(f - 0.5 + 1e-9);
+              if (u >= DROP_U1 && fretI !== lastFret) {
                 justHit = true;
-                lastPocketI = pocketI;
-                const t = (u - DROP_U0) / Math.max(1e-6, RATTLE_END - DROP_U0);
-                playFretClick(0.95 - Math.min(0.45, t * 0.45));
+                lastFret = fretI;
+                const t = (u - DROP_U1) / Math.max(1e-6, RATTLE_END - DROP_U1);
+                playFretClick(0.95 - Math.min(0.4, t * 0.4));
               }
-              const local = localDegFromFloat(f);
-              ang = normDeg(local + BALL_CSS_TO_GEOM + wNow);
+              ang = normDeg(localDegFromFloat(f) + BALL_CSS_TO_GEOM + wNow);
             }
             setBallAngle(ang, 0);
             if (ballEl) ballEl.style.top = radiusAt(u, justHit).toFixed(2) + '%';
