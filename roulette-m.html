@@ -2334,6 +2334,7 @@
       <audio id="voEnNum" preload="none" playsinline></audio>
       <audio id="sfxTick" preload="none" playsinline></audio>
       <audio id="sfxBombTick" preload="none" playsinline></audio>
+      <audio id="sfxCoin" preload="none" playsinline></audio>
       <div class="stage-corner-icons" id="stageCornerIcons">
         <button type="button" class="stage-ico stage-ico-odds" id="btnOddsIco" aria-label="赔率" aria-pressed="false">赔率</button>
         <button type="button" class="stage-ico" id="btnStatsIco" aria-label="开奖趋势" aria-pressed="false">
@@ -2877,7 +2878,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '2.4.0';
+      const V = '2.5.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -3372,7 +3373,7 @@
       const voiceBufLoading = Object.create(null);
       let voiceOutGain = null;
       let voiceActiveNodes = [];
-      const VOICE_CORE_KEYS = ['tick', 'bomb', 'startBet', 'stopBet', 'betOk'];
+      const VOICE_CORE_KEYS = ['tick', 'bomb', 'startBet', 'stopBet', 'betOk', 'coin'];
 
       const Voice = {
         unlocked: false,
@@ -3387,6 +3388,7 @@
           betOk: document.getElementById('voBetOk'),
           tick: document.getElementById('sfxTick'),
           bomb: document.getElementById('sfxBombTick'),
+          coin: document.getElementById('sfxCoin'),
           roundOpen: document.getElementById('voRoundOpen'),
         },
         clips: {
@@ -3396,6 +3398,7 @@
           betOk: 'audio/bet-ok.mp3?v=' + V,
           tick: 'audio/tick.mp3?v=' + V,
           bomb: 'audio/bomb-tick.mp3?v=' + V,
+          coin: 'audio/coin-bag.mp3?v=' + V,
           roundOpen: 'audio/round-open-bet.mp3?v=' + V,
         },
         init() {
@@ -3633,6 +3636,30 @@
         },
         tick() { this.playQuick('tick', 0.5); },
         bombTick() { this.playQuick('bomb', 0.62); },
+        /* 赢钱金币：与骰宝同款 coin-bag 两下；不播恭喜口播 */
+        playCoin() {
+          if (this.muted || this.dead) return;
+          if (this.playBuf('coin', 1)) return;
+          void this.loadBuf('coin').then(() => {
+            if (!this.muted && !this.dead) this.playBuf('coin', 1);
+          }).catch(() => {
+            const el = this.players.coin;
+            if (!el || this.muted || this.dead) return;
+            try {
+              const want = this.clips.coin;
+              if (want && el.getAttribute('src') !== want && !String(el.src || '').includes('coin-bag')) {
+                el.src = want;
+                try { el.load(); } catch (_) {}
+              }
+              el.pause();
+              el.currentTime = 0;
+              el.muted = false;
+              el.volume = 1;
+              const p = el.play();
+              if (p && p.catch) p.catch(() => {});
+            } catch (_) {}
+          });
+        },
       };
 
       /** 进桌即后台拉解码（只 fetch，不播）；开喇叭时可立刻 playBuf */
@@ -5886,11 +5913,19 @@
         const settled = settle(win);
         phase = 'result';
         paintMeta();
-        /* 电脑轮盘：赢/输只显示不口播恭喜/遗憾 */
+        /* 赢/输只显示；赢时金币两下（对齐骰宝），不播恭喜口播 */
         if (settled.staked > 0) {
-          if (settled.net > 0) await holdPhaseBanner('本局贏 +' + Math.round(settled.net), 2200);
-          else if (settled.net < 0) await holdPhaseBanner('输 ' + Math.round(settled.net), 2200);
-          else await holdPhaseBanner('本局平', 1600);
+          if (settled.net > 0) {
+            if (!Voice.muted && !Voice.dead) {
+              Voice.playCoin();
+              setTimeout(() => { try { Voice.playCoin(); } catch (_) {} }, 200);
+            }
+            await holdPhaseBanner('本局贏 +' + Math.round(settled.net), 2200);
+          } else if (settled.net < 0) {
+            await holdPhaseBanner('输 ' + Math.round(settled.net), 2200);
+          } else {
+            await holdPhaseBanner('本局平', 1600);
+          }
         } else {
           await sleep(1800);
         }

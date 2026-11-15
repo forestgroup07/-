@@ -1,0 +1,25 @@
+roulette-m v2.5.0 — 2026-11-15
+用户书面：「请存为轮盘2.5版本 存入git」
+自工作中 2.4.1 升锁
+
+已验收清单（本包算数）：
+- 沿用 v2.4.0：桌面隐藏「局号」；子页 Web Audio 口播/滴答缓冲；开喇叭立刻轻滴；不请父页代播；进桌默认静音；喇叭三分叉
+- 沿用 v2.3.0：外圈递慢、入格匀减速、outer-cont、fret、跑道号禁下、法式可下、街注右缘、10k/20k、侧栏等
+- 赢钱：与骰宝同款 coin-bag 连响两下（间隔 200ms）；不播「恭喜」口播；输/平无此声
+
+未验收、不得当作本定版：
+- 打键贴面换色、整站多语言、公告后台
+- 电脑版轮盘；手机骰宝（另册）
+- 英文开奖报数（speakEnWinNumber 仍关）
+
+回滚：
+  roulette-m.LOCKED-2.5.0.html
+  roulette-m-boot.LOCKED-2.5.0.html
+  lobby.LOCKED-roulette-m-2.5.0.html
+  assets/roulette/LOCKED-roulette-m-2.5.0.txt
+  audio/coin-bag.mp3
+  audio/roulette-ball-roll-outer-cont.mp3
+  audio/roulette-fret-click-0/1/2.mp3
+  assets/roulette/VERSION-m.txt = 2.5.0
+  tag roulette-m-v2.5.0
+验收：https://forestgroup.ai/roulette-m.html?v=2.5.0
