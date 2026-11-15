@@ -1,0 +1,6 @@
+baccarat top template 0.3.1
+size 750x420
+mid_x 375
+left_blue #193565
+right_red #782117
+step1: larger screen area

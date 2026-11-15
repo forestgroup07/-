@@ -1,0 +1,6 @@
+baccarat top screen template 0.3.0
+size 966x238
+mid_x 483
+left_blue RGB(25, 53, 101) #193565
+right_red RGB(120, 33, 23) #782117
+method: base template — left fill / right fill / center line
