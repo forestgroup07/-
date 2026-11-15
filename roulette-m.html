@@ -185,15 +185,15 @@
       pointer-events: none;
       z-index: 0;
     }
+    /* 用户书面：右侧跑道禁止黄灯，任何 is-lit 都不显黄 */
     #trackFrench .hit.is-lit,
     #trackNumsM .hit.is-lit {
-      z-index: 2;
+      z-index: 1;
     }
     #trackFrench .hit.is-lit::before,
     #trackNumsM .hit.is-lit::before {
-      /* 与主键盘 .n.is-lit 同色同透明度，叠在清晰 1.3.2 底上 */
-      background: rgba(232, 196, 48, 0.50) !important;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 0 rgba(120,80,0,.14);
+      background: transparent !important;
+      box-shadow: none !important;
     }
     #trackNumsM .hit .chip-on {
       z-index: 6;
@@ -2872,7 +2872,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '1.6.0';
+      const V = '1.8.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -3263,6 +3263,8 @@
       let draft = Object.create(null);
       let confirmed = Object.create(null);
       let undoStack = [];
+      /* 确认注撤销栈：与手机骰宝同款 — 封盘前可退回 */
+      let confirmUndoStack = [];
       /* 注金明细六行：与电脑同；开奖后写 lastPnl */
       const STAKE_PANEL_KEYS = ['red', 'black', 'big', 'small', 'odd', 'even'];
       const lastPnl = Object.create(null);
@@ -3270,6 +3272,7 @@
       let roundId = '';
       let timerLeft = BET_SEC;
       let timerToken = 0;
+      let betTimerId = null;
       let phaseBannerToken = 0;
       let wheelAngle = 0;
       let ballAngle = 0;
@@ -3305,8 +3308,23 @@
       function sumMap(m) {
         return Object.keys(m || {}).reduce((s, k) => s + (Number(m[k]) || 0), 0);
       }
-      function totalDraft() { return sumMap(draft); }
       function totalConfirmed() { return sumMap(confirmed); }
+      /* 同额撤销预备：确认后再点同额，草稿=确认额，不占第二份余额 */
+      function isRevokePrepKey(key) {
+        const c = Math.round(Number(confirmed[key]) || 0);
+        const d = Math.round(Number(draft[key]) || 0);
+        return c > 0 && d === c;
+      }
+      function totalDraft() {
+        return Object.keys(draft || {}).reduce((s, k) => {
+          const d = Math.round(Number(draft[k]) || 0);
+          if (d <= 0 || isRevokePrepKey(k)) return s;
+          return s + d;
+        }, 0);
+      }
+      function hasDraftKeys() {
+        return Object.keys(draft || {}).some((k) => (Math.round(Number(draft[k]) || 0) > 0));
+      }
       function availableBal() { return balance - totalDraft(); }
       function colorClass(n) {
         if (n === 0) return 'is-green';
@@ -3329,353 +3347,217 @@
         }, o.ms || (o.max ? 1800 : 1400));
       }
 
-      /* ========== 声音第2步：embed 父页播控等 ended；短效 fire-and-forget；欢迎只播一次 ========== */
+
+
+      /* ========== 声音步骤2：骰宝同款滴答（setInterval）；口播/滚球仍不接 ========== */
       const SOUND_MUTE_KEY = 'fg_roulette_m_sound_mute';
-      /* 整页进桌：一进页喇叭关闭；点开后可出声，按喇叭禁止杂音 */
-      let soundMuted = true;
       let audioUnlockedOk = false;
-      try { localStorage.setItem(SOUND_MUTE_KEY, '1'); } catch (_) {}
-      /* 默认静音进桌：永不播「欢迎进入轮盘游戏」，点开喇叭也不补 */
       welcomePlayed = true;
-      (function paintMuteEarly() {
-        const btn = document.getElementById('btnSound');
-        if (!btn) return;
-        btn.classList.add('muted');
-        btn.setAttribute('aria-pressed', 'true');
-        btn.setAttribute('aria-label', '打开声音');
-      })();
-      const PC_SFX_KEYS = {
-        welcome: 1, startBet: 1, roundOpen: 1, stopBet: 1, betOk: 1,
-        tick: 1, bombTick: 1, keyClick: 1, ballRoll: 1,
-        fret0: 1, fret1: 1, fret2: 1, enNum: 1,
-      };
-      let sfxReqSeq = 0;
-      function postParentSfx(key, vol) {
-        if (!IS_EMBED) return false;
-        if (!key || !PC_SFX_KEYS[key]) return false;
-        try {
-          const msg = { type: 'fg-sfx', key: key };
-          if (vol != null) msg.vol = vol;
-          window.parent.postMessage(msg, '*');
-          return true;
-        } catch (_) { return false; }
-      }
-      /* 口播/报数：等父页 fg-sfx-done；超时按片长放行，禁止卡死倒计时 */
-      const VOICE_AWAIT_MS = { welcome: 2800, startBet: 1500, roundOpen: 1500, stopBet: 1500, betOk: 1500, enNum: 2000 };
-      function postParentSfxAwait(key, vol) {
-        if (!IS_EMBED) return Promise.resolve(false);
-        if (!key || !PC_SFX_KEYS[key]) return Promise.resolve(false);
-        return new Promise((resolve) => {
-          const id = 'sfx' + (++sfxReqSeq) + '_' + Date.now();
-          let done = false;
-          const finish = (ok) => {
-            if (done) return;
-            done = true;
-            try { window.removeEventListener('message', onMsg); } catch (_) {}
-            resolve(!!ok);
-          };
-          const onMsg = (ev) => {
-            const d = ev && ev.data;
-            if (!d || d.type !== 'fg-sfx-done' || d.id !== id) return;
-            finish(!!d.ok);
-          };
-          try {
-            window.addEventListener('message', onMsg);
-            const msg = { type: 'fg-sfx', key: key, id: id };
-            if (vol != null) msg.vol = vol;
-            window.parent.postMessage(msg, '*');
-            /* 超时只放行流程（false）：不把「没播成」当成成功，避免欢迎资格被吞掉 */
-            setTimeout(() => finish(false), VOICE_AWAIT_MS[key] || 1500);
-          } catch (_) {
-            finish(false);
-          }
-        });
-      }
-      function postParentSfxStop(key) {
-        if (!IS_EMBED) return false;
-        try {
-          window.parent.postMessage({ type: 'fg-sfx-stop', key: key }, '*');
-          return true;
-        } catch (_) { return false; }
-      }
-      /* 非 embed 才建本地片；embed 永不 new Audio，避免与大厅父页双轨 */
-      let sfxClick = null;
-      let sfxBallRoll = null;
-      let sfxBallBounce = null;
-      let sfxFretClicks = null;
-      function ensureLocalSfx() {
-        if (IS_EMBED || sfxClick) return !!sfxClick;
-        try {
-          sfxClick = new Audio('audio/key-click.mp3?v=' + V);
-          sfxClick.preload = 'auto';
-          sfxBallRoll = new Audio('audio/roulette-ball-roll.mp3?v=' + V);
-          sfxBallBounce = new Audio('audio/roulette-ball-bounce.mp3?v=' + V);
-          sfxBallRoll.preload = 'auto';
-          sfxBallBounce.preload = 'auto';
-          sfxFretClicks = [0, 1, 2].map((i) => {
-            const a = new Audio('audio/roulette-fret-click-' + i + '.mp3?v=' + V);
-            a.preload = 'auto';
-            return a;
-          });
-          return true;
-        } catch (_) {
-          sfxClick = null;
-          return false;
-        }
-      }
-      let ballSpinPlaying = false;
-      let ballBounceStarted = false;
-      let fretClickI = 0;
-      let audioCtx = null;
-      function ensureAudioCtx() {
-        if (IS_EMBED) return null;
-        try {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (!AC) return null;
-          if (!audioCtx) audioCtx = new AC();
-          if (audioCtx.state === 'suspended') audioCtx.resume();
-          /* 静音一帧解锁，禁止用真实口播/滚球片去「试播」（会杂音） */
-          try {
-            const buf = audioCtx.createBuffer(1, 1, 22050);
-            const src = audioCtx.createBufferSource();
-            src.buffer = buf;
-            src.connect(audioCtx.destination);
-            src.start(0);
-          } catch (_) {}
-          return audioCtx;
-        } catch (_) { return null; }
-      }
-      function playClick() {
-        if (soundMuted) return;
-        if (postParentSfx('keyClick', 0.7)) return;
-        if (!ensureLocalSfx() || !sfxClick) return;
-        try {
-          sfxClick.pause();
-          sfxClick.currentTime = 0;
-          sfxClick.volume = 0.7;
-          const p = sfxClick.play();
-          if (p && p.catch) p.catch(() => {});
-        } catch (_) {}
-      }
-      function _primeOne(el) {
-        if (!el || IS_EMBED) return;
-        try {
-          el.muted = true;
-          el.volume = 0;
-          const p = el.play();
-          const reset = () => {
-            try { el.pause(); el.currentTime = 0; el.muted = false; el.volume = 1; } catch (_) {}
-          };
-          if (p && typeof p.then === 'function') p.then(reset).catch(reset);
-          else reset();
-        } catch (_) {}
-      }
-      function primeBallSpinSfx() {
-        if (IS_EMBED) return;
-        if (!ensureLocalSfx()) return;
-        ensureAudioCtx();
-        _primeOne(sfxBallRoll);
-        _primeOne(sfxBallBounce);
-        if (sfxFretClicks) sfxFretClicks.forEach(_primeOne);
-      }
-      function playBallSpinSfx() {
-        ballSpinPlaying = true;
-        ballBounceStarted = false;
-        fretClickI = 0;
-        if (soundMuted) return;
-        if (postParentSfx('ballRoll', 1)) return;
-        if (!ensureLocalSfx() || !sfxBallRoll) return;
-        ensureAudioCtx();
-        try {
-          if (sfxBallBounce) { sfxBallBounce.pause(); sfxBallBounce.currentTime = 0; }
-        } catch (_) {}
-        try {
-          sfxBallRoll.muted = false;
-          sfxBallRoll.pause();
-          sfxBallRoll.currentTime = 0;
-          sfxBallRoll.volume = 1;
-          const p = sfxBallRoll.play();
-          if (p && p.catch) p.catch(() => {});
-        } catch (_) {}
-      }
-      function stopBallRollOnly() {
-        postParentSfxStop('ballRoll');
-        if (IS_EMBED || !sfxBallRoll) return;
-        try {
-          sfxBallRoll.pause();
-          sfxBallRoll.currentTime = 0;
-        } catch (_) {}
-      }
-      function playFretClick(vol) {
-        if (soundMuted || !ballSpinPlaying) return;
-        ballBounceStarted = true;
-        const idx = fretClickI % 3;
-        fretClickI++;
-        if (postParentSfx('fret' + idx, vol == null ? 0.9 : vol)) return;
-        if (!ensureLocalSfx() || !sfxFretClicks) return;
-        const src = sfxFretClicks[idx];
-        if (!src) return;
-        try {
-          const a = src.cloneNode();
-          a.volume = vol == null ? 0.9 : vol;
-          a.muted = false;
-          const p = a.play();
-          if (p && p.catch) p.catch(() => {});
-        } catch (_) {}
-      }
-      function stopBallSpinSfx() {
-        ballSpinPlaying = false;
-        ballBounceStarted = false;
-        stopBallRollOnly();
-        if (IS_EMBED) return;
-        try {
-          if (sfxBallBounce) { sfxBallBounce.pause(); sfxBallBounce.currentTime = 0; }
-        } catch (_) {}
-        if (sfxFretClicks) {
-          sfxFretClicks.forEach((el) => {
-            try { el.pause(); el.currentTime = 0; } catch (_) {}
-          });
-        }
-      }
+      function markWelcomed() { welcomePlayed = true; }
 
       const Voice = {
-        clips: {
-          welcome: 'audio/welcome-roulette.mp3?v=' + V,
-          startBet: 'audio/start-bet.mp3?v=' + V,
-          roundOpen: 'audio/round-open-bet.mp3?v=' + V,
-          stopBet: 'audio/stop-bet.mp3?v=' + V,
-          betOk: 'audio/bet-ok.mp3?v=' + V,
-          tick: 'audio/tick.mp3?v=' + V,
-          bombTick: 'audio/bomb-tick.mp3?v=' + V,
-        },
+        unlocked: false,
+        muted: false,
+        dead: false,
+        pendingKey: null,
+        ctx: null,
         players: {
           welcome: document.getElementById('voWelcome'),
           startBet: document.getElementById('voStartBet'),
-          roundOpen: document.getElementById('voRoundOpen'),
           stopBet: document.getElementById('voStopBet'),
           betOk: document.getElementById('voBetOk'),
           tick: document.getElementById('sfxTick'),
-          bombTick: document.getElementById('sfxBombTick'),
+          bomb: document.getElementById('sfxBombTick'),
+          roundOpen: document.getElementById('voRoundOpen'),
         },
-        clipFor: {
-          '欢迎进入轮盘游戏': 'welcome',
-          '开始下注': 'startBet',
-          '已开局请下注': 'roundOpen',
-          '停止下注': 'stopBet',
-          '下注成功': 'betOk',
+        clips: {
+          welcome: 'audio/welcome-roulette.mp3?v=' + V,
+          startBet: 'audio/start-bet.mp3?v=' + V,
+          stopBet: 'audio/stop-bet.mp3?v=' + V,
+          betOk: 'audio/bet-ok.mp3?v=' + V,
+          tick: 'audio/tick.mp3?v=' + V,
+          bomb: 'audio/bomb-tick.mp3?v=' + V,
+          roundOpen: 'audio/round-open-bet.mp3?v=' + V,
         },
-        _chain: Promise.resolve(),
         init() {
-          /* embed：不挂本地口播 src，彻底关掉子页旧声音轨 */
-          if (IS_EMBED) return;
           Object.keys(this.players).forEach((k) => {
             const el = this.players[k];
             if (!el) return;
             el.src = this.clips[k];
-            el.preload = 'auto';
-            el.volume = 1;
-            try { el.load(); } catch (_) {}
+            el.preload = 'none';
+            el.muted = !!this.muted;
+            el.volume = this.muted ? 0 : 1;
           });
         },
-        isOff() { return !!soundMuted; },
-        /* 只静音试播解锁；禁止 unmute 真播、禁止顺带 prime 滚球（按喇叭杂音根因） */
-        unlock() {
-          if (this.isOff()) return;
-          if (IS_EMBED) {
-            try { window.parent.postMessage({ type: 'fg-sfx-prime' }, '*'); } catch (_) {}
-            return;
-          }
-          ensureAudioCtx();
-          ensureLocalSfx();
+        isOff() { return !!this.muted; },
+        stopAll() {
+          Object.keys(this.players).forEach((k) => {
+            const el = this.players[k];
+            if (!el) return;
+            try { el.pause(); el.currentTime = 0; el.muted = !!this.muted; } catch (_) {}
+          });
+          try {
+            document.querySelectorAll('audio').forEach((el) => {
+              try { el.pause(); el.currentTime = 0; } catch (_) {}
+            });
+          } catch (_) {}
+        },
+        silence() {
+          this.dead = true;
+          this.pendingKey = null;
           Object.keys(this.players).forEach((k) => {
             const el = this.players[k];
             if (!el) return;
             try {
-              el.muted = true;
-              el.volume = 0;
-              const p = el.play();
-              const reset = () => {
-                try { el.pause(); el.currentTime = 0; el.muted = false; el.volume = 1; } catch (_) {}
-              };
-              if (p && typeof p.then === 'function') p.then(reset).catch(reset);
-              else reset();
-            } catch (_) {}
-          });
-          if (sfxClick) _primeOne(sfxClick);
-        },
-        playEl(el) {
-          return new Promise((resolve) => {
-            if (!el || this.isOff()) { resolve(false); return; }
-            let done = false;
-            const finish = (ok) => {
-              if (done) return;
-              done = true;
-              try { el.onended = null; el.onerror = null; } catch (_) {}
-              resolve(!!ok);
-            };
-            try {
               el.pause();
               el.currentTime = 0;
-              if (this.isOff()) { finish(false); return; }
-              el.muted = false;
-              el.volume = 1;
-              el.onended = () => finish(true);
-              el.onerror = () => finish(false);
-              const p = el.play();
-              if (p && typeof p.catch === 'function') p.catch(() => finish(false));
-              setTimeout(() => finish(false), 8000);
-            } catch (_) {
-              finish(false);
-            }
+              el.muted = true;
+              el.volume = 0;
+              el.removeAttribute('src');
+              el.load();
+            } catch (_) {}
           });
+          try {
+            document.querySelectorAll('audio').forEach((el) => {
+              try {
+                el.pause();
+                el.muted = true;
+                el.volume = 0;
+                el.currentTime = 0;
+                el.removeAttribute('src');
+                el.load();
+              } catch (_) {}
+            });
+          } catch (_) {}
+          try {
+            if (window.speechSynthesis) {
+              window.speechSynthesis.cancel();
+              setTimeout(() => { try { window.speechSynthesis.cancel(); } catch (_) {} }, 0);
+            }
+          } catch (_) {}
+          try {
+            if (this.ctx) {
+              if (this.ctx.state === 'running') this.ctx.suspend();
+              if (this.ctx.close) this.ctx.close();
+              this.ctx = null;
+            }
+          } catch (_) {}
         },
+        pauseSoft() {
+          try {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            document.querySelectorAll('audio').forEach((el) => {
+              try { el.pause(); } catch (_) {}
+            });
+          } catch (_) {}
+        },
+        setMuted(on) {
+          this.muted = !!on;
+          if (this.muted) this.pendingKey = null;
+          Object.keys(this.players).forEach((k) => {
+            const el = this.players[k];
+            if (!el) return;
+            el.muted = this.muted;
+            el.volume = this.muted ? 0 : 1;
+          });
+          if (this.muted) this.stopAll();
+          paintMuteBtn();
+        },
+        unlock() {
+          /* 与骰宝同款：清 dead + 装 src + AudioContext；禁止静音狂试播、禁止连锁口播 */
+          this.dead = false;
+          try {
+            Object.keys(this.players).forEach((k) => {
+              const el = this.players[k];
+              if (!el) return;
+              const want = this.clips[k];
+              if (want && el.getAttribute('src') !== want && !String(el.src || '').includes(String(want).split('?')[0])) {
+                el.src = want;
+                try { el.load(); } catch (_) {}
+              }
+              el.muted = !!this.muted;
+              el.volume = this.muted ? 0 : 1;
+            });
+          } catch (_) {}
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+              this.ctx = this.ctx || new AC();
+              if (this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            this.unlocked = true;
+            if (this.pendingKey && !this.muted) {
+              const k = this.pendingKey;
+              this.pendingKey = null;
+              if (k === 'welcome' || k === 'startBet' || k === 'betOk' || k === 'stopBet') {
+                if (k === 'welcome') markWelcomed();
+              }
+            } else if (this.muted) {
+              this.pendingKey = null;
+            }
+          } catch (_) {}
+        },
+        /* 步骤2：口播仍占位；滴答照抄骰宝 playQuick */
+        playEl() { return Promise.resolve(false); },
+        speak() { return Promise.resolve(false); },
         playQuick(key, vol) {
-          if (this.isOff()) return;
-          if (postParentSfx(key, vol == null ? 1 : vol)) return;
+          if (this.muted || this.dead) return;
           const el = this.players[key];
           if (!el) return;
           try {
-            el.muted = false;
             el.pause();
             el.currentTime = 0;
-            el.volume = vol == null ? 0.6 : vol;
+            el.muted = false;
+            el.volume = vol == null ? 0.55 : vol;
             const p = el.play();
-            if (p && typeof p.catch === 'function') p.catch(() => {});
+            if (p && p.catch) p.catch(() => {});
           } catch (_) {}
         },
-        tick() { this.playQuick('tick', 0.52); },
-        bombTick() { this.playQuick('bombTick', 0.62); },
-        speak(text) {
-          const run = async () => {
-            if (this.isOff()) return false;
-            const key = this.clipFor[text];
-            if (!key) return false;
-            if (IS_EMBED) return await postParentSfxAwait(key, 1);
-            const el = this.players[key];
-            if (!el) return false;
-            Object.keys(this.players).forEach((k) => {
-              if (k === 'tick' || k === 'bombTick') return;
-              const other = this.players[k];
-              if (!other || other === el) return;
-              try { other.pause(); other.currentTime = 0; } catch (_) {}
-            });
-            if (this.isOff()) return false;
-            return await this.playEl(el);
-          };
-          const prev = this._chain;
-          let release;
-          this._chain = new Promise((r) => { release = r; });
-          return prev.catch(() => {}).then(run).finally(() => release());
-        },
+        tick() { this.playQuick('tick', 0.5); },
+        bombTick() { this.playQuick('bomb', 0.62); },
       };
+
+      function playClick() {}
+      function primeBallSpinSfx() {}
+      function playBallSpinSfx() {}
+      function stopBallRollOnly() {}
+      function playFretClick() {}
+      function stopBallSpinSfx() {}
+
       Voice.init();
-      if (!soundMuted) {
-        try { Voice.unlock(); } catch (_) {}
-      }
-      document.addEventListener('pointerdown', () => {
-        if (soundMuted) return;
-        try { Voice.unlock(); ensureAudioCtx(); } catch (_) {}
+      try { localStorage.setItem(SOUND_MUTE_KEY, '1'); } catch (_) {}
+      Voice.setMuted(true);
+      markWelcomed();
+      try { Voice.unlock(); } catch (_) {}
+      document.addEventListener('pointerdown', (e) => {
+        if (Voice.muted) return;
+        if (e.target && e.target.closest && e.target.closest('#btnSound')) return;
+        try { Voice.unlock(); audioUnlockedOk = true; } catch (_) { audioUnlockedOk = true; }
       }, { passive: true });
+
+      function stopBetTimer() {
+        if (betTimerId) {
+          clearInterval(betTimerId);
+          betTimerId = null;
+        }
+      }
+      function leavePage() {
+        try { timerToken++; } catch (_) {}
+        try { stopBetTimer(); } catch (_) {}
+        try { Voice.silence(); } catch (_) {}
+      }
+      function goLobby() {
+        leavePage();
+        if (IS_EMBED) {
+          try { window.parent.postMessage({ type: 'fg-embed-close' }, '*'); } catch (_) {}
+          return;
+        }
+        location.href = 'lobby.html?v=' + V;
+      }
+      window.addEventListener('pagehide', leavePage, true);
+      window.addEventListener('beforeunload', leavePage, true);
+      window.addEventListener('unload', leavePage, true);
+      window.addEventListener('freeze', () => { try { Voice.pauseSoft(); } catch (_) {} }, true);
 
       async function holdPhaseBanner(text, holdMs) {
         const ms = holdMs != null ? holdMs : PHASE_HOLD_MS;
@@ -4102,7 +3984,7 @@
         if (elSideUserBal) elSideUserBal.textContent = fmt(balance);
         if (elSideUserId) elSideUserId.textContent = user;
         if (elStake) elStake.textContent = String(totalDraft() + totalConfirmed());
-        const on = totalDraft() > 0 && phase === 'betting';
+        const on = hasDraftKeys() && phase === 'betting';
         actBar.classList.toggle('show', on);
         app.classList.toggle('betting-closed', phase !== 'betting');
       }
@@ -4202,7 +4084,7 @@
       }
       let hoverMarket = null;
       function paintLit() {
-        /* 电脑同款：挂单亮 + 悬停预览；主盘 / 弯道 / 法式同 data-bet 同步黄 */
+        /* 主盘挂单/悬停可亮黄；右侧跑道黄灯已全面关闭（用户书面禁止） */
         if (!boardGrid) return;
         const trackRoot = document.getElementById('trackStage');
         boardGrid.querySelectorAll('.n, .zero, .out').forEach((el) => el.classList.remove('is-lit'));
@@ -4221,9 +4103,7 @@
           if (el && (el.classList.contains('n') || el.classList.contains('zero') || el.classList.contains('out'))) {
             el.classList.add('is-lit');
           }
-          if (trackRoot) {
-            trackRoot.querySelectorAll('[data-bet="' + nk + '"]').forEach((el) => el.classList.add('is-lit'));
-          }
+          /* 禁止给弯道/法式热区加 is-lit */
         });
       }
       const CHIP_DENOMS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
@@ -4788,7 +4668,7 @@
           if (availableBal() < other + next) { toast('积分不足'); return; }
         }
         playClick();
-        undoStack.push({ key, prev: prevDraft, mode: 'inside' });
+        undoStack.push({ key, prev: prevDraft, mode: 'inside', amt: next });
         draft[key] = next;
         paintBets();
       }
@@ -4813,51 +4693,218 @@
           need += add;
           return { key, add };
         });
+        /* 未确认：草稿恰好是这一注法式 → 再点同区直接撤挂单（不叠第二笔） */
+        if (!maxMode && ops.every(({ key, add }) => {
+          return (Math.round(Number(draft[key]) || 0) === add)
+            && (Math.round(Number(confirmed[key]) || 0) === 0);
+        })) {
+          playClick();
+          ops.forEach(({ key }) => { delete draft[key]; });
+          undoStack = undoStack.filter((s) => !(s && s.mode === 'french'));
+          paintBets();
+          toast('已撤销');
+          return;
+        }
+        /* 已确认恰好一笔同额法式：再点同区 → 撤销预备（不叠显示/不占余额） */
+        if (!maxMode && ops.every(({ key, add }) => {
+          return (Math.round(Number(draft[key]) || 0) === 0)
+            && (Math.round(Number(confirmed[key]) || 0) === add);
+        })) {
+          playClick();
+          const prev = Object.create(null);
+          const adds = Object.create(null);
+          ops.forEach(({ key, add }) => {
+            prev[key] = 0;
+            adds[key] = add;
+            draft[key] = add;
+          });
+          undoStack.push({ mode: 'french', prev, adds, revokePrep: true, frenchKey, unit });
+          paintBets();
+          return;
+        }
+        /* 已在撤销预备：再点没反应 */
+        if (!maxMode && ops.every(({ key, add }) => {
+          return (Math.round(Number(draft[key]) || 0) === add)
+            && (Math.round(Number(confirmed[key]) || 0) === add);
+        })) {
+          return;
+        }
         if (availableBal() < need) { toast('积分不足'); return; }
         playClick();
         const prev = Object.create(null);
+        const adds = Object.create(null);
         ops.forEach(({ key, add }) => {
           prev[key] = Number(draft[key]) || 0;
+          adds[key] = add;
           draft[key] = prev[key] + add;
         });
-        undoStack.push({ mode: 'french', prev });
+        undoStack.push({ mode: 'french', prev, adds, frenchKey, unit });
         paintBets();
+      }
+      function markBetIdsCancelled(ids) {
+        if (!ids || !ids.length) return;
+        const idset = new Set(ids.map((x) => String(x)));
+        const list = loadBetLog();
+        let changed = false;
+        list.forEach((r) => {
+          if (!r) return;
+          const id = String(r.betId || r.id || '');
+          if (!idset.has(id)) return;
+          if (r.status === 'cancelled') return;
+          r.status = 'cancelled';
+          r.pnl = 0;
+          changed = true;
+        });
+        if (changed) saveBetLogLocal(list);
+      }
+      function revokeConfirmedAmount(key, wantAmt) {
+        const have = Math.round(Number(confirmed[key]) || 0);
+        const take = Math.min(have, Math.round(Number(wantAmt) || 0) || have);
+        if (take <= 0) return false;
+        const left = have - take;
+        if (left <= 0) delete confirmed[key];
+        else confirmed[key] = left;
+        const cancelledIds = [];
+        confirmUndoStack = confirmUndoStack.map((batch) => {
+          if (!batch || !batch.markets || batch.markets[key] == null) return batch;
+          const batchTake = Math.min(take, Math.round(Number(batch.markets[key]) || 0));
+          const remain = Math.round(Number(batch.markets[key]) || 0) - batchTake;
+          if (remain <= 0) delete batch.markets[key];
+          else batch.markets[key] = remain;
+          batch.total = Math.max(0, Math.round(Number(batch.total) || 0) - batchTake);
+          if (remain <= 0 && Array.isArray(batch.betIds)) batch.betIds.forEach((id) => cancelledIds.push(id));
+          return batch;
+        }).filter((b) => b && b.total > 0 && b.markets && Object.keys(b.markets).length);
+        markBetIdsCancelled(cancelledIds);
+        setBalance(balance + take, { type: 'refund', note: '撤销确认注', source: 'roulette-m' });
+        return true;
+      }
+      function revokeConfirmedKey(key) {
+        return revokeConfirmedAmount(key, Number(confirmed[key]) || 0);
+      }
+      function revokeLastConfirmBatch() {
+        const batch = confirmUndoStack.pop();
+        if (!batch) return false;
+        let refund = 0;
+        Object.keys(batch.markets || {}).forEach((k) => {
+          const want = Math.round(Number(batch.markets[k]) || 0);
+          const have = Math.round(Number(confirmed[k]) || 0);
+          const take = Math.min(want, have);
+          if (take <= 0) return;
+          const left = have - take;
+          if (left <= 0) delete confirmed[k];
+          else confirmed[k] = left;
+          refund += take;
+        });
+        if (refund <= 0) return false;
+        markBetIdsCancelled(batch.betIds || []);
+        setBalance(balance + refund, { type: 'refund', note: '撤销确认注', source: 'roulette-m' });
+        return true;
       }
       function undoBet() {
+        /* 与手机骰宝同款：未确认草稿整注撤；封盘前可撤确认注并退余额 */
         if (phase !== 'betting') { toast('已停止下注'); return; }
         playClick();
-        const last = undoStack.pop();
-        if (!last) { toast('没有可撤销的注'); return; }
-        if (last.mode === 'french' && last.prev) {
-          Object.keys(last.prev).forEach((key) => {
-            const v = Math.max(0, Number(last.prev[key]) || 0);
-            if (v > 0) draft[key] = v;
-            else delete draft[key];
-          });
-        } else if (last.mode === 'inside') {
-          const prev = Math.max(0, Number(last.prev) || 0);
-          if (prev > 0) draft[last.key] = prev;
-          else delete draft[last.key];
-        } else {
-          draft[last.key] = Math.max(0, (Number(draft[last.key]) || 0) - (Number(last.amt) || 0));
-          if (!draft[last.key]) delete draft[last.key];
+        if (undoStack.length) {
+          const last = undoStack.pop();
+          if (!last) return;
+          if (last.mode === 'french' && last.prev) {
+            Object.keys(last.prev).forEach((key) => {
+              const v = Math.max(0, Number(last.prev[key]) || 0);
+              if (v > 0) draft[key] = v;
+              else delete draft[key];
+            });
+            /* 法式撤销预备：退掉对应确认注 */
+            if (last.revokePrep && last.adds) {
+              const top = confirmUndoStack.length
+                ? confirmUndoStack[confirmUndoStack.length - 1]
+                : null;
+              let usedBatch = false;
+              if (top && top.markets) {
+                const ak = Object.keys(last.adds);
+                const mk = Object.keys(top.markets);
+                if (
+                  ak.length === mk.length
+                  && ak.every((k) => Math.round(Number(top.markets[k]) || 0) === Math.round(Number(last.adds[k]) || 0))
+                ) {
+                  usedBatch = revokeLastConfirmBatch();
+                }
+              }
+              if (!usedBatch) {
+                Object.keys(last.adds).forEach((k) => {
+                  revokeConfirmedAmount(k, last.adds[k]);
+                });
+              }
+            }
+          } else if (last.key) {
+            /* 内注/外注：撤掉该盘口全部未确认草稿（禁止只换回上一面额） */
+            delete draft[last.key];
+            undoStack = undoStack.filter((s) => !(s && s.key === last.key && s.mode !== 'french'));
+            const confAmt = Math.round(Number(confirmed[last.key]) || 0);
+            const placed = Math.round(Number(last.amt) || 0);
+            const prevN = last.mode === 'inside' ? Math.round(Number(last.prev) || 0) : 0;
+            /* 确认成功 → 再点该格（同面额）→ 撤销：视为撤确认注 */
+            if (
+              confAmt > 0
+              && placed === confAmt
+              && (last.mode === 'inside' ? prevN <= 0 : true)
+              && (last.mode === 'inside' || last.amt != null)
+            ) {
+              revokeConfirmedKey(last.key);
+            }
+          }
+          paintBets();
+          toast('已撤销');
+          return;
         }
-        paintBets();
+        if (revokeLastConfirmBatch()) {
+          paintBets();
+          toast('已撤销');
+          return;
+        }
+        toast('没有可撤销的注');
       }
       function cancelDraft() {
-        if (phase !== 'betting') { toast('已停止下注'); return; }
-        if (!Object.keys(draft).length) { toast('没有挂单'); return; }
+        if (phase !== 'betting') return;
+        const keys = Object.keys(draft).filter((k) => (Number(draft[k]) || 0) > 0);
+        if (!keys.length) return;
+        /* ❌ 只清纯挂单；已确认盘口上的撤销预备没反应（与骰宝同款） */
+        let cleared = false;
+        keys.forEach((k) => {
+          if ((Number(confirmed[k]) || 0) > 0) return;
+          delete draft[k];
+          cleared = true;
+        });
+        if (!cleared) return;
         playClick();
-        draft = Object.create(null);
-        undoStack = [];
+        undoStack = undoStack.filter((s) => {
+          if (!s) return false;
+          if (s.mode === 'french' && s.prev) {
+            return Object.keys(s.prev).some((k) => (Number(draft[k]) || 0) > 0);
+          }
+          return s.key && (Number(draft[s.key]) || 0) > 0;
+        });
         paintBets();
         toast('已取消挂单');
       }
       function confirmBet() {
         if (phase !== 'betting') { toast('已停止下注'); return false; }
-        const keys = Object.keys(draft).filter((k) => (Number(draft[k]) || 0) > 0);
-        if (!keys.length) { toast('请先选择下注位置'); return false; }
-        const total = sumMap(draft);
+        const markets = {};
+        Object.keys(draft).forEach((k) => {
+          const n = Math.round(Number(draft[k]) || 0);
+          if (n <= 0) return;
+          /* 同额撤销预备误点确定：不加第二笔 */
+          if (isRevokePrepKey(k)) return;
+          markets[k] = n;
+        });
+        const keys = Object.keys(markets);
+        if (!keys.length) {
+          draft = Object.create(null);
+          undoStack = [];
+          paintBets();
+          return false;
+        }
+        const total = keys.reduce((s, k) => s + markets[k], 0);
         if (balance < total) { toast('积分不足'); return false; }
         playClick();
         setBalance(balance - total, { type: 'bet', note: '确认下注', source: 'roulette-m' });
@@ -4870,21 +4917,26 @@
           result: '',
           market: k,
           key: k,
-          stake: Math.round(Number(draft[k]) || 0),
+          stake: markets[k],
           pnl: 0,
           status: 'open',
           source: 'roulette-m',
         }));
         pushBetRecords(betRows);
         keys.forEach((k) => {
-          confirmed[k] = (Number(confirmed[k]) || 0) + (Number(draft[k]) || 0);
+          confirmed[k] = (Number(confirmed[k]) || 0) + markets[k];
+        });
+        confirmUndoStack.push({
+          markets: Object.assign({}, markets),
+          total,
+          betIds: betRows.map((r) => r.betId),
         });
         draft = Object.create(null);
         undoStack = [];
         paintBets();
         holdPhaseBanner('下注成功', 1400);
         /* 与已验收：确定后播「下注成功」；void 不挡局流程 / 倒计时 */
-        if (!Voice.isOff()) void Voice.speak('下注成功');
+        if (!Voice.muted) void Voice.speak('betOk');
         return true;
       }
 
@@ -4938,6 +4990,7 @@
         confirmed = Object.create(null);
         draft = Object.create(null);
         undoStack = [];
+        confirmUndoStack = [];
         /* 回写本账号未结下注记录（对标电脑版），供下注记录页显示输赢 */
         if (settleLines.length) {
           const meta = Object.create(null);
@@ -5165,35 +5218,9 @@
           setTimeout(finish, TOTAL_MS + 400);
         });
       }
-      /* 红球落定：必须英文报数（预录 n0–n36）；喇叭关闭则不出声 */
+      /* 声音已清空：英文报数暂关 */
       async function speakEnWinNumber(n) {
-        if (Voice.isOff()) return false;
-        const num = Math.max(0, Math.min(36, n | 0));
-        try { ensureAudioCtx(); } catch (_) {}
-        return new Promise((resolve) => {
-          const el = document.getElementById('voEnNum');
-          if (!el) { resolve(false); return; }
-          let done = false;
-          const finish = (ok) => {
-            if (done) return;
-            done = true;
-            try { el.onended = null; el.onerror = null; } catch (_) {}
-            resolve(!!ok);
-          };
-          try {
-            el.pause();
-            el.src = 'audio/roulette-en/n' + num + '.mp3?v=' + V;
-            el.muted = false;
-            el.volume = 1;
-            el.onended = () => finish(true);
-            el.onerror = () => finish(false);
-            const p = el.play();
-            if (p && typeof p.catch === 'function') p.catch(() => finish(false));
-            setTimeout(() => finish(false), 3500);
-          } catch (_) {
-            finish(false);
-          }
-        });
+        return false;
       }
       async function playWelcomeOnce() {
         /* 用户书面：点开声音也不要「欢迎进入轮盘游戏」；默认静音进桌已打标 */
@@ -5215,29 +5242,47 @@
         if (!welcomePlayed) await playWelcomeOnce();
         if (token !== timerToken) return;
         startIdleSpin();
+        /* 与骰宝：开始下注口播不挡倒计时；开喇叭也不在此补播 */
         void holdPhaseBanner('开始下注', 1400);
-        if (!Voice.isOff()) await Voice.speak('开始下注');
-        else await sleep(900);
+        if (!Voice.muted) void Voice.speak('startBet');
         if (token !== timerToken) return;
 
-        for (let t = BET_SEC; t >= 1; t--) {
-          if (token !== timerToken) return;
-          timerLeft = t;
+        /* 与骰宝同款：setInterval 每秒先减秒再滴答（>10 轻滴，≤10 急滴） */
+        const bettingOk = await new Promise((resolve) => {
+          stopBetTimer();
+          timerLeft = BET_SEC;
           paintTimer();
-          if (!Voice.isOff()) {
-            if (t <= 10) Voice.bombTick();
-            else Voice.tick();
-          }
-          await sleep(1000);
-        }
-        if (token !== timerToken) return;
+          betTimerId = setInterval(() => {
+            if (token !== timerToken) {
+              stopBetTimer();
+              resolve(false);
+              return;
+            }
+            if (phase !== 'betting') {
+              stopBetTimer();
+              resolve(false);
+              return;
+            }
+            timerLeft -= 1;
+            paintTimer();
+            if (timerLeft > 0 && !Voice.muted) {
+              if (timerLeft <= 10) Voice.playQuick('bomb', 0.62);
+              else Voice.playQuick('tick', 0.5);
+            }
+            if (timerLeft <= 0) {
+              stopBetTimer();
+              resolve(true);
+            }
+          }, 1000);
+        });
+        if (!bettingOk || token !== timerToken) return;
         timerLeft = 0;
         paintTimer();
         phase = 'closed';
         paintMeta();
         if (totalDraft() > 0) cancelDraft();
         void holdPhaseBanner('停止下注', 1800);
-        if (!Voice.isOff()) await Voice.speak('停止下注');
+        if (!Voice.muted) await Voice.speak('stopBet');
         else await sleep(400);
         if (token !== timerToken) return;
 
@@ -5272,9 +5317,10 @@
       function paintMuteBtn() {
         const btn = document.getElementById('btnSound');
         if (!btn) return;
-        btn.classList.toggle('muted', !!soundMuted);
-        btn.setAttribute('aria-pressed', soundMuted ? 'true' : 'false');
-        btn.setAttribute('aria-label', soundMuted ? '打开声音' : '关闭声音');
+        const on = !!Voice.muted;
+        btn.classList.toggle('muted', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.setAttribute('aria-label', on ? '打开声音' : '关闭声音');
       }
       paintMuteBtn();
       function chipAmt() {
@@ -5407,34 +5453,33 @@
       });
 
       document.getElementById('btnSound').addEventListener('click', () => {
-        /* 三分叉：关→开只解锁；开但未解锁→只解锁；已能播→才静音。禁止误切、禁止欢迎/开局口播、禁止杂音试播 */
-        if (soundMuted) {
-          soundMuted = false;
-          welcomePlayed = true; /* 开喇叭禁止补播欢迎 */
+        /* 三分叉；开喇叭只 unlock + 一次轻滴解锁（照抄骰宝首次真播作用）；禁止静音狂试播、禁止口播 */
+        if (Voice.muted) {
+          Voice.setMuted(false);
           try { localStorage.setItem(SOUND_MUTE_KEY, '0'); } catch (_) {}
-          paintMuteBtn();
+          markWelcomed();
+          Voice.pendingKey = null;
           try { Voice.unlock(); audioUnlockedOk = true; } catch (_) { audioUnlockedOk = true; }
+          try { Voice.playQuick('tick', 0.5); } catch (_) {}
           toast('声音已开');
           return;
         }
         if (!audioUnlockedOk) {
+          markWelcomed();
+          Voice.pendingKey = null;
           try { Voice.unlock(); audioUnlockedOk = true; } catch (_) { audioUnlockedOk = true; }
+          try { Voice.playQuick('tick', 0.5); } catch (_) {}
           toast('声音已开');
           return;
         }
-        soundMuted = true;
+        Voice.setMuted(true);
         try { localStorage.setItem(SOUND_MUTE_KEY, '1'); } catch (_) {}
-        paintMuteBtn();
-        try { stopBallSpinSfx(); } catch (_) {}
+        try { Voice.stopAll(); } catch (_) {}
         toast('已静音');
       });
       document.getElementById('btnNavBack').addEventListener('click', () => {
         if (app.classList.contains('is-track')) { closeTrack(); return; }
-        if (IS_EMBED) {
-          try { window.parent.postMessage({ type: 'fg-embed-close' }, '*'); } catch (_) {}
-          return;
-        }
-        location.href = 'lobby.html?v=' + V;
+        goLobby();
       });
 
       let lastZoneBetAt = 0;
@@ -5564,7 +5609,7 @@
       bindActBtn('btnConfirm', confirmBet);
       document.getElementById('btnBack').addEventListener('click', () => {
         if (app.classList.contains('is-track')) { closeTrack(); return; }
-        location.href = 'lobby.html?v=' + V;
+        goLobby();
       });
 
       /* 圆形菜单 → 侧栏（第1步） */
@@ -5797,7 +5842,7 @@
       }
       const btnMenuExit = document.getElementById('btnMenuExit');
       if (btnMenuExit) btnMenuExit.addEventListener('click', () => {
-        location.href = 'lobby.html?v=' + V;
+        goLobby();
       });
       paintLangUi();
 

@@ -1,0 +1,24 @@
+roulette-m v1.8.0 — 2026-11-15
+用户书面：「保存到1.8版本 存入git」；工作中自 1.6.13 升锁为 1.8.0
+
+已验收清单（本包算数）：
+- 沿用 v1.6.0：底栏 10k/20k 筹码、TABLE_MAX=20000、打键热区收缝、圆形菜单半屏黑版侧栏、改密、记录、进桌深色垫底、禁 scheduleHeavy 抢键面、键面 webp 优先、betOk、开奖大球、喇叭三分叉等
+- 跑道法式多格键（tier/orphelins/voisins/zero-game）：点下落多格后，再点同区直接撤挂单（不叠第二笔）
+- 法式键确认成功后再点同区同额：进入撤销预备；↩️ 退对应确认注并退余额
+- ❌ 只清纯挂单；已确认盘口上的撤销预备点 ❌ 没反应
+
+未验收、不得当作本定版：
+- 打键成品贴面换色整包重绘
+- 整站 UI 多语言文案、公告后台
+- 轨迹 LAP_SHARE / 外圈 loop / 隔板 fret 作为必保宣传项
+- 手机骰宝（另册 v2.0.0）
+- 电脑版轮盘
+
+回滚：
+  roulette-m.LOCKED-1.8.0.html
+  roulette-m-boot.LOCKED-1.8.0.html
+  lobby.LOCKED-roulette-m-1.8.0.html
+  assets/roulette/LOCKED-roulette-m-1.8.0.txt
+  assets/roulette/VERSION-m.txt = 1.8.0
+  tag roulette-m-v1.8.0
+验收：https://forestgroup.ai/roulette-m.html?v=1.8.0
