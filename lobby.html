@@ -277,7 +277,7 @@
     }
   </style>
   <!-- 轮盘首页首开：预取轮盘页+键面；禁止预取骰宝抢带宽 -->
-  <link rel="prefetch" href="roulette-m.html?v=1.6.12" as="document">
+  <link rel="prefetch" href="roulette-m.html?v=1.6.11" as="document">
   <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.5.0" type="image/webp" fetchpriority="high">
 </head>
 <body>
@@ -324,10 +324,10 @@
   <script>
     (function () {
       const GAME_PC = 'game.html?v=1.5.18';
-      const GAME_M = 'game-m.html?v=1.8.0';
+      const GAME_M = 'game-m.html?v=1.9.0';
       const ROULETTE_PC = 'roulette.html?v=1.2.8';
-      const ROULETTE_M = 'roulette-m.html?v=1.6.12';
-      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.6.12';
+      const ROULETTE_M = 'roulette-m.html?v=1.6.11';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=1.6.11';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -338,7 +338,7 @@
       const GAME = isMobileClient() ? GAME_M : GAME_PC;
       /* 手机轮盘：大厅 iframe 直进（不再走过渡页，避免又慢又丢声音手势） */
       const ROULETTE = isMobileClient() ? ROULETTE_M : ROULETTE_PC;
-      const SHELL_V = '1.3.9g';
+      const SHELL_V = '1.3.9h';
       /* 父页播控：解锁禁播滚球长片；欢迎在点击手势内播，避免进桌无欢迎 */
       const ShellSfx = {
         els: Object.create(null),
@@ -433,6 +433,21 @@
             }
           } catch (_) {}
         },
+        /* 轮盘步骤1：父页极轻解锁；口播/滚球/隔板留给子页（步骤2） */
+        primeRouletteGesture() {
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+              this.ctx = this.ctx || new AC();
+              if (this.ctx.state === 'suspended') this.ctx.resume();
+              const buf = this.ctx.createBuffer(1, 1, 22050);
+              const src = this.ctx.createBufferSource();
+              src.buffer = buf;
+              src.connect(this.ctx.destination);
+              src.start(0);
+            }
+          } catch (_) {}
+        },
         resetEmbedWelcome() {
           this.embedWelcomeOk = null;
           this.embedWelcomeP = null;
@@ -457,11 +472,9 @@
         },
         /* 桌内已出来后再预热其余音效；ballRoll 只 load 不 play */
         primeHeavy() {
-          /* 步骤5：骰宝永不走 heavy（防漏音 / 抢带宽） */
-          if (this.embedKind === 'sicbo') return;
+          /* 骰宝/轮盘均不走 heavy（轮盘步骤1：杜绝父页点亮音轨漏播） */
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette') return;
           Object.keys(this.src).forEach((k) => {
-            /* 进轮盘时不要预拉骰宝片，抢键面带宽 */
-            if (this.embedKind === 'roulette' && (k === 'welcomeSicbo' || k === 'betOk')) return;
             this.ensureEl(k);
           });
           ['ballRoll', 'fret0', 'fret1', 'fret2'].forEach((k) => {
@@ -473,7 +486,6 @@
           this.primed = true;
           Object.keys(this.unlockPlayKeys).forEach((k) => {
             if (k === 'welcome' || k === 'welcomeSicbo') return;
-            if (this.embedKind === 'roulette' && (k === 'welcomeSicbo' || k === 'betOk')) return;
             const el = this.els[k];
             if (!el) return;
             try {
@@ -489,8 +501,8 @@
           });
         },
         scheduleHeavy(delayMs) {
-          /* 步骤5：骰宝禁止 scheduleHeavy */
-          if (this.embedKind === 'sicbo') return;
+          /* 骰宝/轮盘禁止 scheduleHeavy */
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette') return;
           if (this.heavyScheduled) return;
           this.heavyScheduled = true;
           const run = () => { try { this.primeHeavy(); } catch (_) {} };
@@ -504,13 +516,16 @@
           setTimeout(run, wait);
         },
         prime() {
-          /* 步骤5：骰宝不走 prime→scheduleHeavy；轮盘禁 heavy 抢键面 */
           if (this.embedKind === 'sicbo') {
             this.primeSicboGesture();
             return;
           }
+          /* 轮盘步骤1：只极轻解锁，不 scheduleHeavy、不预热口播片 */
+          if (this.embedKind === 'roulette') {
+            this.primeRouletteGesture();
+            return;
+          }
           this.primeLight();
-          if (this.embedKind === 'roulette') return;
           this.scheduleHeavy(1800);
         },
         stopVoice() {
@@ -544,8 +559,8 @@
               resolve(false);
               return;
             }
-            /* 步骤1：骰宝桌内父页一律不代播（含未静音），杜绝漏音 */
-            if (this.embedKind === 'sicbo') {
+            /* 骰宝/轮盘桌内父页一律不代播（轮盘步骤1） */
+            if (this.embedKind === 'sicbo' || this.embedKind === 'roulette') {
               resolve(false);
               return;
             }
@@ -606,8 +621,8 @@
         play(key, vol) {
           if (!key) return;
           if (key === 'youWin' || key === 'beep') return;
-          /* 步骤1：骰宝桌内父页一律不代播 */
-          if (this.embedKind === 'sicbo') return;
+          /* 骰宝/轮盘桌内父页一律不代播（轮盘步骤1） */
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette') return;
           if (key === 'enNum') {
             void this.playAwait('enNum', vol);
             return;
@@ -695,8 +710,9 @@
           const d = ev && ev.data;
           if (!d || typeof d !== 'object') return;
           if (d.type === 'fg-sfx-prime') {
-            /* 步骤4：骰宝只极轻 AudioContext；轮盘仍走原 prime */
+            /* 骰宝/轮盘只极轻 AudioContext；禁止拉全套代播 */
             if (ShellSfx.embedKind === 'sicbo') ShellSfx.primeSicboGesture();
+            else if (ShellSfx.embedKind === 'roulette') ShellSfx.primeRouletteGesture();
             else ShellSfx.prime();
           }
           if (d.type === 'fg-sicbo-ready') {
@@ -708,9 +724,14 @@
           }
           if (d.type === 'fg-embed-ready' || d.type === 'fg-roulette-ready') {
             revealEmbed();
+            if (d.type === 'fg-roulette-ready' && ShellSfx.embedKind === 'roulette') {
+              /* 轮盘步骤1：只揭桌回执，不代播欢迎 */
+              ShellSfx.embedWelcomeOk = true;
+              ShellSfx.replyWelcome(true);
+            }
           }
           if (d.type === 'fg-want-welcome') {
-            if (ShellSfx.embedKind === 'sicbo') {
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette') {
               ShellSfx.embedWelcomeOk = true;
               ShellSfx.replyWelcome(true);
             } else if (ShellSfx.embedWelcomeOk != null) {
@@ -720,8 +741,8 @@
             }
           }
           if (d.type === 'fg-sfx') {
-            if (ShellSfx.embedKind === 'sicbo') {
-              /* 步骤1：骰宝父页不代播任何 fg-sfx */
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette') {
+              /* 骰宝/轮盘父页不代播任何 fg-sfx（轮盘步骤1） */
               if (d.id) ShellSfx.reply(d.id, false);
             } else if ((d.key === 'welcome' || d.key === 'welcomeSicbo') && d.id) {
               ShellSfx.playWelcomeForEmbed().then((ok) => ShellSfx.reply(d.id, ok));
@@ -766,22 +787,8 @@
         const join = url.indexOf('?') >= 0 ? '&' : '?';
         frame.src = url + join + 'embed=1';
         if (ShellSfx.embedKind === 'roulette') {
-          /* 方案A：点小图只解锁+短预热 betOk；欢迎等子页 fg-want-welcome；禁止 scheduleHeavy 抢键面 */
-          ShellSfx.primeLight();
-          (function primeBetOk() {
-            const el = ShellSfx.ensureEl('betOk');
-            if (!el) return;
-            try {
-              el.muted = true;
-              el.volume = 0;
-              const p = el.play();
-              const reset = () => {
-                try { el.pause(); el.currentTime = 0; el.muted = false; el.volume = 1; } catch (_) {}
-              };
-              if (p && p.then) p.then(reset).catch(reset);
-              else reset();
-            } catch (_) {}
-          })();
+          /* 轮盘步骤1：手势内只极轻 AudioContext；口播改子页自播（步骤2） */
+          ShellSfx.primeRouletteGesture();
         } else if (ShellSfx.embedKind === 'sicbo') {
           /* 步骤5：进桌手势只极轻 AudioContext；口播全子页 */
           ShellSfx.primeSicboGesture();
@@ -943,9 +950,10 @@
         location.href = GAME;
       }
       function enterRoulette() {
-        /* 整页进桌（用户书面同意）；桌内默认静音，不依赖 iframe 手势 */
+        /* 手机：与骰宝同款 iframe 进桌（用户书面改回）；只写子页静音 key，父页不代播 */
         if (isMobileClient()) {
-          location.href = ROULETTE_M;
+          try { localStorage.setItem('fg_roulette_m_sound_mute', '1'); } catch (_) {}
+          openEmbedShell(ROULETTE_M);
           return;
         }
         location.href = ROULETTE;

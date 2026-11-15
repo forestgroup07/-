@@ -2700,7 +2700,7 @@
   <script>
   (function () {
     'use strict';
-    const V = '1.8.0';
+    const V = '1.9.0';
     const START_BAL = 2000;
     const TABLE_MIN = 10;
     const TABLE_MAX = 20000; /* 一次最多可下注 20k（与手机轮盘一致） */
@@ -2936,6 +2936,8 @@
     let confirmed = Object.create(null);
     /** 撤销栈：[{key, amt, prev}] prev=该盘口改前草稿额（对齐 PC：同盘口再点换面额） */
     let undoStack = [];
+    /** 确认注撤销栈：[{ markets:{key:amt}, total, betIds:[] }] 封盘前可退回 */
+    let confirmUndoStack = [];
     let timerId = null;
     let voiceBusy = false;
     const actBar = document.getElementById('actBar');
@@ -3386,6 +3388,7 @@
       if (openBetFinalizing) return false;
       draft = Object.create(null);
       undoStack = [];
+      confirmUndoStack = [];
       if (!hasOpenConfirmed()) restoreOpenBetsFromStore();
       if (!hasOpenConfirmed()) {
         clearOpenBetSnapshot();
@@ -3414,6 +3417,7 @@
     }
     function paintActBar() {
       const betting = phase === 'betting';
+      /* 仅未确定挂单时显示三键；下注成功后必须隐藏（用户书面） */
       const on = totalDraft() > 0 && betting;
       actBar.classList.toggle('show', on);
       document.getElementById('app').classList.toggle('betting-closed', !betting);
@@ -3714,21 +3718,107 @@
       Voice.playQuick('tick', 0.35);
     }
 
+    function markBetIdsCancelled(ids) {
+      if (!ids || !ids.length) return;
+      const idset = new Set(ids.map((x) => String(x)));
+      const list = loadBetLog();
+      let changed = false;
+      list.forEach((r) => {
+        if (!r) return;
+        const id = String(r.betId || r.id || '');
+        if (!idset.has(id)) return;
+        if (r.status === 'cancelled') return;
+        r.status = 'cancelled';
+        r.pnl = 0;
+        changed = true;
+      });
+      if (changed) saveBetLogLocal(list);
+    }
+    function refundConfirmedAmount(amt, note) {
+      const n = Math.round(Number(amt) || 0);
+      if (n <= 0) return;
+      const prevBal = balance;
+      balance += n;
+      saveBal(user, balance, { type: 'refund', note: note || '撤销确认注', source: 'sicbo-m', prev: prevBal });
+    }
+    function revokeConfirmedKey(key) {
+      const amt = Math.round(Number(confirmed[key]) || 0);
+      if (amt <= 0) return false;
+      delete confirmed[key];
+      const cancelledIds = [];
+      confirmUndoStack = confirmUndoStack.map((batch) => {
+        if (!batch || !batch.markets || batch.markets[key] == null) return batch;
+        const take = Math.round(Number(batch.markets[key]) || 0);
+        delete batch.markets[key];
+        batch.total = Math.max(0, Math.round(Number(batch.total) || 0) - take);
+        if (Array.isArray(batch.betIds)) {
+          batch.betIds.forEach((id) => cancelledIds.push(id));
+        }
+        return batch;
+      }).filter((b) => b && b.total > 0 && b.markets && Object.keys(b.markets).length);
+      markBetIdsCancelled(cancelledIds);
+      refundConfirmedAmount(amt, '撤销确认注');
+      persistOpenBets();
+      return true;
+    }
+    function revokeLastConfirmBatch() {
+      const batch = confirmUndoStack.pop();
+      if (!batch) return false;
+      let refund = 0;
+      Object.keys(batch.markets || {}).forEach((k) => {
+        const want = Math.round(Number(batch.markets[k]) || 0);
+        const have = Math.round(Number(confirmed[k]) || 0);
+        const take = Math.min(want, have);
+        if (take <= 0) return;
+        const left = have - take;
+        if (left <= 0) delete confirmed[k];
+        else confirmed[k] = left;
+        refund += take;
+      });
+      if (refund <= 0) return false;
+      markBetIdsCancelled(batch.betIds || []);
+      refundConfirmedAmount(refund, '撤销确认注');
+      persistOpenBets();
+      return true;
+    }
     function undoDraft() {
-      if (phase !== 'betting') return;
-      const last = undoStack.pop();
-      if (!last) return;
-      if (typeof last.prev === 'number') {
-        if (last.prev <= 0) delete draft[last.key];
-        else draft[last.key] = last.prev;
-      } else {
-        const cur = draft[last.key] || 0;
-        const next = cur - last.amt;
-        if (next <= 0) delete draft[last.key];
-        else draft[last.key] = next;
+      if (phase !== 'betting') {
+        toast('已封盘，无法撤销');
+        return;
       }
-      paintMeta();
-      paintChipsOnCells();
+      if (undoStack.length) {
+        const last = undoStack.pop();
+        if (!last) return;
+        /* 撤掉该盘口未确认草稿（禁止只换回上一面额） */
+        delete draft[last.key];
+        undoStack = undoStack.filter((s) => s && s.key !== last.key);
+        /*
+          用户路径：确认成功 → 再点该格（同面额）→ 点撤销。
+          此时草稿与确认额相同，视为要撤确认注。
+        */
+        const confAmt = Math.round(Number(confirmed[last.key]) || 0);
+        const placed = Math.round(Number(last.amt) || 0);
+        if (
+          confAmt > 0
+          && typeof last.prev === 'number'
+          && last.prev <= 0
+          && placed === confAmt
+        ) {
+          revokeConfirmedKey(last.key);
+        }
+        paintMeta();
+        paintChipsOnCells();
+        toast('已撤销');
+        return;
+      }
+      /* 无挂单草稿：撤最近一次「下注成功」整批确认注并退余额 */
+      if (revokeLastConfirmBatch()) {
+        paintMeta();
+        paintChipsOnCells();
+        toast('已撤销');
+        return;
+      }
+      toast('没有可撤销的注');
     }
     function cancelDraft() {
       draft = Object.create(null);
@@ -3742,14 +3832,19 @@
       const total = totalDraft();
       if (total <= 0) return;
       if (total > balance) { toast('余额不足'); return; }
+      const markets = {};
       Object.keys(draft).forEach((k) => {
-        confirmed[k] = (confirmed[k] || 0) + (draft[k] || 0);
+        const n = Math.round(Number(draft[k]) || 0);
+        if (n > 0) markets[k] = n;
+      });
+      Object.keys(markets).forEach((k) => {
+        confirmed[k] = (confirmed[k] || 0) + markets[k];
       });
       const prevBal = balance;
       balance -= total;
       saveBal(user, balance, { type: 'bet', note: '确认下注', source: 'sicbo-m', prev: prevBal });
       const ts = Date.now();
-      const betRows = Object.keys(draft).filter((k) => (Number(draft[k]) || 0) > 0).map((k, i) => ({
+      const betRows = Object.keys(markets).map((k, i) => ({
         betId: String(ts) + String(i).padStart(2, '0') + String(Math.floor(Math.random() * 90) + 10),
         ts,
         roundId: String(roundNo),
@@ -3757,12 +3852,17 @@
         result: '',
         market: k,
         key: k,
-        stake: Math.round(Number(draft[k]) || 0),
+        stake: markets[k],
         pnl: 0,
         status: 'open',
         source: 'sicbo-m',
       }));
       pushBetRecords(betRows);
+      confirmUndoStack.push({
+        markets: Object.assign({}, markets),
+        total,
+        betIds: betRows.map((r) => r.betId),
+      });
       draft = Object.create(null);
       undoStack = [];
       persistOpenBets();
@@ -4697,6 +4797,7 @@
     function clearAllBets(refundConfirmed) {
       draft = Object.create(null);
       undoStack = [];
+      confirmUndoStack = [];
       if (refundConfirmed) {
         const t = totalConfirmed();
         if (t > 0) {
@@ -4779,9 +4880,10 @@
     function lockAndReveal() {
       phase = 'locked';
       setTimerFace(0);
-      /* 未确认草稿作废，不扣余额 */
+      /* 未确认草稿作废，不扣余额；封盘后不可再撤确认注 */
       draft = Object.create(null);
       undoStack = [];
+      confirmUndoStack = [];
       paintActBar();
       const dice = E.rollDice();
       const bets = Object.assign({}, confirmed);
@@ -4817,6 +4919,7 @@
         confirmed = Object.create(null);
         draft = Object.create(null);
         undoStack = [];
+        confirmUndoStack = [];
         clearOpenBetSnapshot();
         paintMeta();
         paintChipsOnCells();
