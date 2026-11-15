@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#000000" />
+  <title>Forest Group · 輪盤載入中</title>
+  <script>
+    (function () {
+      try {
+        if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
+          location.replace('index.html?v=v1.0.35');
+          return;
+        }
+      } catch (_) {}
+      var V = '2.1.6';
+      var TARGET = 'roulette-m.html?v=' + V;
+      var CORE = [
+        'assets/roulette/m-kbd-face.webp?v=1.3.9',
+        'assets/roulette/m-wheel-felt-bg.jpg?v=1.3.0',
+        'assets/roulette/wheel-disc.png?v=1.2.4',
+        'js/fg-wallet.js?v=1.0.4',
+        TARGET
+      ];
+      window.__FG_ROU_BOOT__ = { V: V, TARGET: TARGET, CORE: CORE };
+      CORE.forEach(function (href) {
+        var l = document.createElement('link');
+        l.rel = href.indexOf('.html') >= 0 ? 'prefetch' : 'preload';
+        if (href.indexOf('.html') < 0) {
+          l.as = href.indexOf('.js') >= 0 ? 'script' : 'image';
+        }
+        l.href = href;
+        document.head.appendChild(l);
+      });
+    })();
+  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    .boot {
+      position: relative; width: 100%; height: 100%;
+      min-height: 100vh; min-height: 100dvh; background: #000; overflow: hidden;
+    }
+    .boot > .poster {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: center; display: block; background: #000;
+    }
+    .bar-wrap {
+      position: absolute; left: 50%; bottom: max(3.2%, env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%); z-index: 2; width: min(640px, 86vw);
+      text-align: center; pointer-events: none;
+    }
+    .bar {
+      height: 5px; border-radius: 999px; background: rgba(255,255,255,.16);
+      overflow: hidden; box-shadow: 0 0 0 1px rgba(212,176,106,.28);
+    }
+    .bar > i {
+      display: block; height: 100%; width: 0%; border-radius: inherit;
+      background: linear-gradient(90deg, #c9973a, #f0d392, #ffe9a8);
+    }
+    .txt {
+      margin-top: .45rem; color: #f5e6c8;
+      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+      font-size: clamp(12px, 1.6vw, 15px); letter-spacing: 0.12em;
+      text-shadow: 0 2px 8px rgba(0,0,0,.85);
+    }
+  </style>
+</head>
+<body>
+  <div class="boot" id="boot">
+    <img class="poster" id="poster" alt="" decoding="async" fetchpriority="high" />
+    <div class="bar-wrap">
+      <div class="bar"><i id="fill"></i></div>
+      <div class="txt" id="txt">進入輪盤中... 0%</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var meta = window.__FG_ROU_BOOT__;
+      if (!meta) return;
+      var fill = document.getElementById('fill');
+      var txt = document.getElementById('txt');
+      var poster = document.getElementById('poster');
+      var MIN_MS = 900;
+      var t0 = performance.now();
+      var done = 0;
+      var total = meta.CORE.length;
+      var jumped = false;
+
+      function setPct(p) {
+        var pct = Math.max(0, Math.min(100, Math.round(p * 100)));
+        fill.style.width = pct + '%';
+        txt.textContent = '進入輪盤中... ' + pct + '%';
+      }
+
+      function maybeGo() {
+        if (jumped) return;
+        var elapsed = performance.now() - t0;
+        var loadP = total ? done / total : 1;
+        var timeP = Math.min(1, elapsed / MIN_MS);
+        setPct(Math.min(loadP, timeP) * 0.92 + Math.min(loadP, timeP) * 0.08);
+        if (loadP < 1 || elapsed < MIN_MS) return;
+        jumped = true;
+        setPct(1);
+        try { sessionStorage.setItem('fg_rou_m_prewarm', '1'); } catch (_) {}
+        location.replace(meta.TARGET);
+      }
+
+      function markOne() {
+        done += 1;
+        maybeGo();
+      }
+
+      meta.CORE.forEach(function (href) {
+        if (/\.js(\?|$)/.test(href)) {
+          var s = document.createElement('script');
+          s.src = href;
+          s.async = true;
+          s.onload = markOne;
+          s.onerror = markOne;
+          document.head.appendChild(s);
+          return;
+        }
+        if (/\.html(\?|$)/.test(href)) {
+          fetch(href, { credentials: 'same-origin', cache: 'force-cache' })
+            .then(function () { markOne(); })
+            .catch(function () { markOne(); });
+          return;
+        }
+        var img = new Image();
+        img.decoding = 'async';
+        img.onload = markOne;
+        img.onerror = markOne;
+        img.src = href;
+      });
+
+      /* 过渡海报：沿用手机载入图，失败也不挡 */
+      var posterUrl = 'assets/loading-posters/lucky-m.webp?v=1.5.1m5';
+      poster.onload = function () { maybeGo(); };
+      poster.onerror = function () {
+        poster.onerror = null;
+        poster.src = 'assets/loading-posters/lucky-m.jpg?v=1.5.1m5';
+      };
+      poster.src = posterUrl;
+
+      var tick = setInterval(function () {
+        maybeGo();
+        if (jumped) clearInterval(tick);
+      }, 80);
+      /* 硬兜底：最多 4s 必进 */
+      setTimeout(function () {
+        if (jumped) return;
+        jumped = true;
+        location.replace(meta.TARGET);
+      }, 4000);
+    })();
+  </script>
+</body>
+</html>

@@ -2872,7 +2872,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '2.1.0';
+      const V = '2.1.6';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -3518,11 +3518,315 @@
       };
 
       function playClick() {}
-      function primeBallSpinSfx() {}
-      function playBallSpinSfx() {}
-      function stopBallRollOnly() {}
-      function playFretClick() {}
-      function stopBallSpinSfx() {}
+      /*
+        外圈滚球：短 outer 片 loop 会在接缝处「中间间断」。
+        用剪掉片尾静音、交叉淡化拼成的连续长片 outer-cont（~5s）单次播放，禁止 loop。
+        隔板 fret 仍电脑同款。静音认 Voice.muted。
+      */
+      const BALL_ROLL_URL = 'audio/roulette-ball-roll-outer-cont.mp3?v=' + V;
+      const sfxBallRoll = new Audio(BALL_ROLL_URL);
+      const sfxBallBounce = new Audio('audio/roulette-ball-bounce.mp3?v=' + V);
+      try {
+        sfxBallRoll.setAttribute('playsinline', '');
+        sfxBallRoll.setAttribute('webkit-playsinline', '');
+        sfxBallRoll.playsInline = true;
+        sfxBallRoll.preload = 'auto';
+        sfxBallBounce.preload = 'auto';
+      } catch (_) {}
+      const sfxFretClicks = [0, 1, 2].map((i) => {
+        const a = new Audio('audio/roulette-fret-click-' + i + '.mp3?v=' + V);
+        a.preload = 'auto';
+        return a;
+      });
+      let ballSpinPlaying = false;
+      let ballBounceStarted = false;
+      let ballInPocketPhase = false;
+      let fretClickI = 0;
+      let ballRollWatch = 0;
+      let ballRollBuf = null;
+      let ballRollBufUrl = '';
+      let ballRollBufLoading = null;
+      let ballRollSrc = null;
+      let ballRollGain = null;
+      let ballAudioCtx = null;
+      let ballSynthTimer = 0;
+      let ballSynthNodes = [];
+      let ballRollStartedOk = false;
+      function ballSfxMuted() {
+        return !!(Voice && Voice.muted);
+      }
+      function ensureBallAudioCtx() {
+        try {
+          if (Voice && Voice.ctx) ballAudioCtx = Voice.ctx;
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC && !ballAudioCtx) return null;
+          if (!ballAudioCtx) ballAudioCtx = new AC();
+          if (ballAudioCtx.state === 'suspended') {
+            try { ballAudioCtx.resume(); } catch (_) {}
+          }
+          return ballAudioCtx;
+        } catch (_) {
+          return null;
+        }
+      }
+      function clearBallRollWatch() {
+        if (ballRollWatch) {
+          clearInterval(ballRollWatch);
+          ballRollWatch = 0;
+        }
+      }
+      function stopBallRollBuffer() {
+        if (ballRollSrc) {
+          try { ballRollSrc.onended = null; } catch (_) {}
+          try { ballRollSrc.stop(); } catch (_) {}
+          try { ballRollSrc.disconnect(); } catch (_) {}
+          ballRollSrc = null;
+        }
+      }
+      function loadBallRollBuffer() {
+        const ctx = ensureBallAudioCtx();
+        if (!ctx) return Promise.reject(new Error('no-ctx'));
+        if (ballRollBuf && ballRollBufUrl === BALL_ROLL_URL) return Promise.resolve(ballRollBuf);
+        if (ballRollBufLoading) return ballRollBufLoading;
+        ballRollBuf = null;
+        ballRollBufUrl = BALL_ROLL_URL;
+        ballRollBufLoading = fetch(BALL_ROLL_URL)
+          .then((r) => {
+            if (!r.ok) throw new Error('roll-fetch');
+            return r.arrayBuffer();
+          })
+          .then((ab) => ctx.decodeAudioData(ab.slice(0)))
+          .then((buf) => {
+            ballRollBuf = buf;
+            ballRollBufLoading = null;
+            return buf;
+          })
+          .catch((err) => {
+            ballRollBufLoading = null;
+            ballRollBufUrl = '';
+            throw err;
+          });
+        return ballRollBufLoading;
+      }
+      /** 连续长片单次播放；禁止 loop（短片接缝 = 中间间断） */
+      function startBallRollBuffer() {
+        const ctx = ensureBallAudioCtx();
+        if (!ctx || !ballRollBuf || ballSfxMuted()) return false;
+        stopBallRollBuffer();
+        try {
+          if (ctx.state === 'suspended') ctx.resume();
+          if (!ballRollGain) {
+            ballRollGain = ctx.createGain();
+            ballRollGain.connect(ctx.destination);
+          }
+          ballRollGain.gain.value = 1;
+          const src = ctx.createBufferSource();
+          src.buffer = ballRollBuf;
+          src.loop = false;
+          src.connect(ballRollGain);
+          src.onended = () => { ballRollSrc = null; };
+          src.start(0);
+          ballRollSrc = src;
+          ballRollStartedOk = true;
+          return true;
+        } catch (_) {
+          ballRollSrc = null;
+          return false;
+        }
+      }
+      function pauseHtmlBallRoll() {
+        try {
+          sfxBallRoll.loop = false;
+          sfxBallRoll.pause();
+          sfxBallRoll.currentTime = 0;
+        } catch (_) {}
+      }
+      function _primeOneBall(el) {
+        try {
+          el.muted = true;
+          el.volume = 0;
+          const p = el.play();
+          const reset = () => {
+            try {
+              el.pause();
+              el.currentTime = 0;
+              el.muted = false;
+              el.volume = 1;
+            } catch (_) {}
+          };
+          if (p && typeof p.then === 'function') p.then(reset).catch(() => {});
+          else reset();
+        } catch (_) {}
+      }
+      function primeBallSpinSfx() {
+        ensureBallAudioCtx();
+        try { loadBallRollBuffer().catch(() => {}); } catch (_) {}
+        _primeOneBall(sfxBallRoll);
+        _primeOneBall(sfxBallBounce);
+        sfxFretClicks.forEach(_primeOneBall);
+      }
+      function stopBallSpinSynth() {
+        if (ballSynthTimer) {
+          clearTimeout(ballSynthTimer);
+          ballSynthTimer = 0;
+        }
+        ballSynthNodes.forEach((n) => {
+          try { n.stop(); } catch (_) {}
+          try { n.disconnect(); } catch (_) {}
+        });
+        ballSynthNodes = [];
+      }
+      /** withClicks=false 仅外圈沙沙声；true 才合成格内撞钉 */
+      function startBallSpinSynth(withClicks) {
+        const ctx = ensureBallAudioCtx();
+        if (!ctx || ballSfxMuted()) return;
+        stopBallSpinSynth();
+        const master = ctx.createGain();
+        master.gain.value = withClicks ? 0.28 : 0.18;
+        master.connect(ctx.destination);
+        const bufLen = Math.max(1, Math.floor(ctx.sampleRate * 0.08));
+        const noiseBuf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+        const data = noiseBuf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (withClicks ? 0.22 : 0.35);
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuf;
+        noise.loop = true;
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.value = withClicks ? 1200 : 1800;
+        noiseFilter.Q.value = 0.8;
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.value = withClicks ? 0.28 : 0.55;
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(master);
+        noise.start();
+        ballSynthNodes.push(noise);
+        if (!withClicks) return;
+        let gap = 0.16;
+        const clickOnce = () => {
+          if (ballSfxMuted() || !ballSpinPlaying) return;
+          try {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'triangle';
+            o.frequency.value = 1800 + Math.random() * 1100;
+            g.gain.setValueAtTime(0.0001, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.32, ctx.currentTime + 0.005);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.06);
+            o.connect(g);
+            g.connect(master);
+            o.start();
+            o.stop(ctx.currentTime + 0.07);
+          } catch (_) {}
+        };
+        const schedule = () => {
+          if (!ballSpinPlaying || ballSfxMuted()) {
+            stopBallSpinSynth();
+            return;
+          }
+          clickOnce();
+          gap = Math.min(0.42, gap + 0.022);
+          ballSynthTimer = setTimeout(schedule, gap * 1000);
+        };
+        schedule();
+        setTimeout(() => {
+          if (ballSpinPlaying) stopBallSpinSynth();
+        }, 3200);
+      }
+      function playBallSpinSfx() {
+        /* 外圈：连续长片单次；禁止 loop 接缝间断；进格间停 roll */
+        ballSpinPlaying = true;
+        ballBounceStarted = false;
+        ballInPocketPhase = false;
+        ballRollStartedOk = false;
+        fretClickI = 0;
+        clearBallRollWatch();
+        stopBallRollBuffer();
+        pauseHtmlBallRoll();
+        if (ballSfxMuted()) return;
+        ensureBallAudioCtx();
+        try {
+          sfxBallBounce.pause();
+          sfxBallBounce.currentTime = 0;
+        } catch (_) {}
+        const fallbackHtmlOrSynth = () => {
+          if (!ballSpinPlaying || ballInPocketPhase || ballSfxMuted()) return;
+          if (ballRollStartedOk) return;
+          try {
+            sfxBallRoll.muted = false;
+            sfxBallRoll.loop = false;
+            sfxBallRoll.volume = 1;
+            try { sfxBallRoll.currentTime = 0; } catch (_) {}
+            const p = sfxBallRoll.play();
+            ballRollStartedOk = true;
+            if (p && p.catch) {
+              p.catch(() => {
+                ballRollStartedOk = false;
+                try { startBallSpinSynth(false); } catch (_) {}
+              });
+            }
+          } catch (_) {
+            try { startBallSpinSynth(false); } catch (__) {}
+          }
+        };
+        const kickBuf = () => {
+          if (!ballSpinPlaying || ballInPocketPhase || ballSfxMuted()) return;
+          if (ballRollStartedOk) return;
+          if (startBallRollBuffer()) return;
+          fallbackHtmlOrSynth();
+        };
+        loadBallRollBuffer().then(() => {
+          kickBuf();
+        }).catch(() => {
+          fallbackHtmlOrSynth();
+        });
+        /* 只补从未起播；单次播完不重开（避免又接出间断） */
+        ballRollWatch = setInterval(() => {
+          if (!ballSpinPlaying || ballInPocketPhase || ballSfxMuted()) {
+            clearBallRollWatch();
+            return;
+          }
+          if (!ballRollStartedOk) kickBuf();
+        }, 400);
+      }
+      function stopBallRollOnly() {
+        clearBallRollWatch();
+        stopBallRollBuffer();
+        pauseHtmlBallRoll();
+        stopBallSpinSynth();
+      }
+      /** 撞一格隔板一声；外圈硬门禁（电脑同款） */
+      function playFretClick(vol) {
+        if (ballSfxMuted() || !ballSpinPlaying || !ballInPocketPhase) return;
+        ballBounceStarted = true;
+        const src = sfxFretClicks[fretClickI % sfxFretClicks.length];
+        fretClickI++;
+        if (!src) return;
+        try {
+          const a = src.cloneNode();
+          a.volume = vol == null ? 0.9 : vol;
+          a.muted = false;
+          const p = a.play();
+          if (p && p.catch) p.catch(() => {});
+        } catch (_) {}
+      }
+      function stopBallSpinSfx() {
+        ballSpinPlaying = false;
+        ballBounceStarted = false;
+        ballInPocketPhase = false;
+        clearBallRollWatch();
+        stopBallRollBuffer();
+        stopBallSpinSynth();
+        pauseHtmlBallRoll();
+        try {
+          sfxBallBounce.pause();
+          sfxBallBounce.currentTime = 0;
+        } catch (_) {}
+        sfxFretClicks.forEach((el) => {
+          try { el.pause(); el.currentTime = 0; } catch (_) {}
+        });
+      }
 
       Voice.init();
       try { localStorage.setItem(SOUND_MUTE_KEY, '1'); } catch (_) {}
@@ -3532,7 +3836,7 @@
       document.addEventListener('pointerdown', (e) => {
         if (Voice.muted) return;
         if (e.target && e.target.closest && e.target.closest('#btnSound')) return;
-        try { Voice.unlock(); audioUnlockedOk = true; } catch (_) { audioUnlockedOk = true; }
+        try { Voice.unlock(); audioUnlockedOk = true; primeBallSpinSfx(); } catch (_) { audioUnlockedOk = true; }
       }, { passive: true });
 
       function stopBetTimer() {
@@ -5096,9 +5400,9 @@
       /**
        * 开奖轨迹（分步对齐电脑）：
        * 步骤1：外圈四圈递慢 — OUTER_MS / LAP_SHARE（已定 1.9.0）
-       * 步骤3：入格末速衔接 + 匀减速
-       * 停稳硬规则：终点必须整数格心，不许压隔板线 / 不许压数字格边（严于电脑）
-       * 未做：步骤2 滚球声、步骤4 隔板 fret 轮播声
+       * 步骤3：入格末速衔接 + 匀减速；停稳锁格心
+       * 步骤2：滚球声贯穿外圈+数字圈；DROP_U1 进格间才停 roll
+       * 未做：步骤4 隔板 fret 轮播真声
        */
       function runBallAndWheelStop(winNum) {
         /* 步骤1：外圈 — 照抄电脑（份额勿改） */
@@ -5211,6 +5515,7 @@
           return R_SETTLE - amp;
         };
 
+        /* 滚球声：外圈+落入数字圈渐弱；进格间再停 */
         playBallSpinSfx();
         const t0 = performance.now();
         let raf = 0;
@@ -5244,12 +5549,21 @@
               ang = b0 - bDelta * ballProgress(u);
             } else if (u >= RATTLE_END) {
               /* 运动已自然到格心后：保持整数格心，不压线 */
+              if (!ballInPocketPhase) {
+                ballInPocketPhase = true;
+                stopBallRollOnly();
+              }
               ang = pocketCenterCss(wNow);
             } else {
               if (!dropArmed) {
                 dropArmed = true;
-                stopBallRollOnly();
+                /* 落入数字圈：继续完整滚球声，此处不停 roll */
                 lastFret = Math.floor(startIdx - 0.5 + 1e-6);
+              }
+              /* 真正进入格间（半径已落到格窝）才停滚球；隔板声步骤4 */
+              if (u >= DROP_U1 && !ballInPocketPhase) {
+                ballInPocketPhase = true;
+                stopBallRollOnly();
               }
               const f = pocketFloatAt(u);
               const fretI = Math.floor(f - 0.5 + 1e-9);
@@ -5515,22 +5829,30 @@
           try { localStorage.setItem(SOUND_MUTE_KEY, '0'); } catch (_) {}
           markWelcomed();
           Voice.pendingKey = null;
-          try { Voice.unlock(); audioUnlockedOk = true; } catch (_) { audioUnlockedOk = true; }
+          try { Voice.unlock(); audioUnlockedOk = true; primeBallSpinSfx(); } catch (_) { audioUnlockedOk = true; }
           try { Voice.playQuick('tick', 0.5); } catch (_) {}
+          /* 若已在外圈滚动中途开声：立刻补上滚球声 */
+          if (ballSpinPlaying && !ballInPocketPhase) {
+            try { playBallSpinSfx(); } catch (_) {}
+          }
           toast('声音已开');
           return;
         }
         if (!audioUnlockedOk) {
           markWelcomed();
           Voice.pendingKey = null;
-          try { Voice.unlock(); audioUnlockedOk = true; } catch (_) { audioUnlockedOk = true; }
+          try { Voice.unlock(); audioUnlockedOk = true; primeBallSpinSfx(); } catch (_) { audioUnlockedOk = true; }
           try { Voice.playQuick('tick', 0.5); } catch (_) {}
+          if (ballSpinPlaying && !ballInPocketPhase) {
+            try { playBallSpinSfx(); } catch (_) {}
+          }
           toast('声音已开');
           return;
         }
         Voice.setMuted(true);
         try { localStorage.setItem(SOUND_MUTE_KEY, '1'); } catch (_) {}
         try { Voice.stopAll(); } catch (_) {}
+        try { stopBallSpinSfx(); } catch (_) {}
         toast('已静音');
       });
       document.getElementById('btnNavBack').addEventListener('click', () => {

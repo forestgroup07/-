@@ -1,0 +1,24 @@
+roulette-m v2.1.6 — 2026-11-15
+用户书面：「请把这个存为2.1 计入git接下来 做进入格子间的声音吧」
+工作包号 2.1.6（线上已跑通连续外圈滚球）
+
+已验收清单（本包算数）：
+- 沿用 v2.1.0：步骤1 外圈四圈递慢；步骤3 入格自然匀减速；停稳锁格心
+- 沿用 v1.8.0：法式撤销预备、10k/20k、侧栏、betOk、喇叭三分叉等
+- 步骤2 外圈滚球：剪掉短片 loop 接缝间断；用 outer-cont 连续长片（~5s）单次播放；进格间（DROP_U1）停 roll
+- 资源：audio/roulette-ball-roll-outer-cont.mp3
+
+未验收、不得当作本定版：
+- 步骤4 进入格间隔板 fret 真声与衔接（用户书面：接下来再做）
+- 打键贴面换色、整站多语言、公告后台
+- 电脑版轮盘；手机骰宝（另册）
+
+回滚：
+  roulette-m.LOCKED-2.1.6.html
+  roulette-m-boot.LOCKED-2.1.6.html
+  lobby.LOCKED-roulette-m-2.1.6.html
+  assets/roulette/LOCKED-roulette-m-2.1.6.txt
+  audio/roulette-ball-roll-outer-cont.mp3
+  assets/roulette/VERSION-m.txt = 2.1.6
+  tag roulette-m-v2.1.6
+验收：https://forestgroup.ai/roulette-m.html?v=2.1.6
