@@ -2700,7 +2700,7 @@
   <script>
   (function () {
     'use strict';
-    const V = '1.9.0';
+    const V = '2.0.0';
     const START_BAL = 2000;
     const TABLE_MIN = 10;
     const TABLE_MAX = 20000; /* 一次最多可下注 20k（与手机轮盘一致） */
@@ -3327,8 +3327,30 @@
     function sumMap(m) {
       return Object.keys(m || {}).reduce((s, k) => s + (m[k] || 0), 0);
     }
-    function totalDraft() { return sumMap(draft); }
     function totalConfirmed() { return sumMap(confirmed); }
+    /* 同额「撤销预备」：确认后再点同筹码，草稿=确认额，不占第二份余额、不叠显示 */
+    function isRevokePrepKey(key) {
+      const c = Math.round(Number(confirmed[key]) || 0);
+      const d = Math.round(Number(draft[key]) || 0);
+      return c > 0 && d === c;
+    }
+    function totalDraft() {
+      return Object.keys(draft || {}).reduce((s, k) => {
+        const d = Math.round(Number(draft[k]) || 0);
+        if (d <= 0 || isRevokePrepKey(k)) return s;
+        return s + d;
+      }, 0);
+    }
+    function hasDraftKeys() {
+      return Object.keys(draft || {}).some((k) => (Math.round(Number(draft[k]) || 0) > 0));
+    }
+    function cellStakeShow(key) {
+      const c = Math.round(Number(confirmed[key]) || 0);
+      const d = Math.round(Number(draft[key]) || 0);
+      if (d <= 0) return c;
+      if (c > 0 && d === c) return c;
+      return c + d;
+    }
     function availableBal() {
       return balance - totalDraft();
     }
@@ -3417,8 +3439,8 @@
     }
     function paintActBar() {
       const betting = phase === 'betting';
-      /* 仅未确定挂单时显示三键；下注成功后必须隐藏（用户书面） */
-      const on = totalDraft() > 0 && betting;
+      /* 有挂单或同额撤销预备时显示三键；纯「下注成功」无草稿则隐藏 */
+      const on = hasDraftKeys() && betting;
       actBar.classList.toggle('show', on);
       document.getElementById('app').classList.toggle('betting-closed', !betting);
     }
@@ -3439,7 +3461,7 @@
       STAKE_PANEL_KEYS.forEach((key) => {
         const row = stakeTip.querySelector('[data-stake-key="' + key + '"]');
         if (!row) return;
-        const stake = (confirmed[key] || 0) + (draft[key] || 0);
+        const stake = cellStakeShow(key);
         betTotal += stake;
         row.querySelector('[data-col="bet"]').textContent = fmtStakeCell(stake);
         const fmtP = fmtPnlCell(lastPnl[key]);
@@ -3482,6 +3504,7 @@
     }
     function paintMeta() {
       elBal.textContent = fmt(balance);
+      /* 撤销预备不叠第二笔；注金条 = 确认 + 真挂单 */
       elStake.textContent = String(totalConfirmed() + totalDraft());
       if (elRound) elRound.textContent = '局号: ' + roundNo;
       try {
@@ -3512,7 +3535,8 @@
         const key = btn.dataset.bet;
         const cAmt = confirmed[key] || 0;
         const dAmt = draft[key] || 0;
-        const amt = cAmt + dAmt;
+        /* 同额撤销预备：只显示一份（50 不再叠成 100） */
+        const amt = cellStakeShow(key);
         let chip = btn.querySelector('.bet-chip');
         btn.querySelectorAll('.chip-on').forEach((el) => el.remove());
         if (amt > 0) {
@@ -3689,12 +3713,12 @@
         toast('余额不足');
         return;
       }
-      const conf = confirmed[key] || 0;
-      const prevDraft = draft[key] || 0;
+      const conf = Math.round(Number(confirmed[key]) || 0);
+      const prevDraft = Math.round(Number(draft[key]) || 0);
       const cur = conf + prevDraft;
       if (maxMode) {
         /* MAX：该盘口草稿吃掉可用余额（含收回本格旧草稿），封顶 TABLE_MAX */
-        const freed = availableBal() + prevDraft;
+        const freed = availableBal() + (isRevokePrepKey(key) ? 0 : prevDraft);
         const want = Math.min(TABLE_MAX - conf, freed);
         if (want < TABLE_MIN && cur === 0) { toast('余额不足'); return; }
         if (want <= 0 || want === prevDraft) { toast('余额不足'); return; }
@@ -3702,12 +3726,21 @@
         draft[key] = amt;
         undoStack.push({ key, amt, prev: prevDraft });
       } else {
+        /* 确认成功后再点同额：进入撤销预备，不叠第二笔、不闪 +amt */
+        if (conf > 0 && prevDraft <= 0 && amt === conf) {
+          draft[key] = amt;
+          undoStack.push({ key, amt, prev: 0 });
+          paintMeta();
+          paintChipsOnCells();
+          Voice.playQuick('tick', 0.35);
+          return;
+        }
         /* 对齐 PC A：点哪个挂哪个（其它盘口保留）；同盘口再点=换成当前筹码，不累加 */
         if (conf + amt > TABLE_MAX) {
           toast('单项上限 ' + TABLE_MAX);
           return;
         }
-        const freed = availableBal() + prevDraft;
+        const freed = availableBal() + (isRevokePrepKey(key) ? 0 : prevDraft);
         if (amt > freed) { toast('余额不足'); return; }
         draft[key] = amt;
         undoStack.push({ key, amt, prev: prevDraft });
@@ -3821,22 +3854,45 @@
       toast('没有可撤销的注');
     }
     function cancelDraft() {
-      draft = Object.create(null);
-      undoStack = [];
+      if (phase !== 'betting') return;
+      const keys = Object.keys(draft).filter((k) => (Number(draft[k]) || 0) > 0);
+      if (!keys.length) return;
+      /*
+        ❌ 只清「纯挂单」盘口。
+        已确认过的盘口上再点出来的草稿（画面常是 确认+草稿=100）→ 没反应，
+        避免点 ❌ 变成只剩确认额（100→50）。撤确认注请用 ↩️。
+      */
+      let cleared = false;
+      keys.forEach((k) => {
+        if ((Number(confirmed[k]) || 0) > 0) return;
+        delete draft[k];
+        cleared = true;
+      });
+      if (!cleared) return;
+      undoStack = undoStack.filter((s) => s && (Number(draft[s.key]) || 0) > 0);
       paintMeta();
       paintChipsOnCells();
       toast('已取消');
     }
     function confirmDraft() {
       if (phase !== 'betting') { toast('已封盘'); return; }
-      const total = totalDraft();
-      if (total <= 0) return;
-      if (total > balance) { toast('余额不足'); return; }
       const markets = {};
       Object.keys(draft).forEach((k) => {
         const n = Math.round(Number(draft[k]) || 0);
-        if (n > 0) markets[k] = n;
+        if (n <= 0) return;
+        /* 同额撤销预备误点确定：不加第二笔 */
+        if (isRevokePrepKey(k)) return;
+        markets[k] = n;
       });
+      const total = Object.keys(markets).reduce((s, k) => s + markets[k], 0);
+      if (total <= 0) {
+        draft = Object.create(null);
+        undoStack = [];
+        paintMeta();
+        paintChipsOnCells();
+        return;
+      }
+      if (total > balance) { toast('余额不足'); return; }
       Object.keys(markets).forEach((k) => {
         confirmed[k] = (confirmed[k] || 0) + markets[k];
       });
