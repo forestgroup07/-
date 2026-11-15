@@ -417,6 +417,7 @@
       pointer-events: none;
     }
     .round-id {
+      display: none; /* 用户点名去掉桌面「局号」字；内部 roundId 仍记流水 */
       position: absolute; z-index: 5; right: .7rem; top: 2.35rem;
       font-size: .68rem; color: rgba(255,255,255,.78);
       text-shadow: 0 1px 2px #000;
@@ -2876,7 +2877,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '2.3.0';
+      const V = '2.4.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -3366,6 +3367,13 @@
       welcomePlayed = true;
       function markWelcomed() { welcomePlayed = true; }
 
+      /* 口播/滴答：子页 Web Audio 缓冲（与隔板同路）。不靠 HTMLAudio 等 load，避免开喇叭后拖到倒计时中段才出声；不请父页代播。 */
+      const voiceBufs = Object.create(null);
+      const voiceBufLoading = Object.create(null);
+      let voiceOutGain = null;
+      let voiceActiveNodes = [];
+      const VOICE_CORE_KEYS = ['tick', 'bomb', 'startBet', 'stopBet', 'betOk'];
+
       const Voice = {
         unlocked: false,
         muted: false,
@@ -3401,7 +3409,15 @@
           });
         },
         isOff() { return !!this.muted; },
+        stopVoiceNodes() {
+          voiceActiveNodes.forEach((n) => {
+            try { n.stop(); } catch (_) {}
+            try { n.disconnect(); } catch (_) {}
+          });
+          voiceActiveNodes = [];
+        },
         stopAll() {
+          this.stopVoiceNodes();
           Object.keys(this.players).forEach((k) => {
             const el = this.players[k];
             if (!el) return;
@@ -3416,6 +3432,7 @@
         silence() {
           this.dead = true;
           this.pendingKey = null;
+          this.stopVoiceNodes();
           Object.keys(this.players).forEach((k) => {
             const el = this.players[k];
             if (!el) return;
@@ -3447,6 +3464,7 @@
             }
           } catch (_) {}
           try {
+            voiceOutGain = null;
             if (this.ctx) {
               if (this.ctx.state === 'running') this.ctx.suspend();
               if (this.ctx.close) this.ctx.close();
@@ -3457,6 +3475,7 @@
         pauseSoft() {
           try {
             if (window.speechSynthesis) window.speechSynthesis.cancel();
+            this.stopVoiceNodes();
             document.querySelectorAll('audio').forEach((el) => {
               try { el.pause(); } catch (_) {}
             });
@@ -3474,59 +3493,179 @@
           if (this.muted) this.stopAll();
           paintMuteBtn();
         },
-        unlock() {
-          /* 与骰宝同款：清 dead + 装 src + AudioContext；禁止静音狂试播、禁止连锁口播 */
-          this.dead = false;
-          try {
-            Object.keys(this.players).forEach((k) => {
-              const el = this.players[k];
-              if (!el) return;
-              const want = this.clips[k];
-              if (want && el.getAttribute('src') !== want && !String(el.src || '').includes(String(want).split('?')[0])) {
-                el.src = want;
-                try { el.load(); } catch (_) {}
-              }
-              el.muted = !!this.muted;
-              el.volume = this.muted ? 0 : 1;
-            });
-          } catch (_) {}
+        ensureCtx() {
           try {
             const AC = window.AudioContext || window.webkitAudioContext;
-            if (AC) {
-              this.ctx = this.ctx || new AC();
-              if (this.ctx.state === 'suspended') this.ctx.resume();
+            if (!AC) return null;
+            this.ctx = this.ctx || new AC();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            if (!voiceOutGain) {
+              voiceOutGain = this.ctx.createGain();
+              voiceOutGain.gain.value = 1;
+              voiceOutGain.connect(this.ctx.destination);
             }
-            this.unlocked = true;
-            if (this.pendingKey && !this.muted) {
-              const k = this.pendingKey;
-              this.pendingKey = null;
-              if (k === 'welcome' || k === 'startBet' || k === 'betOk' || k === 'stopBet') {
-                if (k === 'welcome') markWelcomed();
-              }
-            } else if (this.muted) {
-              this.pendingKey = null;
-            }
-          } catch (_) {}
+            return this.ctx;
+          } catch (_) {
+            return null;
+          }
         },
-        /* 步骤2：口播仍占位；滴答照抄骰宝 playQuick */
-        playEl() { return Promise.resolve(false); },
-        speak() { return Promise.resolve(false); },
+        unlock() {
+          /* 清 dead + AudioContext；禁止连锁口播；不请父页 */
+          this.dead = false;
+          try { this.ensureCtx(); } catch (_) {}
+          this.unlocked = true;
+          if (this.pendingKey && !this.muted) {
+            const k = this.pendingKey;
+            this.pendingKey = null;
+            if (k === 'welcome' || k === 'startBet' || k === 'betOk' || k === 'stopBet') {
+              if (k === 'welcome') markWelcomed();
+            }
+          } else if (this.muted) {
+            this.pendingKey = null;
+          }
+        },
+        loadBuf(key) {
+          if (voiceBufs[key]) return Promise.resolve(voiceBufs[key]);
+          if (voiceBufLoading[key]) return voiceBufLoading[key];
+          const url = this.clips[key];
+          if (!url) return Promise.reject(new Error('no-clip'));
+          voiceBufLoading[key] = fetch(url)
+            .then((r) => {
+              if (!r.ok) throw new Error('voice-fetch');
+              return r.arrayBuffer();
+            })
+            .then((ab) => {
+              const ctx = this.ensureCtx();
+              if (!ctx) throw new Error('no-ctx');
+              return ctx.decodeAudioData(ab.slice(0));
+            })
+            .then((buf) => {
+              voiceBufs[key] = buf;
+              voiceBufLoading[key] = null;
+              return buf;
+            })
+            .catch((err) => {
+              voiceBufLoading[key] = null;
+              throw err;
+            });
+          return voiceBufLoading[key];
+        },
+        playBuf(key, vol) {
+          if (this.muted || this.dead) return false;
+          const buf = voiceBufs[key];
+          const ctx = this.ensureCtx();
+          if (!buf || !ctx || !voiceOutGain) return false;
+          try {
+            if (ctx.state === 'suspended') ctx.resume();
+            const src = ctx.createBufferSource();
+            const g = ctx.createGain();
+            g.gain.value = vol == null ? 1 : vol;
+            src.buffer = buf;
+            src.connect(g);
+            g.connect(voiceOutGain);
+            src.start(0);
+            voiceActiveNodes.push(src);
+            src.onended = () => {
+              voiceActiveNodes = voiceActiveNodes.filter((n) => n !== src);
+            };
+            audioUnlockedOk = true;
+            return true;
+          } catch (_) {
+            return false;
+          }
+        },
+        playEl(el) {
+          return new Promise((resolve) => {
+            if (!el || this.muted || this.dead) { resolve(false); return; }
+            let settled = false;
+            const done = (ok) => {
+              if (settled) return;
+              settled = true;
+              resolve(!!ok);
+            };
+            try {
+              el.pause();
+              el.currentTime = 0;
+              el.muted = false;
+              el.volume = 1;
+            } catch (_) {}
+            el.onended = () => done(true);
+            el.onerror = () => done(false);
+            const p = el.play();
+            if (p && typeof p.then === 'function') {
+              p.then(() => { audioUnlockedOk = true; }).catch(() => done(false));
+              setTimeout(() => {
+                if (!settled && el.paused) done(false);
+              }, 800);
+            } else {
+              done(false);
+            }
+          });
+        },
+        async speak(key) {
+          if (this.muted || this.dead) return false;
+          if (this.playBuf(key, 1)) return true;
+          try {
+            await this.loadBuf(key);
+            if (this.muted || this.dead) return false;
+            if (this.playBuf(key, 1)) return true;
+          } catch (_) {}
+          return this.playEl(this.players[key]);
+        },
         playQuick(key, vol) {
           if (this.muted || this.dead) return;
-          const el = this.players[key];
-          if (!el) return;
-          try {
-            el.pause();
-            el.currentTime = 0;
-            el.muted = false;
-            el.volume = vol == null ? 0.55 : vol;
-            const p = el.play();
-            if (p && p.catch) p.catch(() => {});
-          } catch (_) {}
+          const v = vol == null ? 0.55 : vol;
+          if (this.playBuf(key, v)) return;
+          void this.loadBuf(key).then(() => {
+            if (!this.muted && !this.dead) this.playBuf(key, v);
+          }).catch(() => {
+            const el = this.players[key];
+            if (!el || this.muted || this.dead) return;
+            try {
+              el.pause();
+              el.currentTime = 0;
+              el.muted = false;
+              el.volume = v;
+              const p = el.play();
+              if (p && p.catch) p.catch(() => {});
+            } catch (_) {}
+          });
         },
         tick() { this.playQuick('tick', 0.5); },
         bombTick() { this.playQuick('bomb', 0.62); },
       };
+
+      /** 进桌即后台拉解码（只 fetch，不播）；开喇叭时可立刻 playBuf */
+      function prefetchVoiceCore() {
+        try { Voice.ensureCtx(); } catch (_) {}
+        VOICE_CORE_KEYS.forEach((k) => {
+          void Voice.loadBuf(k).catch(() => {});
+        });
+      }
+
+      function warmVoiceCore() {
+        prefetchVoiceCore();
+        try {
+          const ctx = Voice.ensureCtx();
+          if (!ctx) return;
+          const buf = ctx.createBuffer(1, 1, 22050);
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          src.connect(ctx.destination);
+          src.start(0);
+        } catch (_) {}
+      }
+
+      async function unlockSpeakTick() {
+        try {
+          Voice.ensureCtx();
+          if (Voice.playBuf('tick', 0.5)) return;
+          await Voice.loadBuf('tick');
+          if (!Voice.muted && !Voice.dead) Voice.playBuf('tick', 0.5);
+        } catch (_) {
+          try { Voice.playQuick('tick', 0.5); } catch (__) {}
+        }
+      }
 
       function playClick() {}
       /*
@@ -3656,20 +3795,12 @@
         } catch (_) {}
       }
       function _primeOneBall(el) {
+        /* 只 load，禁止试播后 muted=false——开喇叭会漏滚球片 */
         try {
+          el.preload = 'auto';
           el.muted = true;
           el.volume = 0;
-          const p = el.play();
-          const reset = () => {
-            try {
-              el.pause();
-              el.currentTime = 0;
-              el.muted = false;
-              el.volume = 1;
-            } catch (_) {}
-          };
-          if (p && typeof p.then === 'function') p.then(reset).catch(() => {});
-          else reset();
+          try { el.load(); } catch (_) {}
         } catch (_) {}
       }
       function loadFretBuffers() {
@@ -3897,10 +4028,16 @@
       Voice.setMuted(true);
       markWelcomed();
       try { Voice.unlock(); } catch (_) {}
+      try { prefetchVoiceCore(); } catch (_) {}
       document.addEventListener('pointerdown', (e) => {
         if (Voice.muted) return;
         if (e.target && e.target.closest && e.target.closest('#btnSound')) return;
-        try { Voice.unlock(); audioUnlockedOk = true; primeBallSpinSfx(); } catch (_) { audioUnlockedOk = true; }
+        try {
+          Voice.unlock();
+          audioUnlockedOk = true;
+          warmVoiceCore();
+          primeBallSpinSfx();
+        } catch (_) { audioUnlockedOk = true; }
       }, { passive: true });
 
       function stopBetTimer() {
@@ -5310,8 +5447,12 @@
         undoStack = [];
         paintBets();
         holdPhaseBanner('下注成功', 1400);
-        /* 与已验收：确定后播「下注成功」；void 不挡局流程 / 倒计时 */
-        if (!Voice.muted) void Voice.speak('betOk');
+        /* 确定后播「下注成功」：优先 Web Audio 缓冲；void 不挡倒计时 */
+        if (!Voice.muted) {
+          void Voice.speak('betOk').then((ok) => {
+            if (!ok && !Voice.muted) void Voice.speak('betOk');
+          });
+        }
         return true;
       }
 
@@ -5897,15 +6038,14 @@
       });
 
       document.getElementById('btnSound').addEventListener('click', () => {
-        /* 三分叉；开喇叭只 unlock + 一次轻滴解锁（照抄骰宝首次真播作用）；禁止静音狂试播、禁止口播 */
+        /* 三分叉；开喇叭：子页 WA 解锁 + 立刻轻滴；禁止重播欢迎/开始下注；不请父页 */
         if (Voice.muted) {
           Voice.setMuted(false);
           try { localStorage.setItem(SOUND_MUTE_KEY, '0'); } catch (_) {}
           markWelcomed();
           Voice.pendingKey = null;
-          try { Voice.unlock(); audioUnlockedOk = true; primeBallSpinSfx(); } catch (_) { audioUnlockedOk = true; }
-          try { Voice.playQuick('tick', 0.5); } catch (_) {}
-          /* 若已在外圈滚动中途开声：立刻补上滚球声 */
+          try { Voice.unlock(); audioUnlockedOk = true; warmVoiceCore(); primeBallSpinSfx(); } catch (_) { audioUnlockedOk = true; }
+          void unlockSpeakTick();
           if (ballSpinPlaying && !ballInPocketPhase) {
             try { playBallSpinSfx(); } catch (_) {}
           }
@@ -5915,8 +6055,8 @@
         if (!audioUnlockedOk) {
           markWelcomed();
           Voice.pendingKey = null;
-          try { Voice.unlock(); audioUnlockedOk = true; primeBallSpinSfx(); } catch (_) { audioUnlockedOk = true; }
-          try { Voice.playQuick('tick', 0.5); } catch (_) {}
+          try { Voice.unlock(); audioUnlockedOk = true; warmVoiceCore(); primeBallSpinSfx(); } catch (_) { audioUnlockedOk = true; }
+          void unlockSpeakTick();
           if (ballSpinPlaying && !ballInPocketPhase) {
             try { playBallSpinSfx(); } catch (_) {}
           }

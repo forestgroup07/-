@@ -1,0 +1,25 @@
+roulette-m v2.4.0 — 2026-11-15
+用户书面：「请把此版本定位2.4 并计入git 封存」
+自工作中 2.3.4 升锁
+
+已验收清单（本包算数）：
+- 沿用 v2.3.0：步骤1 外圈递慢；步骤3 入格匀减速停格心；步骤2 outer-cont；步骤4 fret Web Audio
+- 沿用：跑道号格禁下；法式绿键可下；3/6/9 右缘街注保留；法式撤销预备、10k/20k、侧栏、喇叭三分叉
+- 桌面隐藏「局号: …」字（#roundId display:none）；内部 roundId 仍记流水/记录筛
+- 口播/滴答：子页 Web Audio 缓冲预取；开喇叭立刻轻滴；下注成功优先缓冲；不请父页代播；进桌默认静音
+
+未验收、不得当作本定版：
+- 打键贴面换色、整站多语言、公告后台
+- 电脑版轮盘；手机骰宝（另册）
+- 英文开奖报数（speakEnWinNumber 仍关）
+
+回滚：
+  roulette-m.LOCKED-2.4.0.html
+  roulette-m-boot.LOCKED-2.4.0.html
+  lobby.LOCKED-roulette-m-2.4.0.html
+  assets/roulette/LOCKED-roulette-m-2.4.0.txt
+  audio/roulette-ball-roll-outer-cont.mp3
+  audio/roulette-fret-click-0/1/2.mp3
+  assets/roulette/VERSION-m.txt = 2.4.0
+  tag roulette-m-v2.4.0
+验收：https://forestgroup.ai/roulette-m.html?v=2.4.0
