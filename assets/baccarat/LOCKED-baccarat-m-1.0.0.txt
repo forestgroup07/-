@@ -1,0 +1,26 @@
+baccarat-m v1.0.0 — 2026-11-15
+用户书面：「把此图存入git 定位1.0.0」
+自验收壳 0.4.0 升锁为正式 1.0.0
+
+已验收清单（本包算数）：
+- 竖屏壳：顶屏蓝红 cover（高度对齐骰宝 stage clamp 220–300）+ 绿台整图 contain
+- 用户原图：assets/baccarat/src-top-blue-red.png、src-green-full.png
+- 大厅进桌：BACCARAT_M → baccarat-m.html?v=1.0.0；桌号 B601
+- max-width 480 手机竖屏画布；返回 embed-close / lobby
+
+未验收、不得当作本定版：
+- 顶栏 chrome（左上/右上/右下）与「百家乐 B601」字
+- 牌面叠层、补牌位、闲庄点数
+- 底图蒙格热区 / 落注
+- 账户 +20000、规则全文、口播/喇叭
+- 电脑版；骰宝/轮盘（另册冻结不动）
+
+回滚：
+  baccarat-m.LOCKED-1.0.0.html
+  lobby.LOCKED-baccarat-m-1.0.0.html
+  assets/baccarat/LOCKED-baccarat-m-1.0.0.txt
+  assets/baccarat/LOCKED-src-top-blue-red-1.0.0.png
+  assets/baccarat/LOCKED-src-green-full-1.0.0.png
+  assets/baccarat/VERSION-m.txt = 1.0.0
+  tag baccarat-m-v1.0.0
+验收：https://forestgroup.ai/baccarat-m.html?v=1.0.0

@@ -219,6 +219,11 @@
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
         url("assets/lobby-roulette-thumb.webp?v=1.4.5") center 20% / cover no-repeat;
     }
+    .card.baccarat .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        linear-gradient(90deg, #193565 0 50%, #782117 50% 100%);
+    }
     .card .meta {
       padding: .65rem .75rem .75rem;
     }
@@ -304,7 +309,7 @@
           <div class="pill"><b>B601</b>百家樂</div>
           <div class="pill"><b>R501</b>輪盤</div>
         </div>
-        <p class="hint-bar">點左側 <em>骰寶</em>，或點下方骰寶桌，進入遊戲</p>
+        <p class="hint-bar">點 <em>百家樂 B601</em> / 骰寶 / 輪盤 進入遊戲</p>
         <div class="grid" id="grid"></div>
       </main>
     </div>
@@ -317,6 +322,7 @@
       const ROULETTE_PC = 'roulette.html?v=1.2.11';
       const ROULETTE_M = 'roulette-m.html?v=2.7.0';
       const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.7.0';
+      const BACCARAT_M = 'baccarat-m.html?v=1.0.0';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -763,7 +769,13 @@
       function openEmbedShell(url) {
         ShellSfx.stop('ballRoll');
         ShellSfx.resetEmbedWelcome();
-        ShellSfx.embedKind = /game-m\.html/.test(url) ? 'sicbo' : /roulette-m\.html/.test(url) ? 'roulette' : null;
+        ShellSfx.embedKind = /game-m\.html/.test(url)
+          ? 'sicbo'
+          : /roulette-m\.html/.test(url)
+            ? 'roulette'
+            : /baccarat-m\.html/.test(url)
+              ? 'baccarat'
+              : null;
         const shell = ensureEmbedShell();
         const frame = document.getElementById('fgEmbedFrame');
         /* 点进桌：大厅不卸、不盖黑/海报；子页 ready 再淡入桌面 */
@@ -916,11 +928,11 @@
       const tables = [
         { id: 'S601', name: '骰寶 S601', kind: 'sicbo', featured: true, sec: 22 },
         { id: 'R501', name: '輪盤 R501', kind: 'roulette', featured: true, sec: 20 },
+        { id: 'B601', name: '百家樂 B601', kind: 'baccarat', featured: true, sec: 20 },
         { id: 'F701', name: '魚蝦蟹 F701', kind: 'other', sec: 15 },
         { id: 'BB701', name: '牛牛 BB701', kind: 'other', sec: 16 },
         { id: 'W701', name: '三公 W701', kind: 'other', sec: 12 },
         { id: 'D801', name: '龍虎 D801', kind: 'other', sec: 14 },
-        { id: 'B601', name: '百家樂 B601', kind: 'baccarat', sec: 20 },
         { id: 'B501', name: '百家樂 B501', kind: 'baccarat', sec: 11 },
       ];
 
@@ -945,10 +957,18 @@
         }
         location.href = ROULETTE;
       }
+      function enterBaccarat() {
+        /* 手机百家乐厅：iframe 进桌；不影响骰宝/轮盘 */
+        if (isMobileClient()) {
+          openEmbedShell(BACCARAT_M);
+          return;
+        }
+        location.href = BACCARAT_M;
+      }
 
       function paint() {
         const list = tables.filter((t) => {
-          if (cat === 'hot') return t.featured || t.kind === 'sicbo' || t.kind === 'roulette';
+          if (cat === 'hot') return t.featured || t.kind === 'sicbo' || t.kind === 'roulette' || t.kind === 'baccarat';
           if (cat === 'all') return true;
           if (cat === 'sicbo') return t.kind === 'sicbo';
           if (cat === 'baccarat') return t.kind === 'baccarat';
@@ -962,10 +982,13 @@
           btn.className = 'card'
             + (t.featured ? ' featured' : '')
             + (t.kind === 'sicbo' ? ' sicbo' : '')
-            + (t.kind === 'roulette' ? ' roulette' : '');
+            + (t.kind === 'roulette' ? ' roulette' : '')
+            + (t.kind === 'baccarat' ? ' baccarat' : '');
           const sub = t.kind === 'sicbo'
             ? '點擊進入骰寶桌'
-            : (t.kind === 'roulette' ? '點擊進入輪盤桌' : '演示桌 · 暫未開放');
+            : (t.kind === 'roulette'
+              ? '點擊進入輪盤桌'
+              : (t.kind === 'baccarat' && t.id === 'B601' ? '點擊進入百家樂桌' : '演示桌 · 暫未開放'));
           btn.innerHTML =
             '<div class="thumb"></div>' +
             '<div class="meta"><div class="name">' + t.name + '</div>' +
@@ -973,7 +996,8 @@
           btn.addEventListener('click', () => {
             if (t.kind === 'sicbo') enterSicbo();
             else if (t.kind === 'roulette') enterRoulette();
-            else alert('演示版请点击「骰寶」或「輪盤」进入');
+            else if (t.kind === 'baccarat' && t.id === 'B601') enterBaccarat();
+            else alert('演示版请点击「骰寶」「輪盤」或「百家樂 B601」进入');
           });
           grid.appendChild(btn);
         });

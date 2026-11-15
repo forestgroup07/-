@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a120e" />
-  <title>百家乐 · 竖屏壳 v0.3.1</title>
+  <title>百家乐 · 竖屏壳 v1.0.0</title>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -30,14 +30,13 @@
       overflow: hidden;
     }
     .topbar {
-      flex: 0 0 auto;
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      z-index: 3;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0.4rem 0.55rem;
-      position: absolute;
-      left: 0; right: 0; top: 0;
-      z-index: 3;
       pointer-events: none;
     }
     .topbar button { pointer-events: auto; }
@@ -46,10 +45,6 @@
       border: 0; background: rgba(0,0,0,.45); color: #fff;
       font-size: 1.1rem; line-height: 1;
       display: grid; place-items: center;
-    }
-    .table-name {
-      font-size: 0.88rem; font-weight: 700;
-      text-shadow: 0 1px 3px #000;
     }
     .btn-menu {
       width: 30px; height: 30px; border-radius: 50%;
@@ -62,13 +57,33 @@
       display: flex;
       flex-direction: column;
     }
-    .shell-block {
+    /* 顶屏：高度对齐骰宝 .stage */
+    .shell-cards {
+      flex: 0 0 auto;
+      height: clamp(220px, 36vh, 300px);
       position: relative;
+      overflow: hidden;
+      background: #193565;
+    }
+    .shell-cards img {
+      display: block;
       width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    /* 下面：你给的绿台整图 */
+    .shell-green {
+      flex: 1 1 auto;
+      min-height: 0;
+      position: relative;
       overflow: hidden;
       background: #0a120e;
     }
-    .shell-block img {
+    .shell-green img {
       display: block;
       width: 100%;
       height: 100%;
@@ -78,50 +93,31 @@
       user-select: none;
       -webkit-user-drag: none;
     }
-    /* 顶屏：蓝红底图模版（步骤1加大，对标另两款视频屏占比） */
-    .shell-cards {
-      flex: 0 0 clamp(240px, 42vh, 380px);
-      min-height: 240px;
-      background: #193565;
-    }
-    .shell-cards img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-    }
-    /* 下面：整块绿台（下注+筹码+路纸） */
-    .shell-green {
-      flex: 1 1 auto;
-      min-height: 0;
-    }
-    .shell-green img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center top;
-    }
   </style>
 </head>
 <body>
   <div class="app" id="app">
     <div class="topbar">
       <button type="button" class="btn-back" id="btnBack" aria-label="返回">‹</button>
-      <div class="table-name">百家乐 · 壳 v0.3.1</div>
       <button type="button" class="btn-menu" id="btnMenu" aria-label="菜单" disabled>☰</button>
     </div>
-    <div class="shell" aria-label="百家乐首页壳">
-      <section class="shell-block shell-cards" aria-label="顶屏蓝红亮牌">
-        <img src="assets/baccarat/shell-top-blue-red.png?v=0.3.1" alt="闲庄顶屏底图" width="750" height="420" decoding="async" />
+    <div class="shell" aria-label="百家乐首页">
+      <section class="shell-cards" aria-label="顶屏蓝红">
+        <img src="assets/baccarat/src-top-blue-red.png?v=1.0.0" alt="蓝红顶屏" width="834" height="462" decoding="async" />
       </section>
-      <section class="shell-block shell-green" aria-label="绿台整块">
-        <img src="assets/baccarat/shell-green-full.png?v=0.3.1" alt="绿台下注筹码路纸" width="624" height="672" decoding="async" />
+      <section class="shell-green" aria-label="绿台">
+        <img src="assets/baccarat/src-green-full.png?v=1.0.0" alt="绿台整图" width="868" height="862" decoding="async" />
       </section>
     </div>
   </div>
   <script>
     (function () {
-      const V = '0.3.1';
+      const V = '1.0.0';
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'fg-embed-ready' }, '*');
+        }
+      } catch (_) {}
       const btnBack = document.getElementById('btnBack');
       if (btnBack) {
         btnBack.addEventListener('click', function () {
