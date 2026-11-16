@@ -1,0 +1,28 @@
+baccarat-m v1.0.2 — 2026-11-16
+用户书面：「把此版本定位百家乐1.0.2 存入git」
+自工作版 1.0.34 定锁为正式 1.0.2。
+
+已验收清单（本包算数）：
+- 竖屏壳 B601；大厅 BACCARAT_M ?v=1.0.2；绿台整图（主三键+五侧键繁体/色/赔率）
+- 蒙格八键可点落注；键上筹码（对齐轮盘观感约 28px）；黄三键 ↩️/✓/❌（撤销/确定/取消）
+- 停注后绿台暗层，点注无效；开始下注后亮起
+- 开牌：先闲两张扑克白面圆角牌 → 再庄；可补第三张（百家乐规则）
+- 中间结果：红「庄赢」/ 蓝「闲赢」/ 黄「和」；中间不口播
+- 本注净赢只响金币；口播链路对齐当前骰宝（进桌默认静音、父页不代播、喇叭可开可关）
+- 结算主盘：闲 1:1 / 庄 1:0.95 / 和 1:8；对子/幸运六按盘口倍数
+
+未验收、不得当作本定版：
+- 公司同款珠盘/大路/顶屏真人视频流
+- 整站多语言、公告后台、规则全文后台
+- 电脑版；骰宝 / 轮盘（另册冻结不动）
+
+回滚：
+  baccarat-m.LOCKED-1.0.2.html
+  lobby.LOCKED-baccarat-m-1.0.2.html
+  assets/baccarat/LOCKED-baccarat-m-1.0.2.txt
+  assets/baccarat/LOCKED-src-green-full-1.0.2.png
+  assets/baccarat/LOCKED-key-masks-1.0.2/
+  assets/baccarat/LOCKED-cards-1.0.2/
+  assets/baccarat/VERSION-m.txt = 1.0.2
+  tag baccarat-m-v1.0.2
+验收：https://forestgroup.ai/baccarat-m.html?v=1.0.2

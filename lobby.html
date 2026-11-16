@@ -322,7 +322,7 @@
       const ROULETTE_PC = 'roulette.html?v=1.2.11';
       const ROULETTE_M = 'roulette-m.html?v=2.8.0';
       const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.8.0';
-      const BACCARAT_M = 'baccarat-m.html?v=1.0.10';
+      const BACCARAT_M = 'baccarat-m.html?v=1.0.2';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -467,8 +467,8 @@
         },
         /* 桌内已出来后再预热其余音效；ballRoll 只 load 不 play */
         primeHeavy() {
-          /* 骰宝/轮盘均不走 heavy（轮盘步骤1：杜绝父页点亮音轨漏播） */
-          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette') return;
+          /* 骰宝/轮盘/百家乐均不走 heavy（杜绝父页点亮音轨漏播） */
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette' || this.embedKind === 'baccarat') return;
           Object.keys(this.src).forEach((k) => {
             this.ensureEl(k);
           });
@@ -496,8 +496,8 @@
           });
         },
         scheduleHeavy(delayMs) {
-          /* 骰宝/轮盘禁止 scheduleHeavy */
-          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette') return;
+          /* 骰宝/轮盘/百家乐禁止 scheduleHeavy */
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette' || this.embedKind === 'baccarat') return;
           if (this.heavyScheduled) return;
           this.heavyScheduled = true;
           const run = () => { try { this.primeHeavy(); } catch (_) {} };
@@ -511,7 +511,7 @@
           setTimeout(run, wait);
         },
         prime() {
-          if (this.embedKind === 'sicbo') {
+          if (this.embedKind === 'sicbo' || this.embedKind === 'baccarat') {
             this.primeSicboGesture();
             return;
           }
@@ -703,8 +703,8 @@
           const d = ev && ev.data;
           if (!d || typeof d !== 'object') return;
           if (d.type === 'fg-sfx-prime') {
-            /* 骰宝/轮盘只极轻 AudioContext；禁止拉全套代播 */
-            if (ShellSfx.embedKind === 'sicbo') ShellSfx.primeSicboGesture();
+            /* 骰宝/轮盘/百家乐只极轻 AudioContext；禁止拉全套代播 */
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'baccarat') ShellSfx.primeSicboGesture();
             else if (ShellSfx.embedKind === 'roulette') ShellSfx.primeRouletteGesture();
             else ShellSfx.prime();
           }
@@ -722,9 +722,14 @@
               ShellSfx.embedWelcomeOk = true;
               ShellSfx.replyWelcome(true);
             }
+            if (d.type === 'fg-embed-ready' && ShellSfx.embedKind === 'baccarat') {
+              /* 百家乐对齐骰宝：只揭桌，父页不代播 */
+              ShellSfx.embedWelcomeOk = true;
+              ShellSfx.replyWelcome(true);
+            }
           }
           if (d.type === 'fg-want-welcome') {
-            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette') {
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette' || ShellSfx.embedKind === 'baccarat') {
               ShellSfx.embedWelcomeOk = true;
               ShellSfx.replyWelcome(true);
             } else if (ShellSfx.embedWelcomeOk != null) {
@@ -734,8 +739,8 @@
             }
           }
           if (d.type === 'fg-sfx') {
-            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette') {
-              /* 骰宝/轮盘父页不代播任何 fg-sfx（轮盘步骤1） */
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette' || ShellSfx.embedKind === 'baccarat') {
+              /* 骰宝/轮盘/百家乐父页不代播任何 fg-sfx；子页自播 */
               if (d.id) ShellSfx.reply(d.id, false);
             } else if ((d.key === 'welcome' || d.key === 'welcomeSicbo') && d.id) {
               ShellSfx.playWelcomeForEmbed().then((ok) => ShellSfx.reply(d.id, ok));
@@ -788,8 +793,8 @@
         if (ShellSfx.embedKind === 'roulette') {
           /* 轮盘步骤1：手势内只极轻 AudioContext；口播改子页自播（步骤2） */
           ShellSfx.primeRouletteGesture();
-        } else if (ShellSfx.embedKind === 'sicbo') {
-          /* 步骤5：进桌手势只极轻 AudioContext；口播全子页 */
+        } else if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'baccarat') {
+          /* 骰宝/百家乐：进桌手势只极轻 AudioContext；口播全子页 */
           ShellSfx.primeSicboGesture();
         } else {
           ShellSfx.primeLight();
