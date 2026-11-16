@@ -1,0 +1,57 @@
+[
+  {
+    "id": "side-1-any-pair",
+    "cid": 7,
+    "bbox": [
+      13,
+      19,
+      352,
+      204
+    ],
+    "pixels": 56398
+  },
+  {
+    "id": "side-2-player-dragon",
+    "cid": 8,
+    "bbox": [
+      363,
+      27,
+      684,
+      196
+    ],
+    "pixels": 54020
+  },
+  {
+    "id": "side-3-lucky6",
+    "cid": 3,
+    "bbox": [
+      703,
+      0,
+      1024,
+      196
+    ],
+    "pixels": 63010
+  },
+  {
+    "id": "side-4-banker-dragon",
+    "cid": 9,
+    "bbox": [
+      1043,
+      27,
+      1366,
+      196
+    ],
+    "pixels": 54085
+  },
+  {
+    "id": "side-5-banker-pair",
+    "cid": 6,
+    "bbox": [
+      1377,
+      17,
+      1716,
+      204
+    ],
+    "pixels": 56424
+  }
+]

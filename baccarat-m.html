@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a120e" />
-  <title>百家樂 B601 · 豎屏殼 v1.0.2</title>
+  <title>百家樂 B601 · 豎屏殼 v1.0.3</title>
   <style>
     :root {
       --safe-b: env(safe-area-inset-bottom, 0px);
@@ -355,6 +355,215 @@
       -webkit-user-drag: none;
       touch-action: none;
     }
+    /* 路单实时层：盖住底图假数据；开局清零，每局写入 */
+    .road-live {
+      position: absolute;
+      left: 1.1%;
+      right: 1.1%;
+      top: 56.55%;
+      bottom: 0;
+      width: auto;
+      height: auto;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      background: #0a0a0a;
+      border-radius: 4px 4px 0 0;
+      overflow: hidden;
+      pointer-events: none;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .road-live-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 24% 1fr;
+      gap: 1px;
+      background: #c8c8c8;
+      border: 1px solid #bdbdbd;
+      border-bottom: 0;
+    }
+    .road-bead {
+      background: #fff;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      gap: 0;
+    }
+    .road-bead .cell {
+      border-right: 1px solid #e4e4e4;
+      border-bottom: 1px solid #e4e4e4;
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 0;
+    }
+    .road-bead .dot {
+      position: relative;
+      width: 84%;
+      height: 84%;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      /* 对齐公司珠盘：字几乎铺满圆 */
+      font-size: clamp(0.72rem, 3.8vw, 1.05rem);
+      font-weight: 900;
+      line-height: 1;
+      font-family: "PingFang SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+    }
+    .road-bead .dot.is-b { background: #e31837; }
+    .road-bead .dot.is-p { background: #1e6fd9; }
+    .road-bead .dot.is-t { background: #1aaa5a; }
+    .road-right {
+      display: grid;
+      grid-template-rows: 1.35fr 1fr;
+      min-width: 0;
+      background: #c8c8c8;
+      gap: 1px;
+    }
+    .road-big {
+      background: #fff;
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+    }
+    .road-big .cell {
+      border-right: 1px solid #ececec;
+      border-bottom: 1px solid #ececec;
+      display: grid;
+      place-items: center;
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+    }
+    .road-big .ring {
+      width: 78%;
+      height: 78%;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .road-big .ring.is-b { border-color: #e31837; }
+    .road-big .ring.is-p { border-color: #1e6fd9; }
+    .road-big .ring.is-t {
+      border-color: #1aaa5a;
+      background: #1aaa5a;
+    }
+    .road-big .tie-mark {
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 115%; height: 2px;
+      background: #1aaa5a;
+      transform: translate(-50%, -50%) rotate(-42deg);
+      border-radius: 1px;
+    }
+    .road-derived {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: #c8c8c8;
+      min-height: 0;
+    }
+    .road-der {
+      background: #fff;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      min-height: 0;
+    }
+    .road-der .cell {
+      border-right: 1px solid #f0f0f0;
+      border-bottom: 1px solid #f0f0f0;
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 0;
+    }
+    .road-der .mark {
+      width: 62%;
+      height: 62%;
+      box-sizing: border-box;
+    }
+    .road-der .mark.ring {
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      background: transparent;
+    }
+    .road-der .mark.ring.is-b { border-color: #e31837; }
+    .road-der .mark.ring.is-p { border-color: #1e6fd9; }
+    .road-der .mark.dot {
+      border-radius: 50%;
+      background: #ccc;
+    }
+    .road-der .mark.dot.is-b { background: #e31837; }
+    .road-der .mark.dot.is-p { background: #1e6fd9; }
+    .road-der .mark.slash {
+      width: 70%;
+      height: 2px;
+      background: #ccc;
+      transform: rotate(-42deg);
+      border-radius: 1px;
+    }
+    .road-der .mark.slash.is-b { background: #e31837; }
+    .road-der .mark.slash.is-p { background: #1e6fd9; }
+    .road-foot {
+      flex: 0 0 auto;
+      /* 黑格高度已定：不再动；四字顶齐黑条上沿 */
+      height: clamp(26px, 6.2%, 34px);
+      min-height: 26px;
+      background: #0a0a0a;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 0;
+      padding: 1px 0.45rem 0;
+      pointer-events: none;
+      color: #fff;
+      border-top: 0;
+      box-shadow: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .road-stats {
+      display: flex;
+      align-items: center;
+      gap: clamp(0.45rem, 2.6vw, 0.85rem);
+      min-width: 0;
+      overflow: hidden;
+      font-size: clamp(0.78rem, 3.4vw, 1.05rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      font-family: "PingFang SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+    }
+    .road-stats .st {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.22rem;
+      white-space: nowrap;
+    }
+    .road-stats .ball {
+      width: 1.2em;
+      height: 1.2em;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 0.72em;
+      font-weight: 900;
+      color: #fff;
+      flex: 0 0 auto;
+      line-height: 1;
+    }
+    .road-stats .ball.is-b { background: #e31837; }
+    .road-stats .ball.is-p { background: #1e6fd9; }
+    .road-stats .ball.is-t { background: #1aaa5a; }
+    .road-stats .ball.is-6 {
+      background: #e31837;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.92);
+      font-size: 0.78em;
+    }
     /* 八键：底图像素蒙格热区；点击黄脸（对齐轮盘 is-lit） */
     .bet-hits {
       position: absolute;
@@ -483,6 +692,7 @@
     .act-btn#btnUndo .act-ico,
     .act-btn#btnConfirm .act-ico { width: 30px; height: 30px; }
     .board-dock .dock-meta {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -497,6 +707,77 @@
       font-size: clamp(0.62rem, 2.6vw, 0.72rem);
       font-weight: 600;
       background: rgba(0,0,0,0.28);
+      white-space: nowrap;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* 限红大黑框：照抄骰宝尺寸；挂在 .app 顶层，绝不被绿台/顶屏挡住 */
+    .app > .limit-tip {
+      position: absolute;
+      left: 3%;
+      bottom: auto;
+      width: min(86vw, 320px);
+      max-height: min(58vh, 420px);
+      z-index: 500;
+      padding: 0.5rem 0.55rem 0.4rem;
+      border-radius: 10px;
+      border: 1px solid rgba(232, 199, 106, 0.55);
+      background: #000;
+      color: #f0f0f0;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+    .app > .limit-tip.show { display: flex; }
+    .app > .limit-tip::after {
+      content: "";
+      position: absolute;
+      left: 16%;
+      bottom: -7px;
+      width: 0; height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 8px solid #000;
+    }
+    .app > .limit-tip .limit-tip-scroll {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+      padding-right: 4px;
+      touch-action: pan-y;
+    }
+    .app > .limit-tip .limit-tip-sec-title {
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0 0.35rem;
+      margin-top: 0.15rem;
+      border-bottom: 1px solid rgba(232, 199, 106, 0.55);
+      margin-bottom: 0.1rem;
+    }
+    .app > .limit-tip .limit-tip-sec-title:first-child { margin-top: 0; }
+    .app > .limit-tip .limit-tip-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 0.66rem;
+      line-height: 1.25;
+    }
+    .app > .limit-tip .limit-tip-row .k { color: #f0f0f0; font-weight: 500; }
+    .app > .limit-tip .limit-tip-row .v {
+      color: #e8e8e8;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
       white-space: nowrap;
     }
     .board-dock .bal-wrap {
@@ -539,6 +820,8 @@
       background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.1);
       color: #f2f2f2; font-size: clamp(0.72rem, 3vw, 0.85rem); font-weight: 700;
       font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
     .board-dock .stake-coin { width: 18px; height: 18px; flex: 0 0 18px; display: block; }
     .board-dock .stake-num { flex: 1 1 auto; text-align: center; min-width: 1.2em; }
@@ -547,6 +830,90 @@
       border-left: 5px solid transparent; border-right: 5px solid transparent;
       border-bottom: 6px solid #e8d5a0;
     }
+    .board-dock .stake-btn[aria-expanded="true"] .stake-caret {
+      border-bottom: 0;
+      border-top: 6px solid #e8d5a0;
+    }
+    /* 注金大黑框：照抄骰宝；挂 .app 顶层，不被绿台挡住 */
+    .app > .stake-tip {
+      position: absolute;
+      left: 50%;
+      bottom: auto;
+      transform: translateX(-50%);
+      width: min(86vw, 340px);
+      max-height: min(58vh, 420px);
+      z-index: 500;
+      padding: 0.55rem 0.75rem 0.7rem;
+      border-radius: 10px;
+      background: #000;
+      border: 1px solid rgba(232, 199, 106, 0.45);
+      color: #f3f3f3;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      display: none;
+      flex-direction: column;
+      gap: 0.12rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      pointer-events: auto;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+    .app > .stake-tip.show { display: flex; }
+    .app > .stake-tip::after {
+      content: "";
+      position: absolute;
+      right: 18%;
+      bottom: -7px;
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 8px solid #000;
+    }
+    .app > .stake-tip .stake-tip-scroll {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+      padding-right: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.12rem;
+      touch-action: pan-y;
+    }
+    .app > .stake-tip .stake-tip-head,
+    .app > .stake-tip .stake-tip-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      align-items: center;
+      column-gap: 0.4rem;
+      min-height: 1.4em;
+    }
+    .app > .stake-tip .stake-tip-head {
+      color: #e8c76a;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding-bottom: 0.28rem;
+      margin-bottom: 0.12rem;
+      border-bottom: 1px solid rgba(232, 199, 106, 0.45);
+    }
+    .app > .stake-tip .stake-tip-head span:nth-child(2),
+    .app > .stake-tip .stake-tip-head span:nth-child(3),
+    .app > .stake-tip .stake-tip-row span:nth-child(2),
+    .app > .stake-tip .stake-tip-row span:nth-child(3) { text-align: center; }
+    .app > .stake-tip .stake-tip-row span:first-child { color: #f0f0f0; font-weight: 600; }
+    .app > .stake-tip .stake-tip-row.is-total {
+      margin-top: 0.18rem;
+      padding-top: 0.32rem;
+      border-top: 1px solid rgba(232, 199, 106, 0.45);
+      font-weight: 800;
+      color: #e8c76a;
+    }
+    .app > .stake-tip .stake-tip-row .is-win { color: #7dff9f; }
+    .app > .stake-tip .stake-tip-row .is-lose { color: #ff8d8d; }
+    .app > .stake-tip .stake-tip-row .is-flat { color: #c8d09b; }
     .board-dock .dock-actions {
       display: grid;
       grid-template-columns: 36px 1fr auto;
@@ -790,9 +1157,30 @@
       </section>
       <section class="shell-green" aria-label="綠台">
         <div class="green-stage" id="greenStage">
-          <img src="assets/baccarat/src-green-full.png?v=1.0.28" alt="綠台整圖" width="1728" height="1720" decoding="async" />
+          <img src="assets/baccarat/src-green-full.png?v=1.0.3" alt="綠台整圖" width="1728" height="1720" decoding="async" />
           <div class="bet-hits" id="betHits" aria-label="下注熱區"></div>
           <div class="bet-chip-layer" id="betChipLayer" aria-hidden="true"></div>
+          <div class="road-live" id="roadLive" aria-label="路單">
+            <div class="road-live-body">
+              <div class="road-bead" id="roadBead" aria-label="珠盤"></div>
+              <div class="road-right">
+                <div class="road-big" id="roadBig" aria-label="大路"></div>
+                <div class="road-derived">
+                  <div class="road-der" id="roadEye" aria-label="大眼仔"></div>
+                  <div class="road-der" id="roadSmall" aria-label="小路"></div>
+                  <div class="road-der" id="roadCock" aria-label="甲由路"></div>
+                </div>
+              </div>
+            </div>
+            <div class="road-foot">
+              <div class="road-stats" id="roadStats">
+                <span class="st"><span class="ball is-b">庄</span><span id="roadCntB">0</span></span>
+                <span class="st"><span class="ball is-p">闲</span><span id="roadCntP">0</span></span>
+                <span class="st"><span class="ball is-t">和</span><span id="roadCntT">0</span></span>
+                <span class="st"><span class="ball is-6">6</span><span id="roadCnt6">0</span></span>
+              </div>
+            </div>
+          </div>
           <div class="board-dock" id="boardDock" aria-label="限紅賬戶籌碼條">
             <div class="act-bar" id="actBar" aria-label="下注操作">
               <button type="button" class="act-btn" id="btnUndo" aria-label="撤销">
@@ -814,13 +1202,13 @@
               </button>
             </div>
             <div class="dock-meta">
-              <button type="button" class="limit-pill" id="btnLimit" aria-label="限紅說明">10 - 20,000 ▾</button>
+              <button type="button" class="limit-pill" id="btnLimit" aria-label="限紅說明" aria-expanded="false" aria-controls="limitTip">10 - 20,000 ▾</button>
               <button type="button" class="bal-wrap" id="balHot" aria-label="賬戶">
                 <span class="account-tip" id="accountTip" role="tooltip">—</span>
                 <span class="bal-user" id="balUser">—</span>
                 <span class="bal-amt"><span class="c" aria-hidden="true"></span><span id="balText">0.00</span></span>
               </button>
-              <button type="button" class="stake-btn" id="stakeBtn" aria-label="本局注金">
+              <button type="button" class="stake-btn" id="stakeBtn" aria-label="本局注金" aria-expanded="false" aria-controls="stakeTip">
                 <svg class="stake-coin" viewBox="0 0 24 24" aria-hidden="true">
                   <ellipse cx="12" cy="17.2" rx="7.2" ry="2.4" fill="#9aa3ad"/>
                   <ellipse cx="12" cy="14.6" rx="7.2" ry="2.4" fill="#c5ced6"/>
@@ -872,6 +1260,42 @@
         </button>
       </div>
     </footer>
+    <!-- 大黑框挂 app 顶层：不被绿台/顶屏挡住（骰宝同款尺寸） -->
+    <div class="stake-tip" id="stakeTip" role="dialog" aria-label="本局下注">
+      <div class="stake-tip-scroll">
+        <div class="stake-tip-head"><span>玩法</span><span>下注</span><span>输赢</span></div>
+        <div class="stake-tip-row" data-stake-key="banker"><span>庄</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="player"><span>闲</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="tie"><span>和</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="bankerPair"><span>庄对</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="playerPair"><span>闲对</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="lucky6"><span>幸运6</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="anyPair"><span>任意对子</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row" data-stake-key="perfectPair"><span>完美对子</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+        <div class="stake-tip-row is-total" data-stake-key="total"><span>总计:</span><span data-col="bet">-</span><span data-col="pnl">-</span></div>
+      </div>
+    </div>
+    <div class="limit-tip" id="limitTip" role="dialog" aria-label="限紅說明">
+      <div class="limit-tip-scroll">
+        <div class="limit-tip-sec-title">玩法限红</div>
+        <div class="limit-tip-row"><span class="k">庄</span><span class="v">10 - 20,000</span></div>
+        <div class="limit-tip-row"><span class="k">闲</span><span class="v">10 - 20,000</span></div>
+        <div class="limit-tip-row"><span class="k">和</span><span class="v">2 - 2,500</span></div>
+        <div class="limit-tip-row"><span class="k">庄对</span><span class="v">1 - 1,818</span></div>
+        <div class="limit-tip-row"><span class="k">闲对</span><span class="v">1 - 1,818</span></div>
+        <div class="limit-tip-row"><span class="k">幸运6</span><span class="v">1 - 1,111</span></div>
+        <div class="limit-tip-row"><span class="k">任意对子</span><span class="v">2 - 4,000</span></div>
+        <div class="limit-tip-row"><span class="k">完美对子</span><span class="v">1 - 800</span></div>
+        <div class="limit-tip-sec-title">彩池限红</div>
+        <div class="limit-tip-row"><span class="k">庄/闲差额限红</span><span class="v">1.20M</span></div>
+        <div class="limit-tip-row"><span class="k">和总额限红</span><span class="v">600,000</span></div>
+        <div class="limit-tip-row"><span class="k">庄对总额限红</span><span class="v">436,360</span></div>
+        <div class="limit-tip-row"><span class="k">闲对总额限红</span><span class="v">436,360</span></div>
+        <div class="limit-tip-row"><span class="k">幸运6总额限红</span><span class="v">266,664</span></div>
+        <div class="limit-tip-row"><span class="k">任意对子总额限红</span><span class="v">960,000</span></div>
+        <div class="limit-tip-row"><span class="k">完美对子总额限红</span><span class="v">192,000</span></div>
+      </div>
+    </div>
   </div>
   <audio id="voWelcome" preload="none" playsinline></audio>
   <audio id="voStartBet" preload="none" playsinline></audio>
@@ -883,7 +1307,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '1.0.2';
+      const V = '1.0.3';
       const BET_SEC = 22;
       const PHASE_HOLD_MS = 5000;
       const STOP_BET_HOLD_MS = 3000;
@@ -911,6 +1335,7 @@
       let confirmed = Object.create(null);
       let undoStack = [];
       let confirmUndoStack = [];
+      let lastPnl = Object.create(null);
       /* 禁止整页左右滑；绿台区仅允许纵向 */
       try {
         document.addEventListener('touchmove', function (e) {
@@ -919,15 +1344,22 @@
             return;
           }
           var t = e.target;
+          /* 限红/注金面板、筹码条：放行原生下滑/横滑 */
+          if (t && t.closest && (
+            t.closest('#limitTip') ||
+            t.closest('#stakeTip') ||
+            t.closest('.limit-tip-scroll') ||
+            t.closest('.stake-tip-scroll') ||
+            t.closest('.board-dock .chips')
+          )) return;
           var green = t && t.closest ? t.closest('.shell-green') : null;
-          var chips = t && t.closest ? t.closest('.board-dock .chips') : null;
-          if (chips) return;
           if (!green) {
             e.preventDefault();
           }
         }, { passive: false });
       } catch (_) {}
       function goLobby() {
+        try { Voice.silence(); } catch (_) {}
         try {
           if (window.parent && window.parent !== window) {
             window.parent.postMessage({ type: 'fg-embed-close' }, '*');
@@ -947,6 +1379,16 @@
       let voiceBusy = false;
       let welcomed = false;
       let voiceGen = 0;
+      let coinTimer = 0;
+      function pageIsHidden() {
+        try { return !!document.hidden; } catch (_) { return false; }
+      }
+      function clearCoinTimer() {
+        if (coinTimer) {
+          clearTimeout(coinTimer);
+          coinTimer = 0;
+        }
+      }
       let phase = 'betting';
       let secLeft = BET_SEC;
       let timerId = null;
@@ -1047,6 +1489,8 @@
           this.dead = true;
           this.pendingKey = null;
           voiceBusy = false;
+          clearCoinTimer();
+          voiceGen += 1;
           const self = this;
           Object.keys(self.players).forEach(function (k) {
             const el = self.players[k];
@@ -1057,6 +1501,18 @@
             } catch (_) {}
           });
           try {
+            document.querySelectorAll('audio').forEach(function (el) {
+              try {
+                el.pause();
+                el.muted = true;
+                el.volume = 0;
+                el.currentTime = 0;
+                el.removeAttribute('src');
+                el.load();
+              } catch (_) {}
+            });
+          } catch (_) {}
+          try {
             if (self.ctx) {
               if (self.ctx.state === 'running') self.ctx.suspend();
               if (self.ctx.close) self.ctx.close();
@@ -1064,11 +1520,19 @@
             }
           } catch (_) {}
         },
+        /* 划走/切后台：停当前声、禁止后续口播/滴答；不标 dead（回来可按静音状态续） */
         pauseSoft: function () {
+          clearCoinTimer();
+          this.pendingKey = null;
+          voiceBusy = false;
+          voiceGen += 1;
           try {
             document.querySelectorAll('audio').forEach(function (el) {
-              try { el.pause(); } catch (_) {}
+              try { el.pause(); el.currentTime = 0; } catch (_) {}
             });
+          } catch (_) {}
+          try {
+            if (this.ctx && this.ctx.state === 'running') this.ctx.suspend();
           } catch (_) {}
         },
         revive: function () {
@@ -1135,7 +1599,7 @@
         playEl: function (el) {
           const self = this;
           return new Promise(function (resolve) {
-            if (!el || self.muted || self.dead) { resolve(false); return; }
+            if (!el || self.muted || self.dead || pageIsHidden()) { resolve(false); return; }
             let settled = false;
             const done = function (ok) {
               if (settled) return;
@@ -1161,11 +1625,11 @@
           });
         },
         speak: async function (key) {
-          if (this.muted || this.dead) return false;
+          if (this.muted || this.dead || pageIsHidden()) return false;
           return this.playEl(this.players[key]);
         },
         playQuick: function (key, vol) {
-          if (this.muted || this.dead) return;
+          if (this.muted || this.dead || pageIsHidden()) return;
           const el = this.players[key];
           if (!el) return;
           try {
@@ -1178,7 +1642,7 @@
           } catch (_) {}
         },
         playCoin: function () {
-          if (this.muted || this.dead) return;
+          if (this.muted || this.dead || pageIsHidden()) return;
           const el = this.players.coin;
           if (!el) return;
           try {
@@ -1198,7 +1662,7 @@
       };
 
       async function kickTableVoice(forceStartOnly, fromGesture) {
-        if (Voice.muted || Voice.dead) return;
+        if (Voice.muted || Voice.dead || pageIsHidden()) return;
         if (voiceBusy && !fromGesture) return;
         const gen = ++voiceGen;
         voiceBusy = true;
@@ -1284,9 +1748,11 @@
         setTimerFace(secLeft);
         hideToast();
         setBoardClosed(false);
+        lastPnl = Object.create(null);
         try { if (typeof resetDealBoard === 'function') resetDealBoard(); } catch (_) {}
         try { if (typeof paintActBar === 'function') paintActBar(); } catch (_) {}
         try { if (typeof paintHitLit === 'function') paintHitLit(); } catch (_) {}
+        try { if (typeof paintStakePanel === 'function') paintStakePanel(); } catch (_) {}
         void holdPhaseBanner('开始下注', PHASE_HOLD_MS);
         kickTableVoice(true);
       }
@@ -1301,7 +1767,8 @@
         if (phase !== 'betting') return;
         secLeft -= 1;
         setTimerFace(secLeft);
-        if (secLeft > 0) {
+        /* 后台只走秒、不发声 */
+        if (secLeft > 0 && !pageIsHidden()) {
           if (secLeft <= 10) Voice.playQuick('bomb', 0.62);
           else Voice.playQuick('tick', 0.5);
         }
@@ -1364,14 +1831,15 @@
         if (!e.persisted && !Voice.dead) return;
         const wantMute = Voice.revive();
         if (!timerId) timerId = setInterval(tick, 1000);
-        if (wantMute) markWelcomed();
+        markWelcomed(); /* 回来不补欢迎/开始下注 */
+        if (wantMute) paintMuteBtn();
       }, true);
       document.addEventListener('visibilitychange', function () {
         if (document.hidden) {
           try { Voice.pauseSoft(); } catch (_) {}
         } else {
           try { Voice.unlock(); } catch (_) {}
-          if (!Voice.muted && !welcomed) void kickTableVoice(false);
+          markWelcomed(); /* 划回前台：不补欢迎/开始下注 */
         }
       }, true);
 
@@ -1435,6 +1903,7 @@
           const tmp = out[i]; out[i] = out[j]; out[j] = tmp;
         }
         shoe = out;
+        try { if (window.FgBaccaratRoad && FgBaccaratRoad.clearOnNewShoe) FgBaccaratRoad.clearOnNewShoe(); } catch (_) {}
       }
       function drawCard() {
         if (shoe.length < 20) rebuildShoe();
@@ -1632,6 +2101,7 @@
         let staked = 0;
         const betRows = [];
         const ts = Date.now();
+        const pnlMap = Object.create(null);
         Object.keys(markets).forEach(function (k, i) {
           const stake = Math.round(Number(markets[k]) || 0);
           if (stake <= 0) return;
@@ -1639,6 +2109,7 @@
           const ret = payoutReturn(k, stake, hand);
           returned += ret;
           const pnl = ret - stake;
+          pnlMap[k] = pnl;
           betRows.push({
             betId: String(ts) + String(i).padStart(2, '0') + String(Math.floor(Math.random() * 90) + 10),
             ts: ts,
@@ -1654,6 +2125,7 @@
             source: 'baccarat-m'
           });
         });
+        lastPnl = pnlMap;
         confirmed = Object.create(null);
         confirmUndoStack = [];
         draft = Object.create(null);
@@ -1672,6 +2144,7 @@
         } catch (_) {}
         paintStake();
         paintHitLit();
+        try { if (typeof paintStakePanel === 'function') paintStakePanel(); } catch (_) {}
         const net = returned - staked;
         return { returned: returned, staked: staked, net: net };
       }
@@ -1691,10 +2164,22 @@
           const hand = dealHandLogic();
           await animateDeal(hand);
           showDealResult(hand.outcome);
-          /* 中间结果不口播 */
+          try {
+            if (window.FgBaccaratRoad && FgBaccaratRoad.pushHand) FgBaccaratRoad.pushHand(hand);
+          } catch (_) {}
+          /* 中间结果不口播；有下注：赢=文字+金币两下，输=只文字（对齐骰宝） */
           const paid = settleHand(hand);
-          if (paid && paid.net > 0) {
-            try { Voice.playCoin ? Voice.playCoin() : Voice.playQuick('coin', 1); } catch (_) {}
+          if (paid && paid.staked > 0) {
+            const net = Math.round(Number(paid.net) || 0);
+            toast(net > 0 ? ('赢 +' + net) : net < 0 ? ('输 ' + net) : '平');
+            if (net > 0 && !Voice.muted && !Voice.dead && !pageIsHidden()) {
+              try { Voice.playCoin(); } catch (_) {}
+              clearCoinTimer();
+              coinTimer = setTimeout(function () {
+                coinTimer = 0;
+                try { Voice.playCoin(); } catch (_) {}
+              }, 200);
+            }
           }
           await sleep(2600);
           resetDealBoard();
@@ -1798,10 +2283,93 @@
         const on = hasDraftKeys() && phase === 'betting';
         if (actBar) actBar.classList.toggle('show', on);
       }
+      const STAKE_PANEL_KEYS = ['banker', 'player', 'tie', 'bankerPair', 'playerPair', 'lucky6', 'anyPair', 'perfectPair'];
+      const stakeTip = document.getElementById('stakeTip');
+      const stakeBtn = document.getElementById('stakeBtn');
+      function fmtStakeCell(n) {
+        return n > 0 ? String(n) : '-';
+      }
+      function fmtPnlCell(n) {
+        if (n == null) return { text: '-', cls: '' };
+        if (n > 0) return { text: '+' + Math.round(n), cls: 'is-win' };
+        if (n < 0) return { text: String(Math.round(n)), cls: 'is-lose' };
+        return { text: '0', cls: 'is-flat' };
+      }
+      function paintStakePanel() {
+        if (!stakeTip) return;
+        let betTotal = 0;
+        let pnlTotal = 0;
+        let pnlAny = false;
+        STAKE_PANEL_KEYS.forEach(function (key) {
+          const row = stakeTip.querySelector('[data-stake-key="' + key + '"]');
+          if (!row) return;
+          const stake = (typeof cellStakeShow === 'function') ? cellStakeShow(key) : 0;
+          betTotal += stake;
+          row.querySelector('[data-col="bet"]').textContent = fmtStakeCell(stake);
+          const fmtP = fmtPnlCell(lastPnl[key]);
+          const cell = row.querySelector('[data-col="pnl"]');
+          cell.textContent = fmtP.text;
+          cell.className = fmtP.cls;
+          if (lastPnl[key] != null) {
+            pnlAny = true;
+            pnlTotal += lastPnl[key];
+          }
+        });
+        const totalRow = stakeTip.querySelector('[data-stake-key="total"]');
+        if (totalRow) {
+          totalRow.querySelector('[data-col="bet"]').textContent = fmtStakeCell(betTotal);
+          const cell = totalRow.querySelector('[data-col="pnl"]');
+          const fmtP = pnlAny ? fmtPnlCell(pnlTotal) : fmtPnlCell(null);
+          cell.textContent = fmtP.text;
+          cell.className = fmtP.cls;
+        }
+      }
+      function placeDockTip(tipEl, anchorEl, mode) {
+        /* 骰宝同款大黑框；相对 .app 定位，z-index 顶层，绿台挡不住 */
+        if (!tipEl) return;
+        try {
+          const dock = document.getElementById('boardDock');
+          const anchor = anchorEl || dock;
+          const app = document.getElementById('app') || document.querySelector('.app');
+          if (!anchor || !app) return;
+          const a = anchor.getBoundingClientRect();
+          const appRect = app.getBoundingClientRect();
+          const gap = (mode === 'stake') ? 10 : 8;
+          const maxH = Math.min(Math.floor(appRect.height * 0.58), 420);
+          tipEl.style.maxHeight = maxH + 'px';
+          tipEl.style.bottom = Math.max(0, Math.round(appRect.bottom - a.top + gap)) + 'px';
+          tipEl.style.top = 'auto';
+          if (mode === 'limit') {
+            tipEl.style.left = Math.max(8, Math.round(appRect.width * 0.03)) + 'px';
+            tipEl.style.right = 'auto';
+            tipEl.style.transform = 'none';
+          } else {
+            tipEl.style.left = Math.round(a.left - appRect.left + a.width / 2) + 'px';
+            tipEl.style.right = 'auto';
+            tipEl.style.transform = 'translateX(-50%)';
+          }
+          const sc = tipEl.querySelector('.stake-tip-scroll, .limit-tip-scroll');
+          if (sc) {
+            try { sc.scrollTop = 0; } catch (_) {}
+          }
+        } catch (_) {}
+      }
+      function setStakeTip(open) {
+        if (!stakeTip || !stakeBtn) return;
+        stakeTip.classList.toggle('show', !!open);
+        stakeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+          paintStakePanel();
+          placeDockTip(stakeTip, stakeBtn, 'stake');
+          try { setLimitTip(false); } catch (_) {}
+          if (accountTip) accountTip.classList.remove('show');
+        }
+      }
       function paintStake() {
         if (stakeText) stakeText.textContent = String(totalConfirmed() + totalDraft());
         if (elBal) elBal.textContent = fmtMoney(balance);
         paintActBar();
+        paintStakePanel();
       }
       function saveBal(n, meta) {
         const prev = balance;
@@ -1869,12 +2437,48 @@
           chipsEl.addEventListener('touchmove', function (e) { e.stopPropagation(); }, { passive: true });
         }
       }
+      const limitTip = document.getElementById('limitTip');
+      const btnLimit = document.getElementById('btnLimit');
+      function setLimitTip(open) {
+        if (!limitTip || !btnLimit) return;
+        limitTip.classList.toggle('show', !!open);
+        btnLimit.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+          placeDockTip(limitTip, btnLimit, 'limit');
+          if (accountTip) accountTip.classList.remove('show');
+          try { setStakeTip(false); } catch (_) {}
+        }
+      }
+      if (btnLimit && limitTip) {
+        btnLimit.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          setLimitTip(!limitTip.classList.contains('show'));
+        });
+        limitTip.addEventListener('click', function (e) { e.stopPropagation(); });
+        limitTip.addEventListener('touchmove', function (e) { e.stopPropagation(); }, { passive: true });
+      }
+      if (stakeBtn && stakeTip) {
+        stakeBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          setStakeTip(!stakeTip.classList.contains('show'));
+        });
+        stakeTip.addEventListener('click', function (e) { e.stopPropagation(); });
+        stakeTip.addEventListener('touchmove', function (e) { e.stopPropagation(); }, { passive: true });
+      }
       if (balHot && accountTip) {
         balHot.addEventListener('click', function () {
+          setLimitTip(false);
+          setStakeTip(false);
           accountTip.classList.toggle('show');
           paintAccountLocal();
         });
       }
+      document.addEventListener('click', function () {
+        setLimitTip(false);
+        setStakeTip(false);
+      });
       paintAccountLocal();
       paintChipSel();
       paintStake();
@@ -2196,6 +2800,295 @@
 
       setSideScore('player', 0);
       setSideScore('banker', 0);
+    })();
+
+    /* 路单：开局清零；每局按庄/闲/和写入珠盘·大路·下三路·计数 */
+    (function () {
+      const BEAD_COLS = 8;
+      const BEAD_ROWS = 6;
+      const BIG_COLS = 16;
+      const BIG_ROWS = 6;
+      const DER_COLS = 12;
+      const DER_ROWS = 6;
+      let results = [];
+      let shoeClearsArmed = false;
+
+      const elBead = document.getElementById('roadBead');
+      const elBig = document.getElementById('roadBig');
+      const elEye = document.getElementById('roadEye');
+      const elSmall = document.getElementById('roadSmall');
+      const elCock = document.getElementById('roadCock');
+      const elCntB = document.getElementById('roadCntB');
+      const elCntP = document.getElementById('roadCntP');
+      const elCntT = document.getElementById('roadCntT');
+      const elCnt6 = document.getElementById('roadCnt6');
+      if (!elBead || !elBig || !elEye || !elSmall || !elCock) return;
+
+      function fillGrid(el, cols, rows) {
+        el.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+        el.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)';
+        el.innerHTML = '';
+        const n = cols * rows;
+        for (let i = 0; i < n; i++) {
+          const c = document.createElement('div');
+          c.className = 'cell';
+          el.appendChild(c);
+        }
+      }
+      fillGrid(elBead, BEAD_COLS, BEAD_ROWS);
+      fillGrid(elBig, BIG_COLS, BIG_ROWS);
+      fillGrid(elEye, DER_COLS, DER_ROWS);
+      fillGrid(elSmall, DER_COLS, DER_ROWS);
+      fillGrid(elCock, DER_COLS, DER_ROWS);
+
+      function sideCode(outcome) {
+        if (outcome === 'banker') return 'B';
+        if (outcome === 'player') return 'P';
+        return 'T';
+      }
+      function buildBead(list) {
+        const grid = [];
+        for (let c = 0; c < BEAD_COLS; c++) {
+          grid[c] = [];
+          for (let r = 0; r < BEAD_ROWS; r++) grid[c][r] = null;
+        }
+        let col = 0, row = 0;
+        for (let i = 0; i < list.length; i++) {
+          if (col >= BEAD_COLS) break;
+          grid[col][row] = list[i];
+          row++;
+          if (row >= BEAD_ROWS) { row = 0; col++; }
+        }
+        return grid;
+      }
+      function buildBigRoad(list) {
+        /* columns of B/P streaks; ties attach to last circle */
+        const cols = [];
+        let pendingTies = 0;
+        list.forEach(function (item) {
+          const o = item.outcome;
+          if (o === 'tie') {
+            if (!cols.length) {
+              cols.push([{ outcome: 'tie', ties: 1, lucky6: false }]);
+            } else {
+              const col = cols[cols.length - 1];
+              const last = col[col.length - 1];
+              last.ties = (last.ties || 0) + 1;
+            }
+            return;
+          }
+          const lastCol = cols.length ? cols[cols.length - 1] : null;
+          const last = lastCol && lastCol.length ? lastCol[lastCol.length - 1] : null;
+          if (!lastCol || !last || last.outcome === 'tie' || last.outcome !== o) {
+            cols.push([{ outcome: o, ties: 0, lucky6: !!item.lucky6 }]);
+          } else {
+            lastCol.push({ outcome: o, ties: 0, lucky6: !!item.lucky6 });
+          }
+        });
+        /* place into 6-row grid with dragon tail */
+        const grid = [];
+        for (let c = 0; c < BIG_COLS; c++) {
+          grid[c] = [];
+          for (let r = 0; r < BIG_ROWS; r++) grid[c][r] = null;
+        }
+        let startCol = 0;
+        cols.forEach(function (colItems) {
+          let c = startCol;
+          let r = 0;
+          colItems.forEach(function (cell, idx) {
+            if (idx === 0) {
+              while (c < BIG_COLS && grid[c][0]) c++;
+              startCol = c;
+              r = 0;
+            } else {
+              if (r + 1 < BIG_ROWS && !grid[c][r + 1]) {
+                r += 1;
+              } else {
+                c += 1;
+              }
+            }
+            if (c >= BIG_COLS) return;
+            grid[c][r] = cell;
+          });
+          startCol = startCol + 1;
+        });
+        return grid;
+      }
+      function bigColorAt(grid, c, r) {
+        if (c < 0 || r < 0 || c >= grid.length || r >= BIG_ROWS) return null;
+        const cell = grid[c][r];
+        if (!cell || cell.outcome === 'tie') return null;
+        return cell.outcome;
+      }
+      function derivedColor(grid, colIdx, rowIdx, lookback) {
+        /* standard: compare to column (colIdx-lookback) */
+        if (colIdx < lookback) return null;
+        const cur = bigColorAt(grid, colIdx, rowIdx);
+        if (!cur) return null;
+        if (rowIdx === 0) {
+          const a = bigColorAt(grid, colIdx - 1, 0);
+          const b = bigColorAt(grid, colIdx - lookback - 1, 0);
+          if (!a || !b) return null;
+          /* 齐整=红(庄色)，不齐=蓝(闲色) — 用 B/P 表示色 */
+          return (a === b) ? 'banker' : 'player';
+        }
+        const left = bigColorAt(grid, colIdx - lookback, rowIdx);
+        const upLeft = bigColorAt(grid, colIdx - lookback, rowIdx - 1);
+        if (left && upLeft) return (left === upLeft) ? 'banker' : 'player';
+        if (!left && !upLeft) return 'banker';
+        return 'player';
+      }
+      function buildDerived(bigGrid, lookback) {
+        const items = [];
+        for (let c = 0; c < BIG_COLS; c++) {
+          for (let r = 0; r < BIG_ROWS; r++) {
+            if (!bigGrid[c][r]) continue;
+            if (bigGrid[c][r].outcome === 'tie' && r === 0 && c === 0) continue;
+            const col = derivedColor(bigGrid, c, r, lookback);
+            if (!col) continue;
+            items.push(col);
+          }
+        }
+        /* place like big-road streaks */
+        const cols = [];
+        items.forEach(function (o) {
+          const lastCol = cols.length ? cols[cols.length - 1] : null;
+          const last = lastCol && lastCol.length ? lastCol[lastCol.length - 1] : null;
+          if (!lastCol || last !== o) cols.push([o]);
+          else lastCol.push(o);
+        });
+        const grid = [];
+        for (let c = 0; c < DER_COLS; c++) {
+          grid[c] = [];
+          for (let r = 0; r < DER_ROWS; r++) grid[c][r] = null;
+        }
+        let startCol = 0;
+        cols.forEach(function (colItems) {
+          let c = startCol;
+          let r = 0;
+          colItems.forEach(function (cell, idx) {
+            if (idx === 0) {
+              while (c < DER_COLS && grid[c][0]) c++;
+              startCol = c;
+              r = 0;
+            } else if (r + 1 < DER_ROWS && !grid[c][r + 1]) {
+              r += 1;
+            } else {
+              c += 1;
+            }
+            if (c < DER_COLS) grid[c][r] = cell;
+          });
+          startCol = startCol + 1;
+        });
+        return grid;
+      }
+      function paintBead(grid) {
+        const cells = elBead.children;
+        for (let c = 0; c < BEAD_COLS; c++) {
+          for (let r = 0; r < BEAD_ROWS; r++) {
+            const idx = r * BEAD_COLS + c;
+            const host = cells[idx];
+            if (!host) continue;
+            host.innerHTML = '';
+            const item = grid[c][r];
+            if (!item) continue;
+            const d = document.createElement('div');
+            d.className = 'dot is-' + (item.outcome === 'banker' ? 'b' : item.outcome === 'player' ? 'p' : 't');
+            /* 公司珠盘：幸运6 圆内写 6；其余写 庄/闲/和 */
+            d.textContent = item.lucky6 ? '6' : (item.outcome === 'banker' ? '庄' : item.outcome === 'player' ? '闲' : '和');
+            host.appendChild(d);
+          }
+        }
+      }
+      function paintBig(grid) {
+        const cells = elBig.children;
+        for (let c = 0; c < BIG_COLS; c++) {
+          for (let r = 0; r < BIG_ROWS; r++) {
+            const idx = r * BIG_COLS + c;
+            const host = cells[idx];
+            if (!host) continue;
+            host.innerHTML = '';
+            const item = grid[c][r];
+            if (!item) continue;
+            const ring = document.createElement('div');
+            ring.className = 'ring is-' + (item.outcome === 'banker' ? 'b' : item.outcome === 'player' ? 'p' : 't');
+            if (item.ties > 0) {
+              const t = document.createElement('span');
+              t.className = 'tie-mark';
+              ring.appendChild(t);
+            }
+            host.appendChild(ring);
+          }
+        }
+      }
+      function paintDerived(el, grid, kind) {
+        const cells = el.children;
+        for (let c = 0; c < DER_COLS; c++) {
+          for (let r = 0; r < DER_ROWS; r++) {
+            const idx = r * DER_COLS + c;
+            const host = cells[idx];
+            if (!host) continue;
+            host.innerHTML = '';
+            const o = grid[c][r];
+            if (!o) continue;
+            const m = document.createElement('div');
+            const side = o === 'banker' ? 'b' : 'p';
+            m.className = 'mark ' + kind + ' is-' + side;
+            host.appendChild(m);
+          }
+        }
+      }
+      function counts(list) {
+        let b = 0, p = 0, t = 0, six = 0;
+        list.forEach(function (it) {
+          if (it.outcome === 'banker') b++;
+          else if (it.outcome === 'player') p++;
+          else t++;
+          if (it.lucky6) six++;
+        });
+        return { b: b, p: p, t: t, six: six };
+      }
+      function paintAll() {
+        const bead = buildBead(results);
+        const big = buildBigRoad(results);
+        paintBead(bead);
+        paintBig(big);
+        paintDerived(elEye, buildDerived(big, 1), 'ring');
+        paintDerived(elSmall, buildDerived(big, 2), 'dot');
+        paintDerived(elCock, buildDerived(big, 3), 'slash');
+        const c = counts(results);
+        if (elCntB) elCntB.textContent = String(c.b);
+        if (elCntP) elCntP.textContent = String(c.p);
+        if (elCntT) elCntT.textContent = String(c.t);
+        if (elCnt6) elCnt6.textContent = String(c.six);
+      }
+      function clear() {
+        results = [];
+        paintAll();
+      }
+      function pushHand(hand) {
+        if (!hand || !hand.outcome) return;
+        const lucky6 = hand.outcome === 'banker' && hand.b === 6;
+        results.push({
+          outcome: hand.outcome,
+          lucky6: !!lucky6
+        });
+        shoeClearsArmed = true;
+        paintAll();
+      }
+      function clearOnNewShoe() {
+        if (!shoeClearsArmed) return;
+        clear();
+        shoeClearsArmed = false;
+      }
+
+      window.FgBaccaratRoad = {
+        clear: clear,
+        clearOnNewShoe: clearOnNewShoe,
+        pushHand: pushHand,
+        getResults: function () { return results.slice(); }
+      };
+      clear();
     })();
   </script>
 </body>

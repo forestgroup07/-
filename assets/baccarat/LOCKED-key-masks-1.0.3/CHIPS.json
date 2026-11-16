@@ -1,0 +1,24 @@
+{
+  "keys_bottom": 558,
+  "cm1_px": 150,
+  "dock_top": 708,
+  "dock_h": 210,
+  "erase": [
+    10,
+    600,
+    1718,
+    900
+  ],
+  "fill": [
+    60,
+    129,
+    103,
+    255
+  ],
+  "overlay": {
+    "left_pct": 1.5,
+    "top_pct": 41.163,
+    "width_pct": 97.0,
+    "height_pct": 12.209
+  }
+}

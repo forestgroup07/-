@@ -1,0 +1,1 @@
+src-green-full.png remaster 2x LANCZOS from bak-before-whole-bright; labels gap=16; size 1728x1720

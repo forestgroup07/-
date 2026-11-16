@@ -1,0 +1,28 @@
+baccarat-m v1.0.3 — 2026-11-16
+用户书面：「存在git 定位1.0.3」
+自工作版 1.0.22 定锁为正式 1.0.3。
+
+已验收清单（本包算数）：
+- 竖屏壳 B601；大厅 BACCARAT_M ?v=1.0.3
+- 沿用 1.0.2：八键蒙格落注、键上筹码、黄三键、停注暗层、开牌/结果/金币/默认静音喇叭
+- 限红/注金：骰宝同款大黑框；挂 .app 顶层，不被绿台/顶屏挡住
+- 绿台主三键：赔率上方脏点已清；闲字已重写（对齐和/庄笔触）
+- 路单实时层：进桌清零；每局写入珠盘/大路/下三路；底栏庄/闲/和/6 计数；无闲问路/庄问路；黑条矮、四字顶黑格上沿；右下盖死原图蓝红
+
+未验收、不得当作本定版：
+- 顶屏真人视频流
+- 路单与公司像素级完全一致（格数/衍生路算法可再调）
+- 整站多语言、公告后台、规则全文后台
+- 电脑版；骰宝 / 轮盘（另册冻结不动）
+
+回滚：
+  baccarat-m.LOCKED-1.0.3.html
+  lobby.LOCKED-baccarat-m-1.0.3.html
+  assets/baccarat/LOCKED-baccarat-m-1.0.3.txt
+  assets/baccarat/LOCKED-src-green-full-1.0.3.png
+  assets/baccarat/LOCKED-src-green-full-hi-1.0.3.png
+  assets/baccarat/LOCKED-key-masks-1.0.3/
+  assets/baccarat/LOCKED-cards-1.0.3/
+  assets/baccarat/VERSION-m.txt = 1.0.3
+  tag baccarat-m-v1.0.3
+验收：https://forestgroup.ai/baccarat-m.html?v=1.0.3
