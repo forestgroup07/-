@@ -322,7 +322,7 @@
       const ROULETTE_PC = 'roulette.html?v=1.2.11';
       const ROULETTE_M = 'roulette-m.html?v=2.8.0';
       const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.8.0';
-      const BACCARAT_M = 'baccarat-m.html?v=1.0.4';
+      const BACCARAT_M = 'baccarat-m.html?v=1.1.0';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -789,7 +789,15 @@
         if (embedReadyTimer) clearTimeout(embedReadyTimer);
         embedReadyTimer = setTimeout(revealEmbed, 2200);
         const join = url.indexOf('?') >= 0 ? '&' : '?';
-        frame.src = url + join + 'embed=1';
+        /* 百家乐 embed：带上登录账号，子页 iframe 读不到父页 sessionStorage */
+        let embedQs = 'embed=1';
+        if (ShellSfx.embedKind === 'baccarat') {
+          try {
+            const u = encodeURIComponent(currentUser());
+            if (u) embedQs += '&user=' + u;
+          } catch (_) {}
+        }
+        frame.src = url + join + embedQs;
         if (ShellSfx.embedKind === 'roulette') {
           /* 轮盘步骤1：手势内只极轻 AudioContext；口播改子页自播（步骤2） */
           ShellSfx.primeRouletteGesture();

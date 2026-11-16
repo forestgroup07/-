@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a120e" />
-  <title>百家樂 B601 · 豎屏殼 v1.0.4</title>
+  <title>百家樂 B601 · 豎屏殼 v1.1.0</title>
   <style>
     :root {
       --safe-b: env(safe-area-inset-bottom, 0px);
@@ -356,6 +356,115 @@
       touch-action: none;
     }
     /* 路单实时层：盖住底图假数据；开局清零，每局写入 */
+    /* 上局结果弹层：点珠盘庄/闲/和字打开（无左侧弯箭键） */
+    .round-replay {
+      position: absolute;
+      inset: 0;
+      z-index: 560;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .round-replay.show {
+      display: flex;
+      pointer-events: auto;
+    }
+    .round-replay .rr-backdrop {
+      position: absolute;
+      inset: 0;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      background: rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+    }
+    .round-replay .rr-panel {
+      position: relative;
+      z-index: 1;
+      width: min(86%, 340px);
+      max-width: 92vw;
+      padding: 0.85rem 0.9rem 0.7rem;
+      border-radius: 14px;
+      background: rgba(18, 20, 24, 0.92);
+      box-shadow: 0 10px 32px rgba(0,0,0,.55);
+      color: #fff;
+      font-family: "PingFang SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+      box-sizing: border-box;
+    }
+    .round-replay .rr-scores {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.65rem;
+    }
+    .round-replay .rr-side {
+      display: flex;
+      align-items: baseline;
+      gap: 0.28rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .round-replay .rr-side.is-p { justify-content: flex-end; color: #5aa7ff; }
+    .round-replay .rr-side.is-b { justify-content: flex-start; color: #ff5a6a; }
+    .round-replay .rr-lab {
+      font-size: clamp(1.05rem, 4.8vw, 1.35rem);
+    }
+    .round-replay .rr-num {
+      font-size: clamp(1.7rem, 8vw, 2.35rem);
+      font-variant-numeric: tabular-nums;
+    }
+    .round-replay .rr-badge {
+      min-width: 2rem;
+      min-height: 3.1rem;
+      padding: 0.35rem 0.28rem;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: clamp(0.95rem, 4.2vw, 1.15rem);
+      letter-spacing: 0.06em;
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      color: #fff;
+      background: #e31837;
+      box-shadow: 0 2px 10px rgba(0,0,0,.35);
+    }
+    .round-replay .rr-badge.is-player { background: #1e6fd9; }
+    .round-replay .rr-badge.is-tie {
+      background: #f0c42e;
+      color: #1a1208;
+      writing-mode: horizontal-tb;
+      min-width: 2.4rem;
+      min-height: 2.2rem;
+      font-size: clamp(1.2rem, 5.5vw, 1.55rem);
+    }
+    .round-replay .rr-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+      margin-bottom: 0.55rem;
+    }
+    .round-replay .rr-cards-p,
+    .round-replay .rr-cards-b {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.28rem;
+      align-items: flex-end;
+      min-height: 4.2rem;
+    }
+    .round-replay .rr-cards-p { justify-content: flex-end; }
+    .round-replay .rr-cards-b { justify-content: flex-start; }
+    .round-replay .rr-card {
+      width: clamp(42px, 11.5vw, 54px);
+      height: clamp(60px, 16.2vw, 76px);
+      flex: 0 0 auto;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.35));
+    }
+    .round-replay .rr-card .poker-card {
+      border-radius: 5px;
+    }
     .road-live {
       position: absolute;
       left: 1.1%;
@@ -374,18 +483,36 @@
       pointer-events: none;
       font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
     }
+    /* 上：珠盘(字)+大路(圈) 共6行同格；下：下三路留空间。格子不能撑满整高 */
     .road-live-body {
       flex: 1 1 auto;
       min-height: 0;
-      display: grid;
-      grid-template-columns: 24% 1fr;
-      gap: 1px;
-      background: #c8c8c8;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: #b0b0b0;
       border: 1px solid #bdbdbd;
       border-bottom: 0;
       overflow: hidden;
       position: relative;
       z-index: 1;
+      container-type: size;
+    }
+    .road-top {
+      /* 铺满全宽；珠盘|大路中间隔线；24列×6行同格；高度=宽/4 */
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 8fr 16fr;
+      gap: 0;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 24 / 6;
+      box-sizing: border-box;
+      background: #fff;
+      min-height: 0;
+      align-self: stretch;
+      /* 上下分隔：顶区与下面四块隔开 */
+      border-bottom: 2px solid #8e8e8e;
     }
     .road-bead {
       background: #fff;
@@ -393,6 +520,12 @@
       grid-template-columns: repeat(8, 1fr);
       grid-template-rows: repeat(6, 1fr);
       gap: 0;
+      min-width: 0;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      border-right: 2px solid #8e8e8e;
     }
     .road-bead .cell {
       border-right: 1px solid #e4e4e4;
@@ -401,36 +534,41 @@
       place-items: center;
       min-width: 0;
       min-height: 0;
+      container-type: size;
     }
     .road-bead .dot {
       position: relative;
-      width: 84%;
-      height: 84%;
+      /* 正圆：取格短边 */
+      width: 84cqmin;
+      height: 84cqmin;
       border-radius: 50%;
       display: grid;
       place-items: center;
       color: #fff;
-      /* 对齐公司珠盘：字几乎铺满圆 */
-      font-size: clamp(0.72rem, 3.8vw, 1.05rem);
+      overflow: hidden;
+      box-sizing: border-box;
+      font-size: clamp(0.55rem, 2.8vw, 0.85rem);
+      font-size: 72cqmin;
       font-weight: 900;
       line-height: 1;
       font-family: "PingFang SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+      pointer-events: auto;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
     .road-bead .dot.is-b { background: #e31837; }
     .road-bead .dot.is-p { background: #1e6fd9; }
     .road-bead .dot.is-t { background: #1aaa5a; }
-    .road-right {
-      display: grid;
-      grid-template-rows: 1.35fr 1fr;
-      min-width: 0;
-      background: #c8c8c8;
-      gap: 1px;
-    }
     .road-big {
       background: #fff;
       display: grid;
       grid-template-columns: repeat(16, 1fr);
       grid-template-rows: repeat(6, 1fr);
+      min-width: 0;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
     }
     .road-big .cell {
       border-right: 1px solid #ececec;
@@ -440,12 +578,14 @@
       position: relative;
       min-width: 0;
       min-height: 0;
+      container-type: size;
     }
     .road-big .ring {
-      width: 78%;
-      height: 78%;
+      /* 正圆空心圈 */
+      width: 78cqmin;
+      height: 78cqmin;
       border-radius: 50%;
-      border: 2.5px solid transparent;
+      border: 2px solid transparent;
       box-sizing: border-box;
       position: relative;
     }
@@ -464,11 +604,14 @@
       border-radius: 1px;
     }
     .road-derived {
+      flex: 1 1 auto;
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 1px;
-      background: #c8c8c8;
+      /* 惯例四块：大眼仔 / 小路 / 甲由 / 大路缩略 — 同靴一起写 */
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 2px;
+      background: #8e8e8e;
       min-height: 0;
+      min-width: 0;
     }
     .road-der {
       background: #fff;
@@ -491,12 +634,25 @@
       box-sizing: border-box;
     }
     .road-der .mark.ring {
+      position: relative;
       border-radius: 50%;
       border: 2px solid #ccc;
       background: transparent;
     }
     .road-der .mark.ring.is-b { border-color: #e31837; }
     .road-der .mark.ring.is-p { border-color: #1e6fd9; }
+    .road-der .mark.ring.is-t {
+      border-color: #1aaa5a;
+      background: #1aaa5a;
+    }
+    .road-der .tie-mark {
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 115%; height: 1.5px;
+      background: #1aaa5a;
+      transform: translate(-50%, -50%) rotate(-42deg);
+      border-radius: 1px;
+    }
     .road-der .mark.dot {
       border-radius: 50%;
       background: #ccc;
@@ -514,15 +670,15 @@
     .road-der .mark.slash.is-p { background: #1e6fd9; }
     .road-foot {
       flex: 0 0 auto;
-      /* 黑格高度/圆大小不动；只保证黑底盖住白格、圆内有字 */
-      height: clamp(26px, 6.2%, 34px);
-      min-height: 26px;
+      /* 左计数 + 右闲/庄问路；略加高以容纳问路两键 */
+      height: clamp(40px, 9.2%, 52px);
+      min-height: 40px;
       background: #0a0a0a;
       display: flex;
-      align-items: center;
-      justify-content: flex-start;
+      align-items: stretch;
+      justify-content: space-between;
       gap: 0;
-      padding: 0 0.45rem;
+      padding: 0 0 0 0.45rem;
       pointer-events: none;
       color: #fff;
       border-top: 0;
@@ -534,6 +690,78 @@
       overflow: hidden;
       isolation: isolate;
     }
+    .road-ask {
+      display: flex;
+      align-items: stretch;
+      height: 100%;
+      flex: 0 0 auto;
+      pointer-events: auto;
+    }
+    .ask-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.18rem;
+      min-width: clamp(3.6rem, 16vw, 4.6rem);
+      padding: 0.12rem 0.42rem 0.18rem;
+      border: 0;
+      margin: 0;
+      cursor: pointer;
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
+      color: #fff;
+      font-family: "PingFang SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+    }
+    .ask-btn.is-p { background: #1e6fd9; }
+    .ask-btn.is-b { background: #c41830; }
+    .ask-btn:active { filter: brightness(1.08); }
+    .ask-lab {
+      font-size: clamp(0.58rem, 2.6vw, 0.72rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .ask-marks {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.32rem;
+      height: 0.85rem;
+    }
+    .ask-m {
+      display: block;
+      box-sizing: border-box;
+      opacity: 0.25;
+    }
+    .ask-m.is-on { opacity: 1; }
+    .ask-m.ring {
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 50%;
+      border: 1.6px solid #fff;
+      background: transparent;
+    }
+    .ask-m.ring.is-b { border-color: #ff6b7a; }
+    .ask-m.ring.is-p { border-color: #9ec5ff; }
+    .ask-m.dot {
+      width: 0.62rem;
+      height: 0.62rem;
+      border-radius: 50%;
+      background: #fff;
+    }
+    .ask-m.dot.is-b { background: #ff6b7a; }
+    .ask-m.dot.is-p { background: #9ec5ff; }
+    .ask-m.slash {
+      width: 0.78rem;
+      height: 2px;
+      border-radius: 1px;
+      background: #fff;
+      transform: rotate(-42deg);
+    }
+    .ask-m.slash.is-b { background: #ff6b7a; }
+    .ask-m.slash.is-p { background: #9ec5ff; }
     .road-stats {
       display: flex;
       align-items: center;
@@ -541,10 +769,12 @@
       min-width: 0;
       height: 100%;
       overflow: hidden;
-      font-size: clamp(0.92rem, 4.2vw, 1.2rem);
+      font-size: clamp(0.85rem, 3.8vw, 1.1rem);
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       font-family: "PingFang SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+      align-self: center;
+      max-height: 34px;
     }
     .road-stats .st {
       display: inline-flex;
@@ -1087,14 +1317,15 @@
       color: #ff3b3b;
     }
     .toast {
-      position: absolute; z-index: 40; left: 50%; top: 42%;
+      position: absolute; z-index: 80; left: 50%; top: 42%;
       transform: translate(-50%, -50%);
-      padding: .45rem .9rem; border-radius: 8px;
-      background: rgba(0,0,0,.72); color: #fff;
-      font-size: .88rem; font-weight: 700;
+      padding: .5rem 1rem; border-radius: 8px;
+      background: rgba(0,0,0,.78); color: #fff;
+      font-size: clamp(.95rem, 3.8vw, 1.1rem); font-weight: 800;
       opacity: 0; pointer-events: none; transition: opacity .2s;
       white-space: nowrap;
       visibility: hidden;
+      text-shadow: 0 1px 4px rgba(0,0,0,.65);
     }
     .toast.show { opacity: 1; visibility: visible; }
     .phase-banner {
@@ -1123,6 +1354,712 @@
       visibility: visible;
       transform: translate(-50%, -50%) scale(1);
     }
+    /* 圆形菜单 → 侧栏（对标公司：账号+金额 / 公告 / 语言 / 记录 / 规则 / 退出） */
+    .side-menu {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.35);
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .side-menu.show { display: block; }
+    .side-menu-panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      /* 黑布只到退出下方 ≈ 半屏，不铺满整屏；再往下多 2cm */
+      height: auto;
+      max-height: calc(52% + 2cm);
+      /* 整体下移约 2cm，避开右上关闭钮 */
+      padding: 2cm 0.7rem calc(0.85rem + 2cm);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #f3f3f3;
+      background: rgba(10, 12, 16, 0.94);
+      border-radius: 0 0 0.7rem 0.7rem;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+    .side-menu-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 4.6rem 4.6rem;
+      gap: 0.5rem;
+      align-items: stretch;
+      margin-bottom: 0.55rem;
+    }
+    .side-user {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-width: 0;
+      min-height: 4.35rem;
+      padding: 0.45rem 0.55rem;
+      border-radius: 0.55rem;
+      background: #14181f;
+      border: 1px solid rgba(255,255,255,.06);
+      box-sizing: border-box;
+    }
+    .side-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #2a303a;
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .side-avatar svg {
+      width: 28px;
+      height: 28px;
+      display: block;
+    }
+    .side-user-meta { min-width: 0; }
+    .side-user-id {
+      font-size: 0.84rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #f0f0f0;
+    }
+    .side-user-bal {
+      margin-top: 0.18rem;
+      font-size: 1rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: #e8c547;
+    }
+    .side-top-btn {
+      width: 100%;
+      min-height: 4.35rem;
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 0.55rem;
+      background: #14181f;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.28rem;
+      font-size: 0.68rem;
+      line-height: 1.15;
+      padding: 0.35rem 0.2rem;
+      box-sizing: border-box;
+    }
+    .side-top-btn .ico,
+    .side-tile .ico {
+      width: 1.55rem;
+      height: 1.55rem;
+      display: grid;
+      place-items: center;
+      color: #e8c547;
+    }
+    .side-top-btn .ico svg,
+    .side-tile .ico svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .side-top-btn span:last-child {
+      max-width: 100%;
+      padding: 0 0.1rem;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .side-close {
+      position: absolute;
+      right: 0.55rem;
+      top: 0.55rem;
+      z-index: 2;
+      width: 1.85rem;
+      height: 1.85rem;
+      border: 0;
+      border-radius: 50%;
+      background: #d4af37;
+      color: #1a1205;
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.4);
+    }
+    .side-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0;
+    }
+    .side-tile {
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 0.55rem;
+      min-height: 4.55rem;
+      padding: 0.7rem 0.45rem;
+      background: #14181f;
+      color: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-sizing: border-box;
+    }
+    .side-tile.is-exit { min-height: 4.55rem; }
+
+    .sheet-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 105;
+      background: rgba(0,0,0,.55);
+      pointer-events: auto;
+    }
+    .sheet-overlay.show { display: flex; align-items: stretch; justify-content: center; }
+    .sheet-panel {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+      background: #1b1f27;
+      color: #f2f2f2;
+      padding: 2.4rem 1rem 1.2rem;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .sheet-panel.is-paper {
+      background: linear-gradient(180deg, #f7f4ec 0%, #efe8da 100%);
+      color: #3a3226;
+    }
+    .sheet-close {
+      position: absolute;
+      right: 0.7rem;
+      top: 0.55rem;
+      z-index: 2;
+      width: 1.7rem;
+      height: 1.7rem;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(80, 50, 20, 0.85);
+      color: #f5ecd8;
+      font-size: 1.15rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+    }
+    .sheet-panel:not(.is-paper) .sheet-close {
+      background: #c9a227;
+      color: #1a1205;
+    }
+    .sheet-title {
+      margin: 0 0 0.85rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .sheet-empty {
+      margin: 2.5rem 0.5rem;
+      min-height: 58vh;
+      border: 1px dashed rgba(90, 70, 40, 0.35);
+      border-radius: 0.35rem;
+      background: rgba(255,255,255,.45);
+      display: grid;
+      place-items: center;
+      color: rgba(80, 65, 45, 0.55);
+      font-size: 0.9rem;
+    }
+    .sheet-hint {
+      text-align: center;
+      color: rgba(255,255,255,.55);
+      font-size: 0.88rem;
+      margin-top: 2rem;
+    }
+    /* 语言：菜单内右侧窄条，不换页 */
+    .lang-pop {
+      display: none;
+      position: absolute;
+      z-index: 5;
+      top: 2cm;
+      right: 0.55rem;
+      width: 42%;
+      max-width: 11.5rem;
+      max-height: calc(100% - 2.4cm);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      background: #0a0c10;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 0.35rem;
+      box-shadow: 0 8px 22px rgba(0,0,0,.55);
+      padding: 0.15rem 0;
+      box-sizing: border-box;
+    }
+    .lang-pop.show { display: block; }
+    .lang-opt {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      border-radius: 0;
+      background: transparent;
+      color: #f2f2f2;
+      padding: 0.72rem 0.65rem 0.72rem 0.75rem;
+      font-size: 0.86rem;
+      font-weight: 600;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.35rem;
+      box-sizing: border-box;
+    }
+    .lang-opt:last-child { border-bottom: 0; }
+    .lang-opt::after {
+      content: '';
+      width: 0.95rem;
+      height: 0.95rem;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,.35);
+      flex: 0 0 auto;
+      box-sizing: border-box;
+    }
+    .lang-opt.is-on {
+      color: #f6e27a;
+    }
+    .lang-opt.is-on::after {
+      border-color: #e8c547;
+      background:
+        radial-gradient(circle at center, #e8c547 0 38%, transparent 40%),
+        #0a0c10;
+    }
+    /* 游戏规则：照抄电脑版 roulette.html 羊皮纸样式 */
+    .rules-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 110;
+      display: none;
+      align-items: stretch;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.55);
+      pointer-events: auto;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
+    }
+    .rules-overlay.show { display: flex; }
+    .rules-panel {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      background: linear-gradient(180deg, #cbb58a 0%, #e8d9b4 18%, #f3e9cf 55%, #efe4c4 100%);
+      color: #3a2a18;
+      font-family: "PingFang TC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      box-sizing: border-box;
+      padding: 1.1rem 4% 1.4rem;
+      padding-bottom: calc(1.4rem + env(safe-area-inset-bottom, 0px));
+    }
+    .rules-close {
+      position: absolute;
+      right: 0.7rem;
+      top: 0.55rem;
+      z-index: 2;
+      width: 1.75rem;
+      height: 1.75rem;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(80, 50, 20, 0.85);
+      color: #f5ecd8;
+      font-size: 1.15rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+    .rules-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45em;
+      margin: 0.2em 0 1.1em;
+      padding-right: 12%;
+    }
+    .rules-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.38em 0.85em;
+      border-radius: 0.35em;
+      border: 1px solid #8a6a3a;
+      background: #e8d9b4;
+      color: #5c3d1f;
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .rules-tab.is-on {
+      background: #5c3d1f;
+      border-color: #5c3d1f;
+      color: #fff;
+    }
+    .rules-title {
+      margin: 0 0 0.85em;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #3d2a14;
+      letter-spacing: 0.02em;
+    }
+    .rules-h {
+      margin: 1.05em 0 0.45em;
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: #3d2a14;
+    }
+    .rules-p {
+      margin: 0 0 0.55em;
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: #3a2a18;
+      max-width: 96%;
+    }
+    .rules-sub {
+      margin: 0.85em 0 0.35em;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #3d2a14;
+    }
+    .rules-list {
+      margin: 0.2em 0 0.6em;
+      padding-left: 1.35em;
+      font-size: 0.92rem;
+      line-height: 1.75;
+      color: #3a2a18;
+      max-width: 96%;
+      list-style: disc;
+    }
+    .rules-list.rules-ol {
+      list-style: decimal;
+      padding-left: 1.55em;
+    }
+    .rules-list li { margin: 0.15em 0; }
+    .rules-table-wrap {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0.35em 0 1em;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 0.25em;
+      border: 1px solid #8a6a3a;
+      background: rgba(255, 250, 235, 0.55);
+    }
+    .rules-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      color: #3a2a18;
+    }
+    .rules-table th,
+    .rules-table td {
+      border: 1px solid #a8844a;
+      padding: 0.55em 0.55em;
+      vertical-align: top;
+      text-align: left;
+      line-height: 1.45;
+    }
+    .rules-table th {
+      background: #5c3d1f;
+      color: #fff;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .rules-table td:last-child {
+      white-space: nowrap;
+      font-weight: 700;
+      width: 22%;
+    }
+    .rules-table tr:nth-child(even) td {
+      background: rgba(232, 214, 170, 0.35);
+    }
+
+    /* 修改密码：对标公司半透明页 */
+    .pwd-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 106;
+      background: rgba(8, 10, 14, 0.78);
+      pointer-events: auto;
+    }
+    .pwd-overlay.show { display: block; }
+    .pwd-panel {
+      position: absolute;
+      inset: 0;
+      padding: 1.15rem 1.05rem 1.4rem;
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #f2f2f2;
+    }
+    .pwd-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.35rem;
+    }
+    .pwd-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #e8c547;
+      letter-spacing: 0.02em;
+    }
+    .pwd-close {
+      width: 1.85rem;
+      height: 1.85rem;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: #e8c547;
+      font-size: 1.55rem;
+      font-weight: 500;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+    }
+    .pwd-field {
+      position: relative;
+      margin-bottom: 0.75rem;
+    }
+    .pwd-field input {
+      width: 100%;
+      box-sizing: border-box;
+      height: 2.85rem;
+      border: 0;
+      border-radius: 0.45rem;
+      padding: 0 2.6rem 0 0.9rem;
+      background: #fff;
+      color: #1a1a1a;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .pwd-field input::placeholder { color: #9aa0a8; }
+    .pwd-eye {
+      position: absolute;
+      right: 0.35rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 2.2rem;
+      height: 2.2rem;
+      border: 0;
+      background: transparent;
+      color: #6b7280;
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+    .pwd-eye svg { width: 1.25rem; height: 1.25rem; display: block; }
+    .pwd-hint {
+      margin: -0.25rem 0 0.95rem;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      color: #e8c547;
+    }
+    .pwd-err {
+      min-height: 1.2em;
+      margin: 0 0 0.75rem;
+      font-size: 0.82rem;
+      color: #f87171;
+    }
+    .pwd-submit {
+      display: block;
+      width: 100%;
+      height: 2.85rem;
+      border: 0;
+      border-radius: 0.45rem;
+      background: #d4af37;
+      color: #1a1205;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .pwd-submit:disabled { opacity: 0.65; }
+
+    /* 下注/额度记录：对标公司半透明表（挂到 body，避开 #app overflow 裁切） */
+    .rec-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(8, 10, 14, 0.82);
+      pointer-events: auto;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
+    }
+    .rec-overlay.show { display: block; }
+    .rec-panel {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 0.85rem 0.55rem 0.7rem;
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #f2f2f2;
+    }
+    .rec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.55rem;
+      flex: 0 0 auto;
+    }
+    .rec-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #e8c547;
+    }
+    .rec-close {
+      width: 1.7rem;
+      height: 1.7rem;
+      border: 0;
+      background: transparent;
+      color: #e8c547;
+      font-size: 1.45rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+    }
+    .rec-filters {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 0.45rem;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,.88);
+    }
+    .rec-filters-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+    .rec-filters label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      white-space: nowrap;
+    }
+    .rec-filters input,
+    .rec-filters select {
+      border: 0;
+      border-radius: 0.25rem;
+      background: #fff;
+      color: #222;
+      height: 1.7rem;
+      padding: 0 0.35rem;
+      font-size: 0.68rem;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .rec-filters .rec-q-round,
+    .rec-filters .rec-q-order { width: 5.2rem; }
+    .rec-filters .rec-q-from,
+    .rec-filters .rec-q-to { width: 8.6rem; }
+    .rec-filters .rec-q-type { width: 4.6rem; }
+    .rec-query {
+      border: 0;
+      border-radius: 0.25rem;
+      background: #d4af37;
+      color: #1a1205;
+      font-weight: 700;
+      font-size: 0.78rem;
+      height: 1.7rem;
+      padding: 0 0.7rem;
+      flex: 0 0 auto;
+    }
+    .rec-table-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 0.25rem;
+      background: rgba(12, 14, 18, 0.55);
+    }
+    .rec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.62rem;
+      line-height: 1.25;
+    }
+    .rec-table th,
+    .rec-table td {
+      padding: 0.42rem 0.22rem;
+      text-align: center;
+      vertical-align: middle;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .rec-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #c9a86a;
+      color: #2a1c0a;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .rec-table td { color: #f0f0f0; }
+    .rec-table .rec-game { white-space: nowrap; }
+    .rec-table .rec-time { white-space: nowrap; color: rgba(255,255,255,.9); }
+    .rec-table .pnl-win { color: #3ddc84; font-weight: 700; }
+    .rec-table .pnl-lose { color: #f07178; font-weight: 700; }
+    .rec-empty td {
+      padding: 1.4rem 0.5rem;
+      color: rgba(255,255,255,.55);
+    }
+    .rec-pager {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      margin-top: 0.4rem;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,.85);
+    }
+    .rec-pager button {
+      border: 0;
+      background: rgba(255,255,255,.08);
+      color: #eee;
+      border-radius: 0.25rem;
+      width: 1.7rem;
+      height: 1.5rem;
+      font-size: 0.75rem;
+    }
+    .rec-pager button:disabled { opacity: 0.35; }
+    .rec-sum {
+      flex: 0 0 auto;
+      margin-top: 0.4rem;
+      padding: 0.45rem 0.35rem;
+      border-top: 1px solid rgba(255,255,255,.12);
+      font-size: 0.7rem;
+      line-height: 1.55;
+      color: rgba(255,255,255,.9);
+    }
+    .rec-sum .pnl-win { color: #3ddc84; font-weight: 700; }
+    .rec-sum .pnl-lose { color: #f07178; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -1164,7 +2101,7 @@
             <div class="table-name">百家樂 B601</div>
           </div>
           <div class="top-right">
-            <button type="button" class="btn-menu-circle" id="btnMenu" aria-label="選單" disabled>
+            <button type="button" class="btn-menu-circle" id="btnMenu" aria-label="選單">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <g fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
                   <path d="M5 7h14" />
@@ -1183,14 +2120,15 @@
           <div class="bet-chip-layer" id="betChipLayer" aria-hidden="true"></div>
           <div class="road-live" id="roadLive" aria-label="路單">
             <div class="road-live-body">
-              <div class="road-bead" id="roadBead" aria-label="珠盤"></div>
-              <div class="road-right">
+              <div class="road-top">
+                <div class="road-bead" id="roadBead" aria-label="珠盤"></div>
                 <div class="road-big" id="roadBig" aria-label="大路"></div>
-                <div class="road-derived">
-                  <div class="road-der" id="roadEye" aria-label="大眼仔"></div>
-                  <div class="road-der" id="roadSmall" aria-label="小路"></div>
-                  <div class="road-der" id="roadCock" aria-label="甲由路"></div>
-                </div>
+              </div>
+              <div class="road-derived">
+                <div class="road-der" id="roadEye" aria-label="大眼仔"></div>
+                <div class="road-der" id="roadSmall" aria-label="小路"></div>
+                <div class="road-der" id="roadCock" aria-label="甲由路"></div>
+                <div class="road-der" id="roadFourth" aria-label="大路缩略"></div>
               </div>
             </div>
             <div class="road-foot">
@@ -1199,6 +2137,24 @@
                 <span class="st"><span class="ball is-p"><span class="ch">闲</span></span><span id="roadCntP">0</span></span>
                 <span class="st"><span class="ball is-t"><span class="ch">和</span></span><span id="roadCntT">0</span></span>
                 <span class="st"><span class="ball is-6"><span class="ch">6</span></span><span id="roadCnt6">0</span></span>
+              </div>
+              <div class="road-ask" id="roadAsk" aria-label="问路">
+                <button type="button" class="ask-btn is-p" id="askPlayer" aria-label="闲问路">
+                  <span class="ask-lab">闲问路</span>
+                  <span class="ask-marks" aria-hidden="true">
+                    <i class="ask-m ring" data-ask="eye"></i>
+                    <i class="ask-m dot" data-ask="small"></i>
+                    <i class="ask-m slash" data-ask="cock"></i>
+                  </span>
+                </button>
+                <button type="button" class="ask-btn is-b" id="askBanker" aria-label="庄问路">
+                  <span class="ask-lab">庄问路</span>
+                  <span class="ask-marks" aria-hidden="true">
+                    <i class="ask-m ring" data-ask="eye"></i>
+                    <i class="ask-m dot" data-ask="small"></i>
+                    <i class="ask-m slash" data-ask="cock"></i>
+                  </span>
+                </button>
               </div>
             </div>
           </div>
@@ -1282,6 +2238,20 @@
       </div>
     </footer>
     <!-- 大黑框挂 app 顶层：不被绿台/顶屏挡住（骰宝同款尺寸） -->
+    <div class="round-replay" id="roundReplay" aria-hidden="true">
+      <button type="button" class="rr-backdrop" id="rrClose" aria-label="关闭"></button>
+      <div class="rr-panel" role="dialog" aria-label="上局結果">
+        <div class="rr-scores">
+          <div class="rr-side is-p"><span class="rr-lab">閒</span><span class="rr-num" id="rrP">0</span></div>
+          <div class="rr-badge" id="rrBadge">莊贏</div>
+          <div class="rr-side is-b"><span class="rr-lab">莊</span><span class="rr-num" id="rrB">0</span></div>
+        </div>
+        <div class="rr-cards">
+          <div class="rr-cards-p" id="rrCardsP"></div>
+          <div class="rr-cards-b" id="rrCardsB"></div>
+        </div>
+      </div>
+    </div>
     <div class="stake-tip" id="stakeTip" role="dialog" aria-label="本局下注">
       <div class="stake-tip-scroll">
         <div class="stake-tip-head"><span>玩法</span><span>下注</span><span>输赢</span></div>
@@ -1318,6 +2288,298 @@
       </div>
     </div>
   </div>
+    <!-- 圆形菜单：对标公司黑版方块（小人头像 + 整齐两列） -->
+    <div class="side-menu" id="sideMenu" aria-hidden="true">
+      <div class="side-menu-panel" role="dialog" aria-modal="true" aria-label="菜单">
+        <button type="button" class="side-close" id="sideMenuClose" aria-label="关闭">×</button>
+        <div class="side-menu-top">
+          <div class="side-user">
+            <div class="side-avatar" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="3.4" fill="#d4af37"/>
+                <path d="M5.2 19.2c.7-3.5 3.2-5.2 6.8-5.2s6.1 1.7 6.8 5.2" stroke="#d4af37" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="side-user-meta">
+              <div class="side-user-id">ID: <span id="sideUserId">—</span></div>
+              <div class="side-user-bal" id="sideUserBal">…</div>
+            </div>
+          </div>
+          <button type="button" class="side-top-btn" id="btnNotice" aria-label="公告">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 3.5h7.2L19 8.2V20.5H7V3.5z" stroke="currentColor" stroke-width="1.7"/><path d="M14 3.6V8h4.5" stroke="currentColor" stroke-width="1.7"/><path d="M9.2 12h5.6M9.2 15.2h5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </span>
+            <span>公告</span>
+          </button>
+          <button type="button" class="side-top-btn" id="btnLang" aria-label="语言">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M4.2 12h15.6M12 3.8c2.4 2.6 3.6 5.4 3.6 8.2s-1.2 5.6-3.6 8.2c-2.4-2.6-3.6-5.4-3.6-8.2s1.2-5.6 3.6-8.2z" stroke="currentColor" stroke-width="1.5"/></svg>
+            </span>
+            <span id="btnLangLabel">简体中文</span>
+          </button>
+        </div>
+        <div class="side-grid">
+          <button type="button" class="side-tile" id="btnBetLog" aria-label="下注记录">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3.5" width="14" height="17" rx="1.5" stroke="currentColor" stroke-width="1.7"/><path d="M8.2 8.2h7.6M8.2 11.5h7.6M8.2 14.8h5" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/><circle cx="16.2" cy="16.6" r="3.1" fill="#14181f" stroke="currentColor" stroke-width="1.5"/><path d="M16.2 15.2v2.8M14.8 16.6h2.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </span>
+            <span>下注记录</span>
+          </button>
+          <button type="button" class="side-tile" id="btnCreditLog" aria-label="额度记录">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="6" width="17" height="12" rx="1.8" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 10h17" stroke="currentColor" stroke-width="1.6"/><circle cx="16.4" cy="14.4" r="1.35" fill="currentColor"/></svg>
+            </span>
+            <span>额度记录</span>
+          </button>
+          <button type="button" class="side-tile" id="btnChangePwd" aria-label="修改密码">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="16" rx="1.6" stroke="currentColor" stroke-width="1.7"/><circle cx="9" cy="9" r="1.05" fill="currentColor"/><circle cx="12" cy="9" r="1.05" fill="currentColor"/><circle cx="15" cy="9" r="1.05" fill="currentColor"/><circle cx="9" cy="12.4" r="1.05" fill="currentColor"/><circle cx="12" cy="12.4" r="1.05" fill="currentColor"/><circle cx="15" cy="12.4" r="1.05" fill="currentColor"/><circle cx="9" cy="15.8" r="1.05" fill="currentColor"/><circle cx="12" cy="15.8" r="1.05" fill="currentColor"/><circle cx="15" cy="15.8" r="1.05" fill="currentColor"/></svg>
+            </span>
+            <span>修改密码</span>
+          </button>
+          <button type="button" class="side-tile" id="btnGameRules" aria-label="游戏规则">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M9.7 9.3a2.4 2.4 0 1 1 3.7 2c-.7.5-1.2 1-1.2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="16.4" r="1" fill="currentColor"/></svg>
+            </span>
+            <span>游戏规则</span>
+          </button>
+          <button type="button" class="side-tile is-exit" id="btnMenuExit" aria-label="退出">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M10 5.5H6.8A1.8 1.8 0 0 0 5 7.3v9.4A1.8 1.8 0 0 0 6.8 18.5H10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10.5 12H19M15.8 8.6 19.3 12l-3.5 3.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span>退出</span>
+          </button>
+        </div>
+        <div class="lang-pop" id="langPop" aria-hidden="true" role="listbox" aria-label="语言">
+          <button type="button" class="lang-opt" data-lang="zh" role="option">简体中文</button>
+          <button type="button" class="lang-opt" data-lang="en" role="option">English</button>
+          <button type="button" class="lang-opt" data-lang="id" role="option">Bahasa Indonesia</button>
+          <button type="button" class="lang-opt" data-lang="vi" role="option">Tiếng Việt</button>
+          <button type="button" class="lang-opt" data-lang="th" role="option">ภาษาไทย</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-overlay" id="noticeSheet" aria-hidden="true">
+      <div class="sheet-panel is-paper" role="dialog" aria-modal="true" aria-labelledby="noticeTitle">
+        <button type="button" class="sheet-close" data-sheet-close="noticeSheet" aria-label="关闭">×</button>
+        <h2 class="sheet-title" id="noticeTitle">公告</h2>
+        <div class="sheet-empty">暂无公告</div>
+      </div>
+    </div>
+
+    <div class="pwd-overlay" id="pwdOverlay" aria-hidden="true">
+      <div class="pwd-panel" role="dialog" aria-modal="true" aria-labelledby="pwdTitle">
+        <div class="pwd-head">
+          <h2 class="pwd-title" id="pwdTitle">修改密码</h2>
+          <button type="button" class="pwd-close" id="pwdClose" aria-label="关闭">×</button>
+        </div>
+        <form id="pwdForm" autocomplete="off">
+          <div class="pwd-field">
+            <input id="pwdOld" type="password" name="oldPassword" placeholder="旧密码" maxlength="10" autocomplete="current-password" required />
+            <button type="button" class="pwd-eye" data-pwd-eye="pwdOld" aria-label="显示密码">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 12s3.6-6.5 9-6.5S21 12 21 12s-3.6 6.5-9 6.5S3 12 3 12z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <p class="pwd-hint">请输入6-10个字母、数字组成的字符串密码</p>
+          <div class="pwd-field">
+            <input id="pwdNew" type="password" name="newPassword" placeholder="新密码" maxlength="10" autocomplete="new-password" required />
+            <button type="button" class="pwd-eye" data-pwd-eye="pwdNew" aria-label="显示密码">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 12s3.6-6.5 9-6.5S21 12 21 12s-3.6 6.5-9 6.5S3 12 3 12z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="pwd-field">
+            <input id="pwdNew2" type="password" name="confirmPassword" placeholder="确认密码" maxlength="10" autocomplete="new-password" required />
+            <button type="button" class="pwd-eye" data-pwd-eye="pwdNew2" aria-label="显示密码">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 12s3.6-6.5 9-6.5S21 12 21 12s-3.6 6.5-9 6.5S3 12 3 12z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <p class="pwd-err" id="pwdErr" role="alert"></p>
+          <button type="submit" class="pwd-submit" id="pwdSubmit">修改</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="rec-overlay" id="betLogSheet" aria-hidden="true">
+      <div class="rec-panel" role="dialog" aria-modal="true" aria-labelledby="betLogTitle">
+        <div class="rec-head">
+          <h2 class="rec-title" id="betLogTitle">下注记录</h2>
+          <button type="button" class="rec-close" data-rec-close="betLogSheet" aria-label="关闭">×</button>
+        </div>
+        <div class="rec-filters" id="betFilters">
+          <div class="rec-filters-row">
+            <label>局号:<input class="rec-q-round" id="betRoundQ" type="text" inputmode="numeric" /></label>
+            <label>订单号:<input class="rec-q-order" id="betOrderQ" type="text" inputmode="numeric" /></label>
+          </div>
+          <div class="rec-filters-row">
+            <input class="rec-q-from" id="betFrom" type="datetime-local" step="1" />
+            <span>至</span>
+            <input class="rec-q-to" id="betTo" type="datetime-local" step="1" />
+            <button type="button" class="rec-query" id="betQueryBtn">查询</button>
+          </div>
+        </div>
+        <div class="rec-table-wrap">
+          <table class="rec-table">
+            <thead>
+              <tr>
+                <th>游戏</th>
+                <th>靴-局 / 时间</th>
+                <th>投注类型</th>
+                <th>投注金额</th>
+                <th>输赢</th>
+              </tr>
+            </thead>
+            <tbody id="betRecBody"></tbody>
+          </table>
+        </div>
+        <div class="rec-pager">
+          <button type="button" id="betPrev" aria-label="上一页">‹</button>
+          <span id="betPageLabel">1 / 1</span>
+          <button type="button" id="betNext" aria-label="下一页">›</button>
+        </div>
+        <div class="rec-sum" id="betRecSum"></div>
+      </div>
+    </div>
+
+    <div class="rec-overlay" id="creditLogSheet" aria-hidden="true">
+      <div class="rec-panel" role="dialog" aria-modal="true" aria-labelledby="creditLogTitle">
+        <div class="rec-head">
+          <h2 class="rec-title" id="creditLogTitle">额度记录</h2>
+          <button type="button" class="rec-close" data-rec-close="creditLogSheet" aria-label="关闭">×</button>
+        </div>
+        <div class="rec-filters" id="creditFilters">
+          <div class="rec-filters-row">
+            <label>交易类型:
+              <select class="rec-q-type" id="creditTypeQ">
+                <option value="all">全部</option>
+                <option value="bet">下注</option>
+                <option value="settle">结算</option>
+                <option value="other">撤销</option>
+              </select>
+            </label>
+          </div>
+          <div class="rec-filters-row">
+            <input class="rec-q-from" id="creditFrom" type="datetime-local" step="1" />
+            <span>至</span>
+            <input class="rec-q-to" id="creditTo" type="datetime-local" step="1" />
+            <button type="button" class="rec-query" id="creditQueryBtn">查询</button>
+          </div>
+        </div>
+        <div class="rec-table-wrap">
+          <table class="rec-table">
+            <thead>
+              <tr>
+                <th>游戏</th>
+                <th>时间</th>
+                <th>类别</th>
+                <th>交易前余额</th>
+                <th>收入/支出</th>
+                <th>结算后余额</th>
+              </tr>
+            </thead>
+            <tbody id="creditRecBody"></tbody>
+          </table>
+        </div>
+        <div class="rec-pager">
+          <button type="button" id="creditPrev" aria-label="上一页">‹</button>
+          <span id="creditPageLabel">1 / 1</span>
+          <button type="button" id="creditNext" aria-label="下一页">›</button>
+        </div>
+        <div class="rec-sum" id="creditRecSum"></div>
+      </div>
+    </div>
+
+
+    <div class="rules-overlay" id="rulesOverlay" aria-hidden="true">
+      <div class="rules-panel" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+        <button class="rules-close" id="rulesClose" type="button" aria-label="关闭">×</button>
+        <div class="rules-tabs">
+          <span class="rules-tab is-on">百家樂</span>
+        </div>
+        <h1 class="rules-title" id="rulesTitle">百家樂</h1>
+        <h2 class="rules-h">遊戲概述</h2>
+        <p class="rules-p">百家樂是比較閒家與莊家點數的紙牌遊戲。每局各先發兩張牌，點數以個位數計算（A 為 1 點，2–9 按面值，10／J／Q／K 為 0 點），總和超過 9 只取個位。點數較高的一方勝出；點數相同為和。</p>
+        <h2 class="rules-h">如何勝出</h2>
+        <p class="rules-p">在倒計時內選擇閒、莊、和或對子類盤口並確認下注。停止下注後開牌：依補牌規則可能再發第三張。開牌結果與您押注的項目相符即贏得派彩；閒／莊在和局時退還本金。</p>
+        <h2 class="rules-h">開牌與補牌</h2>
+        <ol class="rules-list rules-ol">
+          <li>先各發兩張：閒家第一張、莊家第一張、閒家第二張、莊家第二張。</li>
+          <li>任一方兩牌點數為 8 或 9，為「天牌」，雙方皆不再補牌。</li>
+          <li>非天牌時：閒家兩牌點數 0–5 須補第三張；6–7 不補。</li>
+          <li>莊家是否補牌依莊家兩牌點數，以及閒家是否已補第三張、第三張點數，按標準百家樂補牌表決定。</li>
+          <li>最終比較閒、莊點數，決定閒贏、莊贏或和。</li>
+        </ol>
+        <h2 class="rules-h">參與說明和投注選項</h2>
+        <ul class="rules-list">
+          <li>新局開始後進入下注倒計時，請選擇籌碼並點擊桌面盤口。</li>
+          <li>可先掛單，再按確定提交；封盤前可撤銷未確認或已確認注碼（依桌內操作鍵）。</li>
+          <li>倒計時結束顯示「停止下注」後開牌並結算，結果寫入路單。</li>
+        </ul>
+        <h2 class="rules-h">限紅說明</h2>
+        <p class="rules-p"><strong>玩法限紅：</strong>是由盤口和桌臺限紅兩者的交集所得。具體限紅請查詢桌內「限紅」說明。</p>
+        <p class="rules-p">本桌參考：閒／莊 10–20,000；和 2–2,500；莊對／閒對 1–1,818；幸運6 1–1,111；任意對子 2–4,000；完美對子 1–800。</p>
+        <h2 class="rules-h">派彩賠率</h2>
+        <div class="rules-table-wrap">
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th>投注項目</th>
+                <th>說明</th>
+                <th>賠率</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>閒</td>
+                <td>閒家點數高於莊家</td>
+                <td>1 賠 1</td>
+              </tr>
+              <tr>
+                <td>莊</td>
+                <td>莊家點數高於閒家（含佣）</td>
+                <td>1 賠 0.95</td>
+              </tr>
+              <tr>
+                <td>和</td>
+                <td>閒家與莊家點數相同</td>
+                <td>1 賠 8</td>
+              </tr>
+              <tr>
+                <td>閒對</td>
+                <td>閒家首兩張點數相同（對子）</td>
+                <td>1 賠 11</td>
+              </tr>
+              <tr>
+                <td>莊對</td>
+                <td>莊家首兩張點數相同（對子）</td>
+                <td>1 賠 11</td>
+              </tr>
+              <tr>
+                <td>任意對子</td>
+                <td>閒家或莊家首兩張為對子</td>
+                <td>1 賠 5</td>
+              </tr>
+              <tr>
+                <td>完美對子</td>
+                <td>閒家或莊家首兩張同點且同花色</td>
+                <td>1 賠 25</td>
+              </tr>
+              <tr>
+                <td>幸運6</td>
+                <td>莊贏且莊家點數為 6（兩牌／三牌賠率不同）</td>
+                <td>兩牌 1 賠 12<br>三牌 1 賠 20</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h2 class="rules-h">請注意</h2>
+        <ul class="rules-list">
+          <li>和局時，閒／莊注退還本金；和、對子、幸運6等旁注仍按該注規則結算。</li>
+          <li>未在時限內確認的掛單，封盤後無效。</li>
+        </ul>
+      </div>
+    </div>
+
   <audio id="voWelcome" preload="none" playsinline></audio>
   <audio id="voStartBet" preload="none" playsinline></audio>
   <audio id="voStopBet" preload="none" playsinline></audio>
@@ -1326,9 +2588,10 @@
   <audio id="sfxBomb" preload="none" playsinline></audio>
   <audio id="sfxCoin" preload="none" playsinline></audio>
   <script src="js/fg-wallet.js?v=1.0.4"></script>
+  <script src="js/fg-game-ledger.js?v=1.0.2"></script>
   <script>
     (function () {
-      const V = '1.0.4';
+      const V = '1.1.0';
       const BET_SEC = 22;
       const PHASE_HOLD_MS = 5000;
       const STOP_BET_HOLD_MS = 3000;
@@ -1371,7 +2634,17 @@
             t.closest('#stakeTip') ||
             t.closest('.limit-tip-scroll') ||
             t.closest('.stake-tip-scroll') ||
-            t.closest('.board-dock .chips')
+            t.closest('.board-dock .chips') ||
+            t.closest('#rulesOverlay') ||
+            t.closest('.rules-panel') ||
+            t.closest('#sideMenu') ||
+            t.closest('.side-menu-panel') ||
+            t.closest('#noticeSheet') ||
+            t.closest('#betLogSheet') ||
+            t.closest('#creditLogSheet') ||
+            t.closest('#pwdOverlay') ||
+            t.closest('.rec-overlay') ||
+            t.closest('.sheet-overlay')
           )) return;
           var green = t && t.closest ? t.closest('.shell-green') : null;
           if (!green) {
@@ -1380,13 +2653,12 @@
         }, { passive: false });
       } catch (_) {}
       function goLobby() {
+        try { if (timerId) { clearInterval(timerId); timerId = null; } } catch (_) {}
         try { Voice.silence(); } catch (_) {}
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ type: 'fg-embed-close' }, '*');
-            return;
-          }
-        } catch (_) {}
+        if (IS_EMBED) {
+          try { window.parent.postMessage({ type: 'fg-embed-close' }, '*'); } catch (_) {}
+          return;
+        }
         location.href = 'lobby.html?v=' + encodeURIComponent(V);
       }
 
@@ -1767,7 +3039,7 @@
         phase = 'betting';
         secLeft = BET_SEC;
         setTimerFace(secLeft);
-        hideToast();
+        /* 输赢 toast 自消；此处不立刻 hide，避免刚跳出就被清掉 */
         setBoardClosed(false);
         lastPnl = Object.create(null);
         try { if (typeof resetDealBoard === 'function') resetDealBoard(); } catch (_) {}
@@ -2151,20 +3423,23 @@
         confirmUndoStack = [];
         draft = Object.create(null);
         undoStack = [];
-        if (returned > 0) {
-          saveBal(balance + returned, { type: 'payout', note: '百家乐派彩', source: 'baccarat-m' });
-        } else if (staked > 0) {
-          try { if (wallet && wallet.schedule) wallet.schedule({}); } catch (_) {}
-          paintStake();
-        }
+        try {
+          if (returned > 0) {
+            saveBal(balance + returned, { type: 'payout', note: '百家乐派彩', source: 'baccarat-m' });
+          } else if (staked > 0) {
+            try { if (wallet && wallet.schedule) wallet.schedule({}); } catch (_) {}
+            try { paintStake(); } catch (_) {}
+          }
+        } catch (_) {}
         try {
           if (betRows.length) {
+            try { pushBetRecordsLocal(betRows); } catch (_) {}
             if (wallet && wallet.isHydrated && wallet.isHydrated()) wallet.post({ betAppend: betRows }, true);
             else if (wallet && wallet.schedule) wallet.schedule({ betAppend: betRows });
           }
         } catch (_) {}
-        paintStake();
-        paintHitLit();
+        try { paintStake(); } catch (_) {}
+        try { paintHitLit(); } catch (_) {}
         try { if (typeof paintStakePanel === 'function') paintStakePanel(); } catch (_) {}
         const net = returned - staked;
         return { returned: returned, staked: staked, net: net };
@@ -2189,10 +3464,16 @@
             if (window.FgBaccaratRoad && FgBaccaratRoad.pushHand) FgBaccaratRoad.pushHand(hand);
           } catch (_) {}
           /* 中间结果不口播；有下注：赢=文字+金币两下，输=只文字（对齐骰宝） */
-          const paid = settleHand(hand);
+          let paid = null;
+          try { paid = settleHand(hand); } catch (errSettle) {
+            try { console.warn(errSettle); } catch (_) {}
+            paid = null;
+          }
           if (paid && paid.staked > 0) {
             const net = Math.round(Number(paid.net) || 0);
-            toast(net > 0 ? ('赢 +' + net) : net < 0 ? ('输 ' + net) : '平');
+            const line = net > 0 ? ('赢 +' + net) : net < 0 ? ('输 ' + net) : '平';
+            try { hidePhaseBanner(); } catch (_) {}
+            toast(line, { ms: 2800 });
             if (net > 0 && !Voice.muted && !Voice.dead && !pageIsHidden()) {
               try { Voice.playCoin(); } catch (_) {}
               clearCoinTimer();
@@ -2202,7 +3483,7 @@
               }, 200);
             }
           }
-          await sleep(2600);
+          await sleep(3000);
           resetDealBoard();
           nextRound();
         } catch (err) {
@@ -2221,7 +3502,8 @@
           setSideScore('player', player);
           setSideScore('banker', banker);
         },
-        reset: resetDealBoard
+        reset: resetDealBoard,
+        makeFaceCard: makeFaceCard
       };
 
 
@@ -2243,12 +3525,30 @@
 
       function readUser() {
         try {
-          return (localStorage.getItem('fg_sicbo_last_user')
-            || localStorage.getItem('fg_last_user')
-            || 'asdg').trim() || 'asdg';
+          /* embed 子页 sessionStorage 与大厅隔离：优先父页登录名 / URL，再本机 */
+          let u = '';
+          try {
+            const q = new URLSearchParams(location.search || '');
+            u = (q.get('user') || '').trim();
+          } catch (_) {}
+          if (!u && IS_EMBED) {
+            try {
+              if (window.parent && window.parent !== window && window.parent.sessionStorage) {
+                u = (window.parent.sessionStorage.getItem('fg_sicbo_user') || '').trim();
+              }
+            } catch (_) {}
+          }
+          if (!u) u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
+          if (!u) u = (localStorage.getItem('fg_sicbo_last_user') || '').trim();
+          if (!u) u = (localStorage.getItem('fg_last_user') || '').trim();
+          return u || 'asdg';
         } catch (_) { return 'asdg'; }
       }
-      const user = readUser();
+      let user = readUser();
+      /* 禁止用默认 asdg 盖掉大厅真实登录名 */
+      try {
+        if (user && user !== 'asdg') localStorage.setItem('fg_sicbo_last_user', user);
+      } catch (_) {}
       const wallet = (window.FgWallet && window.FgWallet.create)
         ? window.FgWallet.create({ user: user, api: WALLET_API, startBal: 2000, bagKey: '__fgWalletPatchBacM' })
         : null;
@@ -2266,6 +3566,7 @@
       function paintAccountLocal() {
         if (elBalUser) elBalUser.textContent = user || '—';
         if (accountTip) accountTip.textContent = user || '—';
+        try { if (typeof syncSideBal === 'function') syncSideBal(); } catch (_) {}
       }
       function paintChipSel() {
         if (!chipsRail) return;
@@ -2389,9 +3690,119 @@
       function paintStake() {
         if (stakeText) stakeText.textContent = String(totalConfirmed() + totalDraft());
         if (elBal) elBal.textContent = fmtMoney(balance);
+        try { if (typeof syncSideBal === 'function') syncSideBal(); } catch (_) {}
         paintActBar();
         paintStakePanel();
       }
+
+      function creditLogKey() {
+        return 'fg_creditlog::' + String(user || readUser() || 'asdg').toLowerCase();
+      }
+      function betLogKey() {
+        return 'fg_sicbo_betlog::' + String(user || readUser() || 'asdg').toLowerCase();
+      }
+      function baccaratBetLogKey() {
+        return 'fg_baccarat_betlog::' + String(user || readUser() || 'asdg').toLowerCase();
+      }
+      function syncIdentity() {
+        try {
+          const u = readUser();
+          if (u) user = u;
+        } catch (_) {}
+        try { if (wallet && wallet.setUser) wallet.setUser(user); } catch (_) {}
+        try { syncSideBal(); } catch (_) {}
+        return user;
+      }
+      function loadCreditLog() {
+        try {
+          const raw = localStorage.getItem(creditLogKey());
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch (_) { return []; }
+      }
+      function saveCreditLogLocal(list) {
+        const clipped = (list || []).slice(0, 2000);
+        try { localStorage.setItem(creditLogKey(), JSON.stringify(clipped)); } catch (_) {}
+        return clipped;
+      }
+      function loadBetLog() {
+        try {
+          const raw = localStorage.getItem(betLogKey());
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch (_) { return []; }
+      }
+      function saveBetLogLocal(list) {
+        const clipped = (list || []).slice(0, 2000);
+        try { localStorage.setItem(betLogKey(), JSON.stringify(clipped)); } catch (_) {}
+        try { localStorage.setItem(baccaratBetLogKey(), JSON.stringify(clipped.filter(function (r) {
+          return r && (r.game_code === 'baccarat' || /baccarat/i.test(String(r.source || '')));
+        }))); } catch (_) {}
+        return clipped;
+      }
+      function refreshLedgerFromServer() {
+        syncIdentity();
+        const uid = String(user || '').trim();
+        if (!uid) return Promise.resolve(null);
+        return fetch(WALLET_API + '?user=' + encodeURIComponent(uid), { cache: 'no-store' })
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            if (!j || !j.ok || !j.data) return null;
+            const doc = j.data;
+            if (doc.balance != null) {
+              balance = Math.max(0, Math.round(Number(doc.balance) || 0));
+              try { if (wallet) wallet.writeLocal(balance); } catch (_) {}
+              try { paintStake(); } catch (_) {}
+              try { syncSideBal(); } catch (_) {}
+            }
+            if (Array.isArray(doc.creditlog) && doc.creditlog.length) {
+              try { mergeCreditLogFromServer(doc.creditlog); } catch (_) {}
+            }
+            if (Array.isArray(doc.betlog) && doc.betlog.length) {
+              try { mergeBetLogFromServer(doc.betlog); } catch (_) {}
+            }
+            return doc;
+          })
+          .catch(function () { return null; });
+      }
+      function pushBetRecordsLocal(rows) {
+        if (!rows || !rows.length) return;
+        const list = loadBetLog();
+        for (let i = rows.length - 1; i >= 0; i--) list.unshift(rows[i]);
+        saveBetLogLocal(list);
+      }
+      function mergeCreditLogFromServer(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+        const map = new Map();
+        loadCreditLog().forEach(function (r) { if (r && r.id) map.set(String(r.id), r); });
+        rows.forEach(function (r) {
+          if (!r || !r.id) return;
+          const id = String(r.id);
+          const prev = map.get(id);
+          if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(id, r);
+        });
+        saveCreditLogLocal(Array.from(map.values()).sort(function (a, b) { return (Number(b.ts) || 0) - (Number(a.ts) || 0); }).slice(0, 2000));
+      }
+      function mergeBetLogFromServer(rows) {
+        if (!Array.isArray(rows) || !rows.length) return;
+        const map = new Map();
+        loadBetLog().forEach(function (r) {
+          const id = r && (r.betId || r.id);
+          if (id) map.set(String(id), r);
+        });
+        rows.forEach(function (r) {
+          if (!r) return;
+          const id = r.betId || r.id;
+          if (!id) return;
+          const key = String(id);
+          const prev = map.get(key);
+          if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(key, r);
+        });
+        saveBetLogLocal(Array.from(map.values()).sort(function (a, b) { return (Number(b.ts) || 0) - (Number(a.ts) || 0); }).slice(0, 2000));
+      }
+
       function saveBal(n, meta) {
         const prev = balance;
         balance = Math.max(0, Math.round(Number(n) || 0));
@@ -2410,6 +3821,13 @@
             tableId: TABLE_ID,
             balance: balance
           };
+        }
+        if (entry) {
+          try {
+            const cl = loadCreditLog();
+            cl.unshift(entry);
+            saveCreditLogLocal(cl);
+          } catch (_) {}
         }
         try { if (wallet) wallet.writeLocal(balance); } catch (_) {}
         const payload = { balance: balance };
@@ -2438,7 +3856,25 @@
         if (wallet && wallet.hydrate) {
           wallet.hydrate().then(function (res) {
             if (res && res.balance != null) balance = Math.max(0, Math.round(Number(res.balance) || 0));
+            const doc = res && res.doc;
+            if (doc && Array.isArray(doc.creditlog) && doc.creditlog.length) {
+              try { mergeCreditLogFromServer(doc.creditlog); } catch (_) {}
+            } else {
+              try {
+                const localCredits = loadCreditLog();
+                if (localCredits.length && wallet.schedule) wallet.schedule({ creditAppend: localCredits.slice(0, 500) });
+              } catch (_) {}
+            }
+            if (doc && Array.isArray(doc.betlog) && doc.betlog.length) {
+              try { mergeBetLogFromServer(doc.betlog); } catch (_) {}
+            } else {
+              try {
+                const localBets = loadBetLog();
+                if (localBets.length && wallet.schedule) wallet.schedule({ betAppend: localBets.slice(0, 500) });
+              } catch (_) {}
+            }
             paintStake();
+            try { if (typeof syncSideBal === 'function') syncSideBal(); } catch (_) {}
           }).catch(function () { fetchBal(); });
         } else {
           fetchBal();
@@ -2746,6 +4182,7 @@
             source: 'baccarat-m'
           };
         });
+        try { pushBetRecordsLocal(betRows); } catch (_) {}
         try {
           if (wallet && wallet.isHydrated && wallet.isHydrated()) wallet.post({ betAppend: betRows }, true);
           else if (wallet && wallet.schedule) wallet.schedule({ betAppend: betRows });
@@ -2821,9 +4258,556 @@
 
       setSideScore('player', 0);
       setSideScore('banker', 0);
-    })();
 
-    /* 路单：开局清零；每局按庄/闲/和写入珠盘·大路·下三路·计数 */
+      /* —— 圆形三横菜单（照抄骰宝；规则正文第二步） —— */
+      const LEDGER = window.FgGameLedger;
+      const elSideUserId = document.getElementById('sideUserId');
+      const elSideUserBal = document.getElementById('sideUserBal');
+      const sideMenu = document.getElementById('sideMenu');
+      const btnLang = document.getElementById('btnLang');
+      const btnLangLabel = document.getElementById('btnLangLabel');
+      const LANG_LABELS = {
+        zh: '简体中文', en: 'English', id: 'Bahasa Indonesia',
+        vi: 'Tiếng Việt', th: 'ภาษาไทย'
+      };
+      let uiLang = 'zh';
+      try {
+        const saved = localStorage.getItem('fg_ui_lang');
+        if (saved && LANG_LABELS[saved]) uiLang = saved;
+      } catch (_) {}
+      const langPop = document.getElementById('langPop');
+      function paintLangUi() {
+        if (btnLangLabel) btnLangLabel.textContent = LANG_LABELS[uiLang] || LANG_LABELS.zh;
+        document.querySelectorAll('#langPop .lang-opt').forEach(function (btn) {
+          btn.classList.toggle('is-on', btn.getAttribute('data-lang') === uiLang);
+        });
+      }
+      function setLangPopOpen(open) {
+        if (!langPop) return;
+        langPop.classList.toggle('show', !!open);
+        langPop.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (open) paintLangUi();
+      }
+      function openSheetById(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        setLangPopOpen(false);
+        el.classList.add('show');
+        el.setAttribute('aria-hidden', 'false');
+      }
+      function closeSheetById(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('show');
+        el.setAttribute('aria-hidden', 'true');
+      }
+      function setSideMenuOpen(open) {
+        if (!sideMenu) return;
+        sideMenu.classList.toggle('show', !!open);
+        sideMenu.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (open) {
+          try {
+            const u = readUser();
+            if (u) user = u;
+          } catch (_) {}
+          syncSideBal();
+          paintLangUi();
+        } else {
+          setLangPopOpen(false);
+        }
+      }
+      function syncSideBal() {
+        const idEl = document.getElementById('sideUserId') || elSideUserId;
+        const balEl = document.getElementById('sideUserBal') || elSideUserBal;
+        const uid = (user || readUser() || '').trim() || '—';
+        if (idEl) idEl.textContent = uid;
+        if (balEl) balEl.textContent = fmtMoney(balance);
+        if (elBalUser) elBalUser.textContent = uid === '—' ? '—' : uid;
+      }
+
+      const BACCARAT_MARKET_LABEL = {
+        banker: '庄', player: '闲', tie: '和',
+        bankerPair: '庄对', playerPair: '闲对',
+        anyPair: '任意对子', perfectPair: '完美对子', lucky6: '幸运6'
+      };
+      function loadAllBetLogMenu() {
+        const map = new Map();
+        function add(rows) {
+          (rows || []).forEach(function (r) {
+            if (!r) return;
+            const id = r.betId || r.id;
+            if (!id) return;
+            const key = String(id);
+            const prev = map.get(key);
+            if (!prev || (Number(r.ts) || 0) >= (Number(prev.ts) || 0)) map.set(key, r);
+          });
+        }
+        add(loadBetLog());
+        try {
+          const raw = localStorage.getItem('fg_roulette_betlog::' + String(user || 'asdg').toLowerCase());
+          if (raw) add(JSON.parse(raw));
+        } catch (_) {}
+        try {
+          const raw = localStorage.getItem('fg_baccarat_betlog::' + String(user || 'asdg').toLowerCase());
+          if (raw) add(JSON.parse(raw));
+        } catch (_) {}
+        return Array.from(map.values()).sort(function (a, b) { return (Number(b.ts) || 0) - (Number(a.ts) || 0); });
+      }
+      let recPageSize = 10;
+      let betRecPage = 1;
+      let creditRecPage = 1;
+      let _recFitBusy = false;
+      function measureRecPageSize(sheetId) {
+        const L = window.FgGameLedger;
+        if (L && L.measureRecPageSize) return L.measureRecPageSize(sheetId, recPageSize);
+        return Math.max(8, recPageSize || 10);
+      }
+      function fitRecPageSize(sheetId, paintFn) {
+        if (_recFitBusy) return;
+        const fitted = measureRecPageSize(sheetId);
+        if (fitted === recPageSize) return;
+        _recFitBusy = true;
+        recPageSize = fitted;
+        try { paintFn(); } finally { _recFitBusy = false; }
+      }
+      const betRecFilter = { round: '', order: '', from: 0, to: 0 };
+      const creditRecFilter = { type: 'all', from: 0, to: 0 };
+      function fmtRecMoney(n) {
+        const v = Math.round(Number(n) || 0);
+        return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function fmtRecShortTime(ts) {
+        const d = new Date(Number(ts) || 0);
+        if (!Number.isFinite(d.getTime()) || !ts) return '—';
+        const p = function (n) { return String(n).padStart(2, '0'); };
+        return p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+      }
+      function fmtDateInputLocal(d) {
+        const p = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+          + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+      }
+      function parseRecDayStart(raw) {
+        const t = Date.parse(String(raw || '').trim());
+        return Number.isFinite(t) ? t : 0;
+      }
+      function parseRecDayEnd(raw) {
+        const t = Date.parse(String(raw || '').trim());
+        return Number.isFinite(t) ? t : 0;
+      }
+      function initRecDateDefaults(fromId, toId, force) {
+        const fromEl = document.getElementById(fromId);
+        const toEl = document.getElementById(toId);
+        if (!fromEl || !toEl) return;
+        const now = new Date();
+        const noonToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
+        /* 默认近 7 天，避免刚开通时因窄窗筛空 */
+        const from = new Date(noonToday.getTime() - 7 * 24 * 3600 * 1000);
+        const to = new Date(noonToday.getTime() + 24 * 3600 * 1000);
+        if (force || !fromEl.value) fromEl.value = fmtDateInputLocal(from);
+        if (force || !toEl.value) toEl.value = fmtDateInputLocal(to);
+      }
+      function betGameLabel(r) {
+        return (LEDGER && LEDGER.gameLabel) ? LEDGER.gameLabel(r) : '百家乐';
+      }
+      function creditGameLabel(r) { return betGameLabel(r); }
+      function betMarketLabel(r) {
+        const k = String((r && (r.market || r.key)) || '');
+        if (!k) return '—';
+        if (BACCARAT_MARKET_LABEL[k]) return BACCARAT_MARKET_LABEL[k];
+        return k;
+      }
+      function creditCatLabel(type) {
+        const t = String(type || '').toLowerCase();
+        if (t === 'bet' || t === 'debit') return '下注';
+        if (t === 'credit' || t === 'settle' || t === 'payout' || t === 'win') return '结算';
+        if (t === 'recharge') return '充值';
+        if (t === 'refund' || t === 'undo' || t === 'cancel') return '撤销';
+        return '撤销';
+      }
+      function creditCatGroup(type) {
+        const t = String(type || '').toLowerCase();
+        if (t === 'bet' || t === 'debit') return 'bet';
+        if (t === 'credit' || t === 'settle' || t === 'payout' || t === 'win') return 'settle';
+        return 'other';
+      }
+      function filteredAllBetLog() {
+        return loadAllBetLogMenu().filter(function (r) {
+          const ts = Number(r.ts) || 0;
+          if (betRecFilter.round && !String(r.roundId || '').includes(betRecFilter.round)) return false;
+          if (betRecFilter.order && !String(r.betId || r.id || '').includes(betRecFilter.order)) return false;
+          if (betRecFilter.from && ts < betRecFilter.from) return false;
+          if (betRecFilter.to && ts > betRecFilter.to) return false;
+          return true;
+        });
+      }
+      function filteredAllCreditLog() {
+        return loadCreditLog().filter(function (r) {
+          const ts = Number(r.ts) || 0;
+          if (creditRecFilter.type !== 'all' && creditCatGroup(r.type) !== creditRecFilter.type) return false;
+          if (creditRecFilter.from && ts < creditRecFilter.from) return false;
+          if (creditRecFilter.to && ts > creditRecFilter.to) return false;
+          return true;
+        });
+      }
+      function paintBetRecords() {
+        const body = document.getElementById('betRecBody');
+        const sumEl = document.getElementById('betRecSum');
+        const pageLabel = document.getElementById('betPageLabel');
+        const prevBtn = document.getElementById('betPrev');
+        const nextBtn = document.getElementById('betNext');
+        if (!body) return;
+        const nextSize = measureRecPageSize('betLogSheet');
+        if (nextSize !== recPageSize) recPageSize = nextSize;
+        const all = filteredAllBetLog();
+        const pages = Math.max(1, Math.ceil(all.length / recPageSize) || 1);
+        if (betRecPage > pages) betRecPage = pages;
+        if (betRecPage < 1) betRecPage = 1;
+        const start = (betRecPage - 1) * recPageSize;
+        const pageRows = all.slice(start, start + recPageSize);
+        if (!pageRows.length) {
+          body.innerHTML = '<tr class="rec-empty"><td colspan="5">所选时间没有记录</td></tr>';
+        } else {
+          body.innerHTML = pageRows.map(function (r) {
+            const pnl = Number(r.pnl) || 0;
+            const pnlCls = pnl > 0 ? 'pnl-win' : (pnl < 0 ? 'pnl-lose' : '');
+            const shoe = String(r.roundId || '—');
+            return '<tr>'
+              + '<td class="rec-game">' + betGameLabel(r) + '</td>'
+              + '<td class="rec-time"><div>' + shoe + '</div><div>' + fmtRecShortTime(r.ts) + '</div></td>'
+              + '<td>' + betMarketLabel(r) + '</td>'
+              + '<td>' + fmtRecMoney(r.stake) + '</td>'
+              + '<td class="' + pnlCls + '">' + fmtRecMoney(pnl) + '</td>'
+              + '</tr>';
+          }).join('');
+        }
+        const allStake = all.reduce(function (s, r) { return s + (Number(r.stake) || 0); }, 0);
+        const allPnl = all.reduce(function (s, r) { return s + (Number(r.pnl) || 0); }, 0);
+        const pnlCls = allPnl > 0 ? 'pnl-win' : (allPnl < 0 ? 'pnl-lose' : '');
+        if (sumEl) {
+          sumEl.innerHTML =
+            '洗码佣金 0.00　洗码比 0.00%<br>'
+            + '投注 ' + fmtRecMoney(allStake)
+            + '　输赢 <span class="' + pnlCls + '">' + fmtRecMoney(allPnl) + '</span>'
+            + '　有效投注 ' + fmtRecMoney(allStake);
+        }
+        if (pageLabel) pageLabel.textContent = betRecPage + ' / ' + pages;
+        if (prevBtn) prevBtn.disabled = betRecPage <= 1;
+        if (nextBtn) nextBtn.disabled = betRecPage >= pages;
+        requestAnimationFrame(function () { fitRecPageSize('betLogSheet', paintBetRecords); });
+      }
+      function paintCreditRecords() {
+        const body = document.getElementById('creditRecBody');
+        const sumEl = document.getElementById('creditRecSum');
+        const pageLabel = document.getElementById('creditPageLabel');
+        const prevBtn = document.getElementById('creditPrev');
+        const nextBtn = document.getElementById('creditNext');
+        if (!body) return;
+        const nextSize = measureRecPageSize('creditLogSheet');
+        if (nextSize !== recPageSize) recPageSize = nextSize;
+        const all = filteredAllCreditLog();
+        const pages = Math.max(1, Math.ceil(all.length / recPageSize) || 1);
+        if (creditRecPage > pages) creditRecPage = pages;
+        if (creditRecPage < 1) creditRecPage = 1;
+        const start = (creditRecPage - 1) * recPageSize;
+        const pageRows = all.slice(start, start + recPageSize);
+        if (!pageRows.length) {
+          body.innerHTML = '<tr class="rec-empty"><td colspan="6">暂无额度记录</td></tr>';
+        } else {
+          body.innerHTML = pageRows.map(function (r) {
+            const amt = Number(r.amount) || 0;
+            const after = Math.max(0, Math.round(Number(r.balance) || 0));
+            const before = Math.max(0, after - amt);
+            const amtCls = amt > 0 ? 'pnl-win' : (amt < 0 ? 'pnl-lose' : '');
+            return '<tr>'
+              + '<td class="rec-game">' + creditGameLabel(r) + '</td>'
+              + '<td class="rec-time">' + fmtRecShortTime(r.ts) + '</td>'
+              + '<td>' + creditCatLabel(r.type) + '</td>'
+              + '<td>' + fmtRecMoney(before) + '</td>'
+              + '<td class="' + amtCls + '">' + fmtRecMoney(amt) + '</td>'
+              + '<td>' + fmtRecMoney(after) + '</td>'
+              + '</tr>';
+          }).join('');
+        }
+        const pageIn = pageRows.filter(function (r) { return (Number(r.amount) || 0) > 0; }).reduce(function (s, r) { return s + (Number(r.amount) || 0); }, 0);
+        const pageOut = pageRows.filter(function (r) { return (Number(r.amount) || 0) < 0; }).reduce(function (s, r) { return s + Math.abs(Number(r.amount) || 0); }, 0);
+        const allIn = all.filter(function (r) { return (Number(r.amount) || 0) > 0; }).reduce(function (s, r) { return s + (Number(r.amount) || 0); }, 0);
+        const allOut = all.filter(function (r) { return (Number(r.amount) || 0) < 0; }).reduce(function (s, r) { return s + Math.abs(Number(r.amount) || 0); }, 0);
+        if (sumEl) {
+          sumEl.innerHTML =
+            '小计　收入 ' + fmtRecMoney(pageIn) + '　支出 ' + fmtRecMoney(pageOut) + '<br>'
+            + '总计　收入 ' + fmtRecMoney(allIn) + '　支出 ' + fmtRecMoney(allOut);
+        }
+        if (pageLabel) pageLabel.textContent = creditRecPage + ' / ' + pages;
+        if (prevBtn) prevBtn.disabled = creditRecPage <= 1;
+        if (nextBtn) nextBtn.disabled = creditRecPage >= pages;
+        requestAnimationFrame(function () { fitRecPageSize('creditLogSheet', paintCreditRecords); });
+      }
+      function syncBetFilterFromInputs() {
+        betRecFilter.round = ((document.getElementById('betRoundQ') || {}).value || '').trim();
+        betRecFilter.order = ((document.getElementById('betOrderQ') || {}).value || '').trim();
+        betRecFilter.from = parseRecDayStart((document.getElementById('betFrom') || {}).value || '');
+        betRecFilter.to = parseRecDayEnd((document.getElementById('betTo') || {}).value || '');
+      }
+      function syncCreditFilterFromInputs() {
+        creditRecFilter.type = ((document.getElementById('creditTypeQ') || {}).value || 'all');
+        creditRecFilter.from = parseRecDayStart((document.getElementById('creditFrom') || {}).value || '');
+        creditRecFilter.to = parseRecDayEnd((document.getElementById('creditTo') || {}).value || '');
+      }
+      function mountRecSheetsToBody() {
+        ['betLogSheet', 'creditLogSheet'].forEach(function (id) {
+          const el = document.getElementById(id);
+          if (el && el.parentNode !== document.body) {
+            try { document.body.appendChild(el); } catch (_) {}
+          }
+        });
+      }
+      function openBetRecords(e) {
+        try { if (e && e.preventDefault) e.preventDefault(); } catch (_) {}
+        try { if (e && e.stopPropagation) e.stopPropagation(); } catch (_) {}
+        try { mountRecSheetsToBody(); } catch (_) {}
+        try { setLangPopOpen(false); } catch (_) {}
+        try { setSideMenuOpen(false); } catch (_) {}
+        /* 先开层，避免同步身份/拉流水抛错导致「点了没反应」 */
+        try { initRecDateDefaults('betFrom', 'betTo', false); } catch (_) {}
+        try { syncBetFilterFromInputs(); } catch (_) {}
+        betRecPage = 1;
+        openSheetById('betLogSheet');
+        const paint = function () {
+          try {
+            requestAnimationFrame(function () {
+              try {
+                recPageSize = measureRecPageSize('betLogSheet');
+                paintBetRecords();
+              } catch (_) {}
+            });
+          } catch (_) {}
+        };
+        try { syncIdentity(); } catch (_) {}
+        paint();
+        try { refreshLedgerFromServer().then(paint); } catch (_) { paint(); }
+      }
+      function openCreditRecords(e) {
+        try { if (e && e.preventDefault) e.preventDefault(); } catch (_) {}
+        try { if (e && e.stopPropagation) e.stopPropagation(); } catch (_) {}
+        try { mountRecSheetsToBody(); } catch (_) {}
+        try { setLangPopOpen(false); } catch (_) {}
+        try { setSideMenuOpen(false); } catch (_) {}
+        try { initRecDateDefaults('creditFrom', 'creditTo', false); } catch (_) {}
+        try { syncCreditFilterFromInputs(); } catch (_) {}
+        creditRecPage = 1;
+        openSheetById('creditLogSheet');
+        const paint = function () {
+          try {
+            requestAnimationFrame(function () {
+              try {
+                recPageSize = measureRecPageSize('creditLogSheet');
+                paintCreditRecords();
+              } catch (_) {}
+            });
+          } catch (_) {}
+        };
+        try { syncIdentity(); } catch (_) {}
+        paint();
+        try { refreshLedgerFromServer().then(paint); } catch (_) { paint(); }
+      }
+      const btnMenuEl = document.getElementById('btnMenu');
+      if (btnMenuEl) {
+        btnMenuEl.disabled = false;
+        btnMenuEl.removeAttribute('disabled');
+        btnMenuEl.addEventListener('click', function () { setSideMenuOpen(true); });
+      }
+      const sideMenuClose = document.getElementById('sideMenuClose');
+      if (sideMenuClose) sideMenuClose.addEventListener('click', function () { setSideMenuOpen(false); });
+      if (sideMenu) {
+        sideMenu.addEventListener('click', function (e) {
+          if (e.target === sideMenu) setSideMenuOpen(false);
+        });
+      }
+      const sideMenuPanel = sideMenu && sideMenu.querySelector('.side-menu-panel');
+      if (sideMenuPanel) {
+        sideMenuPanel.addEventListener('click', function (e) {
+          if (!langPop || !langPop.classList.contains('show')) return;
+          if (langPop.contains(e.target)) return;
+          if (btnLang && (e.target === btnLang || btnLang.contains(e.target))) return;
+          setLangPopOpen(false);
+        });
+      }
+      document.querySelectorAll('[data-sheet-close]').forEach(function (btn) {
+        btn.addEventListener('click', function () { closeSheetById(btn.getAttribute('data-sheet-close')); });
+      });
+      const btnNotice = document.getElementById('btnNotice');
+      if (btnNotice) btnNotice.addEventListener('click', function () { openSheetById('noticeSheet'); });
+      if (btnLang) btnLang.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const open = !(langPop && langPop.classList.contains('show'));
+        setLangPopOpen(open);
+      });
+      document.querySelectorAll('#langPop .lang-opt').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          const code = btn.getAttribute('data-lang');
+          if (!LANG_LABELS[code]) return;
+          uiLang = code;
+          try { localStorage.setItem('fg_ui_lang', uiLang); } catch (_) {}
+          paintLangUi();
+          setLangPopOpen(false);
+        });
+      });
+      try { mountRecSheetsToBody(); } catch (_) {}
+      const btnBetLog = document.getElementById('btnBetLog');
+      if (btnBetLog) btnBetLog.addEventListener('click', openBetRecords);
+      const btnCreditLog = document.getElementById('btnCreditLog');
+      if (btnCreditLog) btnCreditLog.addEventListener('click', openCreditRecords);
+      document.querySelectorAll('[data-rec-close]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const id = btn.getAttribute('data-rec-close');
+          closeSheetById(id);
+          if (id === 'betLogSheet' || id === 'creditLogSheet') setSideMenuOpen(true);
+        });
+      });
+      const betQueryBtn = document.getElementById('betQueryBtn');
+      if (betQueryBtn) betQueryBtn.addEventListener('click', function () {
+        syncBetFilterFromInputs();
+        betRecPage = 1;
+        paintBetRecords();
+      });
+      const creditQueryBtn = document.getElementById('creditQueryBtn');
+      if (creditQueryBtn) creditQueryBtn.addEventListener('click', function () {
+        syncCreditFilterFromInputs();
+        creditRecPage = 1;
+        paintCreditRecords();
+      });
+      const betPrev = document.getElementById('betPrev');
+      const betNext = document.getElementById('betNext');
+      if (betPrev) betPrev.addEventListener('click', function () { betRecPage -= 1; paintBetRecords(); });
+      if (betNext) betNext.addEventListener('click', function () { betRecPage += 1; paintBetRecords(); });
+      const creditPrev = document.getElementById('creditPrev');
+      const creditNext = document.getElementById('creditNext');
+      if (creditPrev) creditPrev.addEventListener('click', function () { creditRecPage -= 1; paintCreditRecords(); });
+      if (creditNext) creditNext.addEventListener('click', function () { creditRecPage += 1; paintCreditRecords(); });
+
+      const AUTH_API = 'api/sicbo-auth.php';
+      const pwdOverlay = document.getElementById('pwdOverlay');
+      const pwdForm = document.getElementById('pwdForm');
+      const pwdErr = document.getElementById('pwdErr');
+      const pwdSubmit = document.getElementById('pwdSubmit');
+      function setPwdOpen(open) {
+        if (!pwdOverlay) return;
+        setLangPopOpen(false);
+        if (open) setSideMenuOpen(false);
+        pwdOverlay.classList.toggle('show', !!open);
+        pwdOverlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (open) {
+          if (pwdErr) pwdErr.textContent = '';
+          if (pwdForm) pwdForm.reset();
+          ['pwdOld', 'pwdNew', 'pwdNew2'].forEach(function (id) {
+            const inp = document.getElementById(id);
+            if (inp) inp.type = 'password';
+          });
+        }
+      }
+      const btnChangePwd = document.getElementById('btnChangePwd');
+      if (btnChangePwd) btnChangePwd.addEventListener('click', function () { setPwdOpen(true); });
+      const pwdClose = document.getElementById('pwdClose');
+      if (pwdClose) pwdClose.addEventListener('click', function () { setPwdOpen(false); });
+      document.querySelectorAll('[data-pwd-eye]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const inp = document.getElementById(btn.getAttribute('data-pwd-eye'));
+          if (!inp) return;
+          inp.type = inp.type === 'password' ? 'text' : 'password';
+        });
+      });
+      if (pwdForm) {
+        pwdForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          if (pwdErr) pwdErr.textContent = '';
+          const oldPassword = (document.getElementById('pwdOld').value || '').trim();
+          const newPassword = (document.getElementById('pwdNew').value || '').trim();
+          const confirmPassword = (document.getElementById('pwdNew2').value || '').trim();
+          if (!oldPassword || !newPassword || !confirmPassword) {
+            if (pwdErr) pwdErr.textContent = '请填写完整密码';
+            return;
+          }
+          if (!/^[A-Za-z0-9]{6,10}$/.test(newPassword)) {
+            if (pwdErr) pwdErr.textContent = '请输入6-10个字母、数字组成的字符串密码';
+            return;
+          }
+          if (newPassword !== confirmPassword) {
+            if (pwdErr) pwdErr.textContent = '两次新密码不一致';
+            return;
+          }
+          if (oldPassword === newPassword) {
+            if (pwdErr) pwdErr.textContent = '新密码不能与旧密码相同';
+            return;
+          }
+          if (pwdSubmit) {
+            pwdSubmit.disabled = true;
+            pwdSubmit.textContent = '修改中…';
+          }
+          try {
+            const r = await fetch(AUTH_API, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'change_password',
+                user: user,
+                oldPassword: oldPassword,
+                newPassword: newPassword
+              }),
+              cache: 'no-store'
+            });
+            const j = await r.json();
+            if (!j || !j.ok) {
+              if (pwdErr) pwdErr.textContent = (j && j.error) || '修改失败';
+              return;
+            }
+            setPwdOpen(false);
+            toast('密码已修改');
+          } catch (_) {
+            if (pwdErr) pwdErr.textContent = '网络异常，请稍后重试';
+          } finally {
+            if (pwdSubmit) {
+              pwdSubmit.disabled = false;
+              pwdSubmit.textContent = '修改';
+            }
+          }
+        });
+      }
+      const rulesOverlay = document.getElementById('rulesOverlay');
+      const rulesClose = document.getElementById('rulesClose');
+      function openRules() {
+        setLangPopOpen(false);
+        setSideMenuOpen(false);
+        if (!rulesOverlay) return;
+        rulesOverlay.classList.add('show');
+        rulesOverlay.setAttribute('aria-hidden', 'false');
+      }
+      function closeRules() {
+        if (!rulesOverlay) return;
+        rulesOverlay.classList.remove('show');
+        rulesOverlay.setAttribute('aria-hidden', 'true');
+      }
+      const btnGameRules = document.getElementById('btnGameRules');
+      if (btnGameRules) btnGameRules.addEventListener('click', openRules);
+      if (rulesClose) rulesClose.addEventListener('click', closeRules);
+      if (rulesOverlay) {
+        rulesOverlay.addEventListener('click', function (e) {
+          if (e.target === rulesOverlay) closeRules();
+        });
+      }
+      const btnMenuExit = document.getElementById('btnMenuExit');
+      if (btnMenuExit) {
+        btnMenuExit.addEventListener('click', function (e) {
+          try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+          try { setSideMenuOpen(false); } catch (_) {}
+          goLobby();
+        });
+      }
+      paintLangUi();
+
+
+    /* 路单：桌台系统级共用（进桌拉取 / 结算上报 / 定时同步）；禁止进桌清空 */
     (function () {
       const BEAD_COLS = 8;
       const BEAD_ROWS = 6;
@@ -2831,19 +4815,25 @@
       const BIG_ROWS = 6;
       const DER_COLS = 12;
       const DER_ROWS = 6;
+      const ROAD_TABLE_ID = 'B601';
+      const ROAD_API = 'api/baccarat-table-road.php';
       let results = [];
       let shoeClearsArmed = false;
+      let roadShoeId = '';
+      let roadSyncTimer = 0;
+      let roadSyncBusy = false;
 
       const elBead = document.getElementById('roadBead');
       const elBig = document.getElementById('roadBig');
       const elEye = document.getElementById('roadEye');
       const elSmall = document.getElementById('roadSmall');
       const elCock = document.getElementById('roadCock');
+      const elFourth = document.getElementById('roadFourth');
       const elCntB = document.getElementById('roadCntB');
       const elCntP = document.getElementById('roadCntP');
       const elCntT = document.getElementById('roadCntT');
       const elCnt6 = document.getElementById('roadCnt6');
-      if (!elBead || !elBig || !elEye || !elSmall || !elCock) return;
+      if (!elBead || !elBig || !elEye || !elSmall || !elCock || !elFourth) return;
 
       function fillGrid(el, cols, rows) {
         el.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
@@ -2861,6 +4851,7 @@
       fillGrid(elEye, DER_COLS, DER_ROWS);
       fillGrid(elSmall, DER_COLS, DER_ROWS);
       fillGrid(elCock, DER_COLS, DER_ROWS);
+      fillGrid(elFourth, DER_COLS, DER_ROWS);
 
       function sideCode(outcome) {
         if (outcome === 'banker') return 'B';
@@ -3017,6 +5008,7 @@
             d.className = 'dot is-' + (item.outcome === 'banker' ? 'b' : item.outcome === 'player' ? 'p' : 't');
             /* 公司珠盘：幸运6 圆内写 6；其余写 庄/闲/和 */
             d.textContent = item.lucky6 ? '6' : (item.outcome === 'banker' ? '庄' : item.outcome === 'player' ? '闲' : '和');
+            if (item.ri != null) d.setAttribute('data-ri', String(item.ri));
             host.appendChild(d);
           }
         }
@@ -3059,6 +5051,30 @@
           }
         }
       }
+      /* 第四块：大路缩略（空心圈，与顶区大路同靴同数据） */
+      function paintMiniBig(el, bigGrid) {
+        if (!el || !bigGrid) return;
+        const cells = el.children;
+        for (let c = 0; c < DER_COLS; c++) {
+          for (let r = 0; r < DER_ROWS; r++) {
+            const idx = r * DER_COLS + c;
+            const host = cells[idx];
+            if (!host) continue;
+            host.innerHTML = '';
+            const item = (c < bigGrid.length && bigGrid[c]) ? bigGrid[c][r] : null;
+            if (!item) continue;
+            const ring = document.createElement('div');
+            const side = item.outcome === 'banker' ? 'b' : item.outcome === 'player' ? 'p' : 't';
+            ring.className = 'mark ring is-' + side;
+            if (item.ties > 0) {
+              const t = document.createElement('span');
+              t.className = 'tie-mark';
+              ring.appendChild(t);
+            }
+            host.appendChild(ring);
+          }
+        }
+      }
       function counts(list) {
         let b = 0, p = 0, t = 0, six = 0;
         list.forEach(function (it) {
@@ -3069,6 +5085,62 @@
         });
         return { b: b, p: p, t: t, six: six };
       }
+      function derivedItems(bigGrid, lookback) {
+        const items = [];
+        for (let c = 0; c < BIG_COLS; c++) {
+          for (let r = 0; r < BIG_ROWS; r++) {
+            if (!bigGrid[c][r]) continue;
+            if (bigGrid[c][r].outcome === 'tie' && r === 0 && c === 0) continue;
+            const col = derivedColor(bigGrid, c, r, lookback);
+            if (!col) continue;
+            items.push(col);
+          }
+        }
+        return items;
+      }
+      /* 问路：若下局为闲/庄，下三路各会新出什么色 */
+      function computeAsk(outcome) {
+        const nextList = results.concat([{ outcome: outcome, lucky6: false }]);
+        const big0 = buildBigRoad(results);
+        const big1 = buildBigRoad(nextList);
+        function nextOf(lookback) {
+          const a = derivedItems(big0, lookback);
+          const b = derivedItems(big1, lookback);
+          if (b.length > a.length) return b[b.length - 1];
+          return null;
+        }
+        return {
+          eye: nextOf(1),
+          small: nextOf(2),
+          cock: nextOf(3)
+        };
+      }
+      function paintAskBtn(btn, marks) {
+        if (!btn || !marks) return;
+        const map = { eye: marks.eye, small: marks.small, cock: marks.cock };
+        btn.querySelectorAll('.ask-m').forEach(function (el) {
+          const key = el.getAttribute('data-ask');
+          const side = map[key];
+          el.classList.remove('is-b', 'is-p', 'is-on');
+          if (!side) return;
+          el.classList.add('is-on', side === 'banker' ? 'is-b' : 'is-p');
+        });
+      }
+      function paintAskButtons() {
+        const btnP = document.getElementById('askPlayer');
+        const btnB = document.getElementById('askBanker');
+        paintAskBtn(btnP, computeAsk('player'));
+        paintAskBtn(btnB, computeAsk('banker'));
+      }
+      function previewAsk(outcome) {
+        const list = results.concat([{ outcome: outcome, lucky6: false }]);
+        const big = buildBigRoad(list);
+        paintBig(big);
+        paintDerived(elEye, buildDerived(big, 1), 'ring');
+        paintDerived(elSmall, buildDerived(big, 2), 'dot');
+        paintDerived(elCock, buildDerived(big, 3), 'slash');
+        paintMiniBig(elFourth, big);
+      }
       function paintAll() {
         const bead = buildBead(results);
         const big = buildBigRoad(results);
@@ -3077,39 +5149,276 @@
         paintDerived(elEye, buildDerived(big, 1), 'ring');
         paintDerived(elSmall, buildDerived(big, 2), 'dot');
         paintDerived(elCock, buildDerived(big, 3), 'slash');
+        paintMiniBig(elFourth, big);
         const c = counts(results);
         if (elCntB) elCntB.textContent = String(c.b);
         if (elCntP) elCntP.textContent = String(c.p);
         if (elCntT) elCntT.textContent = String(c.t);
         if (elCnt6) elCnt6.textContent = String(c.six);
+        paintAskButtons();
       }
       function clear() {
         results = [];
         paintAll();
       }
+      function normalizeRoadItem(raw, ri) {
+        if (!raw || !raw.outcome) return null;
+        const o = raw.outcome;
+        if (o !== 'banker' && o !== 'player' && o !== 'tie') return null;
+        return {
+          ri: ri,
+          outcome: o,
+          lucky6: !!raw.lucky6,
+          roundId: String(raw.roundId || raw.id || ('r' + (raw.ts || Date.now()))),
+          ts: Number(raw.ts) || Date.now(),
+          p: Number(raw.p) || 0,
+          b: Number(raw.b) || 0,
+          player: (raw.player || []).slice(),
+          banker: (raw.banker || []).slice()
+        };
+      }
+      function applyRoadFromServer(list, shoeId) {
+        if (!Array.isArray(list)) return;
+        /* 服务器空列表：保留本机已有，禁止误清系统路单 */
+        if (!list.length) {
+          if (shoeId) roadShoeId = String(shoeId);
+          return;
+        }
+        const mapped = [];
+        list.forEach(function (raw) {
+          const it = normalizeRoadItem(raw, mapped.length);
+          if (it) {
+            it.ri = mapped.length;
+            mapped.push(it);
+          }
+        });
+        if (!mapped.length) return;
+        results = mapped;
+        if (shoeId) roadShoeId = String(shoeId);
+        shoeClearsArmed = results.length > 0;
+        paintAll();
+      }
+      function postRoadAppend(item) {
+        if (!item) return;
+        const body = {
+          table: ROAD_TABLE_ID,
+          action: 'append',
+          item: {
+            roundId: item.roundId,
+            ts: item.ts || Date.now(),
+            outcome: item.outcome,
+            lucky6: !!item.lucky6,
+            p: item.p,
+            b: item.b,
+            player: item.player,
+            banker: item.banker
+          }
+        };
+        try {
+          fetch(ROAD_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            cache: 'no-store',
+            keepalive: true
+          }).then(function (r) { return r.json(); }).then(function (j) {
+            if (j && j.ok && j.data) {
+              if (j.data.shoeId) roadShoeId = String(j.data.shoeId);
+              if (Array.isArray(j.data.results) && j.data.results.length) {
+                applyRoadFromServer(j.data.results, j.data.shoeId);
+              }
+            }
+          }).catch(function () {});
+        } catch (_) {}
+      }
+      function hydrateRoadFromServer() {
+        if (roadSyncBusy) return;
+        roadSyncBusy = true;
+        fetch(ROAD_API + '?table=' + encodeURIComponent(ROAD_TABLE_ID), { cache: 'no-store' })
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            if (j && j.ok && j.data) {
+              applyRoadFromServer(j.data.results || [], j.data.shoeId);
+            }
+          })
+          .catch(function () {})
+          .then(function () { roadSyncBusy = false; });
+      }
+      function startRoadSync() {
+        if (roadSyncTimer) return;
+        hydrateRoadFromServer();
+        roadSyncTimer = setInterval(function () {
+          if (document.hidden) return;
+          hydrateRoadFromServer();
+        }, 4000);
+      }
       function pushHand(hand) {
         if (!hand || !hand.outcome) return;
         const lucky6 = hand.outcome === 'banker' && hand.b === 6;
-        results.push({
+        const item = {
+          ri: results.length,
           outcome: hand.outcome,
-          lucky6: !!lucky6
-        });
-        shoeClearsArmed = true;
-        paintAll();
+          lucky6: !!lucky6,
+          roundId: String(hand.roundId || ('r' + Date.now() + Math.floor(Math.random() * 90 + 10))),
+          ts: Date.now(),
+          p: Number(hand.p) || 0,
+          b: Number(hand.b) || 0,
+          player: (hand.player || []).slice(),
+          banker: (hand.banker || []).slice()
+        };
+        /* 先按 roundId 去重再画，避免与服务器回写叠珠 */
+        const exist = results.some(function (r) { return r && r.roundId === item.roundId; });
+        if (!exist) {
+          results.push(item);
+          results.forEach(function (r, i) { r.ri = i; });
+          shoeClearsArmed = true;
+          paintAll();
+        }
+        postRoadAppend(item);
       }
       function clearOnNewShoe() {
-        if (!shoeClearsArmed) return;
-        clear();
+        /* 系统路单不跟本机洗牌清空；换靴只影响发牌靴，路单以服务器为准 */
         shoeClearsArmed = false;
       }
+
+      /* 上局结果弹层：左侧弯箭 / 点珠盘 */
+      const elReplay = document.getElementById('roundReplay');
+      const elRrP = document.getElementById('rrP');
+      const elRrB = document.getElementById('rrB');
+      const elRrBadge = document.getElementById('rrBadge');
+      const elRrCardsP = document.getElementById('rrCardsP');
+      const elRrCardsB = document.getElementById('rrCardsB');
+      const btnRrClose = document.getElementById('rrClose');
+
+      function fillReplayCards(host, cards) {
+        if (!host) return;
+        host.innerHTML = '';
+        const make = window.FgBaccaratDeal && FgBaccaratDeal.makeFaceCard;
+        (cards || []).forEach(function (card) {
+          const wrap = document.createElement('div');
+          wrap.className = 'rr-card';
+          if (typeof make === 'function') wrap.appendChild(make(card));
+          host.appendChild(wrap);
+        });
+      }
+      function hideReplay() {
+        if (!elReplay) return;
+        elReplay.classList.remove('show');
+        elReplay.setAttribute('aria-hidden', 'true');
+      }
+      function showReplay(item) {
+        if (!elReplay || !item) return;
+        if (elRrP) elRrP.textContent = String(item.p != null ? item.p : 0);
+        if (elRrB) elRrB.textContent = String(item.b != null ? item.b : 0);
+        if (elRrBadge) {
+          elRrBadge.className = 'rr-badge';
+          if (item.outcome === 'player') {
+            elRrBadge.classList.add('is-player');
+            elRrBadge.textContent = '閒贏';
+          } else if (item.outcome === 'tie') {
+            elRrBadge.classList.add('is-tie');
+            elRrBadge.textContent = '和';
+          } else {
+            elRrBadge.textContent = '莊贏';
+          }
+        }
+        fillReplayCards(elRrCardsP, item.player);
+        fillReplayCards(elRrCardsB, item.banker);
+        elReplay.classList.add('show');
+        elReplay.setAttribute('aria-hidden', 'false');
+      }
+      function showReplayByIndex(ri) {
+        const item = results[ri];
+        if (!item) return;
+        showReplay(item);
+      }
+      function showLastReplay() {
+        if (!results.length) {
+          try {
+            const t = document.getElementById('toast');
+            if (t) {
+              t.textContent = '暫無上局';
+              t.classList.add('show');
+              clearTimeout(showLastReplay._tm);
+              showLastReplay._tm = setTimeout(function () { t.classList.remove('show'); }, 1200);
+            }
+          } catch (_) {}
+          return;
+        }
+        showReplay(results[results.length - 1]);
+      }
+
+      if (btnRrClose) btnRrClose.addEventListener('click', function (e) {
+        e.preventDefault();
+        hideReplay();
+      });
+      if (elReplay) {
+        elReplay.addEventListener('click', function (e) {
+          if (e.target === elReplay) hideReplay();
+        });
+      }
+      if (elBead) {
+        elBead.addEventListener('click', function (e) {
+          const dot = e.target && e.target.closest ? e.target.closest('.dot[data-ri]') : null;
+          if (!dot) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const ri = parseInt(dot.getAttribute('data-ri'), 10);
+          if (!(ri >= 0)) return;
+          showReplayByIndex(ri);
+        });
+      }
+
+      /* 闲/庄问路：按住预览下三路+大路下一珠；松手还原 */
+      (function bindAsk() {
+        const btnP = document.getElementById('askPlayer');
+        const btnB = document.getElementById('askBanker');
+        let asking = false;
+        function start(outcome, e) {
+          if (e) { e.preventDefault(); e.stopPropagation(); }
+          asking = true;
+          previewAsk(outcome);
+        }
+        function end(e) {
+          if (e) { e.preventDefault(); e.stopPropagation(); }
+          if (!asking) return;
+          asking = false;
+          paintAll();
+        }
+        function wire(btn, outcome) {
+          if (!btn) return;
+          btn.addEventListener('pointerdown', function (e) { start(outcome, e); });
+          btn.addEventListener('pointerup', end);
+          btn.addEventListener('pointercancel', end);
+          btn.addEventListener('pointerleave', end);
+          btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          });
+        }
+        wire(btnP, 'player');
+        wire(btnB, 'banker');
+        window.addEventListener('pointerup', end);
+      })();
 
       window.FgBaccaratRoad = {
         clear: clear,
         clearOnNewShoe: clearOnNewShoe,
         pushHand: pushHand,
-        getResults: function () { return results.slice(); }
+        getResults: function () { return results.slice(); },
+        showLastReplay: showLastReplay,
+        showReplayByIndex: showReplayByIndex,
+        hideReplay: hideReplay,
+        hydrate: hydrateRoadFromServer,
+        startSync: startRoadSync
       };
-      clear();
+      /* 进桌拉系统路单并定时同步；禁止 clear() */
+      paintAll();
+      startRoadSync();
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) hydrateRoadFromServer();
+      });
+    })();
     })();
   </script>
 </body>

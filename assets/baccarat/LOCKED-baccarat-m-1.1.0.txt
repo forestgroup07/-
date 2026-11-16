@@ -1,0 +1,29 @@
+baccarat-m v1.1.0 — 2026-11-16
+用户书面：「现在这个百家乐 其他的账户也能玩吧 存为1.1版本 并计入git」
+
+已验收清单（本包算数）：
+- 沿用 1.0.4：竖屏壳、八键、黄三键、停注、开牌/结果/金币/默认静音、限红注金大黑框、绿台、底栏庄闲和6圆
+- 公司同款侧栏菜单（公告/语言/记录/改密/规则/退出）；规则繁体可滚动
+- 输赢字幕 + 金币声恢复；进桌默认静音；喇叭三分叉沿用
+- 路单系统级 B601（api/baccarat-table-road.php 拉取/上报/定时同步；底栏轨迹保留）
+- 侧栏/底栏 ID = 当前登录账号（换号即变；embed 带 user + 读父页登录名）
+- 下注记录 / 额度记录可打开；打开时从钱包库 fg-wallet-account 拉流水并与本机合并（多账号各记各的）
+
+未验收、不得当作本定版：
+- 顶屏真人视频流
+- 珠盘/大路格子像素级对齐公司
+- 整站多语言文案后台
+- 电脑横屏版；骰宝/轮盘改动
+
+回滚：
+  baccarat-m.LOCKED-1.1.0.html
+  lobby.LOCKED-baccarat-m-1.1.0.html
+  api/baccarat-table-road.LOCKED-1.1.0.php
+  assets/baccarat/LOCKED-baccarat-m-1.1.0.txt
+  assets/baccarat/LOCKED-src-green-full-1.1.0.png
+  assets/baccarat/LOCKED-src-green-full-hi-1.1.0.png
+  assets/baccarat/LOCKED-key-masks-1.1.0/
+  assets/baccarat/LOCKED-cards-1.1.0/
+  assets/baccarat/VERSION-m.txt = 1.1.0
+  tag baccarat-m-v1.1.0
+验收：https://forestgroup.ai/baccarat-m.html?v=1.1.0

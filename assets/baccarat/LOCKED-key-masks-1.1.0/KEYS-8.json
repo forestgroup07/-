@@ -1,0 +1,128 @@
+{
+  "board": [
+    1728,
+    1720
+  ],
+  "keys": [
+    {
+      "id": "player",
+      "file": "main-player-full.png",
+      "src": "main-player",
+      "bbox": [
+        24,
+        219,
+        607,
+        553
+      ],
+      "space": "green-1728",
+      "hit": "hit-player.png",
+      "w": 583,
+      "h": 334
+    },
+    {
+      "id": "tie",
+      "file": "main-tie-full.png",
+      "src": "main-tie",
+      "bbox": [
+        629,
+        219,
+        1093,
+        553
+      ],
+      "space": "green-1728",
+      "hit": "hit-tie.png",
+      "w": 464,
+      "h": 334
+    },
+    {
+      "id": "banker",
+      "file": "main-banker-full.png",
+      "src": "main-banker",
+      "bbox": [
+        1115,
+        219,
+        1698,
+        553
+      ],
+      "space": "green-1728",
+      "hit": "hit-banker.png",
+      "w": 583,
+      "h": 334
+    },
+    {
+      "id": "anyPair",
+      "file": "side-1-any-pair.png",
+      "src": "side-1-any-pair",
+      "bbox": [
+        13,
+        19,
+        353,
+        205
+      ],
+      "space": "green-1728",
+      "hit": "hit-anyPair.png",
+      "w": 340,
+      "h": 186
+    },
+    {
+      "id": "playerPair",
+      "file": "side-2-player-dragon.png",
+      "src": "side-2-player-dragon",
+      "bbox": [
+        363,
+        27,
+        685,
+        197
+      ],
+      "space": "green-1728",
+      "hit": "hit-playerPair.png",
+      "w": 322,
+      "h": 170
+    },
+    {
+      "id": "lucky6",
+      "file": "side-3-lucky6.png",
+      "src": "side-3-lucky6",
+      "bbox": [
+        703,
+        0,
+        1025,
+        197
+      ],
+      "space": "green-1728",
+      "hit": "hit-lucky6.png",
+      "w": 322,
+      "h": 197
+    },
+    {
+      "id": "bankerPair",
+      "file": "side-4-banker-dragon.png",
+      "src": "side-4-banker-dragon",
+      "bbox": [
+        1043,
+        27,
+        1367,
+        197
+      ],
+      "space": "green-1728",
+      "hit": "hit-bankerPair.png",
+      "w": 324,
+      "h": 170
+    },
+    {
+      "id": "perfectPair",
+      "file": "side-5-banker-pair.png",
+      "src": "side-5-banker-pair",
+      "bbox": [
+        1377,
+        17,
+        1717,
+        205
+      ],
+      "space": "green-1728",
+      "hit": "hit-perfectPair.png",
+      "w": 340,
+      "h": 188
+    }
+  ]
+}
