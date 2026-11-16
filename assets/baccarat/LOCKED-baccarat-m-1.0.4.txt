@@ -1,0 +1,22 @@
+baccarat-m v1.0.4 — 2026-11-16
+用户书面：「好 保存下来」（底栏计数圆字验收后存档）
+
+已验收清单（本包算数）：
+- 沿用 1.0.3：竖屏壳、八键、黄三键、停注、开牌/结果/金币/默认静音、限红注金大黑框、绿台闲字/赔率清理、路单实时层
+- 底栏黑条：庄/闲/和/6 圆几乎顶满黑格；圆内字顶满；无白底漏出；无问路键
+
+未验收、不得当作本定版：
+- 珠盘/大路格子正方形与正圆（下一轮点名项）
+- 顶屏真人视频流；衍生路像素级对齐公司；整站多语言；电脑版；骰宝/轮盘
+
+回滚：
+  baccarat-m.LOCKED-1.0.4.html
+  lobby.LOCKED-baccarat-m-1.0.4.html
+  assets/baccarat/LOCKED-baccarat-m-1.0.4.txt
+  assets/baccarat/LOCKED-src-green-full-1.0.4.png
+  assets/baccarat/LOCKED-src-green-full-hi-1.0.4.png
+  assets/baccarat/LOCKED-key-masks-1.0.4/
+  assets/baccarat/LOCKED-cards-1.0.4/
+  assets/baccarat/VERSION-m.txt = 1.0.4
+  tag baccarat-m-v1.0.4
+验收：https://forestgroup.ai/baccarat-m.html?v=1.0.4

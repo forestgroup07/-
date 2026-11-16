@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a120e" />
-  <title>百家樂 B601 · 豎屏殼 v1.0.3</title>
+  <title>百家樂 B601 · 豎屏殼 v1.0.4</title>
   <style>
     :root {
       --safe-b: env(safe-area-inset-bottom, 0px);
@@ -383,6 +383,9 @@
       background: #c8c8c8;
       border: 1px solid #bdbdbd;
       border-bottom: 0;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
     }
     .road-bead {
       background: #fff;
@@ -511,29 +514,34 @@
     .road-der .mark.slash.is-p { background: #1e6fd9; }
     .road-foot {
       flex: 0 0 auto;
-      /* 黑格高度已定：不再动；四字顶齐黑条上沿 */
+      /* 黑格高度/圆大小不动；只保证黑底盖住白格、圆内有字 */
       height: clamp(26px, 6.2%, 34px);
       min-height: 26px;
       background: #0a0a0a;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: flex-start;
       gap: 0;
-      padding: 1px 0.45rem 0;
+      padding: 0 0.45rem;
       pointer-events: none;
       color: #fff;
       border-top: 0;
       box-shadow: none;
       width: 100%;
       box-sizing: border-box;
+      position: relative;
+      z-index: 2;
+      overflow: hidden;
+      isolation: isolate;
     }
     .road-stats {
       display: flex;
       align-items: center;
-      gap: clamp(0.45rem, 2.6vw, 0.85rem);
+      gap: clamp(0.4rem, 2.4vw, 0.75rem);
       min-width: 0;
+      height: 100%;
       overflow: hidden;
-      font-size: clamp(0.78rem, 3.4vw, 1.05rem);
+      font-size: clamp(0.92rem, 4.2vw, 1.2rem);
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       font-family: "PingFang SC", "Heiti SC", "Microsoft YaHei", sans-serif;
@@ -541,29 +549,42 @@
     .road-stats .st {
       display: inline-flex;
       align-items: center;
-      gap: 0.22rem;
+      gap: 0.2rem;
       white-space: nowrap;
+      height: 100%;
     }
     .road-stats .ball {
-      width: 1.2em;
-      height: 1.2em;
+      height: 92%;
+      width: auto;
+      aspect-ratio: 1;
       border-radius: 50%;
       display: grid;
       place-items: center;
-      font-size: 0.72em;
-      font-weight: 900;
-      color: #fff;
+      container-type: size;
+      overflow: hidden;
       flex: 0 0 auto;
+      box-sizing: border-box;
+      color: #fff;
+    }
+    .road-stats .ball .ch {
+      /* 字挂在圆内子节点，按圆直径顶满；禁止白字溢到黑条 */
+      font-size: clamp(0.95rem, 4.8vw, 1.35rem);
+      font-size: 78cqmin;
+      font-style: normal;
+      font-weight: 900;
       line-height: 1;
+      color: #fff;
+      display: block;
+      transform: translateY(-0.02em);
     }
     .road-stats .ball.is-b { background: #e31837; }
     .road-stats .ball.is-p { background: #1e6fd9; }
     .road-stats .ball.is-t { background: #1aaa5a; }
     .road-stats .ball.is-6 {
       background: #e31837;
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.92);
-      font-size: 0.78em;
+      box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.92);
     }
+    .road-stats .ball.is-6 .ch { font-size: 72cqmin; }
     /* 八键：底图像素蒙格热区；点击黄脸（对齐轮盘 is-lit） */
     .bet-hits {
       position: absolute;
@@ -1174,10 +1195,10 @@
             </div>
             <div class="road-foot">
               <div class="road-stats" id="roadStats">
-                <span class="st"><span class="ball is-b">庄</span><span id="roadCntB">0</span></span>
-                <span class="st"><span class="ball is-p">闲</span><span id="roadCntP">0</span></span>
-                <span class="st"><span class="ball is-t">和</span><span id="roadCntT">0</span></span>
-                <span class="st"><span class="ball is-6">6</span><span id="roadCnt6">0</span></span>
+                <span class="st"><span class="ball is-b"><span class="ch">庄</span></span><span id="roadCntB">0</span></span>
+                <span class="st"><span class="ball is-p"><span class="ch">闲</span></span><span id="roadCntP">0</span></span>
+                <span class="st"><span class="ball is-t"><span class="ch">和</span></span><span id="roadCntT">0</span></span>
+                <span class="st"><span class="ball is-6"><span class="ch">6</span></span><span id="roadCnt6">0</span></span>
               </div>
             </div>
           </div>
@@ -1307,7 +1328,7 @@
   <script src="js/fg-wallet.js?v=1.0.4"></script>
   <script>
     (function () {
-      const V = '1.0.3';
+      const V = '1.0.4';
       const BET_SEC = 22;
       const PHASE_HOLD_MS = 5000;
       const STOP_BET_HOLD_MS = 3000;
