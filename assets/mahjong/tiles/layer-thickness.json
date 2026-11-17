@@ -1,0 +1,8 @@
+{
+  "green_thickness_px": 5,
+  "white_thickness_px": 6,
+  "green_rows": "y61-y65",
+  "white_rows": "y66-y71",
+  "ratio": "5:6",
+  "lower_tile_white_px": 7
+}
