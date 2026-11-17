@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.4" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.5" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.0.4</title>
+  <title>单人香港麻将 · v1.0.5</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.4" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.5" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -234,7 +234,7 @@
         <div class="table-shadow" aria-hidden="true"></div>
         <div class="table-body">
           <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-from-ref.png?v=1.0.4" alt="" draggable="false" />
+          <img class="scene-bg" src="assets/mahjong/table-empty-from-ref.png?v=1.0.5" alt="" draggable="false" />
           <div class="table-sheen" aria-hidden="true"></div>
           <div class="table-edge-front" aria-hidden="true"></div>
         </div>
@@ -257,25 +257,25 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.4"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.5"></script>
   <script>
   (function () {
-    const V = '1.0.4';
-    /* 1.0.4：左墙大号+近端往桌心1cm；进房先摇骰，再出牌墙 */
+    const V = '1.0.5';
+    /* 1.0.5：左墙大号+墩缝0.5mm+近端靠木；进房先摇骰，再出牌墙 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.4';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.5';
     /* 左墙：短边朝桌心、长边在左右（左墩姿）；底墙仍正面墩 */
-    const WALL_LEFT_STACK = 'assets/mahjong/tiles/wall-left-stack1.webp?v=1.0.4';
+    const WALL_LEFT_STACK = 'assets/mahjong/tiles/wall-left-stack1.webp?v=1.0.5';
     const WALL_BOT_STACKS = 14;
     const WALL_LEFT_STACKS = 13;
     const TABLE_AR = 1024 / 487;
-    /* [left%, top%, w%, h%]：定版：大号；近端往桌心+1cm，远端不动 */
+    /* [left%, top%, w%, h%]：定版：大号；墩间≈0.5mm；近端靠左木（远端不动） */
     const LEFT_POS = [
-      [21.19, 18.6, 4.336, 6.7], [20.69, 21.52, 4.379, 6.767], [20.18, 24.49, 4.421, 6.832], [19.68, 27.5, 4.464, 6.897],
-      [19.16, 30.56, 4.507, 6.963], [18.64, 33.66, 4.549, 7.029], [18.11, 36.81, 4.592, 7.095], [17.58, 40.0, 4.635, 7.16],
-      [17.04, 43.23, 4.676, 7.227], [16.49, 46.51, 4.719, 7.292], [15.94, 49.84, 4.761, 7.357], [15.39, 53.2, 4.804, 7.423],
-      [14.82, 56.62, 4.847, 7.489]
+      [21.19, 18.6, 4.336, 6.7], [20.64, 21.64, 4.379, 6.767], [20.08, 24.73, 4.421, 6.832], [19.53, 27.86, 4.464, 6.897],
+      [18.96, 31.04, 4.507, 6.963], [18.39, 34.26, 4.549, 7.029], [17.81, 37.53, 4.592, 7.095], [17.23, 40.84, 4.635, 7.16],
+      [16.64, 44.19, 4.676, 7.227], [16.05, 47.59, 4.719, 7.292], [15.45, 51.04, 4.761, 7.357], [14.85, 54.52, 4.804, 7.423],
+      [14.23, 58.06, 4.847, 7.489]
     ];
 
     function sleep(ms) {
