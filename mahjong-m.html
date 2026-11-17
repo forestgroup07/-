@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.5" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.6" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.0.5</title>
+  <title>单人香港麻将 · v1.0.6</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.5" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.6" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -143,12 +143,35 @@
       opacity: 1;
       transform: none;
     }
-    /* 左墙 13 摞：定版墩胚；近大远小、几乎贴左木微斜（宽高由 LEFT_POS 写入） */
+    /* 左墙：整排 13 墩一条图（短边朝桌心），放大贴左木 */
     .wall-left {
       position: absolute;
       inset: 0;
       display: block;
       overflow: visible;
+    }
+    .wall-left .wall-left-strip {
+      position: absolute;
+      left: 13.6%;
+      top: 16.2%;
+      width: 10.8%;
+      height: 52.2%;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+      transform: translateY(3px);
+      transform-origin: left center;
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      object-fit: contain;
+      object-position: left center;
+      filter: brightness(1.06);
+    }
+    .wall-left .wall-left-strip.is-in {
+      opacity: 1;
+      transform: none;
     }
     .wall-left .wall-stack {
       position: absolute;
@@ -182,12 +205,9 @@
         drop-shadow(2px 4px 5px rgba(0, 0, 0, .22));
     }
     .wall-left .stack-img {
-      /* 左侧：短边朝桌心，长边在左右；贴紧时减弱阴影以免看出缝 */
+      /* 左侧：短边朝桌心；缝间不要落影，避免墩与墩之间脏边 */
       object-position: center center;
-      filter:
-        brightness(1.08)
-        drop-shadow(0 1px 0 rgba(40, 22, 8, .28))
-        drop-shadow(1px 2px 2px rgba(0, 0, 0, .18));
+      filter: brightness(1.08);
     }
     /* 实心底托：不改牌面像素，只垫一层暗影体积 */
     .wall-stack::after {
@@ -201,6 +221,11 @@
       pointer-events: none;
       z-index: -1;
       transform: translateY(2px) scaleX(1.05);
+    }
+    /* 左墙墩缝干净：关掉底托暗影，勿渗进墩间 */
+    .wall-left .wall-stack::after {
+      content: none;
+      display: none;
     }
     .mj-dice3d-layer {
       position: absolute;
@@ -234,7 +259,7 @@
         <div class="table-shadow" aria-hidden="true"></div>
         <div class="table-body">
           <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-from-ref.png?v=1.0.5" alt="" draggable="false" />
+          <img class="scene-bg" src="assets/mahjong/table-empty-from-ref.png?v=1.0.6" alt="" draggable="false" />
           <div class="table-sheen" aria-hidden="true"></div>
           <div class="table-edge-front" aria-hidden="true"></div>
         </div>
@@ -257,25 +282,26 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.5"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.6"></script>
   <script>
   (function () {
-    const V = '1.0.5';
-    /* 1.0.5：左墙大号+墩缝0.5mm+近端靠木；进房先摇骰，再出牌墙 */
+    const V = '1.0.6';
+    /* 1.0.6：左墙改用整排 13 墩放大贴左木（wall-left-13） */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.5';
-    /* 左墙：短边朝桌心、长边在左右（左墩姿）；底墙仍正面墩 */
-    const WALL_LEFT_STACK = 'assets/mahjong/tiles/wall-left-stack1.webp?v=1.0.5';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.6';
+    /* 左墙整排 13 墩（短边冲桌心） */
+    const WALL_LEFT_STRIP = 'assets/mahjong/tiles/wall-left-13.webp?v=1.0.6';
+    const WALL_LEFT_STACK = 'assets/mahjong/tiles/wall-left-stack1.webp?v=1.0.6';
     const WALL_BOT_STACKS = 14;
     const WALL_LEFT_STACKS = 13;
     const TABLE_AR = 1024 / 487;
-    /* [left%, top%, w%, h%]：定版：大号；墩间≈0.5mm；近端靠左木（远端不动） */
+    /* 旧单墩位姿保留作对照；左墙现用整排 strip */
     const LEFT_POS = [
-      [21.19, 18.6, 4.336, 6.7], [20.64, 21.64, 4.379, 6.767], [20.08, 24.73, 4.421, 6.832], [19.53, 27.86, 4.464, 6.897],
-      [18.96, 31.04, 4.507, 6.963], [18.39, 34.26, 4.549, 7.029], [17.81, 37.53, 4.592, 7.095], [17.23, 40.84, 4.635, 7.16],
-      [16.64, 44.19, 4.676, 7.227], [16.05, 47.59, 4.719, 7.292], [15.45, 51.04, 4.761, 7.357], [14.85, 54.52, 4.804, 7.423],
-      [14.23, 58.06, 4.847, 7.489]
+      [20.50, 17.50, 2.265, 3.500], [19.98, 21.15, 2.289, 3.538], [19.47, 24.84, 2.314, 3.575], [18.95, 28.56, 2.338, 3.612],
+      [18.43, 32.32, 2.362, 3.650], [17.92, 36.12, 2.387, 3.688], [17.40, 39.96, 2.411, 3.725], [16.88, 43.84, 2.435, 3.763],
+      [16.37, 47.75, 2.459, 3.800], [15.85, 51.70, 2.484, 3.838], [15.33, 55.69, 2.508, 3.875], [14.82, 59.71, 2.532, 3.913],
+      [14.30, 63.77, 2.556, 3.950]
     ];
 
     function sleep(ms) {
@@ -334,16 +360,12 @@
       }
       if (left) {
         left.innerHTML = '';
-        for (var j = 0; j < WALL_LEFT_STACKS; j++) {
-          var st = makeStackEl(WALL_LEFT_STACK);
-          var pos = LEFT_POS[j] || LEFT_POS[LEFT_POS.length - 1];
-          st.style.left = pos[0] + '%';
-          st.style.top = pos[1] + '%';
-          if (pos[2]) st.style.width = pos[2] + '%';
-          if (pos[3]) st.style.height = pos[3] + '%';
-          st.style.zIndex = String(j + 1);
-          left.appendChild(st);
-        }
+        var strip = document.createElement('img');
+        strip.className = 'wall-left-strip';
+        strip.src = WALL_LEFT_STRIP;
+        strip.alt = '';
+        strip.draggable = false;
+        left.appendChild(strip);
       }
       ring.classList.remove('is-on');
     }
@@ -352,6 +374,8 @@
       const ring = el('wallRing');
       if (!ring) return;
       ring.classList.add('is-on');
+      const leftStrip = ring.querySelector('.wall-left-strip');
+      if (leftStrip) leftStrip.classList.add('is-in');
       const stacks = ring.querySelectorAll('.wall-stack');
       for (var i = 0; i < stacks.length; i++) {
         stacks[i].classList.add('is-in');
