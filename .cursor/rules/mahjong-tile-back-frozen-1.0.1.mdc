@@ -1,0 +1,19 @@
+# 麻将牌背面 v1.0.1 不许再动
+
+用户硬规则（2026-11-17 书面「存为1.0.1 麻将牌背面 计入git」→ 本包 `1.0.1` 起生效）：
+
+1. **禁止**未经用户书面点名同意，修改、覆盖、还原、优化、部署本定版麻将牌**背面**任何一点，包括但不限于：
+   - `assets/mahjong/tiles/one-tile-v1.png` / `.webp`、`one-piece-tile.png`
+   - `assets/mahjong/tiles/TILE-BACK-VERSION.txt` = `1.0.1`
+   - 以中间 1.0.0 底图为母版、底图像素蒙格清白底左右邻牌绿后的成图
+   - 本版 `LOCKED-*` 快照
+2. 定版快照（回滚只能用这些）：
+   - `assets/mahjong/tiles/LOCKED-mahjong-tile-back-1.0.1.png`
+   - `assets/mahjong/tiles/LOCKED-mahjong-tile-back-1.0.1.webp`
+   - `assets/mahjong/tiles/LOCKED-mahjong-tile-back-mid-base-1.0.1.png`
+   - `assets/mahjong/LOCKED-mahjong-tile-back-1.0.1.txt`
+   - `assets/mahjong/tiles/TILE-BACK-VERSION.txt` = `1.0.1`
+   - git commit / tag 标明 `mahjong-tile-back-v1.0.1`
+3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
+4. 只有用户明确说「改麻将牌背面 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
+5. 本冻结仅麻将牌背面 asset；`mahjong-m.html` / 四圈墙 / 骰宝 / 轮盘另册。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git` 同时生效；冲突时取更严：默认不动。当前有效麻将牌背面冻结以本版为准（取代 `1.0.0` 工作指针；`1.0.0` LOCKED 历史快照保留）。

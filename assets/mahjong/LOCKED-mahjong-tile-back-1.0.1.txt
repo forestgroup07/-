@@ -1,0 +1,21 @@
+麻将牌背面 asset 定版 1.0.1
+日期：2026-11-17
+用户确认：以中间 1.0.0 为准，底图像素蒙格清左右邻牌绿 → 存为 1.0.1 计入 git
+
+已验收清单（本包只算这些）：
+- 以中间定版底图（1.0.0 单牌绿白一体）为母版
+- 用底图像素蒙格法：白弧 span / 每列奶油底轮廓，清掉白底左右下方邻牌绿圆弧
+- 白带内强绿 0；白下邻顶绿 0；绿面本体轮廓未改
+- 主文件：assets/mahjong/tiles/one-tile-v1.png（= LOCKED-mahjong-tile-back-1.0.1.png）
+- 备份：assets/mahjong/tiles/LOCKED-mahjong-tile-back-1.0.1.webp
+- 蒙格母版快照：assets/mahjong/tiles/LOCKED-mahjong-tile-back-mid-base-1.0.1.png（= 清左右前的中间底图）
+- 版本针：assets/mahjong/tiles/TILE-BACK-VERSION.txt = 1.0.1
+- 沿用 1.0.0：绿白底一体、量尺长:宽≈58:40、绿厚:白厚≈7:6、绿 RGB≈(75,138,62)
+
+未验收、不得当作本定版：
+- 四圈牌墙布局 / 54 墩复制摆位
+- 手牌正脸全套 / 弃牌区接线
+- mahjong-m.html 整页玩法与掷骰
+- 骰宝 / 轮盘 / 百家乐任何文件
+
+回滚只用本包 LOCKED-*；禁止用邻近实验图顶替。历史 1.0.0 快照保留不动。
