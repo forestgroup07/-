@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="麻将" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="screen-orientation" content="landscape" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.4" />
+  <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
+  <title>单人香港麻将 · v1.0.4</title>
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.4" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #000;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none; overscroll-behavior: none;
+    }
+    .app {
+      position: fixed; inset: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    /* 跟对标图一样大：整图完整放进屏幕，不放大裁切 */
+    .table-stage {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100px; height: 100px;
+      z-index: 0;
+      pointer-events: none;
+      perspective: 1400px;
+      perspective-origin: 50% 42%;
+    }
+    /* 步骤1：你的原桌图不变像素；外面加真桌厚度/落影/活光 */
+    .table-live {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transform: translateZ(0) rotateX(4.5deg);
+      transform-origin: 50% 78%;
+    }
+    .table-shadow {
+      position: absolute;
+      left: 4%; right: 4%;
+      top: 10%; bottom: -3%;
+      border-radius: 18px;
+      background: radial-gradient(ellipse 72% 55% at 50% 62%,
+        rgba(0,0,0,.55) 0%, rgba(0,0,0,.28) 42%, rgba(0,0,0,0) 72%);
+      filter: blur(10px);
+      transform: translateZ(-28px) scale(1.02);
+      pointer-events: none;
+    }
+    .table-body {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      border-radius: 2px;
+      box-shadow:
+        0 18px 40px rgba(0,0,0,.45),
+        0 4px 10px rgba(0,0,0,.35);
+    }
+    .scene-bg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: fill;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      filter: brightness(1.1) contrast(1.04) saturate(1.06);
+      border-radius: 1px;
+      transform: translateZ(0);
+    }
+    /* 活光：扫过毡面，不改原图像素 */
+    .table-sheen {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      background: linear-gradient(115deg,
+        transparent 0%,
+        rgba(255,245,220,.0) 28%,
+        rgba(255,250,230,.14) 46%,
+        rgba(255,245,220,.0) 62%,
+        transparent 100%);
+      background-size: 220% 100%;
+      animation: tableSheen 7.5s ease-in-out infinite;
+      mix-blend-mode: soft-light;
+      opacity: .85;
+      transform: translateZ(1px);
+    }
+    @keyframes tableSheen {
+      0%, 100% { background-position: 100% 0; opacity: .55; }
+      50% { background-position: 0% 0; opacity: .9; }
+    }
+    /* 前木真实厚度 */
+    .table-edge-front {
+      position: absolute;
+      left: 5.5%; right: 5.5%;
+      top: 96.2%;
+      height: 4.8%;
+      transform-origin: 50% 0%;
+      transform: rotateX(-88deg) translateZ(0);
+      background: linear-gradient(180deg, #6a3a22 0%, #3d2114 42%, #2a160e 100%);
+      box-shadow: inset 0 2px 0 rgba(220,170,90,.35), inset 0 -3px 6px rgba(0,0,0,.45);
+      border-radius: 0 0 4px 4px;
+    }
+    .wall-ring {
+      position: absolute; z-index: 3;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .35s ease;
+    }
+    .wall-ring.is-on { opacity: 1; }
+    .wall { position: absolute; display: flex; gap: 0; }
+    .wall-bot {
+      left: 33.05%;
+      width: 39.37%;
+      top: 64.90%;
+      height: 11.04%;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: flex-end;
+      justify-content: flex-start;
+      overflow: visible;
+    }
+    .wall-bot .wall-stack {
+      position: relative;
+      flex: 0 0 calc(100% / 14);
+      width: calc(100% / 14);
+      height: 100%;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .wall-bot .wall-stack.is-in {
+      opacity: 1;
+      transform: none;
+    }
+    /* 左墙 13 摞：定版墩胚；近大远小、几乎贴左木微斜（宽高由 LEFT_POS 写入） */
+    .wall-left {
+      position: absolute;
+      inset: 0;
+      display: block;
+      overflow: visible;
+    }
+    .wall-left .wall-stack {
+      position: absolute;
+      width: 4.587%;
+      height: 7.093%;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+      transform: translateY(3px);
+      transform-origin: left center;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .wall-left .wall-stack.is-in {
+      opacity: 1;
+      transform: none;
+    }
+    .wall-stack .stack-img {
+      position: absolute;
+      left: 0; bottom: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      object-position: bottom center;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      /* 外观仍用你的原图；只加落影/微厚，做出实心感 */
+      filter:
+        brightness(1.08)
+        drop-shadow(0 1px 0 rgba(40, 22, 8, .35))
+        drop-shadow(1px 2px 2px rgba(0, 0, 0, .28))
+        drop-shadow(2px 4px 5px rgba(0, 0, 0, .22));
+    }
+    .wall-left .stack-img {
+      /* 左侧：短边朝桌心，长边在左右；贴紧时减弱阴影以免看出缝 */
+      object-position: center center;
+      filter:
+        brightness(1.08)
+        drop-shadow(0 1px 0 rgba(40, 22, 8, .28))
+        drop-shadow(1px 2px 2px rgba(0, 0, 0, .18));
+    }
+    /* 实心底托：不改牌面像素，只垫一层暗影体积 */
+    .wall-stack::after {
+      content: '';
+      position: absolute;
+      left: 8%; right: 8%;
+      bottom: 2%;
+      height: 10%;
+      border-radius: 40%;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,.28) 0%, rgba(0,0,0,0) 70%);
+      pointer-events: none;
+      z-index: -1;
+      transform: translateY(2px) scaleX(1.05);
+    }
+    .mj-dice3d-layer {
+      position: absolute;
+      z-index: 12;
+      left: 50%;
+      top: 46%;
+      width: 42%;
+      height: 42%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      overflow: visible;
+    }
+    .mj-dice3d-layer.is-on {
+      opacity: 1;
+      visibility: visible;
+    }
+    #mjDice3dCanvas {
+      width: 100%; height: 100%;
+      display: block;
+      border: 0;
+      background: transparent !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="table-stage" id="tableStage">
+      <div class="table-live" id="tableLive">
+        <div class="table-shadow" aria-hidden="true"></div>
+        <div class="table-body">
+          <!-- 原桌图只引用、不改像素 -->
+          <img class="scene-bg" src="assets/mahjong/table-empty-from-ref.png?v=1.0.4" alt="" draggable="false" />
+          <div class="table-sheen" aria-hidden="true"></div>
+          <div class="table-edge-front" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="wall-ring" id="wallRing">
+        <div class="wall wall-left" id="wallLeftVis"></div>
+        <div class="wall wall-bot" id="wallBot"></div>
+      </div>
+      <div class="mj-dice3d-layer" id="mjDice3dLayer" aria-hidden="true">
+        <canvas id="mjDice3dCanvas" width="640" height="640" data-lite="1" aria-hidden="true"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.4"></script>
+  <script>
+  (function () {
+    const V = '1.0.4';
+    /* 1.0.4：左墙大号+近端往桌心1cm；进房先摇骰，再出牌墙 */
+    const STEP1_FLAT_TABLE_ONLY = false;
+    const STEP2_SOLID_TILES = false;
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.4';
+    /* 左墙：短边朝桌心、长边在左右（左墩姿）；底墙仍正面墩 */
+    const WALL_LEFT_STACK = 'assets/mahjong/tiles/wall-left-stack1.webp?v=1.0.4';
+    const WALL_BOT_STACKS = 14;
+    const WALL_LEFT_STACKS = 13;
+    const TABLE_AR = 1024 / 487;
+    /* [left%, top%, w%, h%]：定版：大号；近端往桌心+1cm，远端不动 */
+    const LEFT_POS = [
+      [21.19, 18.6, 4.336, 6.7], [20.69, 21.52, 4.379, 6.767], [20.18, 24.49, 4.421, 6.832], [19.68, 27.5, 4.464, 6.897],
+      [19.16, 30.56, 4.507, 6.963], [18.64, 33.66, 4.549, 7.029], [18.11, 36.81, 4.592, 7.095], [17.58, 40.0, 4.635, 7.16],
+      [17.04, 43.23, 4.676, 7.227], [16.49, 46.51, 4.719, 7.292], [15.94, 49.84, 4.761, 7.357], [15.39, 53.2, 4.804, 7.423],
+      [14.82, 56.62, 4.847, 7.489]
+    ];
+
+    function sleep(ms) {
+      return new Promise(function (r) { setTimeout(r, ms); });
+    }
+    async function waitMahjongDice3D(ms) {
+      const t0 = Date.now();
+      while (!(window.MahjongDice3D && window.MahjongDice3D.ready) && Date.now() - t0 < (ms || 2500)) {
+        await sleep(50);
+      }
+      return !!(window.MahjongDice3D && window.MahjongDice3D.ready);
+    }
+    function el(id) { return document.getElementById(id); }
+
+    /* contain：整图跟对标一样完整进屏，不放大裁边 */
+    function layoutTable() {
+      const app = el('app');
+      const stage = el('tableStage');
+      if (!app || !stage) return;
+      const W = app.clientWidth || window.innerWidth;
+      const H = app.clientHeight || window.innerHeight;
+      var w, h;
+      if (W / H > TABLE_AR) {
+        h = H;
+        w = H * TABLE_AR;
+      } else {
+        w = W;
+        h = W / TABLE_AR;
+      }
+      stage.style.width = Math.round(w) + 'px';
+      stage.style.height = Math.round(h) + 'px';
+      stage.style.left = Math.round((W - w) / 2) + 'px';
+      stage.style.top = Math.round((H - h) / 2) + 'px';
+    }
+
+    function makeStackEl(src) {
+      const s = document.createElement('div');
+      s.className = 'wall-stack';
+      const img = document.createElement('img');
+      img.className = 'stack-img';
+      img.src = src;
+      img.alt = '';
+      img.draggable = false;
+      s.appendChild(img);
+      return s;
+    }
+
+    function prepareWall() {
+      const bot = el('wallBot');
+      const left = el('wallLeftVis');
+      const ring = el('wallRing');
+      if (!ring) return;
+      if (bot) {
+        bot.innerHTML = '';
+        for (var i = 0; i < WALL_BOT_STACKS; i++) bot.appendChild(makeStackEl(WALL_STACK));
+      }
+      if (left) {
+        left.innerHTML = '';
+        for (var j = 0; j < WALL_LEFT_STACKS; j++) {
+          var st = makeStackEl(WALL_LEFT_STACK);
+          var pos = LEFT_POS[j] || LEFT_POS[LEFT_POS.length - 1];
+          st.style.left = pos[0] + '%';
+          st.style.top = pos[1] + '%';
+          if (pos[2]) st.style.width = pos[2] + '%';
+          if (pos[3]) st.style.height = pos[3] + '%';
+          st.style.zIndex = String(j + 1);
+          left.appendChild(st);
+        }
+      }
+      ring.classList.remove('is-on');
+    }
+
+    async function revealWall() {
+      const ring = el('wallRing');
+      if (!ring) return;
+      ring.classList.add('is-on');
+      const stacks = ring.querySelectorAll('.wall-stack');
+      for (var i = 0; i < stacks.length; i++) {
+        stacks[i].classList.add('is-in');
+        if (i % 2 === 0) await sleep(28);
+      }
+    }
+
+    function hideDice() {
+      try {
+        if (window.MahjongDice3D && window.MahjongDice3D.hide) window.MahjongDice3D.hide();
+      } catch (_) {}
+      const layer = el('mjDice3dLayer');
+      if (!layer) return;
+      layer.classList.remove('is-on');
+      layer.setAttribute('aria-hidden', 'true');
+    }
+
+    async function playDiceToss() {
+      var a = 1 + Math.floor(Math.random() * 6);
+      var b = 1 + Math.floor(Math.random() * 6);
+      var ok = await waitMahjongDice3D(2500);
+      if (ok) {
+        try { await window.MahjongDice3D.play([a, b]); }
+        catch (_) { await sleep(800); }
+      } else {
+        await sleep(800);
+      }
+      await sleep(900);
+    }
+
+    async function boot() {
+      hideDice();
+      if (STEP1_FLAT_TABLE_ONLY) {
+        var ring = el('wallRing');
+        if (ring) {
+          ring.classList.remove('is-on');
+          ring.innerHTML = '';
+        }
+        return;
+      }
+      prepareWall();
+      if (STEP2_SOLID_TILES) {
+        /* 步骤2只验实心墩，不摇骰 */
+        await revealWall();
+        return;
+      }
+      await playDiceToss();
+      await revealWall();
+      hideDice();
+    }
+
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(function () {});
+      }
+    } catch (_) {}
+
+    window.addEventListener('resize', layoutTable);
+    window.addEventListener('orientationchange', function () {
+      setTimeout(layoutTable, 120);
+    });
+
+    layoutTable();
+    boot();
+    try { console.info('[mahjong-m]', V); } catch (_) {}
+  })();
+  </script>
+</body>
+</html>
