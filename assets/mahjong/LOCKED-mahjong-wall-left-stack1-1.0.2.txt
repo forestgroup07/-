@@ -1,0 +1,20 @@
+麻将左边墙第一墩 asset 定版 1.0.2
+日期：2026-11-17
+用户确认：先将刚次（左边墙第一张/第一墩抠图）定位为 1.0.2 计入 git
+
+已验收清单（本包只算这些）：
+- 从用户提供的左边墙第一墩裁切图抠出透明底双层墩
+- 角度：左墙俯视三分之四（绿顶菱形 + 右侧/底侧白边）
+- 主文件：assets/mahjong/tiles/wall-left-stack1.png（= LOCKED-mahjong-wall-left-stack1-1.0.2.png）
+- 备份：assets/mahjong/tiles/LOCKED-mahjong-wall-left-stack1-1.0.2.webp
+- 版本针：assets/mahjong/tiles/WALL-LEFT-STACK1-VERSION.txt = 1.0.2
+
+未验收、不得当作本定版：
+- 左墙 13 摞整排摆位
+- 底墙 / 右墙 / 上墙
+- 牌面图案
+- mahjong-m.html 整页玩法
+- 骰宝 / 轮盘 / 百家乐任何文件
+
+回滚只用本包 LOCKED-*；禁止用邻近实验图顶替。
+历史背面定版 1.0.0 / 1.0.1 另册保留。
