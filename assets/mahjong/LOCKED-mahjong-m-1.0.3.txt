@@ -1,0 +1,26 @@
+mahjong-m v1.0.3 定版（2026-11-17）
+
+已验收清单（本包算数）：
+- 底桌：沿用用户原图 table-empty-from-ref（不改像素）；真桌厚度/落影/活光；无左右竖边线
+- 进房流程：先两骰在桌上转，再出牌墙
+- 底墙：wall-bot-stack-101 正面墩 14 摞
+- 左墙：wall-left-stack1 左墩姿（短边朝桌心、长边在左右）
+- 左墙位：近大远小；近处向左木靠、远处定点；墩贴紧；整体大号
+- 牌面实心感：落影/底托，不改墩胚像素
+- lobby MAHJONG_M ?v=1.0.3；VERSION-m.txt=1.0.3
+
+未验收、不得当作定版：
+- 右墙/上墙完整四面墙
+- 法式/吃碰杠玩法与计分
+- 主屏幕 PWA 真全屏体验（仅有 manifest）
+- 自绘 table-flat-plane 平面桌方案（已弃用，不进本包必保）
+
+回滚：
+- mahjong-m.LOCKED-1.0.3.html
+- lobby.LOCKED-mahjong-m-1.0.3.html
+- js/mahjong-dice-3d.LOCKED-1.0.3.js
+- assets/mahjong/LOCKED-mahjong-m-1.0.3.txt
+- assets/mahjong/tiles/LOCKED-mahjong-wall-left-stack1-1.0.3.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-bot-stack-101-1.0.3.{png,webp}
+- assets/mahjong/LOCKED-table-empty-from-ref-1.0.3.png
+- tag mahjong-m-v1.0.3

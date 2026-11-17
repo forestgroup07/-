@@ -24,21 +24,45 @@
     }
     .app {
       display: grid;
-      grid-template-rows: 52px 1fr;
+      grid-template-rows: auto 1fr;
       height: 100%;
     }
     .top {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      padding: 0 1rem;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: 0;
       background: linear-gradient(180deg, #171a22, #10131a);
       border-bottom: 1px solid var(--line);
     }
-    .top-left, .top-right {
-      display: flex; align-items: center; gap: .85rem;
+    .top-row1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+      min-height: 40px;
+      padding: .32rem .55rem;
     }
+    .top-row2 {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .4rem .55rem .5rem;
+      background: linear-gradient(180deg, rgba(212,176,106,.14), rgba(212,176,106,.05));
+      border-top: 1px solid rgba(212,176,106,.28);
+    }
+    .top-left, .top-right {
+      display: flex; align-items: center; gap: .45rem;
+      min-width: 0;
+    }
+    .top-left {
+      flex: 1;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .top-left::-webkit-scrollbar { display: none; }
     .user {
       display: flex; align-items: center; gap: .45rem;
       font-size: .9rem;
@@ -68,28 +92,67 @@
       padding: .2rem .45rem;
     }
     .ref-code {
-      font-size: .72rem;
+      flex: 0 0 auto;
+      font-size: .78rem;
+      font-weight: 700;
       color: var(--gold2);
-      border: 1px solid rgba(212,176,106,.35);
-      border-radius: 4px;
-      padding: .2rem .5rem;
+      border: 1px solid rgba(212,176,106,.45);
+      border-radius: 6px;
+      padding: .38rem .55rem;
       letter-spacing: .04em;
       white-space: nowrap;
+    }
+    .invite-btn {
+      flex: 1;
+      border: 0;
+      border-radius: 999px;
+      padding: .42rem .7rem;
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      color: #2a1a05;
+      background: linear-gradient(180deg, #f3dfa0 0%, #d4b06a 48%, #b8893a 100%);
+      box-shadow: 0 0 0 1px rgba(255, 220, 150, .45), 0 4px 14px rgba(212, 176, 106, .4);
       cursor: pointer;
+      white-space: nowrap;
+      animation: invitePulse 1.6s ease-in-out infinite;
+    }
+    .invite-btn:active { transform: scale(0.98); }
+    .invite-btn.is-copied {
+      animation: none;
+      background: linear-gradient(180deg, #b8f5b0 0%, #6dce66 55%, #3a9e3a 100%);
+      color: #0a0c10;
+    }
+    @keyframes invitePulse {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(255, 220, 150, .45), 0 4px 14px rgba(212, 176, 106, .4); }
+      50% { box-shadow: 0 0 0 3px rgba(240, 211, 146, .55), 0 6px 18px rgba(240, 211, 146, .55); }
     }
     .icon-btn {
-      width: 30px; height: 30px;
+      width: 32px; height: 32px;
       border: 0; border-radius: 6px;
       background: transparent;
       color: var(--muted);
       cursor: pointer;
       font-size: .95rem;
+      display: grid;
+      place-items: center;
+      line-height: 1;
     }
     .icon-btn:hover { color: var(--gold2); background: rgba(255,255,255,.04); }
+    .icon-btn.icon-back {
+      font-size: 1.15rem;
+      color: #ffffff;
+      filter: grayscale(1) brightness(1.35);
+    }
+    .icon-btn.icon-back:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, .1);
+    }
 
     .body {
       display: grid;
-      grid-template-columns: 168px 1fr;
+      /* 手机竖屏优先：左侧再窄，中间多露牌桌 */
+      grid-template-columns: 78px 1fr;
       min-height: 0;
     }
     .side {
@@ -98,40 +161,64 @@
       padding: .55rem 0;
       overflow: auto;
     }
-    .nav-item {
+    .nav-group { border-bottom: 1px solid rgba(255,255,255,.04); }
+    .nav-parent {
       width: 100%;
       display: flex;
       align-items: center;
-      gap: .55rem;
-      padding: .7rem .9rem;
+      justify-content: space-between;
+      gap: .2rem;
+      padding: .58rem .32rem;
       border: 0;
       background: transparent;
-      color: #c9c4b8;
-      font-size: .86rem;
+      color: #e8e2d4;
+      font-size: .68rem;
+      font-weight: 700;
       text-align: left;
       cursor: pointer;
       position: relative;
+      letter-spacing: .02em;
+      line-height: 1.25;
     }
-    .nav-item:hover { background: rgba(255,255,255,.04); color: #fff; }
-    .nav-item.active {
+    .nav-parent:hover { background: rgba(255,255,255,.04); color: #fff; }
+    .nav-group.is-open > .nav-parent {
       color: #fff;
       background: linear-gradient(90deg, rgba(212,176,106,.22), transparent);
     }
-    .nav-item.active::before {
+    .nav-group.is-open > .nav-parent::before {
       content: "";
       position: absolute; left: 0; top: 0; bottom: 0;
       width: 3px; background: var(--gold);
     }
-    .nav-item .tag {
-      margin-left: auto;
-      font-size: .62rem;
-      font-weight: 800;
-      color: #fff;
-      background: #d23b3b;
-      border-radius: 3px;
-      padding: .08rem .28rem;
+    .nav-caret {
+      font-size: .7rem;
+      color: var(--gold2);
+      transition: transform .18s ease;
     }
-    .nav-ico { width: 1.1em; opacity: .9; }
+    .nav-group.is-open > .nav-parent .nav-caret { transform: rotate(90deg); }
+    .nav-group.is-empty > .nav-parent .nav-caret { opacity: .35; }
+    .nav-children {
+      display: none;
+      padding: 0 0 .35rem;
+    }
+    .nav-group.is-open > .nav-children { display: block; }
+    .nav-child {
+      width: 100%;
+      display: block;
+      padding: .36rem .28rem .36rem .42rem;
+      border: 0;
+      background: transparent;
+      color: #a8a396;
+      font-size: .62rem;
+      text-align: left;
+      cursor: pointer;
+      line-height: 1.25;
+    }
+    .nav-child:hover { color: #fff; background: rgba(255,255,255,.03); }
+    .nav-child.is-on {
+      color: var(--gold2);
+      background: rgba(212,176,106,.1);
+    }
 
     .main {
       min-width: 0;
@@ -141,43 +228,23 @@
         radial-gradient(ellipse 80% 50% at 50% 0%, rgba(180,140,60,.08), transparent 55%),
         #0b0d12;
     }
-    .recent {
-      display: flex;
-      gap: .55rem;
-      padding: .7rem 1rem .35rem;
-      overflow-x: auto;
-    }
-    .recent .pill {
-      flex: 0 0 auto;
-      min-width: 72px;
-      padding: .45rem .55rem;
-      border-radius: 8px;
-      background: #151923;
-      border: 1px solid var(--line);
-      font-size: .72rem;
-      color: var(--muted);
-      text-align: center;
-    }
-    .recent .pill b {
-      display: block;
-      color: var(--gold2);
-      font-size: .78rem;
-      margin-bottom: .15rem;
-    }
+    .recent,
+    .hint-bar { display: none !important; }
 
     .grid {
       flex: 1;
       min-height: 0;
       overflow: auto;
-      padding: .6rem 1rem 1.2rem;
+      padding: .45rem .4rem 1rem;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: .85rem;
+      /* 手机竖屏：一排两个完整方块，一屏至少看见两个 */
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .4rem;
       align-content: start;
     }
     .card {
       position: relative;
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
       background: #151923;
       border: 1px solid var(--line);
@@ -187,6 +254,11 @@
       color: inherit;
       font: inherit;
       padding: 0;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-height: 42vw;
+      display: flex;
+      flex-direction: column;
     }
     .card:hover {
       transform: translateY(-2px);
@@ -198,7 +270,9 @@
       box-shadow: 0 0 0 1px rgba(212,176,106,.2), 0 12px 28px rgba(0,0,0,.4);
     }
     .card .thumb {
-      height: 118px;
+      flex: 1;
+      min-height: 0;
+      height: auto;
       background:
         linear-gradient(180deg, transparent 40%, rgba(0,0,0,.75)),
         url("assets/lobby-thumb.webp?v=v1.0.30") center / cover no-repeat;
@@ -222,36 +296,44 @@
     .card.baccarat .thumb {
       background:
         linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
-        linear-gradient(90deg, #193565 0 50%, #782117 50% 100%);
+        url("assets/lobby-baccarat-thumb.webp?v=1.1.1") center 40% / cover no-repeat;
+    }
+    .card.mahjong .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        url("assets/lobby-mahjong-thumb.webp?v=0.2.1") center 45% / cover no-repeat;
     }
     .card .meta {
-      padding: .65rem .75rem .75rem;
+      flex: 0 0 auto;
+      padding: .28rem .35rem .32rem;
+      background: rgba(10, 12, 16, .92);
     }
     .card .name {
-      font-size: .92rem;
+      font-size: .72rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .card .sub {
-      margin-top: .25rem;
-      font-size: .72rem;
+      margin-top: .1rem;
+      font-size: .58rem;
       color: var(--muted);
-    }
-    .hint-bar {
-      padding: .35rem 1rem .7rem;
-      font-size: .78rem;
-      color: var(--muted);
-    }
-    .hint-bar em {
-      color: var(--gold2);
-      font-style: normal;
-      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     @media (max-width: 760px) {
-      .body { grid-template-columns: 118px 1fr; }
-      .nav-item { padding: .65rem .55rem; font-size: .78rem; }
-      .card .thumb { height: 96px; }
+      .body { grid-template-columns: 72px 1fr; }
+      .card { max-height: 46vw; }
+    }
+    @media (min-width: 761px) {
+      .body { grid-template-columns: 96px 1fr; }
+      .card { max-height: 220px; }
+      .nav-parent { font-size: .76rem; padding: .62rem .45rem; }
+      .nav-child { font-size: .7rem; padding: .4rem .4rem .4rem .55rem; }
     }
     /* 手机进桌：透明壳压住大厅（仍看得见大厅）→ 子页就绪再淡入，禁止黑屏 */
     #fgEmbedShell {
@@ -277,39 +359,49 @@
 <body>
   <div class="app">
     <header class="top">
-      <div class="top-left">
-        <div class="user"><span class="avatar" id="lobbyAvatar">F</span><span id="lobbyUser">forest</span></div>
-        <div class="bal"><span class="chip-ico"></span><span id="lobbyBal">—</span></div>
-        <div class="ref-code" id="lobbyRef" title="我的推荐码">推荐码 —</div>
-        <div class="limit">10 - 5,000</div>
+      <div class="top-row1">
+        <div class="top-left">
+          <div class="user"><span class="avatar" id="lobbyAvatar">F</span><span id="lobbyUser">forest</span></div>
+          <div class="bal"><span class="chip-ico"></span><span id="lobbyBal">—</span></div>
+        </div>
+        <div class="top-right">
+          <button class="icon-btn icon-back" type="button" title="返回" id="logoutBtn" aria-label="返回">🔙</button>
+        </div>
       </div>
-      <div class="top-right">
-        <button class="icon-btn" type="button" title="客服">客服</button>
-        <button class="icon-btn" type="button" title="声音" id="volBtn">声音</button>
-        <button class="icon-btn" type="button" title="离开" id="logoutBtn">离开</button>
+      <div class="top-row2">
+        <div class="ref-code" id="lobbyRef" title="我的推荐码">推荐码 —</div>
+        <button type="button" class="invite-btn" id="lobbyInvite" title="一点复制邀请链接，发给 WhatsApp 朋友">邀请链接 · 一点复制</button>
       </div>
     </header>
 
     <div class="body">
       <nav class="side" aria-label="游戏分类">
-        <button class="nav-item active" type="button" data-cat="hot">熱門遊戲</button>
-        <button class="nav-item" type="button" data-cat="all">所有遊戲</button>
-        <button class="nav-item" type="button" data-cat="baccarat">所有百家樂</button>
-        <button class="nav-item" type="button" data-cat="sexy">性感廳</button>
-        <button class="nav-item" type="button" data-cat="wheel">幸運輪 <span class="tag">NEW</span></button>
-        <button class="nav-item" type="button" data-cat="sicbo" id="navSicbo">骰寶</button>
-        <button class="nav-item" type="button" data-cat="color">色碟</button>
-        <button class="nav-item" type="button" data-cat="paigow">推筒子</button>
-        <button class="nav-item" type="button" data-cat="other">其他遊戲</button>
+        <div class="nav-group is-open" data-group="table">
+          <button class="nav-parent" type="button" data-group="table">桌面游戏 <span class="nav-caret">▶</span></button>
+          <div class="nav-children">
+            <button class="nav-child" type="button" data-enter="sicbo">骰宝</button>
+            <button class="nav-child" type="button" data-enter="roulette">轮盘</button>
+            <button class="nav-child" type="button" data-enter="baccarat">百家乐</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="21点">21点</button>
+          </div>
+        </div>
+        <div class="nav-group" data-group="board">
+          <button class="nav-parent" type="button" data-group="board">棋牌游戏 <span class="nav-caret">▶</span></button>
+          <div class="nav-children">
+            <button class="nav-child" type="button" data-enter="mahjong">单人香港麻将</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="多人香港麻将">多人香港麻将</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="四人香港麻将">四人香港麻将</button>
+          </div>
+        </div>
+        <div class="nav-group is-empty" data-group="elec">
+          <button class="nav-parent" type="button" data-group="elec">电子游戏 <span class="nav-caret">▶</span></button>
+        </div>
+        <div class="nav-group is-empty" data-group="live">
+          <button class="nav-parent" type="button" data-group="live">真人游戏 <span class="nav-caret">▶</span></button>
+        </div>
       </nav>
 
       <main class="main">
-        <div class="recent" aria-label="最近游玩">
-          <div class="pill"><b>S601</b>骰寶</div>
-          <div class="pill"><b>B601</b>百家樂</div>
-          <div class="pill"><b>R501</b>輪盤</div>
-        </div>
-        <p class="hint-bar">點 <em>百家樂 B601</em> / 骰寶 / 輪盤 進入遊戲</p>
         <div class="grid" id="grid"></div>
       </main>
     </div>
@@ -322,7 +414,8 @@
       const ROULETTE_PC = 'roulette.html?v=1.2.11';
       const ROULETTE_M = 'roulette-m.html?v=2.8.0';
       const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.8.0';
-      const BACCARAT_M = 'baccarat-m.html?v=1.1.0';
+      const BACCARAT_M = 'baccarat-m.html?v=1.1.2';
+      const MAHJONG_M = 'mahjong-m.html?v=1.0.3';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -468,7 +561,7 @@
         /* 桌内已出来后再预热其余音效；ballRoll 只 load 不 play */
         primeHeavy() {
           /* 骰宝/轮盘/百家乐均不走 heavy（杜绝父页点亮音轨漏播） */
-          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette' || this.embedKind === 'baccarat') return;
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette' || this.embedKind === 'baccarat' || this.embedKind === 'mahjong') return;
           Object.keys(this.src).forEach((k) => {
             this.ensureEl(k);
           });
@@ -497,7 +590,7 @@
         },
         scheduleHeavy(delayMs) {
           /* 骰宝/轮盘/百家乐禁止 scheduleHeavy */
-          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette' || this.embedKind === 'baccarat') return;
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette' || this.embedKind === 'baccarat' || this.embedKind === 'mahjong') return;
           if (this.heavyScheduled) return;
           this.heavyScheduled = true;
           const run = () => { try { this.primeHeavy(); } catch (_) {} };
@@ -511,7 +604,7 @@
           setTimeout(run, wait);
         },
         prime() {
-          if (this.embedKind === 'sicbo' || this.embedKind === 'baccarat') {
+          if (this.embedKind === 'sicbo' || this.embedKind === 'baccarat' || this.embedKind === 'mahjong') {
             this.primeSicboGesture();
             return;
           }
@@ -704,7 +797,7 @@
           if (!d || typeof d !== 'object') return;
           if (d.type === 'fg-sfx-prime') {
             /* 骰宝/轮盘/百家乐只极轻 AudioContext；禁止拉全套代播 */
-            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'baccarat') ShellSfx.primeSicboGesture();
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') ShellSfx.primeSicboGesture();
             else if (ShellSfx.embedKind === 'roulette') ShellSfx.primeRouletteGesture();
             else ShellSfx.prime();
           }
@@ -722,14 +815,14 @@
               ShellSfx.embedWelcomeOk = true;
               ShellSfx.replyWelcome(true);
             }
-            if (d.type === 'fg-embed-ready' && ShellSfx.embedKind === 'baccarat') {
+            if (d.type === 'fg-embed-ready' && (ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong')) {
               /* 百家乐对齐骰宝：只揭桌，父页不代播 */
               ShellSfx.embedWelcomeOk = true;
               ShellSfx.replyWelcome(true);
             }
           }
           if (d.type === 'fg-want-welcome') {
-            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette' || ShellSfx.embedKind === 'baccarat') {
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette' || ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') {
               ShellSfx.embedWelcomeOk = true;
               ShellSfx.replyWelcome(true);
             } else if (ShellSfx.embedWelcomeOk != null) {
@@ -739,8 +832,8 @@
             }
           }
           if (d.type === 'fg-sfx') {
-            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette' || ShellSfx.embedKind === 'baccarat') {
-              /* 骰宝/轮盘/百家乐父页不代播任何 fg-sfx；子页自播 */
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette' || ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') {
+              /* 骰宝/轮盘/百家乐/麻将父页不代播任何 fg-sfx；子页自播 */
               if (d.id) ShellSfx.reply(d.id, false);
             } else if ((d.key === 'welcome' || d.key === 'welcomeSicbo') && d.id) {
               ShellSfx.playWelcomeForEmbed().then((ok) => ShellSfx.reply(d.id, ok));
@@ -780,7 +873,9 @@
             ? 'roulette'
             : /baccarat-m\.html/.test(url)
               ? 'baccarat'
-              : null;
+              : /mahjong-m\.html/.test(url)
+                ? 'mahjong'
+                : null;
         const shell = ensureEmbedShell();
         const frame = document.getElementById('fgEmbedFrame');
         /* 点进桌：大厅不卸、不盖黑/海报；子页 ready 再淡入桌面 */
@@ -789,9 +884,9 @@
         if (embedReadyTimer) clearTimeout(embedReadyTimer);
         embedReadyTimer = setTimeout(revealEmbed, 2200);
         const join = url.indexOf('?') >= 0 ? '&' : '?';
-        /* 百家乐 embed：带上登录账号，子页 iframe 读不到父页 sessionStorage */
+        /* 百家乐/麻将 embed：带上登录账号，子页 iframe 读不到父页 sessionStorage */
         let embedQs = 'embed=1';
-        if (ShellSfx.embedKind === 'baccarat') {
+        if (ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') {
           try {
             const u = encodeURIComponent(currentUser());
             if (u) embedQs += '&user=' + u;
@@ -801,8 +896,8 @@
         if (ShellSfx.embedKind === 'roulette') {
           /* 轮盘步骤1：手势内只极轻 AudioContext；口播改子页自播（步骤2） */
           ShellSfx.primeRouletteGesture();
-        } else if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'baccarat') {
-          /* 骰宝/百家乐：进桌手势只极轻 AudioContext；口播全子页 */
+        } else if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') {
+          /* 骰宝/百家乐/麻将：进桌手势只极轻 AudioContext；口播全子页 */
           ShellSfx.primeSicboGesture();
         } else {
           ShellSfx.primeLight();
@@ -876,7 +971,7 @@
       }
       try {
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
-          location.replace('index.html?v=v1.0.35');
+          location.replace('index.html?v=v1.0.53');
           return;
         }
         let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
@@ -893,6 +988,7 @@
         const av = document.getElementById('lobbyAvatar');
         const balEl = document.getElementById('lobbyBal');
         const refEl = document.getElementById('lobbyRef');
+        const inviteEl = document.getElementById('lobbyInvite');
         if (nameEl) nameEl.textContent = u;
         if (av) av.textContent = (u.charAt(0) || 'F').toUpperCase();
         if (balEl) {
@@ -911,16 +1007,34 @@
             if (p && p.nick && nameEl) nameEl.textContent = p.nick;
           }
         } catch (_) {}
-        if (refEl) {
-          refEl.textContent = '推荐码 ' + (code || '—');
-          refEl.onclick = () => {
-            const link = location.origin + '/index.html?v=v1.0.35&ref=' + encodeURIComponent(code);
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(link).then(() => alert('已复制邀请链接')).catch(() => prompt('邀请链接', link));
-            } else {
-              prompt('邀请链接', link);
-            }
-          };
+        if (refEl) refEl.textContent = '推荐码 ' + (code || '—');
+        if (inviteEl) {
+          inviteEl.dataset.code = code || '';
+          if (!inviteEl.dataset.bound) {
+            inviteEl.dataset.bound = '1';
+            inviteEl.addEventListener('click', async () => {
+              const c = inviteEl.dataset.code || '';
+              const link = location.origin + '/index.html?v=v1.0.53&ref=' + encodeURIComponent(c);
+              const done = () => {
+                inviteEl.classList.add('is-copied');
+                inviteEl.textContent = '已复制 · 去 WhatsApp 粘贴';
+                setTimeout(() => {
+                  inviteEl.classList.remove('is-copied');
+                  inviteEl.textContent = '邀请链接 · 一点复制';
+                }, 2200);
+              };
+              try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  await navigator.clipboard.writeText(link);
+                  done();
+                } else {
+                  prompt('邀请链接（长按复制后发 WhatsApp）', link);
+                }
+              } catch (_) {
+                prompt('邀请链接（长按复制后发 WhatsApp）', link);
+              }
+            });
+          }
         }
       }
       paintUserBar();
@@ -937,20 +1051,27 @@
         });
       });
 
-      /* 只删掉重复骰宝厅 S602；其余分类/演示桌文案保留 */
+      /* 中间始终展示全部，显得多；可进桌的保留进桌，其余演示 */
       const tables = [
-        { id: 'S601', name: '骰寶 S601', kind: 'sicbo', featured: true, sec: 22 },
-        { id: 'R501', name: '輪盤 R501', kind: 'roulette', featured: true, sec: 20 },
-        { id: 'B601', name: '百家樂 B601', kind: 'baccarat', featured: true, sec: 20 },
-        { id: 'F701', name: '魚蝦蟹 F701', kind: 'other', sec: 15 },
-        { id: 'BB701', name: '牛牛 BB701', kind: 'other', sec: 16 },
-        { id: 'W701', name: '三公 W701', kind: 'other', sec: 12 },
-        { id: 'D801', name: '龍虎 D801', kind: 'other', sec: 14 },
-        { id: 'B501', name: '百家樂 B501', kind: 'baccarat', sec: 11 },
+        { id: 'S601', name: '骰宝 S601', kind: 'sicbo', featured: true, enter: 'sicbo', sec: 22 },
+        { id: 'R501', name: '轮盘 R501', kind: 'roulette', featured: true, enter: 'roulette', sec: 20 },
+        { id: 'B601', name: '百家乐 B601', kind: 'baccarat', featured: true, enter: 'baccarat', sec: 20 },
+        { id: 'BJ01', name: '21点 BJ01', kind: 'blackjack', featured: true, enter: '', sec: 18 },
+        { id: 'M701', name: '单人香港麻将', kind: 'mahjong', featured: true, enter: 'mahjong', sec: 20 },
+        { id: 'M702', name: '多人香港麻将', kind: 'mahjong', featured: true, enter: '', sec: 18 },
+        { id: 'M703', name: '四人香港麻将', kind: 'mahjong', featured: true, enter: '', sec: 18 },
+        { id: 'E101', name: '电子厅 E101', kind: 'elec', enter: '', sec: 14 },
+        { id: 'E102', name: '电子厅 E102', kind: 'elec', enter: '', sec: 14 },
+        { id: 'L201', name: '真人厅 L201', kind: 'live', enter: '', sec: 16 },
+        { id: 'L202', name: '真人厅 L202', kind: 'live', enter: '', sec: 16 },
+        { id: 'F701', name: '鱼虾蟹 F701', kind: 'other', enter: '', sec: 15 },
+        { id: 'BB701', name: '牛牛 BB701', kind: 'other', enter: '', sec: 16 },
+        { id: 'W701', name: '三公 W701', kind: 'other', enter: '', sec: 12 },
+        { id: 'D801', name: '龙虎 D801', kind: 'other', enter: '', sec: 14 },
+        { id: 'B501', name: '百家乐 B501', kind: 'baccarat', enter: '', sec: 11 },
       ];
 
       const grid = document.getElementById('grid');
-      let cat = 'hot';
 
       function enterSicbo() {
         /* 手机：iframe 进桌；只写子页静音 key（步骤3单一真相），父页不据此代播 */
@@ -978,51 +1099,76 @@
         }
         location.href = BACCARAT_M;
       }
+      function enterMahjong() {
+        /* 第四款：麻将竖屏壳；不影响已封存三款子页 */
+        if (isMobileClient()) {
+          openEmbedShell(MAHJONG_M);
+          return;
+        }
+        location.href = MAHJONG_M;
+      }
+
+      function bindEnter(id, fn) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', function (e) {
+          try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+          fn();
+        });
+      }
+      function enterByKey(key) {
+        if (key === 'sicbo') enterSicbo();
+        else if (key === 'roulette') enterRoulette();
+        else if (key === 'baccarat') enterBaccarat();
+        else if (key === 'mahjong') enterMahjong();
+        else alert('即将开放');
+      }
 
       function paint() {
-        const list = tables.filter((t) => {
-          if (cat === 'hot') return t.featured || t.kind === 'sicbo' || t.kind === 'roulette' || t.kind === 'baccarat';
-          if (cat === 'all') return true;
-          if (cat === 'sicbo') return t.kind === 'sicbo';
-          if (cat === 'baccarat') return t.kind === 'baccarat';
-          if (cat === 'wheel') return t.kind === 'roulette';
-          return t.kind === 'other' || t.kind === cat;
-        });
+        /* 中间始终展示全部 */
         grid.innerHTML = '';
-        list.forEach((t) => {
+        tables.forEach((t) => {
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'card'
             + (t.featured ? ' featured' : '')
             + (t.kind === 'sicbo' ? ' sicbo' : '')
             + (t.kind === 'roulette' ? ' roulette' : '')
-            + (t.kind === 'baccarat' ? ' baccarat' : '');
-          const sub = t.kind === 'sicbo'
-            ? '點擊進入骰寶桌'
-            : (t.kind === 'roulette'
-              ? '點擊進入輪盤桌'
-              : (t.kind === 'baccarat' && t.id === 'B601' ? '點擊進入百家樂桌' : '演示桌 · 暫未開放'));
+            + (t.kind === 'baccarat' ? ' baccarat' : '')
+            + (t.kind === 'mahjong' ? ' mahjong' : '');
+          const open = !!t.enter;
+          const sub = open ? ('点击进入 · ' + t.sec + 's') : '演示桌 · 暂未开放';
           btn.innerHTML =
             '<div class="thumb"></div>' +
             '<div class="meta"><div class="name">' + t.name + '</div>' +
             '<div class="sub">' + sub + '</div></div>';
           btn.addEventListener('click', () => {
-            if (t.kind === 'sicbo') enterSicbo();
-            else if (t.kind === 'roulette') enterRoulette();
-            else if (t.kind === 'baccarat' && t.id === 'B601') enterBaccarat();
-            else alert('演示版请点击「骰寶」「輪盤」或「百家樂 B601」进入');
+            if (t.enter) enterByKey(t.enter);
+            else alert('演示桌暂未开放');
           });
           grid.appendChild(btn);
         });
       }
 
-      document.querySelectorAll('.nav-item').forEach((el) => {
+      document.querySelectorAll('.nav-parent').forEach((el) => {
         el.addEventListener('click', () => {
-          document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
-          el.classList.add('active');
-          cat = el.dataset.cat;
-          /* 左侧点分类只筛选列表；进桌点卡片 */
-          paint();
+          const group = el.closest('.nav-group');
+          if (!group || group.classList.contains('is-empty')) return;
+          const willOpen = !group.classList.contains('is-open');
+          document.querySelectorAll('.nav-group').forEach((g) => g.classList.remove('is-open'));
+          if (willOpen) group.classList.add('is-open');
+        });
+      });
+      document.querySelectorAll('.nav-child').forEach((el) => {
+        el.addEventListener('click', () => {
+          document.querySelectorAll('.nav-child').forEach((n) => n.classList.remove('is-on'));
+          el.classList.add('is-on');
+          const key = el.dataset.enter || '';
+          if (key === 'soon') {
+            alert((el.dataset.label || '该玩法') + ' 即将开放');
+            return;
+          }
+          enterByKey(key);
         });
       });
 
@@ -1032,7 +1178,7 @@
           sessionStorage.removeItem('fg_sicbo_user');
         } catch (_) {}
         try { sessionStorage.removeItem('fg_sicbo_profile'); } catch (_) {}
-        location.href = 'index.html?v=v1.0.35';
+        location.href = 'index.html?v=v1.0.53';
       });
 
       paint();
