@@ -1,0 +1,35 @@
+麻将牌胚定版 0.1.0
+====================
+用户书面「定吧」（2026-11-17）→ 锁定 blank-draft-0.1 为正式牌胚规格包。
+
+【已验收清单】（本包算数）
+1. 外形尺寸（DU）：L=74  W=58  T=32
+2. 厚比：绿 Tg=8 + 白 Tc=24（绿:白=8:24，绿占25%）
+3. 长:宽=74:58≈1.276（对齐公司左墙长边对镜头测得外框比）
+4. 圆角指引：牌面 R≈5 DU
+5. UV 分区名与展开：
+   - uv_top 绿背 L×W
+   - uv_bottom 白底 L×W
+   - uv_side_L 长侧×2（L×T，上绿8下白24；左墙对镜头侧）
+   - uv_side_W 短侧×2（W×T，上绿8下白24）
+6. 摆放原则：同一牌胚只旋转/位移/统一缩放；禁止 2D shear 扭牌面
+7. 材质来源约定：绿/白采样自 one-tile-v1.png（1.0.1），按 UV 贴（贴图动作本身未进本包）
+
+【未验收、不得当作本定版】
+- Three.js / 自研盒网格实体尚未建立
+- 1.0.1 实际 UV 贴图烘焙尚未完成
+- 左墙 1 摞 / 13 摞摆放尚未接入 mahjong-m
+- 底墙/对家/手牌相机角度尚未锁定
+- 牌面点数/花色贴图尚未做
+- 线上 forestgroup 麻将页未因本包改动
+
+【回滚快照】
+- assets/mahjong/blank/LOCKED-BLANK-SIZE-0.1.0.txt
+- assets/mahjong/blank/LOCKED-blank-size-diagram-0.1.0.png
+- assets/mahjong/blank/LOCKED-blank-uv-layout-0.1.0.png
+- assets/mahjong/blank/LOCKED-blank-size-uv-0.1.0.png
+- assets/mahjong/blank/LOCKED-mahjong-blank-0.1.0.txt
+- git tag：mahjong-blank-v0.1.0
+
+【冲突时】
+与 one-item-no-side-effect / one-task-only 同时生效；未点名不得改本包尺寸与 UV 分区。
