@@ -1,0 +1,30 @@
+mahjong-m v1.1.2 定版（2026-11-18）
+
+用户确认：「把这版定位1.1.2。计入git 仓库」（当前工作版 1.1.4 内容正式定号）
+
+已验收清单（本包算数）：
+- 主桌（底墙）高度 11%；仍 14 墩 wall-bot-stack-101
+- 对面（上墙）高度 7%；width 27.29% / left 36.36% 按比例收紧贴实；top 12.80% 贴木边
+- 对面仍 wall-top-one-flush ×13（未换材质）；.wall-top .wall-stack .stack-img 压过通用滤镜（filter:none + object-fit:fill）
+- 沿用：干净新桌 table-empty-clean-v15；左墙 HQ×13 近大远小；右墙 HQ×14；进房两骰再出墙
+- lobby MAHJONG_M / mahjong-m.html ?v=1.1.2；VERSION-m.txt=1.1.2
+
+未验收、不得当作定版：
+- 左右离木厘米 / 远近 0.8 再微调
+- 吃碰杠玩法与计分 / PWA 真全屏 / 发牌动画 / Godot
+
+回滚：
+- mahjong-m.LOCKED-1.1.2.html
+- lobby.LOCKED-mahjong-m-1.1.2.html
+- js/mahjong-dice-3d.LOCKED-1.1.2.js
+- assets/mahjong/LOCKED-mahjong-m-1.1.2.txt
+- assets/mahjong/LOCKED-table-empty-clean-1.1.2.png
+- assets/mahjong/tiles/LOCKED-mahjong-wall-left-one-1.1.2.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-right-one-1.1.2.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-bot-stack-101-1.1.2.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-top-one-flush-1.1.2.{png,webp}
+- assets/mahjong/LOCKED-manifest-m-1.1.2.webmanifest
+- assets/mahjong/VERSION-m.txt = 1.1.2
+- tag mahjong-m-v1.1.2
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.1.2

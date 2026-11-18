@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.1" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.2" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.1.1</title>
+  <title>单人香港麻将 · v1.1.2</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.1" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.2" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -111,12 +111,12 @@
     }
     .wall-ring.is-on { opacity: 1; }
     .wall { position: absolute; display: flex; gap: 0; }
-    /* 主手：高 10%；仍14张 */
+    /* 主手：高 11%；仍14张 */
     .wall-bot {
       left: 31.46%;
       width: 40.00%;
       top: 65.80%;
-      height: 10%;
+      height: 11%;
       flex-direction: row;
       flex-wrap: nowrap;
       align-items: flex-end;
@@ -124,13 +124,13 @@
       overflow: visible;
     }
 
-    /* 上墙：高 9%；仍13张；顶死贴对面木边 */
+    /* 上墙：高 7%；仍13张；同 flush 图；槽宽按 7% 比例收紧贴实 */
     .wall-top {
       position: absolute;
-      left: 31.72%;
-      width: 36.56%;
+      left: 36.36%;
+      width: 27.29%;
       top: 12.80%;
-      height: 9%;
+      height: 7%;
       display: flex;
       flex-direction: row;
       flex-wrap: nowrap;
@@ -156,13 +156,6 @@
     .wall-top .wall-stack.is-in {
       opacity: 1;
       transform: none;
-    }
-    .wall-top .stack-img {
-      object-fit: contain;
-      object-position: center top;
-      width: 100%;
-      height: 100%;
-      filter: none;
     }
     .wall-bot .wall-stack {
       position: relative;
@@ -215,6 +208,13 @@
         drop-shadow(0 1px 0 rgba(40, 22, 8, .35))
         drop-shadow(1px 2px 2px rgba(0, 0, 0, .28))
         drop-shadow(2px 4px 5px rgba(0, 0, 0, .22));
+    }
+    /* 对面：必须压过通用 .wall-stack .stack-img，禁止换滤镜/留空缝 */
+    .wall-top .wall-stack .stack-img {
+      left: 0; top: 0; bottom: auto;
+      object-fit: fill;
+      object-position: center top;
+      filter: none;
     }
     /* 单牌现场复制上下 2 张：每张=主手牌单张尺度；上下对齐；缝≈主手牌 */
     .wall-left .stack-img {
@@ -321,7 +321,7 @@
         <div class="table-shadow" aria-hidden="true"></div>
         <div class="table-body">
           <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.1" alt="" draggable="false" />
+          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.2" alt="" draggable="false" />
           <div class="table-sheen" aria-hidden="true"></div>
           <div class="table-edge-front" aria-hidden="true"></div>
         </div>
@@ -346,17 +346,17 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.1"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.2"></script>
   <script>
   (function () {
-    const V = '1.1.1';
-    /* 1.1.1：主桌高10%；对面高9%并顶死贴木边（定版） */
+    const V = '1.1.2';
+    /* 1.1.2：主桌高11%；对面高7%槽宽收紧贴实；flush图；定版 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.1';
-    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.1';
-    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.1';
-    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.1.1';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.2';
+    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.2';
+    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.2';
+    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.1.2';
     const WALL_BOT_STACKS = 14;
     const WALL_LEFT_STACKS = 13;
     const WALL_RIGHT_STACKS = 14;
