@@ -130,6 +130,40 @@
       justify-content: flex-start;
       overflow: visible;
     }
+
+    /* 上墙：正面手牌对面；13 墩整排（1.0.7） */
+    .wall-top {
+      position: absolute;
+      left: 34.46%;
+      width: 36.56%;
+      top: 26.80%;
+      height: 10.80%;
+      display: block;
+      overflow: visible;
+      margin: 0;
+      padding: 0;
+    }
+    .wall-top .wall-top-strip {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+      transform: translateY(-3px);
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: brightness(1.06);
+    }
+    .wall-top .wall-top-strip.is-in {
+      opacity: 1;
+      transform: none;
+    }
     .wall-bot .wall-stack {
       position: relative;
       flex: 0 0 calc(100% / 14);
@@ -143,40 +177,18 @@
       opacity: 1;
       transform: none;
     }
-    /* 左墙：整排 13 墩一条图（短边朝桌心），放大贴左木 */
+    /* 左墙：HQ 单牌 ×13 摞（大小近主手牌） */
     .wall-left {
       position: absolute;
       inset: 0;
       display: block;
       overflow: visible;
     }
-    .wall-left .wall-left-strip {
-      position: absolute;
-      left: 13.6%;
-      top: 16.2%;
-      width: 10.8%;
-      height: 52.2%;
-      margin: 0;
-      padding: 0;
-      opacity: 0;
-      transform: translateY(3px);
-      transform-origin: left center;
-      transition: opacity .18s ease, transform .18s ease;
-      pointer-events: none;
-      user-select: none;
-      -webkit-user-drag: none;
-      object-fit: contain;
-      object-position: left center;
-      filter: brightness(1.06);
-    }
-    .wall-left .wall-left-strip.is-in {
-      opacity: 1;
-      transform: none;
-    }
+    .wall-left .wall-left-strip { display: none; }
     .wall-left .wall-stack {
       position: absolute;
-      width: 4.587%;
-      height: 7.093%;
+      width: 2.812%;
+      height: 5.637%;
       margin: 0;
       padding: 0;
       opacity: 0;
@@ -266,6 +278,7 @@
       </div>
       <div class="wall-ring" id="wallRing">
         <div class="wall wall-left" id="wallLeftVis"></div>
+        <div class="wall wall-top" id="wallTopVis"></div>
         <div class="wall wall-bot" id="wallBot"></div>
       </div>
       <div class="mj-dice3d-layer" id="mjDice3dLayer" aria-hidden="true">
@@ -286,22 +299,21 @@
   <script>
   (function () {
     const V = '1.0.6';
-    /* 1.0.6：左墙改用整排 13 墩放大贴左木（wall-left-13） */
+    /* 1.0.6 定版：左墙=用户 HQ 单牌叠成上下两摞 ×13；宽对齐主手牌墩；墩间留缝 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
     const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.6';
-    /* 左墙整排 13 墩（短边冲桌心） */
-    const WALL_LEFT_STRIP = 'assets/mahjong/tiles/wall-left-13.webp?v=1.0.6';
     const WALL_LEFT_STACK = 'assets/mahjong/tiles/wall-left-stack1.webp?v=1.0.6';
+    const WALL_TOP_STRIP = 'assets/mahjong/tiles/wall-top-13.webp?v=1.0.6';
     const WALL_BOT_STACKS = 14;
     const WALL_LEFT_STACKS = 13;
     const TABLE_AR = 1024 / 487;
-    /* 旧单墩位姿保留作对照；左墙现用整排 strip */
+    /* [left%, top%, w%, h%]：宽=主手牌墩宽 2.812%；步距留缝；近大远小 */
     const LEFT_POS = [
-      [20.50, 17.50, 2.265, 3.500], [19.98, 21.15, 2.289, 3.538], [19.47, 24.84, 2.314, 3.575], [18.95, 28.56, 2.338, 3.612],
-      [18.43, 32.32, 2.362, 3.650], [17.92, 36.12, 2.387, 3.688], [17.40, 39.96, 2.411, 3.725], [16.88, 43.84, 2.435, 3.763],
-      [16.37, 47.75, 2.459, 3.800], [15.85, 51.70, 2.484, 3.838], [15.33, 55.69, 2.508, 3.875], [14.82, 59.71, 2.532, 3.913],
-      [14.30, 63.77, 2.556, 3.950]
+      [21.1, 18.6, 2.728, 5.468], [20.56, 22.04, 2.742, 5.496], [20.02, 25.47, 2.756, 5.524], [19.48, 28.91, 2.77, 5.552],
+      [18.93, 32.35, 2.784, 5.581], [18.39, 35.78, 2.798, 5.609], [17.85, 39.22, 2.812, 5.637], [17.31, 42.66, 2.826, 5.665],
+      [16.77, 46.1, 2.84, 5.693], [16.23, 49.53, 2.854, 5.722], [15.68, 52.97, 2.868, 5.75], [15.14, 56.41, 2.882, 5.778],
+      [14.6, 59.84, 2.896, 5.806]
     ];
 
     function sleep(ms) {
@@ -360,12 +372,26 @@
       }
       if (left) {
         left.innerHTML = '';
-        var strip = document.createElement('img');
-        strip.className = 'wall-left-strip';
-        strip.src = WALL_LEFT_STRIP;
-        strip.alt = '';
-        strip.draggable = false;
-        left.appendChild(strip);
+        for (var j = 0; j < WALL_LEFT_STACKS; j++) {
+          var st = makeStackEl(WALL_LEFT_STACK);
+          var pos = LEFT_POS[j] || LEFT_POS[LEFT_POS.length - 1];
+          st.style.left = pos[0] + '%';
+          st.style.top = pos[1] + '%';
+          if (pos[2]) st.style.width = pos[2] + '%';
+          if (pos[3]) st.style.height = pos[3] + '%';
+          st.style.zIndex = String(j + 1);
+          left.appendChild(st);
+        }
+      }
+      var top = el('wallTopVis');
+      if (top) {
+        top.innerHTML = '';
+        var topStrip = document.createElement('img');
+        topStrip.className = 'wall-top-strip';
+        topStrip.src = WALL_TOP_STRIP;
+        topStrip.alt = '';
+        topStrip.draggable = false;
+        top.appendChild(topStrip);
       }
       ring.classList.remove('is-on');
     }
@@ -374,8 +400,8 @@
       const ring = el('wallRing');
       if (!ring) return;
       ring.classList.add('is-on');
-      const leftStrip = ring.querySelector('.wall-left-strip');
-      if (leftStrip) leftStrip.classList.add('is-in');
+      const topStrip = ring.querySelector('.wall-top-strip');
+      if (topStrip) topStrip.classList.add('is-in');
       const stacks = ring.querySelectorAll('.wall-stack');
       for (var i = 0; i < stacks.length; i++) {
         stacks[i].classList.add('is-in');

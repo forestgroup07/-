@@ -1,27 +1,30 @@
-mahjong-m v1.0.6 定版（2026-11-18）
+mahjong-m v1.0.6 定版（2026-11-18 重定）
 
-用户确认：「老天睁眼了 吧此版本存为1.0.6 计入git」
+用户确认：「这个先定位1.0.6」「存入git」
+（本包覆盖同号旧定版：旧包为 wall-left-13 整排 strip；历史快照保留 mahjong-m.LOCKED-1.0.6-strip-era.html / LOCKED-mahjong-wall-left-13-1.0.6.*）
 
 已验收清单（本包算数）：
-- 左墙：整排 13 墩一条图 wall-left-13（用户所给 13 墩源图抠透明、放大）贴左木
-- 左墙渲染：`.wall-left-strip` 单图，不再用 wall-left-stack1 ×13
-- 短边朝桌心（整排源图角度）
-- 沿用 1.0.5：底桌 table-empty-from-ref + 真桌厚度/落影/活光；进房先两骰再出墙；底墙 wall-bot-stack-101 ×14
+- 左墙：用户对标抠图 HQ 单牌叠成【上下两摞】wall-left-stack1 ×13
+- 左墙尺寸：墩宽对齐主手牌墩宽 2.812%；近大远小 LEFT_POS
+- 左墙墩间留缝（步距大于绿面投影）
+- 源单牌：assets/mahjong/tiles/wall-left-hq-from-user-single.png（= LOCKED-…-hq-single-1.0.6.png）
+- 沿用：底桌 table-empty-from-ref；进房先两骰再出墙；底墙 wall-bot-stack-101 ×14；上墙 wall-top-13
 - lobby MAHJONG_M ?v=1.0.6；VERSION-m.txt=1.0.6
 
 未验收、不得当作定版：
-- 左墙 strip 的 left/top/width/height 微调（可后续点名再调，不以未调为定版瑕疵否决本包左墙方案）
-- 右墙/上墙完整四面墙
+- 右墙
 - 吃碰杠玩法与计分
 - PWA 真全屏
-- 此前单墩抠图/提亮实验（wall-left-one-complete 等）不进本定版
+- 发牌飞行动画 / Godot
+- 左墙 LEFT_POS 再微调（可后续点名，不以未调否决本包双层+对齐方案）
 
 回滚：
 - mahjong-m.LOCKED-1.0.6.html
 - lobby.LOCKED-mahjong-m-1.0.6.html
 - js/mahjong-dice-3d.LOCKED-1.0.6.js
 - assets/mahjong/LOCKED-mahjong-m-1.0.6.txt
-- assets/mahjong/tiles/LOCKED-mahjong-wall-left-13-1.0.6.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-left-stack1-1.0.6.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-left-hq-single-1.0.6.png
 - assets/mahjong/tiles/LOCKED-mahjong-wall-bot-stack-101-1.0.6.{png,webp}
 - assets/mahjong/LOCKED-table-empty-from-ref-1.0.6.png
 - assets/mahjong/LOCKED-manifest-m-1.0.6.webmanifest
