@@ -1,0 +1,27 @@
+mahjong-m v1.1.3 定版（2026-11-18）
+
+用户确认：「定位1.1.3 计入git」（当前工作版 1.1.7 内容正式定号）
+
+已验收清单（本包算数）：
+- 沿用 1.1.2：主桌高 11%；对面高 7% / 宽 27.29% 收紧；wall-top-one-flush；左右 HQ 近大远小；干净桌；进房两骰再出墙
+- 桌心出牌计时器：对标公司圆盘体量（桌高约 7.6% 直径）；left 50% / top 47.6%（透视略上移）；10 格每秒一格；中间金色数字倒计时；格闪
+- 超时「系统自动出牌」钩子（手牌未接前 toast + onMahjongAutoDiscard）
+- lobby MAHJONG_M / mahjong-m.html ?v=1.1.3；VERSION-m.txt=1.1.3
+
+未验收、不得当作定版：
+- 匹配入座三人机画面 / 真分牌理牌 / 选手手牌点选出牌接计时器
+- 吃碰杠胡玩法与计分 / PWA 真全屏 / Godot
+
+回滚：
+- mahjong-m.LOCKED-1.1.3.html
+- lobby.LOCKED-mahjong-m-1.1.3.html
+- js/mahjong-dice-3d.LOCKED-1.1.3.js
+- assets/mahjong/LOCKED-mahjong-m-1.1.3.txt
+- assets/mahjong/LOCKED-table-empty-clean-1.1.3.png
+- assets/mahjong/tiles/LOCKED-mahjong-wall-*-1.1.3.*
+- assets/mahjong/ui/LOCKED-turn-timer-ref-1.1.3.png
+- assets/mahjong/LOCKED-manifest-m-1.1.3.webmanifest
+- assets/mahjong/VERSION-m.txt = 1.1.3
+- tag mahjong-m-v1.1.3
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.1.3

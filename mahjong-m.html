@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.2" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.3" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.1.2</title>
+  <title>单人香港麻将 · v1.1.3</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.2" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.3" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -312,6 +312,98 @@
       border: 0;
       background: transparent !important;
     }
+    /* 中央出牌计时器：对标公司体量（约桌高7.6%直径）；桌心；格闪+数字 */
+    .turn-timer {
+      position: absolute;
+      left: 50%;
+      top: 47.6%; /* 透视下几何中心偏近，略往对面移一点 */
+      /* 横桌用高度定直径，避免按宽%显得过大；≈对标公司圆盘 */
+      height: 7.6%;
+      width: auto;
+      aspect-ratio: 1;
+      z-index: 6;
+      transform: translate(-50%, -50%) rotateX(28deg);
+      transform-origin: 50% 50%;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      filter: drop-shadow(0 6px 8px rgba(0,0,0,.55)) drop-shadow(0 2px 2px rgba(0,0,0,.4));
+      transition: opacity .28s ease;
+    }
+    .turn-timer.is-on {
+      opacity: 1;
+      visibility: visible;
+    }
+    .turn-timer svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    .turn-timer .seg {
+      stroke: #0a0a0a;
+      stroke-width: 2.2;
+      stroke-linejoin: round;
+      transition: fill .18s ease, filter .18s ease;
+      filter: drop-shadow(0 1px 0 rgba(255,220,140,.12));
+    }
+    .turn-timer .seg.is-idle {
+      fill: #6b4a2a;
+    }
+    .turn-timer .seg.is-hot {
+      fill: #f0c23a;
+      filter: drop-shadow(0 0 3px rgba(255,200,60,.55));
+      animation: turnSegPulse .9s ease-in-out infinite;
+    }
+    .turn-timer .seg.is-gone {
+      fill: #3a2818;
+    }
+    .turn-timer .hub {
+      fill: #0b0b0b;
+      stroke: #050505;
+      stroke-width: 2.4;
+    }
+    .turn-timer .turn-num {
+      fill: #f6d56a;
+      font-family: "DIN Alternate", "Avenir Next Condensed", "PingFang SC", sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      text-anchor: middle;
+      dominant-baseline: central;
+      letter-spacing: -0.02em;
+      paint-order: stroke fill;
+      stroke: rgba(0,0,0,.75);
+      stroke-width: 1.6;
+      animation: turnNumPulse .9s ease-in-out infinite;
+    }
+    @keyframes turnSegPulse {
+      0%, 100% { fill: #f0c23a; filter: drop-shadow(0 0 2px rgba(255,200,60,.4)); }
+      50% { fill: #ffe27a; filter: drop-shadow(0 0 5px rgba(255,220,90,.75)); }
+    }
+    @keyframes turnNumPulse {
+      0%, 100% { opacity: .92; }
+      50% { opacity: 1; }
+    }
+    .turn-toast {
+      position: absolute;
+      left: 50%;
+      top: 58%;
+      z-index: 8;
+      transform: translate(-50%, -50%);
+      padding: .45em 1.1em;
+      border-radius: 999px;
+      background: rgba(8,12,18,.78);
+      border: 1px solid rgba(212,175,90,.55);
+      color: #f3e2a8;
+      font: 600 13px/1.2 "PingFang SC", "Noto Sans SC", sans-serif;
+      letter-spacing: .04em;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .25s ease;
+      white-space: nowrap;
+    }
+    .turn-toast.is-on { opacity: 1; visibility: visible; }
   </style>
 </head>
 <body>
@@ -321,7 +413,7 @@
         <div class="table-shadow" aria-hidden="true"></div>
         <div class="table-body">
           <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.2" alt="" draggable="false" />
+          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.3" alt="" draggable="false" />
           <div class="table-sheen" aria-hidden="true"></div>
           <div class="table-edge-front" aria-hidden="true"></div>
         </div>
@@ -332,6 +424,8 @@
         <div class="wall wall-right" id="wallRightVis"></div>
         <div class="wall wall-bot" id="wallBot"></div>
       </div>
+      <div class="turn-timer" id="turnTimer" aria-hidden="true"></div>
+      <div class="turn-toast" id="turnToast" aria-hidden="true">系统自动出牌</div>
       <div class="mj-dice3d-layer" id="mjDice3dLayer" aria-hidden="true">
         <canvas id="mjDice3dCanvas" width="640" height="640" data-lite="1" aria-hidden="true"></canvas>
       </div>
@@ -346,17 +440,18 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.2"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.3"></script>
   <script>
   (function () {
-    const V = '1.1.2';
-    /* 1.1.2：主桌高11%；对面高7%槽宽收紧贴实；flush图；定版 */
+    const V = '1.1.3';
+    /* 1.1.3：沿用1.1.2墙；桌心10秒计时器（对标体量/略上移/数字倒计时）定版 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.2';
-    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.2';
-    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.2';
-    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.1.2';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.3';
+    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.3';
+    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.3';
+    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.1.3';
+    const TURN_SECS = 10;
     const WALL_BOT_STACKS = 14;
     const WALL_LEFT_STACKS = 13;
     const WALL_RIGHT_STACKS = 14;
@@ -519,8 +614,163 @@
       await sleep(900);
     }
 
+    /* —— 中央 10 格计时器 —— */
+    var turnTimerState = {
+      segs: [],
+      numEl: null,
+      left: TURN_SECS,
+      tickId: 0,
+      running: false,
+      onTimeout: null
+    };
+
+    function polar(cx, cy, r, a) {
+      return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    }
+    function segPath(i, n, cx, cy, r0, r1, gap) {
+      var step = (Math.PI * 2) / n;
+      var a0 = -Math.PI / 2 + i * step + gap / 2;
+      var a1 = -Math.PI / 2 + (i + 1) * step - gap / 2;
+      var p0 = polar(cx, cy, r1, a0);
+      var p1 = polar(cx, cy, r1, a1);
+      var p2 = polar(cx, cy, r0, a1);
+      var p3 = polar(cx, cy, r0, a0);
+      var large = (a1 - a0) > Math.PI ? 1 : 0;
+      return 'M' + p0[0].toFixed(2) + ' ' + p0[1].toFixed(2) +
+        ' A' + r1 + ' ' + r1 + ' 0 ' + large + ' 1 ' + p1[0].toFixed(2) + ' ' + p1[1].toFixed(2) +
+        ' L' + p2[0].toFixed(2) + ' ' + p2[1].toFixed(2) +
+        ' A' + r0 + ' ' + r0 + ' 0 ' + large + ' 0 ' + p3[0].toFixed(2) + ' ' + p3[1].toFixed(2) +
+        ' Z';
+    }
+    function buildTurnTimer() {
+      var host = el('turnTimer');
+      if (!host) return;
+      host.innerHTML = '';
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 100 100');
+      svg.setAttribute('aria-hidden', 'true');
+      var n = TURN_SECS;
+      var segs = [];
+      for (var i = 0; i < n; i++) {
+        var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('d', segPath(i, n, 50, 50, 28, 46.5, 0.07));
+        p.setAttribute('class', 'seg is-idle');
+        svg.appendChild(p);
+        segs.push(p);
+      }
+      var hub = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      hub.setAttribute('cx', '50');
+      hub.setAttribute('cy', '50');
+      hub.setAttribute('r', '22');
+      hub.setAttribute('class', 'hub');
+      svg.appendChild(hub);
+      var num = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      num.setAttribute('x', '50');
+      num.setAttribute('y', '51');
+      num.setAttribute('class', 'turn-num');
+      num.textContent = String(TURN_SECS);
+      svg.appendChild(num);
+      host.appendChild(svg);
+      turnTimerState.segs = segs;
+      turnTimerState.numEl = num;
+    }
+    function paintTurnTimer() {
+      var left = turnTimerState.left;
+      var segs = turnTimerState.segs;
+      for (var i = 0; i < segs.length; i++) {
+        var seg = segs[i];
+        seg.classList.remove('is-hot', 'is-idle', 'is-gone');
+        if (i < left) {
+          /* 剩余秒：当前秒最亮并闪，其余暖棕 */
+          seg.classList.add(i === left - 1 ? 'is-hot' : 'is-idle');
+        } else {
+          seg.classList.add('is-gone');
+        }
+      }
+      if (turnTimerState.numEl) {
+        turnTimerState.numEl.textContent = String(Math.max(0, left));
+      }
+    }
+    function showTurnToast(msg) {
+      var t = el('turnToast');
+      if (!t) return;
+      if (msg) t.textContent = msg;
+      t.classList.add('is-on');
+      t.setAttribute('aria-hidden', 'false');
+      clearTimeout(showTurnToast._id);
+      showTurnToast._id = setTimeout(function () {
+        t.classList.remove('is-on');
+        t.setAttribute('aria-hidden', 'true');
+      }, 1400);
+    }
+    function stopTurnTimer() {
+      turnTimerState.running = false;
+      if (turnTimerState.tickId) {
+        clearInterval(turnTimerState.tickId);
+        turnTimerState.tickId = 0;
+      }
+    }
+    function hideTurnTimer() {
+      stopTurnTimer();
+      var host = el('turnTimer');
+      if (!host) return;
+      host.classList.remove('is-on');
+      host.setAttribute('aria-hidden', 'true');
+    }
+    /* 选手手动出牌后调用，打断倒计时 */
+    function playerDidDiscard() {
+      stopTurnTimer();
+      hideTurnTimer();
+    }
+    /* 超时：系统代打（手牌未接前先 toast + 钩子；接上手牌后在此打一张） */
+    function systemAutoDiscard() {
+      showTurnToast('系统自动出牌');
+      try {
+        if (typeof window.onMahjongAutoDiscard === 'function') {
+          window.onMahjongAutoDiscard();
+        }
+      } catch (_) {}
+      /* 暂无手牌：演示再开一轮 10 秒，接上手牌后改为进入下一玩家 */
+      setTimeout(function () { startTurnTimer(); }, 900);
+    }
+    function startTurnTimer(onTimeout) {
+      buildTurnTimer();
+      stopTurnTimer();
+      turnTimerState.left = TURN_SECS;
+      turnTimerState.onTimeout = onTimeout || systemAutoDiscard;
+      turnTimerState.running = true;
+      var host = el('turnTimer');
+      if (host) {
+        host.classList.add('is-on');
+        host.setAttribute('aria-hidden', 'false');
+      }
+      paintTurnTimer();
+      turnTimerState.tickId = setInterval(function () {
+        if (!turnTimerState.running) return;
+        turnTimerState.left -= 1;
+        if (turnTimerState.left <= 0) {
+          turnTimerState.left = 0;
+          paintTurnTimer();
+          stopTurnTimer();
+          hideTurnTimer();
+          var fn = turnTimerState.onTimeout;
+          turnTimerState.onTimeout = null;
+          if (fn) fn();
+          return;
+        }
+        paintTurnTimer();
+      }, 1000);
+    }
+    window.MahjongTurnTimer = {
+      start: startTurnTimer,
+      stop: stopTurnTimer,
+      hide: hideTurnTimer,
+      playerDidDiscard: playerDidDiscard
+    };
+
     async function boot() {
       hideDice();
+      hideTurnTimer();
       if (STEP1_FLAT_TABLE_ONLY) {
         var ring = el('wallRing');
         if (ring) {
@@ -538,6 +788,8 @@
       await playDiceToss();
       await revealWall();
       hideDice();
+      /* 本步：墙出齐后开始 10 秒出牌倒计时（演示）；真正出牌回合后接选手手牌 */
+      startTurnTimer();
     }
 
     try {
