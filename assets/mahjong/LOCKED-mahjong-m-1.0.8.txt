@@ -1,0 +1,32 @@
+mahjong-m v1.0.8 定版（2026-11-18）
+
+用户确认：「保存1.0.8并计入git」
+
+已验收清单（本包算数）：
+- 左墙：HQ 单牌 wall-left-one 现场复制 ×13 摞 ×上下 2 张对齐（禁止死双层图）
+- 左墙单张尺度=主手牌；墩缝≈主手牌缝
+- 左墙几乎与左木内缘平行；远约 2cm / 近约 3cm（LEFT_POS 21.90→15.79）
+- 右墙：HQ 上下两摞 wall-right-stack1 ×14
+- 沿用：底桌 table-empty-from-ref；进房先两骰再出墙；底墙 wall-bot-stack-101 ×14；上墙 wall-top-13
+- lobby MAHJONG_M ?v=1.0.8；VERSION-m.txt=1.0.8
+
+未验收、不得当作定版：
+- 左/右墙 LEFT_POS·RIGHT_POS 再微调
+- 吃碰杠玩法与计分
+- PWA 真全屏
+- 发牌飞行动画 / Godot
+
+回滚：
+- mahjong-m.LOCKED-1.0.8.html
+- lobby.LOCKED-mahjong-m-1.0.8.html
+- js/mahjong-dice-3d.LOCKED-1.0.8.js
+- assets/mahjong/LOCKED-mahjong-m-1.0.8.txt
+- assets/mahjong/tiles/LOCKED-mahjong-wall-left-one-1.0.8.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-left-hq-single-1.0.8.png
+- assets/mahjong/tiles/LOCKED-mahjong-wall-right-stack1-1.0.8.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-bot-stack-101-1.0.8.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-top-13-1.0.8.webp
+- assets/mahjong/LOCKED-table-empty-from-ref-1.0.8.png
+- assets/mahjong/LOCKED-manifest-m-1.0.8.webmanifest
+- assets/mahjong/VERSION-m.txt = 1.0.8
+- tag mahjong-m-v1.0.8

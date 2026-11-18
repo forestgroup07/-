@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.6" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.8" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.0.6</title>
+  <title>单人香港麻将 · v1.0.8</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.6" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.8" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -131,7 +131,7 @@
       overflow: visible;
     }
 
-    /* 上墙：正面手牌对面；13 墩整排（1.0.7） */
+    /* 上墙：正面手牌对面；13 墩整排（1.0.8） */
     .wall-top {
       position: absolute;
       left: 34.46%;
@@ -177,7 +177,7 @@
       opacity: 1;
       transform: none;
     }
-    /* 左墙：HQ 单牌 ×13 摞（大小近主手牌） */
+    /* 左墙：HQ 单牌现场复制 ×13 摞×上下 2 张（禁止死双层图） */
     .wall-left {
       position: absolute;
       inset: 0;
@@ -188,7 +188,7 @@
     .wall-left .wall-stack {
       position: absolute;
       width: 2.812%;
-      height: 5.637%;
+      height: 5.752%;
       margin: 0;
       padding: 0;
       opacity: 0;
@@ -216,10 +216,24 @@
         drop-shadow(1px 2px 2px rgba(0, 0, 0, .28))
         drop-shadow(2px 4px 5px rgba(0, 0, 0, .22));
     }
+    /* 单牌现场复制上下 2 张：每张=主手牌单张尺度；上下对齐；缝≈主手牌 */
     .wall-left .stack-img {
-      /* 左侧：短边朝桌心；缝间不要落影，避免墩与墩之间脏边 */
+      object-fit: contain;
       object-position: center center;
       filter: brightness(1.08);
+      width: 100%;
+      height: 74.6%;
+      left: 0;
+    }
+    .wall-left .stack-img.tile-bot {
+      bottom: 0;
+      left: 0;
+      z-index: 1;
+    }
+    .wall-left .stack-img.tile-top {
+      bottom: 25.4%;
+      left: 0;
+      z-index: 2;
     }
     /* 实心底托：不改牌面像素，只垫一层暗影体积 */
     .wall-stack::after {
@@ -236,6 +250,36 @@
     }
     /* 左墙墩缝干净：关掉底托暗影，勿渗进墩间 */
     .wall-left .wall-stack::after {
+      content: none;
+      display: none;
+    }
+    /* 右墙：HQ 上下两摞 ×14；几乎贴右木平行；墩间留缝 */
+    .wall-right {
+      position: absolute;
+      inset: 0;
+      display: block;
+      overflow: visible;
+    }
+    .wall-right .wall-stack {
+      position: absolute;
+      width: 2.812%;
+      height: 4.722%;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+      transform: translateY(3px);
+      transform-origin: right center;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .wall-right .wall-stack.is-in {
+      opacity: 1;
+      transform: none;
+    }
+    .wall-right .stack-img {
+      object-position: center center;
+      filter: brightness(1.08);
+    }
+    .wall-right .wall-stack::after {
       content: none;
       display: none;
     }
@@ -271,7 +315,7 @@
         <div class="table-shadow" aria-hidden="true"></div>
         <div class="table-body">
           <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-from-ref.png?v=1.0.6" alt="" draggable="false" />
+          <img class="scene-bg" src="assets/mahjong/table-empty-from-ref.png?v=1.0.8" alt="" draggable="false" />
           <div class="table-sheen" aria-hidden="true"></div>
           <div class="table-edge-front" aria-hidden="true"></div>
         </div>
@@ -279,6 +323,7 @@
       <div class="wall-ring" id="wallRing">
         <div class="wall wall-left" id="wallLeftVis"></div>
         <div class="wall wall-top" id="wallTopVis"></div>
+        <div class="wall wall-right" id="wallRightVis"></div>
         <div class="wall wall-bot" id="wallBot"></div>
       </div>
       <div class="mj-dice3d-layer" id="mjDice3dLayer" aria-hidden="true">
@@ -295,25 +340,35 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.6"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.8"></script>
   <script>
   (function () {
-    const V = '1.0.6';
-    /* 1.0.6 定版：左墙=用户 HQ 单牌叠成上下两摞 ×13；宽对齐主手牌墩；墩间留缝 */
+    const V = '1.0.8';
+    /* 1.0.8：左墙重做=单牌复制×13×上下2对齐；单张=主手牌；缝≈主手牌；近3cm/远2cm */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.6';
-    const WALL_LEFT_STACK = 'assets/mahjong/tiles/wall-left-stack1.webp?v=1.0.6';
-    const WALL_TOP_STRIP = 'assets/mahjong/tiles/wall-top-13.webp?v=1.0.6';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.8';
+    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.0.8';
+    const WALL_RIGHT_STACK = 'assets/mahjong/tiles/wall-right-stack1.webp?v=1.0.8';
+    const WALL_TOP_STRIP = 'assets/mahjong/tiles/wall-top-13.webp?v=1.0.8';
     const WALL_BOT_STACKS = 14;
     const WALL_LEFT_STACKS = 13;
+    const WALL_RIGHT_STACKS = 14;
     const TABLE_AR = 1024 / 487;
-    /* [left%, top%, w%, h%]：宽=主手牌墩宽 2.812%；步距留缝；近大远小 */
+    /* [left%, top%, w%, h%]：宽=主手牌墩宽；远2cm→近3cm；步距留主手牌级缝 */
+    /* 左墙跟左木内缘几乎平行：远2cm / 近3cm（桌宽≈85cm） */
     const LEFT_POS = [
-      [21.1, 18.6, 2.728, 5.468], [20.56, 22.04, 2.742, 5.496], [20.02, 25.47, 2.756, 5.524], [19.48, 28.91, 2.77, 5.552],
-      [18.93, 32.35, 2.784, 5.581], [18.39, 35.78, 2.798, 5.609], [17.85, 39.22, 2.812, 5.637], [17.31, 42.66, 2.826, 5.665],
-      [16.77, 46.1, 2.84, 5.693], [16.23, 49.53, 2.854, 5.722], [15.68, 52.97, 2.868, 5.75], [15.14, 56.41, 2.882, 5.778],
-      [14.6, 59.84, 2.896, 5.806]
+      [21.90, 18.8, 2.812, 5.752], [21.39, 21.98, 2.812, 5.752], [20.88, 25.17, 2.812, 5.752], [20.37, 28.35, 2.812, 5.752],
+      [19.86, 31.54, 2.812, 5.752], [19.35, 34.72, 2.812, 5.752], [18.85, 37.91, 2.812, 5.752], [18.34, 41.09, 2.812, 5.752],
+      [17.83, 44.28, 2.812, 5.752], [17.32, 47.46, 2.812, 5.752], [16.81, 50.65, 2.812, 5.752], [16.30, 53.83, 2.812, 5.752],
+      [15.79, 57.02, 2.812, 5.752]
+    ];
+    /* 右墙 14 摞：几乎与右木平行（left% 微偏）；宽对齐主手牌；墩间留缝 */
+    const RIGHT_POS = [
+      [76.6, 18.5, 2.728, 4.58], [76.74, 21.42, 2.741, 4.602], [76.88, 24.35, 2.754, 4.624], [77.02, 27.27, 2.767, 4.646],
+      [77.15, 30.2, 2.78, 4.668], [77.29, 33.12, 2.793, 4.689], [77.43, 36.04, 2.806, 4.711], [77.57, 38.97, 2.818, 4.733],
+      [77.71, 41.89, 2.831, 4.755], [77.85, 44.82, 2.844, 4.776], [77.98, 47.74, 2.857, 4.798], [78.12, 50.66, 2.87, 4.82],
+      [78.26, 53.59, 2.883, 4.842], [78.4, 56.51, 2.896, 4.864]
     ];
 
     function sleep(ms) {
@@ -361,9 +416,29 @@
       return s;
     }
 
+    /* 左墙：同一张 HQ 单牌复制两张（下+上，左右对齐），禁止死双层图 */
+    function makeLeftLiveStackEl(src) {
+      const s = document.createElement('div');
+      s.className = 'wall-stack';
+      const bot = document.createElement('img');
+      bot.className = 'stack-img tile-bot';
+      bot.src = src;
+      bot.alt = '';
+      bot.draggable = false;
+      const top = document.createElement('img');
+      top.className = 'stack-img tile-top';
+      top.src = src;
+      top.alt = '';
+      top.draggable = false;
+      s.appendChild(bot);
+      s.appendChild(top);
+      return s;
+    }
+
     function prepareWall() {
       const bot = el('wallBot');
       const left = el('wallLeftVis');
+      const right = el('wallRightVis');
       const ring = el('wallRing');
       if (!ring) return;
       if (bot) {
@@ -373,7 +448,7 @@
       if (left) {
         left.innerHTML = '';
         for (var j = 0; j < WALL_LEFT_STACKS; j++) {
-          var st = makeStackEl(WALL_LEFT_STACK);
+          var st = makeLeftLiveStackEl(WALL_LEFT_ONE);
           var pos = LEFT_POS[j] || LEFT_POS[LEFT_POS.length - 1];
           st.style.left = pos[0] + '%';
           st.style.top = pos[1] + '%';
@@ -381,6 +456,19 @@
           if (pos[3]) st.style.height = pos[3] + '%';
           st.style.zIndex = String(j + 1);
           left.appendChild(st);
+        }
+      }
+      if (right) {
+        right.innerHTML = '';
+        for (var k = 0; k < WALL_RIGHT_STACKS; k++) {
+          var rst = makeStackEl(WALL_RIGHT_STACK);
+          var rpos = RIGHT_POS[k] || RIGHT_POS[RIGHT_POS.length - 1];
+          rst.style.left = rpos[0] + '%';
+          rst.style.top = rpos[1] + '%';
+          if (rpos[2]) rst.style.width = rpos[2] + '%';
+          if (rpos[3]) rst.style.height = rpos[3] + '%';
+          rst.style.zIndex = String(k + 1);
+          right.appendChild(rst);
         }
       }
       var top = el('wallTopVis');
