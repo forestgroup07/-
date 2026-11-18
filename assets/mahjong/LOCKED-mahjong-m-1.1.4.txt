@@ -1,0 +1,29 @@
+mahjong-m v1.1.4 定版（2026-11-19）
+
+用户确认：「把这个保存为1.1.4 并计入git」
+范围：左侧立牌空白 3D（主牌位看左 ×13）；非整页 mahjong-m 玩法包。
+
+已验收清单（本包算数）：
+- 单张空白立牌 3D：DU L:W:T=74:58:32；Tg:Tc=8:24；R≈5；牙左(−X)/绿右(+X 桌心)；透亮
+- 主牌位看左侧 ×13 立牌条带：flush 并排；近端无残缺半张（item1）
+- 工作文件：hand-left-back-one.png/.webp；hand-left-back-x13-leftseat.png
+- 渲染脚本快照：assets/mahjong/LOCKED-mahjong-hand3d-render-1.1.4.py（left 模式取景）
+- HAND-LEFT-VERSION.txt = 1.1.4
+
+未验收、不得当作定版：
+- 整桌贴图角度（item2：公司 ~92° / 木边 −13.5°）
+- 整桌贴图大小（item3：相对木边比例）
+- hand-left-stand13-on-table*.jpg 仅为预览过程图，不定版
+- mahjong-m.html / lobby / 四墙 / 计时器 / 当前工作版 VERSION-m（仍独立）
+- 牌面花色贴图 / 趴牌 3D / 真分牌出牌
+
+回滚：
+- assets/mahjong/tiles/LOCKED-mahjong-hand-left-back-one-1.1.4.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-hand-left-x13-leftseat-1.1.4.png
+- assets/mahjong/preview/LOCKED-mahjong-hand-left-x13-leftseat-1.1.4.jpg
+- assets/mahjong/LOCKED-mahjong-hand3d-render-1.1.4.py
+- assets/mahjong/LOCKED-mahjong-m-1.1.4.txt
+- assets/mahjong/tiles/HAND-LEFT-VERSION.txt = 1.1.4
+- tag mahjong-m-v1.1.4
+
+预览：assets/mahjong/preview/hand-left-back-x13-leftseat.jpg

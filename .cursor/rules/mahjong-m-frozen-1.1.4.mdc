@@ -1,0 +1,21 @@
+# 麻将手机版 v1.1.4 不许再动（左侧立牌 3D）
+
+用户硬规则（2026-11-19 书面「把这个保存为1.1.4 并计入git」→ 本包 `1.1.4` 起生效）：
+
+1. **禁止**未经用户书面点名同意，修改、覆盖、还原、优化、部署本定版**左侧立牌空白 3D**任何一点，包括但不限于：
+   - `assets/mahjong/tiles/hand-left-back-one.png` / `.webp`
+   - `assets/mahjong/tiles/hand-left-back-x13-leftseat.png`
+   - `assets/mahjong/tiles/HAND-LEFT-VERSION.txt` = `1.1.4`
+   - DU `L:W:T=74:58:32` / `Tg:Tc=8:24` / `R≈5`；牙左绿右；主牌位看左 ×13；近端无残缺半张
+   - `assets/mahjong/LOCKED-mahjong-hand3d-render-1.1.4.py` 的 left 取景与本版 `LOCKED-*` 快照
+2. 定版快照（回滚只能用这些）：
+   - `assets/mahjong/tiles/LOCKED-mahjong-hand-left-back-one-1.1.4.{png,webp}`
+   - `assets/mahjong/tiles/LOCKED-mahjong-hand-left-x13-leftseat-1.1.4.png`
+   - `assets/mahjong/preview/LOCKED-mahjong-hand-left-x13-leftseat-1.1.4.jpg`
+   - `assets/mahjong/LOCKED-mahjong-hand3d-render-1.1.4.py`
+   - `assets/mahjong/LOCKED-mahjong-m-1.1.4.txt`
+   - `assets/mahjong/tiles/HAND-LEFT-VERSION.txt` = `1.1.4`
+   - git commit / tag 标明 `mahjong-m-v1.1.4`
+3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
+4. 只有用户明确说「改左侧立牌 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
+5. **本冻结仅左侧立牌空白 3D**；`mahjong-m.html` 整页冻结仍以 `mahjong-m-frozen-1.1.3` 为准。未进本定版：整桌贴图角度/大小、趴牌 3D、花色面。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git`、`mobile-portrait-only` 同时生效；冲突时取更严：默认不动。当前有效**左侧立牌**冻结以**本版**为准。
