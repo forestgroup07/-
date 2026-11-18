@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.9" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.0" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.0.9</title>
+  <title>单人香港麻将 · v1.1.0</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.9" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.0" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -123,38 +123,43 @@
       overflow: visible;
     }
 
-    /* 上墙：正面手牌对面；13 墩整排（1.0.9） */
+    /* 上墙：主牌对面；对面13摞；单墩去左右白边 */
     .wall-top {
       position: absolute;
       left: 34.46%;
       width: 36.56%;
       top: 26.80%;
       height: 10.80%;
-      display: block;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: flex-end;
+      justify-content: center;
       overflow: visible;
       margin: 0;
       padding: 0;
+      gap: 0;
     }
-    .wall-top .wall-top-strip {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+    .wall-top .wall-top-strip { display: none; }
+    .wall-top .wall-stack {
+      position: relative;
+      flex: 0 0 calc(100% / 13);
+      width: calc(100% / 13);
+      height: 90%;
       margin: 0;
       padding: 0;
       opacity: 0;
       transform: translateY(-3px);
       transition: opacity .18s ease, transform .18s ease;
-      pointer-events: none;
-      user-select: none;
-      -webkit-user-drag: none;
-      object-fit: contain;
-      object-position: center bottom;
-      filter: brightness(1.06);
     }
-    .wall-top .wall-top-strip.is-in {
+    .wall-top .wall-stack.is-in {
       opacity: 1;
       transform: none;
+    }
+    .wall-top .stack-img {
+      object-fit: contain;
+      object-position: center bottom;
+      filter: none;
     }
     .wall-bot .wall-stack {
       position: relative;
@@ -169,7 +174,7 @@
       opacity: 1;
       transform: none;
     }
-    /* 左墙：HQ 单牌现场复制 ×13 摞×上下 2 张（禁止死双层图） */
+    /* 左墙：前离木2cm / 尾离木2.5cm；牌尺寸对齐主牌 */
     .wall-left {
       position: absolute;
       inset: 0;
@@ -179,8 +184,8 @@
     .wall-left .wall-left-strip { display: none; }
     .wall-left .wall-stack {
       position: absolute;
-      width: 2.812%;
-      height: 5.752%;
+      width: 3.505%;
+      height: 7.399%;
       margin: 0;
       padding: 0;
       opacity: 0;
@@ -254,8 +259,8 @@
     }
     .wall-right .wall-stack {
       position: absolute;
-      width: 2.812%;
-      height: 5.752%;
+      width: 3.505%;
+      height: 7.399%;
       margin: 0;
       padding: 0;
       opacity: 0;
@@ -313,7 +318,7 @@
         <div class="table-shadow" aria-hidden="true"></div>
         <div class="table-body">
           <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.0.9" alt="" draggable="false" />
+          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.0" alt="" draggable="false" />
           <div class="table-sheen" aria-hidden="true"></div>
           <div class="table-edge-front" aria-hidden="true"></div>
         </div>
@@ -338,34 +343,35 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.9"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.0"></script>
   <script>
   (function () {
-    const V = '1.0.9';
-    /* 1.0.9：干净新桌；左/右近2.5cm大、远2cm小；单牌现场复制 */
+    const V = '1.1.0';
+    /* 1.1.0：定版；左右近大远小；左前2/尾2.5离木；上墙13干净墩 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.9';
-    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.0.9';
-    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.0.9';
-    const WALL_TOP_STRIP = 'assets/mahjong/tiles/wall-top-13.webp?v=1.0.9';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.0';
+    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.0';
+    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.0';
+    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-side-clean.webp?v=1.1.0';
     const WALL_BOT_STACKS = 14;
     const WALL_LEFT_STACKS = 13;
     const WALL_RIGHT_STACKS = 14;
+    const WALL_TOP_STACKS = 13;
     const TABLE_AR = 2048 / 944;
-    /* 左墙：新桌重测；近2.5cm大/远2cm小 */
+    /* 左墙：近大远小（近=现尺寸，远=0.8）；离木位置不变 */
     const LEFT_POS = [
-      [26.62, 18.8, 2.531, 5.177], [25.9, 21.98, 2.554, 5.225], [25.19, 25.17, 2.578, 5.273], [24.47, 28.36, 2.601, 5.321],
-      [23.75, 31.54, 2.625, 5.369], [23.03, 34.73, 2.648, 5.416], [22.32, 37.91, 2.671, 5.464], [21.6, 41.09, 2.695, 5.512],
-      [20.88, 44.28, 2.718, 5.56], [20.16, 47.47, 2.742, 5.608], [19.44, 50.65, 2.765, 5.656], [18.73, 53.83, 2.789, 5.704],
-      [18.01, 57.02, 2.812, 5.752]
+      [27.16, 18.8, 2.804, 5.919], [26.43, 21.98, 2.862, 6.042], [25.89, 25.17, 2.921, 6.166], [25.16, 28.36, 2.979, 6.289],
+      [24.47, 31.54, 3.038, 6.412], [23.89, 34.73, 3.096, 6.536], [23.2, 37.91, 3.154, 6.659], [22.57, 41.09, 3.213, 6.782],
+      [21.93, 44.28, 3.271, 6.906], [21.3, 47.47, 3.33, 7.029], [20.66, 50.65, 3.388, 7.152], [20.03, 53.83, 3.447, 7.276],
+      [19.35, 57.02, 3.505, 7.399]
     ];
-    /* 右墙：新桌重测；近2.5cm大/远2cm小 */
+    /* 右墙：近大远小（近=现尺寸，远=0.8）；右缘不动 */
     const RIGHT_POS = [
-      [74.68, 18.5, 2.531, 5.177], [75.23, 21.46, 2.552, 5.221], [75.79, 24.43, 2.574, 5.265], [76.35, 27.39, 2.596, 5.31],
-      [76.9, 30.35, 2.617, 5.354], [77.46, 33.32, 2.639, 5.398], [78.02, 36.28, 2.661, 5.442], [78.57, 39.24, 2.682, 5.487],
-      [79.13, 42.2, 2.704, 5.531], [79.69, 45.17, 2.725, 5.575], [80.24, 48.13, 2.747, 5.619], [80.8, 51.09, 2.769, 5.664],
-      [81.36, 54.06, 2.79, 5.708], [81.91, 57.02, 2.812, 5.752]
+      [74.41, 18.5, 2.804, 5.919], [74.93, 21.46, 2.858, 6.033], [75.45, 24.43, 2.912, 6.147], [75.98, 27.39, 2.966, 6.261],
+      [76.5, 30.35, 3.02, 6.374], [77.02, 33.32, 3.074, 6.488], [77.56, 36.28, 3.128, 6.602], [78.07, 39.24, 3.181, 6.716],
+      [78.6, 42.2, 3.235, 6.83], [79.13, 45.17, 3.289, 6.944], [79.64, 48.13, 3.343, 7.057], [80.17, 51.09, 3.397, 7.171],
+      [80.7, 54.06, 3.451, 7.285], [81.22, 57.02, 3.505, 7.399]
     ];
 
     function sleep(ms) {
@@ -471,12 +477,7 @@
       var top = el('wallTopVis');
       if (top) {
         top.innerHTML = '';
-        var topStrip = document.createElement('img');
-        topStrip.className = 'wall-top-strip';
-        topStrip.src = WALL_TOP_STRIP;
-        topStrip.alt = '';
-        topStrip.draggable = false;
-        top.appendChild(topStrip);
+        for (var t = 0; t < WALL_TOP_STACKS; t++) top.appendChild(makeStackEl(WALL_TOP_ONE));
       }
       ring.classList.remove('is-on');
     }
@@ -485,8 +486,6 @@
       const ring = el('wallRing');
       if (!ring) return;
       ring.classList.add('is-on');
-      const topStrip = ring.querySelector('.wall-top-strip');
-      if (topStrip) topStrip.classList.add('is-in');
       const stacks = ring.querySelectorAll('.wall-stack');
       for (var i = 0; i < stacks.length; i++) {
         stacks[i].classList.add('is-in');

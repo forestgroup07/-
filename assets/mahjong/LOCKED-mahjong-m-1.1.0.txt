@@ -1,0 +1,31 @@
+mahjong-m v1.1.0 定版（2026-11-18）
+
+用户确认：「太好了 终于有进步了 把这版保存为1.1.0版本 计入git」
+
+已验收清单（本包算数）：
+- 干净新桌 table-empty-clean-v15（无计时/无人头文案）
+- 左墙：HQ wall-left-one 现场×13×上下2；前(近)离左木 2cm；尾(远)离左木 2.5cm；近大远小（近=3.505×7.399，远=0.8）
+- 右墙：HQ wall-right-one 现场×14×上下2；尺寸与左同档；近大远小（近=3.505×7.399，远=0.8）；右缘锚定
+- 上墙：wall-top-one-side-clean ×13；对齐左右侧色；去左右白边
+- 底墙 wall-bot-stack-101 ×14；进房两骰再出墙
+- lobby MAHJONG_M / mahjong-m.html ?v=1.1.0；VERSION-m.txt=1.1.0
+
+未验收、不得当作定版：
+- 远近缩放比例再微调（当前远=近×0.8）
+- 左/右离木厘米再微调
+- 上墙单墩材质/角度再精修
+- 吃碰杠玩法与计分 / PWA 真全屏 / 发牌动画 / Godot
+
+回滚：
+- mahjong-m.LOCKED-1.1.0.html
+- lobby.LOCKED-mahjong-m-1.1.0.html
+- js/mahjong-dice-3d.LOCKED-1.1.0.js
+- assets/mahjong/LOCKED-mahjong-m-1.1.0.txt
+- assets/mahjong/LOCKED-table-empty-clean-1.1.0.png
+- assets/mahjong/tiles/LOCKED-mahjong-wall-left-one-1.1.0.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-right-one-1.1.0.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-bot-stack-101-1.1.0.{png,webp}
+- assets/mahjong/tiles/LOCKED-mahjong-wall-top-one-side-clean-1.1.0.{png,webp}
+- assets/mahjong/LOCKED-manifest-m-1.1.0.webmanifest
+- assets/mahjong/VERSION-m.txt = 1.1.0
+- tag mahjong-m-v1.1.0

@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Forest Group · 大廳</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --panel: #12151c;
+      --gold: #d4b06a;
+      --gold2: #f0d392;
+      --line: rgba(212,176,106,.22);
+      --muted: #9aa0ad;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: #ece7db;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      overflow: hidden;
+    }
+    .app {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+    }
+    .top {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: 0;
+      background: linear-gradient(180deg, #171a22, #10131a);
+      border-bottom: 1px solid var(--line);
+    }
+    .top-row1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+      min-height: 40px;
+      padding: .32rem .55rem;
+    }
+    .top-row2 {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .4rem .55rem .5rem;
+      background: linear-gradient(180deg, rgba(212,176,106,.14), rgba(212,176,106,.05));
+      border-top: 1px solid rgba(212,176,106,.28);
+    }
+    .top-left, .top-right {
+      display: flex; align-items: center; gap: .45rem;
+      min-width: 0;
+    }
+    .top-left {
+      flex: 1;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .top-left::-webkit-scrollbar { display: none; }
+    .user {
+      display: flex; align-items: center; gap: .45rem;
+      font-size: .9rem;
+    }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(160deg, #f0d392, #a67c2e);
+      display: grid; place-items: center;
+      color: #2a1a05; font-weight: 800; font-size: .75rem;
+    }
+    .bal {
+      display: flex; align-items: center; gap: .35rem;
+      color: var(--gold2);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip-ico {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffe9a8, #c9973a 70%);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.25);
+    }
+    .limit {
+      font-size: .78rem;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: .2rem .45rem;
+    }
+    .ref-code {
+      flex: 0 0 auto;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--gold2);
+      border: 1px solid rgba(212,176,106,.45);
+      border-radius: 6px;
+      padding: .38rem .55rem;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+    .invite-btn {
+      flex: 1;
+      border: 0;
+      border-radius: 999px;
+      padding: .42rem .7rem;
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      color: #2a1a05;
+      background: linear-gradient(180deg, #f3dfa0 0%, #d4b06a 48%, #b8893a 100%);
+      box-shadow: 0 0 0 1px rgba(255, 220, 150, .45), 0 4px 14px rgba(212, 176, 106, .4);
+      cursor: pointer;
+      white-space: nowrap;
+      animation: invitePulse 1.6s ease-in-out infinite;
+    }
+    .invite-btn:active { transform: scale(0.98); }
+    .invite-btn.is-copied {
+      animation: none;
+      background: linear-gradient(180deg, #b8f5b0 0%, #6dce66 55%, #3a9e3a 100%);
+      color: #0a0c10;
+    }
+    @keyframes invitePulse {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(255, 220, 150, .45), 0 4px 14px rgba(212, 176, 106, .4); }
+      50% { box-shadow: 0 0 0 3px rgba(240, 211, 146, .55), 0 6px 18px rgba(240, 211, 146, .55); }
+    }
+    .icon-btn {
+      width: 32px; height: 32px;
+      border: 0; border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .95rem;
+      display: grid;
+      place-items: center;
+      line-height: 1;
+    }
+    .icon-btn:hover { color: var(--gold2); background: rgba(255,255,255,.04); }
+    .icon-btn.icon-back {
+      font-size: 1.15rem;
+      color: #ffffff;
+      filter: grayscale(1) brightness(1.35);
+    }
+    .icon-btn.icon-back:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, .1);
+    }
+
+    .body {
+      display: grid;
+      /* 手机竖屏优先：左侧再窄，中间多露牌桌 */
+      grid-template-columns: 78px 1fr;
+      min-height: 0;
+    }
+    .side {
+      background: #0e1117;
+      border-right: 1px solid var(--line);
+      padding: .55rem 0;
+      overflow: auto;
+    }
+    .nav-group { border-bottom: 1px solid rgba(255,255,255,.04); }
+    .nav-parent {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .2rem;
+      padding: .58rem .32rem;
+      border: 0;
+      background: transparent;
+      color: #e8e2d4;
+      font-size: .68rem;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+      letter-spacing: .02em;
+      line-height: 1.25;
+    }
+    .nav-parent:hover { background: rgba(255,255,255,.04); color: #fff; }
+    .nav-group.is-open > .nav-parent {
+      color: #fff;
+      background: linear-gradient(90deg, rgba(212,176,106,.22), transparent);
+    }
+    .nav-group.is-open > .nav-parent::before {
+      content: "";
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--gold);
+    }
+    .nav-caret {
+      font-size: .7rem;
+      color: var(--gold2);
+      transition: transform .18s ease;
+    }
+    .nav-group.is-open > .nav-parent .nav-caret { transform: rotate(90deg); }
+    .nav-group.is-empty > .nav-parent .nav-caret { opacity: .35; }
+    .nav-children {
+      display: none;
+      padding: 0 0 .35rem;
+    }
+    .nav-group.is-open > .nav-children { display: block; }
+    .nav-child {
+      width: 100%;
+      display: block;
+      padding: .36rem .28rem .36rem .42rem;
+      border: 0;
+      background: transparent;
+      color: #a8a396;
+      font-size: .62rem;
+      text-align: left;
+      cursor: pointer;
+      line-height: 1.25;
+    }
+    .nav-child:hover { color: #fff; background: rgba(255,255,255,.03); }
+    .nav-child.is-on {
+      color: var(--gold2);
+      background: rgba(212,176,106,.1);
+    }
+
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(180,140,60,.08), transparent 55%),
+        #0b0d12;
+    }
+    .recent,
+    .hint-bar { display: none !important; }
+
+    .grid {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: .45rem .4rem 1rem;
+      display: grid;
+      /* 手机竖屏：一排两个完整方块，一屏至少看见两个 */
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .4rem;
+      align-content: start;
+    }
+    .card {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #151923;
+      border: 1px solid var(--line);
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+      text-align: left;
+      color: inherit;
+      font: inherit;
+      padding: 0;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-height: 42vw;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(240,211,146,.45);
+      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    }
+    .card.featured {
+      border-color: rgba(240,211,146,.55);
+      box-shadow: 0 0 0 1px rgba(212,176,106,.2), 0 12px 28px rgba(0,0,0,.4);
+    }
+    .card .thumb {
+      flex: 1;
+      min-height: 0;
+      height: auto;
+      background:
+        linear-gradient(180deg, transparent 40%, rgba(0,0,0,.75)),
+        url("assets/lobby-thumb.webp?v=v1.0.30") center / cover no-repeat;
+    }
+    .card.featured .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        url("assets/lobby-thumb.webp?v=v1.0.30") center 30% / cover no-repeat;
+    }
+    /* 打开网站加速：卡片用小缩图，禁止拉 580KB 电脑整图 */
+    .card.sicbo .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        url("assets/lobby-sicbo-thumb.webp?v=1.4.5") center 12% / cover no-repeat;
+    }
+    .card.roulette .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        url("assets/lobby-roulette-thumb.webp?v=1.4.5") center 20% / cover no-repeat;
+    }
+    .card.baccarat .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        url("assets/lobby-baccarat-thumb.webp?v=1.1.1") center 40% / cover no-repeat;
+    }
+    .card.mahjong .thumb {
+      background:
+        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
+        url("assets/lobby-mahjong-thumb.webp?v=0.2.1") center 45% / cover no-repeat;
+    }
+    .card .meta {
+      flex: 0 0 auto;
+      padding: .28rem .35rem .32rem;
+      background: rgba(10, 12, 16, .92);
+    }
+    .card .name {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card .sub {
+      margin-top: .1rem;
+      font-size: .58rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 760px) {
+      .body { grid-template-columns: 72px 1fr; }
+      .card { max-height: 46vw; }
+    }
+    @media (min-width: 761px) {
+      .body { grid-template-columns: 96px 1fr; }
+      .card { max-height: 220px; }
+      .nav-parent { font-size: .76rem; padding: .62rem .45rem; }
+      .nav-child { font-size: .7rem; padding: .4rem .4rem .4rem .55rem; }
+    }
+    /* 手机进桌：透明壳压住大厅（仍看得见大厅）→ 子页就绪再淡入，禁止黑屏 */
+    #fgEmbedShell {
+      position: fixed; inset: 0; z-index: 99999;
+      display: none; background: transparent;
+    }
+    #fgEmbedShell.show { display: block; }
+    #fgEmbedShell.is-ready { background: #0a0c10; }
+    #fgEmbedShell iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      border: 0; background: transparent;
+      opacity: 0;
+    }
+    #fgEmbedShell.is-ready iframe { opacity: 1; }
+    #fgEmbedCover { display: none !important; }
+    /* 进桌壳左上 × 已去掉：子页自带返回；避免盖住记录页标题 */
+    #fgEmbedClose { display: none !important; }
+  </style>
+  <!-- 轮盘首页首开：预取轮盘页+键面；禁止预取骰宝抢带宽 -->
+  <link rel="prefetch" href="roulette-m.html?v=1.6.12" as="document">
+  <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.5.0" type="image/webp" fetchpriority="high">
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="top-row1">
+        <div class="top-left">
+          <div class="user"><span class="avatar" id="lobbyAvatar">F</span><span id="lobbyUser">forest</span></div>
+          <div class="bal"><span class="chip-ico"></span><span id="lobbyBal">—</span></div>
+        </div>
+        <div class="top-right">
+          <button class="icon-btn icon-back" type="button" title="返回" id="logoutBtn" aria-label="返回">🔙</button>
+        </div>
+      </div>
+      <div class="top-row2">
+        <div class="ref-code" id="lobbyRef" title="我的推荐码">推荐码 —</div>
+        <button type="button" class="invite-btn" id="lobbyInvite" title="一点复制邀请链接，发给 WhatsApp 朋友">邀请链接 · 一点复制</button>
+      </div>
+    </header>
+
+    <div class="body">
+      <nav class="side" aria-label="游戏分类">
+        <div class="nav-group is-open" data-group="table">
+          <button class="nav-parent" type="button" data-group="table">桌面游戏 <span class="nav-caret">▶</span></button>
+          <div class="nav-children">
+            <button class="nav-child" type="button" data-enter="sicbo">骰宝</button>
+            <button class="nav-child" type="button" data-enter="roulette">轮盘</button>
+            <button class="nav-child" type="button" data-enter="baccarat">百家乐</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="21点">21点</button>
+          </div>
+        </div>
+        <div class="nav-group" data-group="board">
+          <button class="nav-parent" type="button" data-group="board">棋牌游戏 <span class="nav-caret">▶</span></button>
+          <div class="nav-children">
+            <button class="nav-child" type="button" data-enter="mahjong">单人香港麻将</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="多人香港麻将">多人香港麻将</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="四人香港麻将">四人香港麻将</button>
+          </div>
+        </div>
+        <div class="nav-group is-empty" data-group="elec">
+          <button class="nav-parent" type="button" data-group="elec">电子游戏 <span class="nav-caret">▶</span></button>
+        </div>
+        <div class="nav-group is-empty" data-group="live">
+          <button class="nav-parent" type="button" data-group="live">真人游戏 <span class="nav-caret">▶</span></button>
+        </div>
+      </nav>
+
+      <main class="main">
+        <div class="grid" id="grid"></div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const GAME_PC = 'game.html?v=1.5.18';
+      const GAME_M = 'game-m.html?v=2.8.0';
+      const ROULETTE_PC = 'roulette.html?v=1.2.11';
+      const ROULETTE_M = 'roulette-m.html?v=2.8.0';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.8.0';
+      const BACCARAT_M = 'baccarat-m.html?v=1.1.2';
+      const MAHJONG_M = 'mahjong-m.html?v=1.1.0';
+      function isMobileClient() {
+        try {
+          if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
+          if (window.matchMedia && window.matchMedia('(max-width: 820px)').matches) return true;
+        } catch (_) {}
+        return false;
+      }
+      const GAME = isMobileClient() ? GAME_M : GAME_PC;
+      /* 手机轮盘：大厅 iframe 直进（不再走过渡页，避免又慢又丢声音手势） */
+      const ROULETTE = isMobileClient() ? ROULETTE_M : ROULETTE_PC;
+      const SHELL_V = '1.3.9h';
+      /* 父页播控：解锁禁播滚球长片；欢迎在点击手势内播，避免进桌无欢迎 */
+      const ShellSfx = {
+        els: Object.create(null),
+        src: {
+          welcome: 'audio/welcome-roulette.mp3?v=' + SHELL_V,
+          welcomeSicbo: 'audio/welcome.mp3?v=1.5.15',
+          startBet: 'audio/start-bet.mp3?v=' + SHELL_V,
+          roundOpen: 'audio/round-open-bet.mp3?v=' + SHELL_V,
+          stopBet: 'audio/stop-bet.mp3?v=' + SHELL_V,
+          betOk: 'audio/bet-ok.mp3?v=1.5.15',
+          tick: 'audio/tick.mp3?v=' + SHELL_V,
+          bombTick: 'audio/bomb-tick.mp3?v=' + SHELL_V,
+          keyClick: 'audio/key-click.mp3?v=' + SHELL_V,
+          ballRoll: 'audio/roulette-ball-roll.mp3?v=' + SHELL_V,
+          fret0: 'audio/roulette-fret-click-0.mp3?v=' + SHELL_V,
+          fret1: 'audio/roulette-fret-click-1.mp3?v=' + SHELL_V,
+          fret2: 'audio/roulette-fret-click-2.mp3?v=' + SHELL_V,
+        },
+        defaultVol: {
+          tick: 0.52,
+          bombTick: 0.62,
+          keyClick: 0.7,
+          ballRoll: 1,
+          fret0: 0.9,
+          fret1: 0.9,
+          fret2: 0.9,
+          betOk: 1,
+        },
+        voiceKeys: { welcome: 1, welcomeSicbo: 1, startBet: 1, roundOpen: 1, stopBet: 1, betOk: 1 },
+        /* 解锁静音试播：禁止 ballRoll/fret（长片会在开局漏出滚球声） */
+        unlockPlayKeys: {
+          welcome: 1, welcomeSicbo: 1, startBet: 1, roundOpen: 1, stopBet: 1, betOk: 1,
+          tick: 1, bombTick: 1, keyClick: 1,
+        },
+        ctx: null,
+        live: Object.create(null),
+        primed: false,
+        heavyScheduled: false,
+        embedWelcomeOk: null,
+        embedWelcomeP: null,
+        embedKind: null, /* 'roulette' | 'sicbo' */
+        sicboReady: false,
+        /* 步骤3：骰宝静音只认子页 Voice.muted + fg_sicbo_m_sound_mute；父页不再代查/代判 */
+        ensureEl(key) {
+          if (this.els[key]) return this.els[key];
+          const src = this.src[key];
+          if (!src) return null;
+          const a = new Audio(src);
+          /* 欢迎首包用 metadata，避免进桌瞬间与键面图抢满带宽 */
+          a.preload = (key === 'welcome' || key === 'welcomeSicbo') ? 'metadata' : 'auto';
+          this.els[key] = a;
+          return a;
+        },
+        reply(id, ok) {
+          if (!id) return;
+          try {
+            const frame = document.getElementById('fgEmbedFrame');
+            if (frame && frame.contentWindow) {
+              frame.contentWindow.postMessage({ type: 'fg-sfx-done', id: id, ok: !!ok }, '*');
+            }
+          } catch (_) {}
+        },
+        replyWelcome(ok) {
+          try {
+            const frame = document.getElementById('fgEmbedFrame');
+            if (frame && frame.contentWindow) {
+              frame.contentWindow.postMessage({ type: 'fg-welcome', ok: !!ok }, '*');
+            }
+          } catch (_) {}
+        },
+        playWelcomeForEmbed() {
+          if (this.embedWelcomeP) return this.embedWelcomeP;
+          this.embedWelcomeP = this.playAwait('welcome').then((ok) => {
+            this.embedWelcomeOk = !!ok;
+            this.replyWelcome(!!ok);
+            return !!ok;
+          });
+          return this.embedWelcomeP;
+        },
+        /* 步骤4/5：骰宝父页极轻解锁——只 AudioContext；不 ensureEl 口播片、不真播、不 scheduleHeavy */
+        primeSicboGesture() {
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+              this.ctx = this.ctx || new AC();
+              if (this.ctx.state === 'suspended') this.ctx.resume();
+              const buf = this.ctx.createBuffer(1, 1, 22050);
+              const src = this.ctx.createBufferSource();
+              src.buffer = buf;
+              src.connect(this.ctx.destination);
+              src.start(0);
+            }
+          } catch (_) {}
+        },
+        /* 轮盘步骤1：父页极轻解锁；口播/滚球/隔板留给子页（步骤2） */
+        primeRouletteGesture() {
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+              this.ctx = this.ctx || new AC();
+              if (this.ctx.state === 'suspended') this.ctx.resume();
+              const buf = this.ctx.createBuffer(1, 1, 22050);
+              const src = this.ctx.createBufferSource();
+              src.buffer = buf;
+              src.connect(this.ctx.destination);
+              src.start(0);
+            }
+          } catch (_) {}
+        },
+        resetEmbedWelcome() {
+          this.embedWelcomeOk = null;
+          this.embedWelcomeP = null;
+          this.sicboReady = false;
+          this.heavyScheduled = false;
+        },
+        /* 进桌瞬时：只解锁 AudioContext + 欢迎，不预拉全套音效（恢复首屏速度） */
+        primeLight() {
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+              this.ctx = this.ctx || new AC();
+              if (this.ctx.state === 'suspended') this.ctx.resume();
+              const buf = this.ctx.createBuffer(1, 1, 22050);
+              const src = this.ctx.createBufferSource();
+              src.buffer = buf;
+              src.connect(this.ctx.destination);
+              src.start(0);
+            }
+          } catch (_) {}
+          this.ensureEl(this.embedKind === 'sicbo' ? 'welcomeSicbo' : 'welcome');
+        },
+        /* 桌内已出来后再预热其余音效；ballRoll 只 load 不 play */
+        primeHeavy() {
+          /* 骰宝/轮盘/百家乐均不走 heavy（杜绝父页点亮音轨漏播） */
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette' || this.embedKind === 'baccarat' || this.embedKind === 'mahjong') return;
+          Object.keys(this.src).forEach((k) => {
+            this.ensureEl(k);
+          });
+          ['ballRoll', 'fret0', 'fret1', 'fret2'].forEach((k) => {
+            const el = this.els[k];
+            if (!el) return;
+            try { el.preload = 'auto'; el.load(); } catch (_) {}
+          });
+          if (this.primed) return;
+          this.primed = true;
+          Object.keys(this.unlockPlayKeys).forEach((k) => {
+            if (k === 'welcome' || k === 'welcomeSicbo') return;
+            const el = this.els[k];
+            if (!el) return;
+            try {
+              el.muted = true;
+              el.volume = 0;
+              const p = el.play();
+              const reset = () => {
+                try { el.pause(); el.currentTime = 0; el.muted = false; el.volume = 1; } catch (_) {}
+              };
+              if (p && p.then) p.then(reset).catch(reset);
+              else reset();
+            } catch (_) {}
+          });
+        },
+        scheduleHeavy(delayMs) {
+          /* 骰宝/轮盘/百家乐禁止 scheduleHeavy */
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette' || this.embedKind === 'baccarat' || this.embedKind === 'mahjong') return;
+          if (this.heavyScheduled) return;
+          this.heavyScheduled = true;
+          const run = () => { try { this.primeHeavy(); } catch (_) {} };
+          const wait = delayMs == null ? 1800 : delayMs;
+          try {
+            if (typeof requestIdleCallback === 'function' && wait <= 2000) {
+              requestIdleCallback(run, { timeout: Math.max(2800, wait + 500) });
+              return;
+            }
+          } catch (_) {}
+          setTimeout(run, wait);
+        },
+        prime() {
+          if (this.embedKind === 'sicbo' || this.embedKind === 'baccarat' || this.embedKind === 'mahjong') {
+            this.primeSicboGesture();
+            return;
+          }
+          /* 轮盘步骤1：只极轻解锁，不 scheduleHeavy、不预热口播片 */
+          if (this.embedKind === 'roulette') {
+            this.primeRouletteGesture();
+            return;
+          }
+          this.primeLight();
+          this.scheduleHeavy(1800);
+        },
+        stopVoice() {
+          Object.keys(this.voiceKeys).forEach((k) => {
+            const el = this.els[k];
+            if (!el) return;
+            try { el.pause(); el.currentTime = 0; el.onended = null; el.onerror = null; } catch (_) {}
+          });
+          if (this.live.enNum) {
+            try { this.live.enNum.pause(); this.live.enNum.currentTime = 0; } catch (_) {}
+            delete this.live.enNum;
+          }
+        },
+        stop(key) {
+          if (key === 'ballRoll') {
+            const a = this.live.ballRoll || this.els.ballRoll;
+            if (a) try { a.pause(); a.currentTime = 0; } catch (_) {}
+            delete this.live.ballRoll;
+            return;
+          }
+          const a = this.live[key] || this.els[key];
+          if (!a) return;
+          try { a.pause(); a.currentTime = 0; } catch (_) {}
+          delete this.live[key];
+        },
+        /* 口播/报数：优先 ended；手机常不触发 ended → 按片长收尾，避免卡死倒计时 */
+        voiceEstMs: { welcome: 2000, welcomeSicbo: 2000, startBet: 1100, roundOpen: 1100, stopBet: 1100, enNum: 1600 },
+        playAwait(key, vol) {
+          return new Promise((resolve) => {
+            if (!key || key === 'youWin' || key === 'beep') {
+              resolve(false);
+              return;
+            }
+            /* 骰宝/轮盘桌内父页一律不代播（轮盘步骤1） */
+            if (this.embedKind === 'sicbo' || this.embedKind === 'roulette') {
+              resolve(false);
+              return;
+            }
+            let done = false;
+            const finish = (ok) => {
+              if (done) return;
+              done = true;
+              resolve(!!ok);
+            };
+            const armDuration = (el, fallbackMs) => {
+              let ms = fallbackMs;
+              try {
+                if (el && el.duration && isFinite(el.duration) && el.duration > 0) {
+                  ms = Math.round(el.duration * 1000) + 120;
+                }
+              } catch (_) {}
+              setTimeout(() => finish(true), Math.min(8000, Math.max(400, ms)));
+            };
+            try {
+              if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+              if (key === 'enNum') {
+                this.stopVoice();
+                const n = Math.max(0, Math.min(36, Number(vol) || 0));
+                const a = new Audio('audio/roulette-en/n' + n + '.mp3?v=' + SHELL_V);
+                a.volume = 1;
+                this.live.enNum = a;
+                a.onended = () => finish(true);
+                a.onerror = () => finish(false);
+                const p = a.play();
+                if (p && p.then) p.then(() => armDuration(a, this.voiceEstMs.enNum)).catch(() => finish(false));
+                else armDuration(a, this.voiceEstMs.enNum);
+                return;
+              }
+              if (!this.voiceKeys[key] || !this.src[key]) {
+                this.play(key, vol);
+                finish(true);
+                return;
+              }
+              this.stopVoice();
+              const el = this.ensureEl(key);
+              if (!el) { finish(false); return; }
+              el.muted = false;
+              el.volume = 1;
+              try { el.onended = null; el.onerror = null; } catch (_) {}
+              el.pause();
+              el.currentTime = 0;
+              el.onended = () => finish(true);
+              el.onerror = () => finish(false);
+              const est = this.voiceEstMs[key] || 1200;
+              const p = el.play();
+              if (p && p.then) p.then(() => armDuration(el, est)).catch(() => finish(false));
+              else armDuration(el, est);
+            } catch (_) {
+              finish(false);
+            }
+          });
+        },
+        play(key, vol) {
+          if (!key) return;
+          if (key === 'youWin' || key === 'beep') return;
+          /* 骰宝/轮盘桌内父页一律不代播（轮盘步骤1） */
+          if (this.embedKind === 'sicbo' || this.embedKind === 'roulette') return;
+          if (key === 'enNum') {
+            void this.playAwait('enNum', vol);
+            return;
+          }
+          const src = this.src[key];
+          if (!src) return;
+          try {
+            if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            const dv = this.defaultVol[key];
+            const v = vol != null ? vol : (dv != null ? dv : 1);
+            if (this.voiceKeys[key]) {
+              this.stopVoice();
+              const el = this.ensureEl(key);
+              if (!el) return;
+              el.muted = false;
+              el.volume = 1;
+              el.pause();
+              el.currentTime = 0;
+              const p = el.play();
+              if (p && p.catch) p.catch(() => {});
+              return;
+            }
+            if (key === 'ballRoll') {
+              this.stop('ballRoll');
+              const el = this.ensureEl(key);
+              if (!el) return;
+              el.muted = false;
+              el.volume = v;
+              el.pause();
+              el.currentTime = 0;
+              this.live.ballRoll = el;
+              const p = el.play();
+              if (p && p.catch) p.catch(() => {});
+              return;
+            }
+            if (key === 'tick' || key === 'bombTick' || key === 'keyClick') {
+              const el = this.ensureEl(key);
+              if (!el) return;
+              el.muted = false;
+              el.pause();
+              el.currentTime = 0;
+              el.volume = v;
+              const p = el.play();
+              if (p && p.catch) p.catch(() => {});
+              return;
+            }
+            const base = this.ensureEl(key);
+            if (!base) return;
+            const a = base.cloneNode();
+            a.muted = false;
+            a.volume = v;
+            const p = a.play();
+            if (p && p.catch) p.catch(() => {});
+          } catch (_) {}
+        },
+      };
+      let embedReadyTimer = 0;
+      function revealEmbed() {
+        if (embedReadyTimer) {
+          clearTimeout(embedReadyTimer);
+          embedReadyTimer = 0;
+        }
+        const shell = document.getElementById('fgEmbedShell');
+        if (shell) shell.classList.add('is-ready');
+      }
+      function ensureEmbedShell() {
+        let shell = document.getElementById('fgEmbedShell');
+        if (shell) return shell;
+        shell = document.createElement('div');
+        shell.id = 'fgEmbedShell';
+        /* 不再挂左上 ×：桌内用返回箭头 ‹ 回大厅 */
+        shell.innerHTML = '<iframe id="fgEmbedFrame" allow="autoplay *; fullscreen *" title="game"></iframe>';
+        document.body.appendChild(shell);
+        const frame = document.getElementById('fgEmbedFrame');
+        if (frame) {
+          frame.addEventListener('load', () => {
+            /* 兜底：HTML 到了仍无 ready 时，最长再等一会揭开，绝不长期黑屏 */
+            if (embedReadyTimer) clearTimeout(embedReadyTimer);
+            embedReadyTimer = setTimeout(revealEmbed, 1600);
+          });
+        }
+        window.addEventListener('message', (ev) => {
+          const d = ev && ev.data;
+          if (!d || typeof d !== 'object') return;
+          if (d.type === 'fg-sfx-prime') {
+            /* 骰宝/轮盘/百家乐只极轻 AudioContext；禁止拉全套代播 */
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') ShellSfx.primeSicboGesture();
+            else if (ShellSfx.embedKind === 'roulette') ShellSfx.primeRouletteGesture();
+            else ShellSfx.prime();
+          }
+          if (d.type === 'fg-sicbo-ready') {
+            ShellSfx.sicboReady = true;
+            revealEmbed();
+            /* 步骤1：只揭桌，不代播欢迎/开始下注 */
+            ShellSfx.embedWelcomeOk = true;
+            ShellSfx.replyWelcome(true);
+          }
+          if (d.type === 'fg-embed-ready' || d.type === 'fg-roulette-ready') {
+            revealEmbed();
+            if (d.type === 'fg-roulette-ready' && ShellSfx.embedKind === 'roulette') {
+              /* 轮盘步骤1：只揭桌回执，不代播欢迎 */
+              ShellSfx.embedWelcomeOk = true;
+              ShellSfx.replyWelcome(true);
+            }
+            if (d.type === 'fg-embed-ready' && (ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong')) {
+              /* 百家乐对齐骰宝：只揭桌，父页不代播 */
+              ShellSfx.embedWelcomeOk = true;
+              ShellSfx.replyWelcome(true);
+            }
+          }
+          if (d.type === 'fg-want-welcome') {
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette' || ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') {
+              ShellSfx.embedWelcomeOk = true;
+              ShellSfx.replyWelcome(true);
+            } else if (ShellSfx.embedWelcomeOk != null) {
+              ShellSfx.replyWelcome(ShellSfx.embedWelcomeOk);
+            } else {
+              void ShellSfx.playWelcomeForEmbed();
+            }
+          }
+          if (d.type === 'fg-sfx') {
+            if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette' || ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') {
+              /* 骰宝/轮盘/百家乐/麻将父页不代播任何 fg-sfx；子页自播 */
+              if (d.id) ShellSfx.reply(d.id, false);
+            } else if ((d.key === 'welcome' || d.key === 'welcomeSicbo') && d.id) {
+              ShellSfx.playWelcomeForEmbed().then((ok) => ShellSfx.reply(d.id, ok));
+            } else if (d.id) {
+              ShellSfx.playAwait(d.key, d.vol).then((ok) => ShellSfx.reply(d.id, ok));
+            } else {
+              ShellSfx.play(d.key, d.vol);
+            }
+          }
+          if (d.type === 'fg-sfx-stop') ShellSfx.stop(d.key);
+          if (d.type === 'fg-embed-close') closeEmbedShell();
+        });
+        return shell;
+      }
+      function closeEmbedShell() {
+        try { ShellSfx.stop('ballRoll'); ShellSfx.stopVoice(); } catch (_) {}
+        ShellSfx.resetEmbedWelcome();
+        if (embedReadyTimer) {
+          clearTimeout(embedReadyTimer);
+          embedReadyTimer = 0;
+        }
+        const shell = document.getElementById('fgEmbedShell');
+        const frame = document.getElementById('fgEmbedFrame');
+        if (shell) shell.classList.remove('show', 'is-ready');
+        if (frame) frame.src = 'about:blank';
+        /* 从桌内返回：立刻刷新顶栏真实余额 */
+        syncBalFromServer(currentUser()).then((n) => {
+          if (n != null) paintUserBar();
+        });
+      }
+      function openEmbedShell(url) {
+        ShellSfx.stop('ballRoll');
+        ShellSfx.resetEmbedWelcome();
+        ShellSfx.embedKind = /game-m\.html/.test(url)
+          ? 'sicbo'
+          : /roulette-m\.html/.test(url)
+            ? 'roulette'
+            : /baccarat-m\.html/.test(url)
+              ? 'baccarat'
+              : /mahjong-m\.html/.test(url)
+                ? 'mahjong'
+                : null;
+        const shell = ensureEmbedShell();
+        const frame = document.getElementById('fgEmbedFrame');
+        /* 点进桌：大厅不卸、不盖黑/海报；子页 ready 再淡入桌面 */
+        shell.classList.remove('is-ready');
+        shell.classList.add('show');
+        if (embedReadyTimer) clearTimeout(embedReadyTimer);
+        embedReadyTimer = setTimeout(revealEmbed, 2200);
+        const join = url.indexOf('?') >= 0 ? '&' : '?';
+        /* 百家乐/麻将 embed：带上登录账号，子页 iframe 读不到父页 sessionStorage */
+        let embedQs = 'embed=1';
+        if (ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') {
+          try {
+            const u = encodeURIComponent(currentUser());
+            if (u) embedQs += '&user=' + u;
+          } catch (_) {}
+        }
+        frame.src = url + join + embedQs;
+        if (ShellSfx.embedKind === 'roulette') {
+          /* 轮盘步骤1：手势内只极轻 AudioContext；口播改子页自播（步骤2） */
+          ShellSfx.primeRouletteGesture();
+        } else if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') {
+          /* 骰宝/百家乐/麻将：进桌手势只极轻 AudioContext；口播全子页 */
+          ShellSfx.primeSicboGesture();
+        } else {
+          ShellSfx.primeLight();
+        }
+      }
+      const START_BAL = 2000;
+      const ACCOUNT_API = 'api/fg-wallet-account.php';
+      function currentUser() {
+        try {
+          const u = (sessionStorage.getItem('fg_sicbo_user')
+            || localStorage.getItem('fg_sicbo_last_user')
+            || 'asdg').trim();
+          return u || 'asdg';
+        } catch (_) {
+          return 'asdg';
+        }
+      }
+      function balKeyFor(user) {
+        return 'fg_sicbo_bal::' + String(user || 'asdg').trim().toLowerCase();
+      }
+      function loadBal(user) {
+        try {
+          let raw = localStorage.getItem(balKeyFor(user));
+          if (raw == null || raw === '') {
+            raw = localStorage.getItem('fg_sicbo_balance');
+          }
+          if (raw == null || raw === '') return START_BAL;
+          const n = Math.round(Number(raw));
+          return Number.isFinite(n) && n >= 0 ? n : START_BAL;
+        } catch (_) {
+          return START_BAL;
+        }
+      }
+      function saveBalLocal(user, n) {
+        const v = String(Math.max(0, Math.round(Number(n) || 0)));
+        try {
+          localStorage.setItem(balKeyFor(user), v);
+          localStorage.setItem('fg_sicbo_balance', v);
+          localStorage.setItem('fg_sicbo_last_user', user);
+        } catch (_) {}
+      }
+      function fmtBal(n) {
+        return Math.max(0, Math.round(Number(n) || 0)).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      }
+      function paintBalOnly(n) {
+        const balEl = document.getElementById('lobbyBal');
+        if (!balEl || n == null || !Number.isFinite(Number(n))) return;
+        balEl.textContent = fmtBal(n);
+      }
+      async function syncBalFromServer(user) {
+        try {
+          /* lean=1：只取真实余额，不下载整包流水 */
+          const r = await fetch(
+            ACCOUNT_API + '?user=' + encodeURIComponent(user) + '&lean=1',
+            { cache: 'no-store' }
+          );
+          const j = await r.json();
+          if (!j || !j.ok || !j.data) return null;
+          if (j.data.balance == null) return null;
+          const n = Math.max(0, Math.round(Number(j.data.balance)));
+          if (!Number.isFinite(n)) return null;
+          saveBalLocal(user, n);
+          paintBalOnly(n);
+          return n;
+        } catch (_) {
+          return null;
+        }
+      }
+      try {
+        if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
+          location.replace('index.html?v=v1.0.53');
+          return;
+        }
+        let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
+        if (!u) {
+          u = currentUser();
+          sessionStorage.setItem('fg_sicbo_user', u);
+          localStorage.setItem('fg_sicbo_last_user', u);
+        }
+      } catch (_) { /* ignore */ }
+
+      function paintUserBar() {
+        const u = currentUser();
+        const nameEl = document.getElementById('lobbyUser');
+        const av = document.getElementById('lobbyAvatar');
+        const balEl = document.getElementById('lobbyBal');
+        const refEl = document.getElementById('lobbyRef');
+        const inviteEl = document.getElementById('lobbyInvite');
+        if (nameEl) nameEl.textContent = u;
+        if (av) av.textContent = (u.charAt(0) || 'F').toUpperCase();
+        if (balEl) {
+          /* 本地有缓存先显示；最终以服务器真实余额为准（不是写死 2000） */
+          const localN = loadBal(u);
+          balEl.textContent = localN === START_BAL && !localStorage.getItem(balKeyFor(u)) && !localStorage.getItem('fg_sicbo_balance')
+            ? '…'
+            : fmtBal(localN);
+        }
+        let code = String(u || '').toUpperCase();
+        try {
+          const raw = sessionStorage.getItem('fg_sicbo_profile');
+          if (raw) {
+            const p = JSON.parse(raw);
+            if (p && p.referralCode) code = String(p.referralCode).toUpperCase();
+            if (p && p.nick && nameEl) nameEl.textContent = p.nick;
+          }
+        } catch (_) {}
+        if (refEl) refEl.textContent = '推荐码 ' + (code || '—');
+        if (inviteEl) {
+          inviteEl.dataset.code = code || '';
+          if (!inviteEl.dataset.bound) {
+            inviteEl.dataset.bound = '1';
+            inviteEl.addEventListener('click', async () => {
+              const c = inviteEl.dataset.code || '';
+              const link = location.origin + '/index.html?v=v1.0.53&ref=' + encodeURIComponent(c);
+              const done = () => {
+                inviteEl.classList.add('is-copied');
+                inviteEl.textContent = '已复制 · 去 WhatsApp 粘贴';
+                setTimeout(() => {
+                  inviteEl.classList.remove('is-copied');
+                  inviteEl.textContent = '邀请链接 · 一点复制';
+                }, 2200);
+              };
+              try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  await navigator.clipboard.writeText(link);
+                  done();
+                } else {
+                  prompt('邀请链接（长按复制后发 WhatsApp）', link);
+                }
+              } catch (_) {
+                prompt('邀请链接（长按复制后发 WhatsApp）', link);
+              }
+            });
+          }
+        }
+      }
+      paintUserBar();
+      (async () => {
+        const u = currentUser();
+        const n = await syncBalFromServer(u);
+        if (n != null) paintUserBar();
+      })();
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) return;
+        paintUserBar();
+        syncBalFromServer(currentUser()).then((n) => {
+          if (n != null) paintUserBar();
+        });
+      });
+
+      /* 中间始终展示全部，显得多；可进桌的保留进桌，其余演示 */
+      const tables = [
+        { id: 'S601', name: '骰宝 S601', kind: 'sicbo', featured: true, enter: 'sicbo', sec: 22 },
+        { id: 'R501', name: '轮盘 R501', kind: 'roulette', featured: true, enter: 'roulette', sec: 20 },
+        { id: 'B601', name: '百家乐 B601', kind: 'baccarat', featured: true, enter: 'baccarat', sec: 20 },
+        { id: 'BJ01', name: '21点 BJ01', kind: 'blackjack', featured: true, enter: '', sec: 18 },
+        { id: 'M701', name: '单人香港麻将', kind: 'mahjong', featured: true, enter: 'mahjong', sec: 20 },
+        { id: 'M702', name: '多人香港麻将', kind: 'mahjong', featured: true, enter: '', sec: 18 },
+        { id: 'M703', name: '四人香港麻将', kind: 'mahjong', featured: true, enter: '', sec: 18 },
+        { id: 'E101', name: '电子厅 E101', kind: 'elec', enter: '', sec: 14 },
+        { id: 'E102', name: '电子厅 E102', kind: 'elec', enter: '', sec: 14 },
+        { id: 'L201', name: '真人厅 L201', kind: 'live', enter: '', sec: 16 },
+        { id: 'L202', name: '真人厅 L202', kind: 'live', enter: '', sec: 16 },
+        { id: 'F701', name: '鱼虾蟹 F701', kind: 'other', enter: '', sec: 15 },
+        { id: 'BB701', name: '牛牛 BB701', kind: 'other', enter: '', sec: 16 },
+        { id: 'W701', name: '三公 W701', kind: 'other', enter: '', sec: 12 },
+        { id: 'D801', name: '龙虎 D801', kind: 'other', enter: '', sec: 14 },
+        { id: 'B501', name: '百家乐 B501', kind: 'baccarat', enter: '', sec: 11 },
+      ];
+
+      const grid = document.getElementById('grid');
+
+      function enterSicbo() {
+        /* 手机：iframe 进桌；只写子页静音 key（步骤3单一真相），父页不据此代播 */
+        if (isMobileClient()) {
+          try { localStorage.setItem('fg_sicbo_m_sound_mute', '1'); } catch (_) {}
+          openEmbedShell(GAME_M);
+          return;
+        }
+        location.href = GAME;
+      }
+      function enterRoulette() {
+        /* 手机：与骰宝同款 iframe 进桌（用户书面改回）；只写子页静音 key，父页不代播 */
+        if (isMobileClient()) {
+          try { localStorage.setItem('fg_roulette_m_sound_mute', '1'); } catch (_) {}
+          openEmbedShell(ROULETTE_M);
+          return;
+        }
+        location.href = ROULETTE;
+      }
+      function enterBaccarat() {
+        /* 手机百家乐厅：iframe 进桌；不影响骰宝/轮盘 */
+        if (isMobileClient()) {
+          openEmbedShell(BACCARAT_M);
+          return;
+        }
+        location.href = BACCARAT_M;
+      }
+      function enterMahjong() {
+        /* 第四款：麻将竖屏壳；不影响已封存三款子页 */
+        if (isMobileClient()) {
+          openEmbedShell(MAHJONG_M);
+          return;
+        }
+        location.href = MAHJONG_M;
+      }
+
+      function bindEnter(id, fn) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', function (e) {
+          try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+          fn();
+        });
+      }
+      function enterByKey(key) {
+        if (key === 'sicbo') enterSicbo();
+        else if (key === 'roulette') enterRoulette();
+        else if (key === 'baccarat') enterBaccarat();
+        else if (key === 'mahjong') enterMahjong();
+        else alert('即将开放');
+      }
+
+      function paint() {
+        /* 中间始终展示全部 */
+        grid.innerHTML = '';
+        tables.forEach((t) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'card'
+            + (t.featured ? ' featured' : '')
+            + (t.kind === 'sicbo' ? ' sicbo' : '')
+            + (t.kind === 'roulette' ? ' roulette' : '')
+            + (t.kind === 'baccarat' ? ' baccarat' : '')
+            + (t.kind === 'mahjong' ? ' mahjong' : '');
+          const open = !!t.enter;
+          const sub = open ? ('点击进入 · ' + t.sec + 's') : '演示桌 · 暂未开放';
+          btn.innerHTML =
+            '<div class="thumb"></div>' +
+            '<div class="meta"><div class="name">' + t.name + '</div>' +
+            '<div class="sub">' + sub + '</div></div>';
+          btn.addEventListener('click', () => {
+            if (t.enter) enterByKey(t.enter);
+            else alert('演示桌暂未开放');
+          });
+          grid.appendChild(btn);
+        });
+      }
+
+      document.querySelectorAll('.nav-parent').forEach((el) => {
+        el.addEventListener('click', () => {
+          const group = el.closest('.nav-group');
+          if (!group || group.classList.contains('is-empty')) return;
+          const willOpen = !group.classList.contains('is-open');
+          document.querySelectorAll('.nav-group').forEach((g) => g.classList.remove('is-open'));
+          if (willOpen) group.classList.add('is-open');
+        });
+      });
+      document.querySelectorAll('.nav-child').forEach((el) => {
+        el.addEventListener('click', () => {
+          document.querySelectorAll('.nav-child').forEach((n) => n.classList.remove('is-on'));
+          el.classList.add('is-on');
+          const key = el.dataset.enter || '';
+          if (key === 'soon') {
+            alert((el.dataset.label || '该玩法') + ' 即将开放');
+            return;
+          }
+          enterByKey(key);
+        });
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        try {
+          sessionStorage.removeItem('fg_sicbo_auth');
+          sessionStorage.removeItem('fg_sicbo_user');
+        } catch (_) {}
+        try { sessionStorage.removeItem('fg_sicbo_profile'); } catch (_) {}
+        location.href = 'index.html?v=v1.0.53';
+      });
+
+      paint();
+    })();
+  </script>
+</body>
+</html>
