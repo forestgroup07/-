@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.8" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.0.9" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.0.8</title>
+  <title>单人香港麻将 · v1.0.9</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.8" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.0.9" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -43,8 +43,8 @@
       position: absolute;
       inset: 0;
       transform-style: preserve-3d;
-      transform: translateZ(0) rotateX(4.5deg);
-      transform-origin: 50% 78%;
+      transform: translateZ(0) rotateX(1.2deg);
+      transform-origin: 50% 92%;
     }
     .table-shadow {
       position: absolute;
@@ -69,14 +69,16 @@
     .scene-bg {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
-      object-fit: fill;
+      object-fit: contain;
+      object-position: center center;
       display: block;
       pointer-events: none;
       user-select: none;
       -webkit-user-drag: none;
-      filter: brightness(1.1) contrast(1.04) saturate(1.06);
+      filter: none;
       border-radius: 1px;
       transform: translateZ(0);
+      background: #000;
     }
     /* 活光：扫过毡面，不改原图像素 */
     .table-sheen {
@@ -99,17 +101,7 @@
       50% { background-position: 0% 0; opacity: .9; }
     }
     /* 前木真实厚度 */
-    .table-edge-front {
-      position: absolute;
-      left: 5.5%; right: 5.5%;
-      top: 96.2%;
-      height: 4.8%;
-      transform-origin: 50% 0%;
-      transform: rotateX(-88deg) translateZ(0);
-      background: linear-gradient(180deg, #6a3a22 0%, #3d2114 42%, #2a160e 100%);
-      box-shadow: inset 0 2px 0 rgba(220,170,90,.35), inset 0 -3px 6px rgba(0,0,0,.45);
-      border-radius: 0 0 4px 4px;
-    }
+    .table-edge-front { display: none; }
     .wall-ring {
       position: absolute; z-index: 3;
       inset: 0;
@@ -131,7 +123,7 @@
       overflow: visible;
     }
 
-    /* 上墙：正面手牌对面；13 墩整排（1.0.8） */
+    /* 上墙：正面手牌对面；13 墩整排（1.0.9） */
     .wall-top {
       position: absolute;
       left: 34.46%;
@@ -253,7 +245,7 @@
       content: none;
       display: none;
     }
-    /* 右墙：HQ 上下两摞 ×14；几乎贴右木平行；墩间留缝 */
+    /* 右墙：HQ 单牌现场复制 ×14×上下2 */
     .wall-right {
       position: absolute;
       inset: 0;
@@ -263,7 +255,7 @@
     .wall-right .wall-stack {
       position: absolute;
       width: 2.812%;
-      height: 4.722%;
+      height: 5.752%;
       margin: 0;
       padding: 0;
       opacity: 0;
@@ -276,9 +268,15 @@
       transform: none;
     }
     .wall-right .stack-img {
+      object-fit: contain;
       object-position: center center;
       filter: brightness(1.08);
+      width: 100%;
+      height: 74.6%;
+      left: 0;
     }
+    .wall-right .stack-img.tile-bot { bottom: 0; left: 0; z-index: 1; }
+    .wall-right .stack-img.tile-top { bottom: 25.4%; left: 0; z-index: 2; }
     .wall-right .wall-stack::after {
       content: none;
       display: none;
@@ -315,7 +313,7 @@
         <div class="table-shadow" aria-hidden="true"></div>
         <div class="table-body">
           <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-from-ref.png?v=1.0.8" alt="" draggable="false" />
+          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.0.9" alt="" draggable="false" />
           <div class="table-sheen" aria-hidden="true"></div>
           <div class="table-edge-front" aria-hidden="true"></div>
         </div>
@@ -340,35 +338,34 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.8"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.0.9"></script>
   <script>
   (function () {
-    const V = '1.0.8';
-    /* 1.0.8：左墙重做=单牌复制×13×上下2对齐；单张=主手牌；缝≈主手牌；近3cm/远2cm */
+    const V = '1.0.9';
+    /* 1.0.9：干净新桌；左/右近2.5cm大、远2cm小；单牌现场复制 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.8';
-    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.0.8';
-    const WALL_RIGHT_STACK = 'assets/mahjong/tiles/wall-right-stack1.webp?v=1.0.8';
-    const WALL_TOP_STRIP = 'assets/mahjong/tiles/wall-top-13.webp?v=1.0.8';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.0.9';
+    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.0.9';
+    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.0.9';
+    const WALL_TOP_STRIP = 'assets/mahjong/tiles/wall-top-13.webp?v=1.0.9';
     const WALL_BOT_STACKS = 14;
     const WALL_LEFT_STACKS = 13;
     const WALL_RIGHT_STACKS = 14;
-    const TABLE_AR = 1024 / 487;
-    /* [left%, top%, w%, h%]：宽=主手牌墩宽；远2cm→近3cm；步距留主手牌级缝 */
-    /* 左墙跟左木内缘几乎平行：远2cm / 近3cm（桌宽≈85cm） */
+    const TABLE_AR = 2048 / 944;
+    /* 左墙：新桌重测；近2.5cm大/远2cm小 */
     const LEFT_POS = [
-      [21.90, 18.8, 2.812, 5.752], [21.39, 21.98, 2.812, 5.752], [20.88, 25.17, 2.812, 5.752], [20.37, 28.35, 2.812, 5.752],
-      [19.86, 31.54, 2.812, 5.752], [19.35, 34.72, 2.812, 5.752], [18.85, 37.91, 2.812, 5.752], [18.34, 41.09, 2.812, 5.752],
-      [17.83, 44.28, 2.812, 5.752], [17.32, 47.46, 2.812, 5.752], [16.81, 50.65, 2.812, 5.752], [16.30, 53.83, 2.812, 5.752],
-      [15.79, 57.02, 2.812, 5.752]
+      [26.62, 18.8, 2.531, 5.177], [25.9, 21.98, 2.554, 5.225], [25.19, 25.17, 2.578, 5.273], [24.47, 28.36, 2.601, 5.321],
+      [23.75, 31.54, 2.625, 5.369], [23.03, 34.73, 2.648, 5.416], [22.32, 37.91, 2.671, 5.464], [21.6, 41.09, 2.695, 5.512],
+      [20.88, 44.28, 2.718, 5.56], [20.16, 47.47, 2.742, 5.608], [19.44, 50.65, 2.765, 5.656], [18.73, 53.83, 2.789, 5.704],
+      [18.01, 57.02, 2.812, 5.752]
     ];
-    /* 右墙 14 摞：几乎与右木平行（left% 微偏）；宽对齐主手牌；墩间留缝 */
+    /* 右墙：新桌重测；近2.5cm大/远2cm小 */
     const RIGHT_POS = [
-      [76.6, 18.5, 2.728, 4.58], [76.74, 21.42, 2.741, 4.602], [76.88, 24.35, 2.754, 4.624], [77.02, 27.27, 2.767, 4.646],
-      [77.15, 30.2, 2.78, 4.668], [77.29, 33.12, 2.793, 4.689], [77.43, 36.04, 2.806, 4.711], [77.57, 38.97, 2.818, 4.733],
-      [77.71, 41.89, 2.831, 4.755], [77.85, 44.82, 2.844, 4.776], [77.98, 47.74, 2.857, 4.798], [78.12, 50.66, 2.87, 4.82],
-      [78.26, 53.59, 2.883, 4.842], [78.4, 56.51, 2.896, 4.864]
+      [74.68, 18.5, 2.531, 5.177], [75.23, 21.46, 2.552, 5.221], [75.79, 24.43, 2.574, 5.265], [76.35, 27.39, 2.596, 5.31],
+      [76.9, 30.35, 2.617, 5.354], [77.46, 33.32, 2.639, 5.398], [78.02, 36.28, 2.661, 5.442], [78.57, 39.24, 2.682, 5.487],
+      [79.13, 42.2, 2.704, 5.531], [79.69, 45.17, 2.725, 5.575], [80.24, 48.13, 2.747, 5.619], [80.8, 51.09, 2.769, 5.664],
+      [81.36, 54.06, 2.79, 5.708], [81.91, 57.02, 2.812, 5.752]
     ];
 
     function sleep(ms) {
@@ -461,7 +458,7 @@
       if (right) {
         right.innerHTML = '';
         for (var k = 0; k < WALL_RIGHT_STACKS; k++) {
-          var rst = makeStackEl(WALL_RIGHT_STACK);
+          var rst = makeLeftLiveStackEl(WALL_RIGHT_ONE);
           var rpos = RIGHT_POS[k] || RIGHT_POS[RIGHT_POS.length - 1];
           rst.style.left = rpos[0] + '%';
           rst.style.top = rpos[1] + '%';
