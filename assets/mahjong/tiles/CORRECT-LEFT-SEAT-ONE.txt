@@ -1,0 +1,7 @@
+正确左座单牌（用户 2026-11-19 书面确认：这张是正确的单牌）
+源：make_hand(1, left) = 与 1.1.4 ×13 同左座相机
+工作：hand-left-seat-one.png / hand-left-back-one.png
+快照：LOCKED-mahjong-hand-left-seat-one-correct.{png,webp}
+sha256=4862209e6fb81cbd5f218412ad30eb30541ff00d97cfeacc0929f76fa28b8c02
+size=124x202
+禁止再换回 LOCKED-mahjong-hand-left-back-one-1.1.4 的 make_one 旧相机单张作左墙。
