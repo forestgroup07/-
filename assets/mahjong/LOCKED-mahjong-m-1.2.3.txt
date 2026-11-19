@@ -1,0 +1,30 @@
+mahjong-m v1.2.3 定版（2026-11-19）
+
+用户确认：「把此版本定位为1.2.3 并计入git」
+范围：仅麻将手机竖屏；左右手牌侧木立排 + 贴图替换存档号。
+
+已验收清单（本包算数）：
+- 删除 hand-left-stand-edge / hand-right-stand-edge（冲天竖构图）
+- 左右改接 hand-left-wood-stand / hand-right-wood-stand（对面立牌转侧木；绿朝桌心）
+- 左右条尺寸=对面像素换轴：width=calc(0.094*944/2048*100%)；height=calc(0.48*2048/944*100%)
+- 侧木上一排立牌：flex-direction:column；长边紧挨 margin-top:-1mm；禁整列 rotate
+- mahjong-m.html / lobby MAHJONG_M ?v=1.2.3
+- assets/mahjong/VERSION-m.txt = 1.2.3
+
+未验收、不得当作定版：
+- 左右贴木条毫米级精细校准（位置 left/right % 仍可能微调）
+- 骰宝 / 轮盘 / 百家乐
+- 麻将发牌/计时/其它玩法逻辑改动
+
+回滚：
+- mahjong-m.LOCKED-1.2.3.html
+- lobby.LOCKED-mahjong-m-1.2.3.html
+- assets/mahjong/LOCKED-hand-left-wood-stand-1.2.3.{webp,png}
+- assets/mahjong/LOCKED-hand-right-wood-stand-1.2.3.{webp,png}
+- assets/mahjong/LOCKED-mahjong-m-1.2.3.txt
+- assets/mahjong/LOCKED-VERSION-m-1.2.3.txt
+- assets/mahjong/LOCKED-manifest-m-1.2.3.webmanifest
+- assets/mahjong/VERSION-m.txt = 1.2.3
+- tag mahjong-m-v1.2.3
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.2.3
