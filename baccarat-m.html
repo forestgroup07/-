@@ -7,7 +7,9 @@
   <link rel="manifest" href="assets/fg-portrait.webmanifest?v=1.0.5" />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a120e" />
-  <title>百家樂 B601 · 豎屏殼 v1.1.1</title>
+  <title>百家樂 B601 · 豎屏殼 v2.9.1</title>
+  <link rel="preload" as="image" href="assets/baccarat/src-green-full.webp?v=2.9.1" type="image/webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/baccarat/src-top-blue-red.webp?v=2.9.1" type="image/webp" />
   <style>
     :root {
       --safe-b: env(safe-area-inset-bottom, 0px);
@@ -246,7 +248,7 @@
     /* 对标骰宝 game-m 顶栏：左上返回+桌名 / 右上圆形三横 */
     .topbar {
       position: absolute;
-      z-index: 5;
+      z-index: 60;
       left: 0; right: 0; top: 0;
       display: flex;
       align-items: flex-start;
@@ -257,14 +259,17 @@
     .topbar button { pointer-events: auto; }
     .top-left { display: flex; align-items: center; gap: .4rem; }
     .btn-back {
-      width: 28px; height: 28px; border-radius: 50%;
+      width: 36px; height: 36px; border-radius: 50%;
       border: 0;
       background: rgba(0,0,0,.35);
       color: #fff;
       display: grid; place-items: center;
-      font-size: 1rem; line-height: 1;
+      font-size: 1.15rem; line-height: 1;
       padding: 0;
       cursor: pointer;
+      position: relative;
+      z-index: 61;
+      -webkit-tap-highlight-color: transparent;
     }
     .table-name {
       font-size: .95rem;
@@ -2037,7 +2042,7 @@
   <div class="app" id="app">
     <div class="shell" aria-label="百家樂首頁">
       <section class="shell-cards" aria-label="頂屏藍紅" id="stage">
-        <img class="stage-bg" src="assets/baccarat/src-top-blue-red.png?v=1.0.11" alt="藍紅頂屏" width="1668" height="924" decoding="async" />
+        <img class="stage-bg" src="assets/baccarat/src-top-blue-red.webp?v=2.9.1" alt="藍紅頂屏" width="1668" height="924" decoding="async" fetchpriority="high" onerror="this.onerror=null;this.src='assets/baccarat/src-top-blue-red.png?v=1.0.11'" />
         <div class="timer" id="timer" style="--p:1" aria-hidden="true"><span id="timerNum">22</span></div>
         <div class="phase-banner" id="phaseBanner" aria-live="polite"></div>
         <div class="toast" id="toast"></div>
@@ -2086,7 +2091,7 @@
       </section>
       <section class="shell-green" aria-label="綠台">
         <div class="green-stage" id="greenStage">
-          <img src="assets/baccarat/src-green-full.png?v=1.0.3" alt="綠台整圖" width="1728" height="1720" decoding="async" />
+          <img src="assets/baccarat/src-green-full.webp?v=2.9.1" alt="綠台整圖" width="1728" height="1720" decoding="async" fetchpriority="high" onerror="this.onerror=null;this.src='assets/baccarat/src-green-full.png?v=1.0.3'" />
           <div class="bet-hits" id="betHits" aria-label="下注熱區"></div>
           <div class="bet-chip-layer" id="betChipLayer" aria-hidden="true"></div>
           <div class="road-live" id="roadLive" aria-label="路單">
@@ -2562,7 +2567,7 @@
   <script src="js/fg-game-ledger.js?v=1.0.2"></script>
   <script>
     (function () {
-      const V = '2.9.0';
+      const V = '2.9.1';
       const BET_SEC = 22;
       const PHASE_HOLD_MS = 5000;
       const STOP_BET_HOLD_MS = 3000;
@@ -2571,8 +2576,9 @@
       const SOUND_MUTE_KEY = 'fg_baccarat_m_sound_mute';
       const IS_EMBED = (function () {
         try {
-          return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
-            && window.parent && window.parent !== window;
+          /* iframe 内一律当 embed：避免丢 embed=1 时 replace 把大厅嵌进子框 */
+          if (window.parent && window.parent !== window) return true;
+          return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '');
         } catch (_) { return false; }
       })();
       /* 八键蒙格：相对绿台 1728×1720 */
@@ -2628,8 +2634,16 @@
       function goLobby() {
         try { if (timerId) { clearInterval(timerId); timerId = null; } } catch (_) {}
         try { Voice.silence(); } catch (_) {}
-        if (IS_EMBED) {
+        var inFrame = false;
+        try { inFrame = !!(window.parent && window.parent !== window); } catch (_) { inFrame = true; }
+        if (IS_EMBED || inFrame) {
           try { window.parent.postMessage({ type: 'fg-embed-close' }, '*'); } catch (_) {}
+          /* 同源直调：不依赖 message 监听是否已挂上 */
+          try {
+            if (typeof window.parent.__fgCloseEmbed === 'function') {
+              window.parent.__fgCloseEmbed();
+            }
+          } catch (_) {}
           return;
         }
         try { location.replace('lobby.html?v=' + encodeURIComponent(V)); }
@@ -2638,8 +2652,15 @@
 
       const btnBack = document.getElementById('btnBack');
       const btnNavBack = document.getElementById('btnNavBack');
-      if (btnBack) btnBack.addEventListener('click', goLobby);
-      if (btnNavBack) btnNavBack.addEventListener('click', goLobby);
+      function bindBack(el) {
+        if (!el) return;
+        el.addEventListener('click', function (e) {
+          try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+          goLobby();
+        });
+      }
+      bindBack(btnBack);
+      bindBack(btnNavBack);
 
       /* —— 骰宝同款：口播 / 喇叭三分叉 / 滴答 / 计时器 —— */
       let audioUnlockedOk = false;

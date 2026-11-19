@@ -621,7 +621,9 @@
   </style>
   <!-- 轮盘首页首开：预取轮盘页+键面；禁止预取骰宝抢带宽 -->
   <link rel="prefetch" href="roulette-m.html?v=1.6.12" as="document">
-  <link rel="prefetch" href="mahjong-m.html?v=1.2.0" as="document">
+  <link rel="prefetch" href="mahjong-m.html?v=1.2.2" as="document">
+  <link rel="prefetch" href="baccarat-m.html?v=2.9.1" as="document">
+  <link rel="prefetch" href="assets/baccarat/src-green-full.webp?v=2.9.1" as="image">
   <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.5.0" type="image/webp" fetchpriority="high">
 </head>
 <body>
@@ -706,8 +708,8 @@
       const ROULETTE_PC = 'roulette.html?v=1.2.11';
       const ROULETTE_M = 'roulette-m.html?v=2.9.0';
       const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.9.0';
-      const BACCARAT_M = 'baccarat-m.html?v=2.9.0';
-      const MAHJONG_M = 'mahjong-m.html?v=1.2.0';
+      const BACCARAT_M = 'baccarat-m.html?v=2.9.1';
+      const MAHJONG_M = 'mahjong-m.html?v=1.2.2';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -1081,8 +1083,9 @@
           frame.addEventListener('load', () => {
             /* 兜底：HTML 到了仍无 ready 时，最长再等一会揭开，绝不长期黑屏 */
             if (embedReadyTimer) clearTimeout(embedReadyTimer);
-            /* 麻将：load 后立刻揭层；其它桌保持原 1600 兜底 */
-            var ms = ShellSfx.embedKind === 'mahjong' ? 0 : 1600;
+            /* 麻将：load 后立刻揭层；百家乐绿台已 webp，短兜底；其它桌保持原 1600 */
+            var ms = ShellSfx.embedKind === 'mahjong' ? 0
+              : (ShellSfx.embedKind === 'baccarat' ? 280 : 1600);
             embedReadyTimer = setTimeout(revealEmbed, ms);
           });
         }
@@ -1183,6 +1186,7 @@
         const wasMahjong = ShellSfx.embedKind === 'mahjong';
         if (shell) shell.classList.remove('show', 'is-ready');
         if (frame) frame.src = 'about:blank';
+        ShellSfx.embedKind = null;
         /* 麻将：吞掉进桌 push，禁止 history.back（会把桌面App/网页直接退出） */
         if (wasMahjong && mahjongEmbedHist && !fromPop) {
           mahjongEmbedHist = false;
@@ -1195,6 +1199,7 @@
           if (n != null) paintUserBar();
         });
       }
+      try { window.__fgCloseEmbed = closeEmbedShell; } catch (_) {}
       try {
         window.addEventListener('popstate', function () {
           if (mahjongEmbedClosing) return;
@@ -1224,8 +1229,12 @@
         shell.classList.remove('is-ready');
         shell.classList.add('show');
         if (embedReadyTimer) clearTimeout(embedReadyTimer);
-        /* 麻将：兜底 400ms；其它桌仍 2200 */
-        embedReadyTimer = setTimeout(revealEmbed, ShellSfx.embedKind === 'mahjong' ? 400 : 2200);
+        /* 麻将 400；百家乐 600（绿台 webp）；其它桌仍 2200 */
+        embedReadyTimer = setTimeout(
+          revealEmbed,
+          ShellSfx.embedKind === 'mahjong' ? 400
+            : (ShellSfx.embedKind === 'baccarat' ? 600 : 2200)
+        );
         /* 麻将：垫一层历史，手机返回先关桌 */
         if (ShellSfx.embedKind === 'mahjong' && !mahjongEmbedHist) {
           try {

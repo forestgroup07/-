@@ -1,0 +1,21 @@
+# 百家乐手机版 v2.9.1 不许再动
+
+用户硬规则（2026-11-19 书面「必须上线 存入git 还是定版2.9吧」且已确认「改好了」→ 本包 `2.9.1` 起生效）：
+
+1. **禁止**未经用户书面点名同意，修改、覆盖、还原、优化、部署本定版百家乐**手机竖屏**任何一点，包括但不限于：
+   - `baccarat-m.html`、`lobby.html` 的 `BACCARAT_M` `?v=2.9.1`
+   - 绿台/顶屏 webp、进桌揭层时长、返回大厅（`__fgCloseEmbed` / `fg-embed-close`）
+   - 横屏黑罩「请竖屏游玩」（`js/fg-force-portrait.js`）；禁止再改回 CSS 假转向
+   - 沿用 2.9.0/1.1.x：侧栏/规则/路单/八键/黄三键/停注/开牌/底栏/默认静音喇叭等
+   - 本版 `LOCKED-*` 快照与线上 forestgroup.ai 对应资源
+2. 定版快照（回滚只能用这些）：
+   - `baccarat-m.LOCKED-2.9.1.html`
+   - `lobby.LOCKED-baccarat-m-2.9.1.html`
+   - `assets/baccarat/LOCKED-src-green-full-2.9.1.webp`
+   - `assets/baccarat/LOCKED-src-top-blue-red-2.9.1.webp`
+   - `assets/baccarat/LOCKED-baccarat-m-2.9.1.txt`
+   - `assets/baccarat/VERSION-m.txt` = `2.9.1`
+   - git commit / tag 标明 `baccarat-m-v2.9.1`
+3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
+4. 只有用户明确说「改百家乐 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
+5. 本冻结仅百家乐手机竖屏。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git` 同时生效；冲突时取更严：默认不动。当前有效百家乐冻结以**本版**为准（取代 `2.9.0`）。

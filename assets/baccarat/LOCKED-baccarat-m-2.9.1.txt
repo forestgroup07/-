@@ -1,0 +1,29 @@
+baccarat-m v2.9.1 定版（2026-11-19）
+
+用户确认：「我刚才试了试 改好了」→「必须上线 存入git 还是定版2.9吧」
+范围：仅百家乐手机竖屏（进桌速度 + 返回大厅）；不改骰宝/轮盘/麻将玩法。
+
+已验收清单（本包算数）：
+- 进桌加速：绿台/顶屏改 webp（约 1.9MB PNG → ~90KB）；preload；大厅 prefetch 绿台 webp
+- 大厅 embed 揭层：百家乐兜底 600ms / load 后 280ms（不再跟 2200/1600）
+- 返回大厅：iframe 内一律关壳；postMessage + 同源 __fgCloseEmbed；顶栏返回键抬高 z-index/加大热区
+- closeEmbedShell 清 embedKind
+- baccarat-m.html / lobby BACCARAT_M ?v=2.9.1
+- assets/baccarat/VERSION-m.txt = 2.9.1
+- 沿用 2.9.0：横屏黑罩请竖屏（fg-force-portrait）；侧栏/规则/路单/八键等
+
+未验收、不得当作定版：
+- 骰宝 / 轮盘 / 麻将其它改动
+- 大厅非百家乐分支行为变更（仅加百家乐 prefetch/揭层时长与关壳钩子）
+
+回滚：
+- baccarat-m.LOCKED-2.9.1.html
+- lobby.LOCKED-baccarat-m-2.9.1.html
+- assets/baccarat/LOCKED-src-green-full-2.9.1.webp
+- assets/baccarat/LOCKED-src-top-blue-red-2.9.1.webp
+- assets/baccarat/LOCKED-baccarat-m-2.9.1.txt
+- assets/baccarat/VERSION-m.txt = 2.9.1
+- tag baccarat-m-v2.9.1
+
+验收：https://forestgroup.ai/baccarat-m.html?v=2.9.1
+大厅进桌：https://forestgroup.ai/lobby.html
