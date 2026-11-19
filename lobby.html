@@ -26,6 +26,8 @@
       display: grid;
       grid-template-rows: auto 1fr;
       height: 100%;
+      height: 100dvh;
+      min-height: 0;
     }
     .top {
       display: flex;
@@ -154,6 +156,8 @@
       /* 手机竖屏优先：左侧再窄，中间多露牌桌 */
       grid-template-columns: 78px 1fr;
       min-height: 0;
+      height: 100%;
+      overflow: hidden;
     }
     .side {
       background: #0e1117;
@@ -222,8 +226,11 @@
 
     .main {
       min-width: 0;
+      min-height: 0;
+      height: 100%;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
       background:
         radial-gradient(ellipse 80% 50% at 50% 0%, rgba(180,140,60,.08), transparent 55%),
         #0b0d12;
@@ -234,8 +241,12 @@
     .grid {
       flex: 1;
       min-height: 0;
-      overflow: auto;
-      padding: .45rem .4rem 1rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      padding: .45rem .4rem 1.25rem;
       display: grid;
       /* 手机竖屏：一排两个完整方块，一屏至少看见两个 */
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -249,6 +260,9 @@
       background: #151923;
       border: 1px solid var(--line);
       cursor: pointer;
+      -webkit-tap-highlight-color: rgba(240, 211, 146, .25);
+      touch-action: manipulation;
+      pointer-events: auto;
       transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
       text-align: left;
       color: inherit;
@@ -335,6 +349,49 @@
       .nav-parent { font-size: .76rem; padding: .62rem .45rem; }
       .nav-child { font-size: .7rem; padding: .4rem .4rem .4rem .55rem; }
     }
+    /* 横版：列表可上下滑；卡片可点进桌（短屏整页滚，避免 iOS 嵌套滚失效） */
+    @media (orientation: landscape) {
+      .body { grid-template-columns: 84px 1fr; }
+      .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .45rem;
+        padding: .4rem .5rem 1.5rem;
+      }
+      .card {
+        max-height: min(38vh, 210px);
+        aspect-ratio: 1 / 1;
+      }
+      .card .name { font-size: .78rem; }
+      .card .sub { font-size: .62rem; }
+    }
+    @media (orientation: landscape) and (max-height: 480px) {
+      html, body {
+        height: auto;
+        min-height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .app {
+        height: auto;
+        min-height: 100dvh;
+      }
+      .body {
+        height: auto;
+        min-height: calc(100dvh - 88px);
+        overflow: visible;
+      }
+      .main {
+        height: auto;
+        overflow: visible;
+      }
+      .grid {
+        flex: none;
+        overflow: visible;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .card { max-height: 140px; }
+    }
     /* 手机进桌：透明壳压住大厅（仍看得见大厅）→ 子页就绪再淡入，禁止黑屏 */
     #fgEmbedShell {
       position: fixed; inset: 0; z-index: 99999;
@@ -354,6 +411,7 @@
   </style>
   <!-- 轮盘首页首开：预取轮盘页+键面；禁止预取骰宝抢带宽 -->
   <link rel="prefetch" href="roulette-m.html?v=1.6.12" as="document">
+  <link rel="prefetch" href="mahjong-m.html?v=1.1.5" as="document">
   <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.5.0" type="image/webp" fetchpriority="high">
 </head>
 <body>
@@ -415,7 +473,7 @@
       const ROULETTE_M = 'roulette-m.html?v=2.8.0';
       const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.8.0';
       const BACCARAT_M = 'baccarat-m.html?v=1.1.2';
-      const MAHJONG_M = 'mahjong-m.html?v=1.1.3';
+      const MAHJONG_M = 'mahjong-m.html?v=1.1.5';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -782,14 +840,16 @@
         shell = document.createElement('div');
         shell.id = 'fgEmbedShell';
         /* 不再挂左上 ×：桌内用返回箭头 ‹ 回大厅 */
-        shell.innerHTML = '<iframe id="fgEmbedFrame" allow="autoplay *; fullscreen *" title="game"></iframe>';
+        shell.innerHTML = '<iframe id="fgEmbedFrame" allow="autoplay *; fullscreen *" allowfullscreen title="game"></iframe>';
         document.body.appendChild(shell);
         const frame = document.getElementById('fgEmbedFrame');
         if (frame) {
           frame.addEventListener('load', () => {
             /* 兜底：HTML 到了仍无 ready 时，最长再等一会揭开，绝不长期黑屏 */
             if (embedReadyTimer) clearTimeout(embedReadyTimer);
-            embedReadyTimer = setTimeout(revealEmbed, 1600);
+            /* 麻将：load 后立刻揭层；其它桌保持原 1600 兜底 */
+            var ms = ShellSfx.embedKind === 'mahjong' ? 0 : 1600;
+            embedReadyTimer = setTimeout(revealEmbed, ms);
           });
         }
         window.addEventListener('message', (ev) => {
@@ -821,6 +881,18 @@
               ShellSfx.replyWelcome(true);
             }
           }
+          /* 麻将匹配：子页点「开启全屏」→ 父页把 iframe 拉全屏（仅麻将） */
+          if (d.type === 'fg-embed-fullscreen' && ShellSfx.embedKind === 'mahjong') {
+            try {
+              const frame = document.getElementById('fgEmbedFrame');
+              const target = frame || document.documentElement;
+              const req = target.requestFullscreen || target.webkitRequestFullscreen || target.webkitRequestFullScreen;
+              if (req) {
+                const p = req.call(target);
+                if (p && p.catch) p.catch(function () {});
+              }
+            } catch (_) {}
+          }
           if (d.type === 'fg-want-welcome') {
             if (ShellSfx.embedKind === 'sicbo' || ShellSfx.embedKind === 'roulette' || ShellSfx.embedKind === 'baccarat' || ShellSfx.embedKind === 'mahjong') {
               ShellSfx.embedWelcomeOk = true;
@@ -848,22 +920,60 @@
         });
         return shell;
       }
-      function closeEmbedShell() {
+      /* 麻将专用：进桌 pushState，系统返回只关桌，不退到登录页 */
+      var mahjongEmbedHist = false;
+      var mahjongEmbedClosing = false;
+      function exitLobbyFullscreen() {
+        try {
+          if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen();
+            return;
+          }
+        } catch (_) {}
+        try {
+          if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          }
+        } catch (_) {}
+      }
+      function closeEmbedShell(fromPop) {
         try { ShellSfx.stop('ballRoll'); ShellSfx.stopVoice(); } catch (_) {}
         ShellSfx.resetEmbedWelcome();
         if (embedReadyTimer) {
           clearTimeout(embedReadyTimer);
           embedReadyTimer = 0;
         }
+        if (ShellSfx.embedKind === 'mahjong') exitLobbyFullscreen();
         const shell = document.getElementById('fgEmbedShell');
         const frame = document.getElementById('fgEmbedFrame');
+        const wasMahjong = ShellSfx.embedKind === 'mahjong';
         if (shell) shell.classList.remove('show', 'is-ready');
         if (frame) frame.src = 'about:blank';
+        /* 麻将：点离开时吞掉进桌 push 的历史，避免再按一次退到登录 */
+        if (wasMahjong && mahjongEmbedHist && !fromPop) {
+          mahjongEmbedHist = false;
+          mahjongEmbedClosing = true;
+          try { history.back(); } catch (_) {}
+          setTimeout(function () { mahjongEmbedClosing = false; }, 0);
+        } else if (wasMahjong) {
+          mahjongEmbedHist = false;
+        }
         /* 从桌内返回：立刻刷新顶栏真实余额 */
         syncBalFromServer(currentUser()).then((n) => {
           if (n != null) paintUserBar();
         });
       }
+      try {
+        window.addEventListener('popstate', function () {
+          if (mahjongEmbedClosing) return;
+          if (ShellSfx.embedKind !== 'mahjong') return;
+          const shell = document.getElementById('fgEmbedShell');
+          if (shell && shell.classList.contains('show')) {
+            mahjongEmbedHist = false;
+            closeEmbedShell(true);
+          }
+        });
+      } catch (_) {}
       function openEmbedShell(url) {
         ShellSfx.stop('ballRoll');
         ShellSfx.resetEmbedWelcome();
@@ -882,7 +992,15 @@
         shell.classList.remove('is-ready');
         shell.classList.add('show');
         if (embedReadyTimer) clearTimeout(embedReadyTimer);
-        embedReadyTimer = setTimeout(revealEmbed, 2200);
+        /* 麻将：兜底 400ms；其它桌仍 2200 */
+        embedReadyTimer = setTimeout(revealEmbed, ShellSfx.embedKind === 'mahjong' ? 400 : 2200);
+        /* 麻将：垫一层历史，手机返回先关桌 */
+        if (ShellSfx.embedKind === 'mahjong' && !mahjongEmbedHist) {
+          try {
+            history.pushState({ fgEmbed: 'mahjong' }, '');
+            mahjongEmbedHist = true;
+          } catch (_) {}
+        }
         const join = url.indexOf('?') >= 0 ? '&' : '?';
         /* 百家乐/麻将 embed：带上登录账号，子页 iframe 读不到父页 sessionStorage */
         let embedQs = 'embed=1';
@@ -970,16 +1088,34 @@
         }
       }
       try {
+        /* 刷新大厅：localStorage 有登录态则恢复，不踢回登录页 */
         if (sessionStorage.getItem('fg_sicbo_auth') !== '1') {
-          location.replace('index.html?v=v1.0.53');
-          return;
+          if (localStorage.getItem('fg_sicbo_auth') === '1') {
+            sessionStorage.setItem('fg_sicbo_auth', '1');
+            const lu = (localStorage.getItem('fg_sicbo_user') || localStorage.getItem('fg_sicbo_last_user') || '').trim();
+            if (lu) sessionStorage.setItem('fg_sicbo_user', lu);
+            try {
+              const prof = localStorage.getItem('fg_sicbo_profile');
+              if (prof) sessionStorage.setItem('fg_sicbo_profile', prof);
+            } catch (_) {}
+          } else {
+            location.replace('index.html?v=v1.0.54');
+            return;
+          }
         }
         let u = (sessionStorage.getItem('fg_sicbo_user') || '').trim();
         if (!u) {
           u = currentUser();
           sessionStorage.setItem('fg_sicbo_user', u);
-          localStorage.setItem('fg_sicbo_last_user', u);
         }
+        /* 把当前会话写入 localStorage，之后刷新/回首页可直进大厅 */
+        try {
+          localStorage.setItem('fg_sicbo_auth', '1');
+          localStorage.setItem('fg_sicbo_user', u);
+          localStorage.setItem('fg_sicbo_last_user', u);
+          const prof = sessionStorage.getItem('fg_sicbo_profile');
+          if (prof) localStorage.setItem('fg_sicbo_profile', prof);
+        } catch (_) {}
       } catch (_) { /* ignore */ }
 
       function paintUserBar() {
@@ -1014,7 +1150,7 @@
             inviteEl.dataset.bound = '1';
             inviteEl.addEventListener('click', async () => {
               const c = inviteEl.dataset.code || '';
-              const link = location.origin + '/index.html?v=v1.0.53&ref=' + encodeURIComponent(c);
+              const link = location.origin + '/index.html?v=v1.0.54&ref=' + encodeURIComponent(c);
               const done = () => {
                 inviteEl.classList.add('is-copied');
                 inviteEl.textContent = '已复制 · 去 WhatsApp 粘贴';
@@ -1142,9 +1278,17 @@
             '<div class="thumb"></div>' +
             '<div class="meta"><div class="name">' + t.name + '</div>' +
             '<div class="sub">' + sub + '</div></div>';
-          btn.addEventListener('click', () => {
+          var lastGoAt = 0;
+          function goCard() {
+            var now = Date.now();
+            if (now - lastGoAt < 450) return;
+            lastGoAt = now;
             if (t.enter) enterByKey(t.enter);
             else alert('演示桌暂未开放');
+          }
+          btn.addEventListener('click', function (e) {
+            try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+            goCard();
           });
           grid.appendChild(btn);
         });
@@ -1176,9 +1320,14 @@
         try {
           sessionStorage.removeItem('fg_sicbo_auth');
           sessionStorage.removeItem('fg_sicbo_user');
+          sessionStorage.removeItem('fg_sicbo_profile');
         } catch (_) {}
-        try { sessionStorage.removeItem('fg_sicbo_profile'); } catch (_) {}
-        location.href = 'index.html?v=v1.0.53';
+        try {
+          localStorage.removeItem('fg_sicbo_auth');
+          localStorage.removeItem('fg_sicbo_user');
+          localStorage.removeItem('fg_sicbo_profile');
+        } catch (_) {}
+        location.href = 'index.html?v=v1.0.54';
       });
 
       paint();

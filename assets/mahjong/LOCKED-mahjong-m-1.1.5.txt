@@ -1,0 +1,31 @@
+mahjong-m v1.1.5 定版（2026-11-19）
+
+用户确认：「非常好 保留这个存入git 1.1.5版本」
+范围：主位立体正脸成品试飞（5 张）+ 飞中翻面；非整套 34 花色铺满。
+
+已验收清单（本包算数）：
+- 立体正脸成品 5 张：s7 / p9 / s4 / ww(北) / s1（hand-face-3d，条图立体蒙版裁）
+- 发牌飞：起飞立体绿背壳（CUBOID-FLY）→ 半途翻主位正脸成品 → 主位落地超大正脸
+- 主位 14 张试飞轮询上述 5 张（验收用）
+- mahjong-m.html / lobby.html MAHJONG_M ?v=1.1.5
+- assets/mahjong/VERSION-m.txt = 1.1.5
+- HAND-FACE-3D-VERSION.txt = 1.1.5
+
+未验收、不得当作定版：
+- 其余 29 种花色立体正脸
+- 花色清晰度对齐公司手牌全套
+- 三家立背/趴牌花色
+- 整桌贴图角度/大小再精修
+- 骰宝 / 轮盘 / 百家乐任何文件
+
+回滚：
+- mahjong-m.LOCKED-1.1.5.html
+- lobby.LOCKED-mahjong-m-1.1.5.html
+- assets/mahjong/tiles/hand-face-3d/LOCKED-{s7,p9,s4,ww,s1}-1.1.5.{webp,png}
+- assets/mahjong/preview/LOCKED-hand-face-3d-product-sheet-1.1.5.jpg
+- assets/mahjong/tiles/LOCKED-CUBOID-FLY-1.1.5.webp
+- assets/mahjong/LOCKED-mahjong-m-1.1.5.txt
+- assets/mahjong/VERSION-m.txt / HAND-FACE-3D-VERSION.txt = 1.1.5
+- tag mahjong-m-v1.1.5
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.1.5

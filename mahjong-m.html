@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.3" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.5" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.1.3</title>
+  <title>单人香港麻将 · v1.1.5</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.3" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.5" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -111,10 +111,10 @@
     }
     .wall-ring.is-on { opacity: 1; }
     .wall { position: absolute; display: flex; gap: 0; }
-    /* 主手：高 11%；仍14张 */
+    /* 主手趴牌墙：17 摞 */
     .wall-bot {
-      left: 31.46%;
-      width: 40.00%;
+      left: 27.5%;
+      width: 47.5%;
       top: 65.80%;
       height: 11%;
       flex-direction: row;
@@ -124,11 +124,11 @@
       overflow: visible;
     }
 
-    /* 上墙：高 7%；仍13张；同 flush 图；槽宽按 7% 比例收紧贴实 */
+    /* 上墙：17 摞 */
     .wall-top {
       position: absolute;
-      left: 36.36%;
-      width: 27.29%;
+      left: 32.2%;
+      width: 35.6%;
       top: 12.80%;
       height: 7%;
       display: flex;
@@ -144,8 +144,8 @@
     .wall-top .wall-top-strip { display: none; }
     .wall-top .wall-stack {
       position: relative;
-      flex: 0 0 calc(100% / 13);
-      width: calc(100% / 13);
+      flex: 0 0 calc(100% / 17);
+      width: calc(100% / 17);
       height: 100%;
       margin: 0;
       padding: 0;
@@ -159,8 +159,8 @@
     }
     .wall-bot .wall-stack {
       position: relative;
-      flex: 0 0 calc(100% / 14);
-      width: calc(100% / 14);
+      flex: 0 0 calc(100% / 17);
+      width: calc(100% / 17);
       height: 100%;
       opacity: 0;
       transform: translateY(4px);
@@ -170,18 +170,17 @@
       opacity: 1;
       transform: none;
     }
-    /* 左墙：前离木2cm / 尾离木2.5cm；牌尺寸对齐主牌 */
+    /* 左墙趴牌：与右墙同款双层墩，不动 */
     .wall-left {
       position: absolute;
       inset: 0;
       display: block;
       overflow: visible;
+      z-index: 3;
     }
-    .wall-left .wall-left-strip { display: none; }
+    .wall-left .wall-left-strip { display: none !important; }
     .wall-left .wall-stack {
       position: absolute;
-      width: 3.505%;
-      height: 7.399%;
       margin: 0;
       padding: 0;
       opacity: 0;
@@ -192,6 +191,131 @@
     .wall-left .wall-stack.is-in {
       opacity: 1;
       transform: none;
+    }
+    .wall-left .stack-img {
+      position: absolute;
+      object-fit: contain;
+      object-position: center center;
+      filter: brightness(1.08);
+      width: 100%;
+      height: 74.6%;
+      left: 0;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .wall-left .stack-img.tile-bot { bottom: 0; left: 0; z-index: 1; display: block !important; }
+    .wall-left .stack-img.tile-top { bottom: 25.4%; left: 0; z-index: 2; display: block !important; }
+    .wall-left .stack-img.tile-single { display: none !important; }
+
+    /* —— 四家手牌立排（飞落后） —— */
+    .hand-ring {
+      position: absolute;
+      inset: 0;
+      z-index: 9;
+      pointer-events: none;
+    }
+    .hand {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* 三家立背；主位超大正面条（对标公司底排） */
+    .hand-bot {
+      left: 7%;
+      width: 86%;
+      bottom: 0.4%;
+      height: 16.8%;
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 0.18%;
+      z-index: 12;
+    }
+    .hand-top {
+      left: 31%;
+      width: 38%;
+      top: 2.8%;
+      height: 7.6%;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 0.12%;
+    }
+    .hand-left {
+      left: 5.2%;
+      top: 22%;
+      width: 5.6%;
+      height: 52%;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.35%;
+    }
+    .hand-right {
+      right: 5.2%;
+      top: 22%;
+      width: 5.6%;
+      height: 52%;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.35%;
+    }
+    .hand-tile {
+      display: block;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: brightness(1.06);
+      opacity: 0;
+      transform: translateY(6px) scale(.92);
+      transition: opacity .16s ease, transform .16s ease;
+    }
+    .hand-tile.is-up {
+      opacity: 1;
+      transform: none;
+    }
+    .hand-right .hand-tile { transform: scaleX(-1) translateY(6px) scale(.92); }
+    .hand-right .hand-tile.is-up { transform: scaleX(-1); }
+    .hand-bot .hand-tile {
+      width: calc(100% / 14);
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,.4)) brightness(1.04);
+    }
+    .hand-top .hand-tile { width: calc(100% / 13); height: 100%; }
+    .hand-left .hand-tile,
+    .hand-right .hand-tile { width: 100%; height: calc(100% / 13); }
+    .wall-stack.is-taken {
+      opacity: 0 !important;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    /* 墩只剩 1 张：下/上墙裁掉上层；左/右靠隐藏 .tile-top */
+    .wall-bot .wall-stack.is-half .stack-img,
+    .wall-top .wall-stack.is-half .stack-img {
+      clip-path: inset(48% 0 0 0);
+      -webkit-clip-path: inset(48% 0 0 0);
+    }
+    .wall-left .wall-stack.is-half .stack-img.tile-top,
+    .wall-right .wall-stack.is-half .stack-img.tile-top {
+      display: none !important;
+    }
+    .deal-fly-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 16;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .deal-fly {
+      position: absolute;
+      left: 0; top: 0;
+      width: 28px; height: 38px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,.45));
+      will-change: transform, left, top;
+      transition: left .28s cubic-bezier(.2,.75,.25,1), top .28s cubic-bezier(.2,.75,.25,1), transform .28s ease;
+      z-index: 17;
     }
     .wall-stack .stack-img {
       position: absolute;
@@ -215,25 +339,6 @@
       object-fit: fill;
       object-position: center top;
       filter: none;
-    }
-    /* 单牌现场复制上下 2 张：每张=主手牌单张尺度；上下对齐；缝≈主手牌 */
-    .wall-left .stack-img {
-      object-fit: contain;
-      object-position: center center;
-      filter: brightness(1.08);
-      width: 100%;
-      height: 74.6%;
-      left: 0;
-    }
-    .wall-left .stack-img.tile-bot {
-      bottom: 0;
-      left: 0;
-      z-index: 1;
-    }
-    .wall-left .stack-img.tile-top {
-      bottom: 25.4%;
-      left: 0;
-      z-index: 2;
     }
     /* 实心底托：不改牌面像素，只垫一层暗影体积 */
     .wall-stack::after {
@@ -413,7 +518,7 @@
         <div class="table-shadow" aria-hidden="true"></div>
         <div class="table-body">
           <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.3" alt="" draggable="false" />
+          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.5" alt="" draggable="false" />
           <div class="table-sheen" aria-hidden="true"></div>
           <div class="table-edge-front" aria-hidden="true"></div>
         </div>
@@ -424,6 +529,13 @@
         <div class="wall wall-right" id="wallRightVis"></div>
         <div class="wall wall-bot" id="wallBot"></div>
       </div>
+      <div class="hand-ring" id="handRing" aria-hidden="true">
+        <div class="hand hand-bot" id="handBot"></div>
+        <div class="hand hand-left" id="handLeft"></div>
+        <div class="hand hand-top" id="handTop"></div>
+        <div class="hand hand-right" id="handRight"></div>
+      </div>
+      <div class="deal-fly-layer" id="dealFlyLayer" aria-hidden="true"></div>
       <div class="turn-timer" id="turnTimer" aria-hidden="true"></div>
       <div class="turn-toast" id="turnToast" aria-hidden="true">系统自动出牌</div>
       <div class="mj-dice3d-layer" id="mjDice3dLayer" aria-hidden="true">
@@ -440,36 +552,86 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.3"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.5"></script>
   <script>
   (function () {
-    const V = '1.1.3';
-    /* 1.1.3：沿用1.1.2墙；桌心10秒计时器（对标体量/略上移/数字倒计时）定版 */
+    const V = '1.1.5';
+    /* 1.1.5：主位试飞 5 张立体正脸成品（s7/p9/s4/ww/s1）；飞中立体壳→正脸；三家仍立背 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.3';
-    const WALL_LEFT_ONE = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.3';
-    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.3';
-    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.1.3';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.5';
+    const WALL_LEFT_FLAT = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.5';
+    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.5';
+    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.1.5';
+    const HAND_BOT = 'assets/mahjong/tiles/hand-bot-stand-one.webp?v=1.1.5';
+    const HAND_LEFT = 'assets/mahjong/tiles/hand-left-stand-one.webp?v=1.1.5';
+    const HAND_TOP = 'assets/mahjong/tiles/hand-top-back-one.webp?v=1.1.5';
+    const HAND_RIGHT = 'assets/mahjong/tiles/hand-left-stand-one.webp?v=1.1.5';
+    const FLY_TILE = 'assets/mahjong/tiles/hand-left-back-one-CUBOID-FLY.webp?v=1.1.5';
+    const FACE_DIR = 'assets/mahjong/tiles/hand-face/';
+    const FACE_3D_DIR = 'assets/mahjong/tiles/hand-face-3d/';
+    /* 试飞验收：先这 5 张立体正脸成品 */
+    const FACE_3D_DEMO = ['s7', 'p9', 's4', 'ww', 's1'];
+    const FACE_3D_SET = { s7: 1, p9: 1, s4: 1, ww: 1, s1: 1 };
+    /* 34 种正脸：万/筒/索 + 风箭白 */
+    const FACE_IDS = (function () {
+      var a = [];
+      var suits = ['m', 'p', 's'];
+      var i, s;
+      for (s = 0; s < suits.length; s++) {
+        for (i = 1; i <= 9; i++) a.push(suits[s] + i);
+      }
+      return a.concat(['we', 'wn', 'ws', 'ww', 'zhong', 'fa', 'bai']);
+    })();
+    function faceSrc(id) {
+      if (id && FACE_3D_SET[id]) return FACE_3D_DIR + id + '.webp?v=' + V;
+      return FACE_DIR + id + '.webp?v=' + V;
+    }
+    function shuffleInPlace(arr) {
+      var i, j, t;
+      for (i = arr.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+      }
+      return arr;
+    }
+    /* 主位 14：试飞轮询 5 张 3D 成品（验收用） */
+    function drawBotFaceIds() {
+      var out = [];
+      var i;
+      for (i = 0; i < 14; i++) out.push(FACE_3D_DEMO[i % FACE_3D_DEMO.length]);
+      return out;
+    }
     const TURN_SECS = 10;
-    const WALL_BOT_STACKS = 14;
-    const WALL_LEFT_STACKS = 13;
-    const WALL_RIGHT_STACKS = 14;
-    const WALL_TOP_STACKS = 13;
+    const WALL_BOT_STACKS = 17;
+    const WALL_LEFT_FLAT_STACKS = 17;
+    const WALL_RIGHT_STACKS = 17;
+    const WALL_TOP_STACKS = 17;
     const TABLE_AR = 2048 / 944;
-    /* 左墙：近大远小（近=现尺寸，远=0.8）；离木位置不变 */
-    const LEFT_POS = [
-      [27.16, 18.8, 2.804, 5.919], [26.43, 21.98, 2.862, 6.042], [25.89, 25.17, 2.921, 6.166], [25.16, 28.36, 2.979, 6.289],
-      [24.47, 31.54, 3.038, 6.412], [23.89, 34.73, 3.096, 6.536], [23.2, 37.91, 3.154, 6.659], [22.57, 41.09, 3.213, 6.782],
-      [21.93, 44.28, 3.271, 6.906], [21.3, 47.47, 3.33, 7.029], [20.66, 50.65, 3.388, 7.152], [20.03, 53.83, 3.447, 7.276],
+    var lastDice = { a: 1, b: 1, sum: 2 };
+    /* 庄起逆时针数家定墙：bot→left→top→right */
+    var OPEN_SIDES = ['bot', 'left', 'top', 'right'];
+    var OPEN_SIDE_HOST = {
+      bot: 'wallBot',
+      right: 'wallRightVis',
+      top: 'wallTopVis',
+      left: 'wallLeftVis'
+    };
+    /* 左趴：17 摞（由原 13 位插值加密，近大远小） */
+    const LEFT_FLAT_POS = [
+      [27.16, 18.8, 2.804, 5.919], [26.613, 21.185, 2.848, 6.011], [26.16, 23.575, 2.891, 6.104], [25.707, 25.968, 2.935, 6.197],
+      [25.16, 28.36, 2.979, 6.289], [24.642, 30.745, 3.023, 6.381], [24.18, 33.135, 3.067, 6.474], [23.718, 35.525, 3.111, 6.567],
+      [23.2, 37.91, 3.154, 6.659], [22.727, 40.295, 3.198, 6.751], [22.25, 42.685, 3.242, 6.844], [21.773, 45.078, 3.286, 6.937],
+      [21.3, 47.47, 3.33, 7.029], [20.82, 49.855, 3.373, 7.121], [20.345, 52.24, 3.417, 7.214], [19.86, 54.627, 3.462, 7.307],
       [19.35, 57.02, 3.505, 7.399]
     ];
-    /* 右墙：近大远小（近=现尺寸，远=0.8）；右缘不动 */
+    /* 右墙：17 摞（由原 14 位插值加密） */
     const RIGHT_POS = [
-      [74.41, 18.5, 2.804, 5.919], [74.93, 21.46, 2.858, 6.033], [75.45, 24.43, 2.912, 6.147], [75.98, 27.39, 2.966, 6.261],
-      [76.5, 30.35, 3.02, 6.374], [77.02, 33.32, 3.074, 6.488], [77.56, 36.28, 3.128, 6.602], [78.07, 39.24, 3.181, 6.716],
-      [78.6, 42.2, 3.235, 6.83], [79.13, 45.17, 3.289, 6.944], [79.64, 48.13, 3.343, 7.057], [80.17, 51.09, 3.397, 7.171],
-      [80.7, 54.06, 3.451, 7.285], [81.22, 57.02, 3.505, 7.399]
+      [74.41, 18.5, 2.804, 5.919], [74.833, 20.905, 2.848, 6.012], [75.255, 23.316, 2.892, 6.104], [75.682, 25.725, 2.936, 6.197],
+      [76.11, 28.13, 2.98, 6.289], [76.532, 30.536, 3.023, 6.381], [76.955, 32.949, 3.067, 6.474], [77.391, 35.355, 3.111, 6.566],
+      [77.815, 37.76, 3.155, 6.659], [78.236, 40.165, 3.198, 6.752], [78.666, 42.571, 3.242, 6.844], [79.097, 44.984, 3.286, 6.937],
+      [79.513, 47.39, 3.329, 7.029], [79.938, 49.795, 3.373, 7.121], [80.369, 52.204, 3.417, 7.214], [80.797, 54.615, 3.461, 7.306],
+      [81.22, 57.02, 3.505, 7.399]
     ];
 
     function sleep(ms) {
@@ -546,17 +708,18 @@
         bot.innerHTML = '';
         for (var i = 0; i < WALL_BOT_STACKS; i++) bot.appendChild(makeStackEl(WALL_STACK));
       }
+      /* 左趴：以前的双层墩，完整保留 */
       if (left) {
         left.innerHTML = '';
-        for (var j = 0; j < WALL_LEFT_STACKS; j++) {
-          var st = makeLeftLiveStackEl(WALL_LEFT_ONE);
-          var pos = LEFT_POS[j] || LEFT_POS[LEFT_POS.length - 1];
-          st.style.left = pos[0] + '%';
-          st.style.top = pos[1] + '%';
-          if (pos[2]) st.style.width = pos[2] + '%';
-          if (pos[3]) st.style.height = pos[3] + '%';
-          st.style.zIndex = String(j + 1);
-          left.appendChild(st);
+        for (var j = 0; j < WALL_LEFT_FLAT_STACKS; j++) {
+          var flat = makeLeftLiveStackEl(WALL_LEFT_FLAT);
+          var fpos = LEFT_FLAT_POS[j] || LEFT_FLAT_POS[LEFT_FLAT_POS.length - 1];
+          flat.style.left = fpos[0] + '%';
+          flat.style.top = fpos[1] + '%';
+          flat.style.width = fpos[2] + '%';
+          flat.style.height = fpos[3] + '%';
+          flat.style.zIndex = String(j + 1);
+          left.appendChild(flat);
         }
       }
       if (right) {
@@ -577,18 +740,330 @@
         top.innerHTML = '';
         for (var t = 0; t < WALL_TOP_STACKS; t++) top.appendChild(makeStackEl(WALL_TOP_ONE));
       }
+      resetWallTiles();
       ring.classList.remove('is-on');
     }
 
-    async function revealWall() {
+    async function revealFlatWalls() {
       const ring = el('wallRing');
       if (!ring) return;
       ring.classList.add('is-on');
-      const stacks = ring.querySelectorAll('.wall-stack');
-      for (var i = 0; i < stacks.length; i++) {
-        stacks[i].classList.add('is-in');
-        if (i % 2 === 0) await sleep(28);
+      const flatStacks = ring.querySelectorAll('.wall-left .wall-stack, .wall-top .wall-stack, .wall-right .wall-stack, .wall-bot .wall-stack');
+      for (var i = 0; i < flatStacks.length; i++) {
+        flatStacks[i].classList.add('is-in');
+        if (i % 2 === 0) await sleep(22);
       }
+      await sleep(80);
+    }
+
+    async function revealWall() {
+      await revealFlatWalls();
+    }
+
+    /* 骰点 → 开牌墙 + 墩位（不显示黄字） */
+    function calcOpenBreak(dice) {
+      var sum = (dice && dice.sum) ? dice.sum : (lastDice.sum || 2);
+      var sideIdx = (sum - 1) % 4;
+      var side = OPEN_SIDES[sideIdx];
+      var host = el(OPEN_SIDE_HOST[side]);
+      var n = host ? host.querySelectorAll('.wall-stack').length : 0;
+      if (!n) n = 17;
+      var steps = (sum - 1) % n;
+      var index;
+      /* 各家右手端起数 */
+      if (side === 'bot' || side === 'right') index = n - 1 - steps;
+      else index = steps;
+      return { side: side, sideIdx: sideIdx, index: index, sum: sum, n: n };
+    }
+
+    var HAND_HOST = { bot: 'handBot', left: 'handLeft', top: 'handTop', right: 'handRight' };
+    var HAND_SRC = { bot: HAND_BOT, left: HAND_LEFT, top: HAND_TOP, right: HAND_RIGHT };
+    /* 派牌：己 → 右 → 对 → 左（逆时针） */
+    var DEAL_SEATS = ['bot', 'right', 'top', 'left'];
+    var botFaceIds = [];
+
+    function stageBox() {
+      var stage = el('tableStage');
+      return stage ? stage.getBoundingClientRect() : { left: 0, top: 0, width: 1, height: 1 };
+    }
+    function nodeBox(node) {
+      if (!node) return null;
+      var r = node.getBoundingClientRect();
+      if (!r.width && !r.height) return null;
+      return r;
+    }
+    function resetWallTiles() {
+      var ring = el('wallRing');
+      if (!ring) return;
+      var stacks = ring.querySelectorAll('.wall-stack');
+      for (var i = 0; i < stacks.length; i++) {
+        var s = stacks[i];
+        s.classList.remove('is-taken', 'is-half');
+        s.setAttribute('data-remain', '2');
+        var topImg = s.querySelector('.stack-img.tile-top');
+        if (topImg) topImg.style.display = '';
+      }
+    }
+    function clearHands() {
+      DEAL_SEATS.forEach(function (seat) {
+        var h = el(HAND_HOST[seat]);
+        if (h) h.innerHTML = '';
+      });
+      var layer = el('dealFlyLayer');
+      if (layer) layer.innerHTML = '';
+      resetWallTiles();
+    }
+    function stacksOnSide(side) {
+      var host = el(OPEN_SIDE_HOST[side]);
+      if (!host) return [];
+      return Array.prototype.slice.call(host.querySelectorAll('.wall-stack'));
+    }
+    /* 从开牌口起，顺时针沿墙取墩 */
+    function buildTakeQueue(br) {
+      var order = ['bot', 'right', 'top', 'left'];
+      var si = order.indexOf(br.side);
+      if (si < 0) si = 0;
+      var q = [];
+      for (var s = 0; s < 4; s++) {
+        var side = order[(si + s) % 4];
+        var stacks = stacksOnSide(side);
+        if (!stacks.length) continue;
+        var idxs = [];
+        var i;
+        if (side === 'bot' || side === 'right') {
+          for (i = stacks.length - 1; i >= 0; i--) idxs.push(i);
+        } else {
+          for (i = 0; i < stacks.length; i++) idxs.push(i);
+        }
+        if (s === 0) {
+          var pos = idxs.indexOf(br.index);
+          if (pos < 0) pos = 0;
+          idxs = idxs.slice(pos);
+        }
+        for (var k = 0; k < idxs.length; k++) q.push(stacks[idxs[k]]);
+      }
+      return q;
+    }
+    /* 每墩拆成 2 张：先上后下；共可取 68×2=136 */
+    function buildTileQueue(br) {
+      var stacks = buildTakeQueue(br);
+      var tiles = [];
+      for (var i = 0; i < stacks.length; i++) {
+        tiles.push({ stack: stacks[i], layer: 'top' });
+        tiles.push({ stack: stacks[i], layer: 'bot' });
+      }
+      return tiles;
+    }
+    function wallTilesRemaining() {
+      var ring = el('wallRing');
+      if (!ring) return 0;
+      var stacks = ring.querySelectorAll('.wall-stack');
+      var n = 0;
+      for (var i = 0; i < stacks.length; i++) {
+        n += parseInt(stacks[i].getAttribute('data-remain') || '0', 10) || 0;
+      }
+      return n;
+    }
+    /* 扣 1 张墙牌：满墩 2→半墩 1→空墩 0 */
+    function consumeWallTile(entry) {
+      if (!entry || !entry.stack) return null;
+      var stack = entry.stack;
+      var remain = parseInt(stack.getAttribute('data-remain') || '2', 10);
+      if (remain <= 0) return null;
+      remain -= 1;
+      stack.setAttribute('data-remain', String(remain));
+      if (remain <= 0) {
+        stack.classList.remove('is-half');
+        stack.classList.add('is-taken');
+      } else {
+        stack.classList.add('is-half');
+        var topImg = stack.querySelector('.stack-img.tile-top');
+        if (topImg) topImg.style.display = 'none';
+      }
+      return stack;
+    }
+    function appendHandTile(seat, faceId) {
+      var host = el(HAND_HOST[seat]);
+      if (!host) return null;
+      var img = document.createElement('img');
+      img.className = 'hand-tile';
+      img.alt = faceId || '';
+      img.draggable = false;
+      if (seat === 'bot' && faceId) {
+        img.src = faceSrc(faceId);
+        img.dataset.face = faceId;
+      } else {
+        img.src = HAND_SRC[seat] || HAND_BOT;
+      }
+      host.appendChild(img);
+      return img;
+    }
+    function flyOneTile(tileEntry, seat, faceId) {
+      return new Promise(function (resolve) {
+        var stage = el('tableStage');
+        var layer = el('dealFlyLayer');
+        var handHost = el(HAND_HOST[seat]);
+        var fromStack = consumeWallTile(tileEntry);
+        if (!stage || !layer || !fromStack || !handHost) {
+          resolve();
+          return;
+        }
+        var sb = stageBox();
+        var fr = nodeBox(fromStack);
+        var handTile = appendHandTile(seat, faceId);
+        if (!handTile) {
+          resolve();
+          return;
+        }
+        var tr = nodeBox(handTile) || nodeBox(handHost);
+        if (!fr || !tr) {
+          handTile.classList.add('is-up');
+          resolve();
+          return;
+        }
+        var fw = Math.max(12, fr.width * 0.9);
+        var fh = Math.max(16, fr.height * 0.55);
+        var fly = document.createElement('img');
+        fly.className = 'deal-fly';
+        fly.alt = '';
+        fly.draggable = false;
+        /* 起飞：立体壳；主位半途翻成正脸成品 */
+        fly.src = FLY_TILE;
+        fly.style.width = fw + 'px';
+        fly.style.height = fh + 'px';
+        fly.style.left = (fr.left - sb.left) + 'px';
+        fly.style.top = (fr.top - sb.top) + 'px';
+        fly.style.transform = 'rotate(' + (-35 + Math.random() * 70) + 'deg) scale(0.92)';
+        layer.appendChild(fly);
+
+        var tw = Math.max(12, tr.width || fw * 0.85);
+        var th = Math.max(16, tr.height || fh * 0.85);
+        var tx = tr.left - sb.left + (tr.width - tw) / 2;
+        var ty = tr.top - sb.top + (tr.height - th) / 2;
+
+        if (seat === 'bot' && faceId) {
+          setTimeout(function () {
+            try { fly.src = faceSrc(faceId); } catch (_) {}
+          }, 110);
+        }
+
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            fly.style.width = tw + 'px';
+            fly.style.height = th + 'px';
+            fly.style.left = tx + 'px';
+            fly.style.top = ty + 'px';
+            fly.style.transform = 'rotate(0deg) scale(1.02)';
+          });
+        });
+
+        var done = false;
+        function finish() {
+          if (done) return;
+          done = true;
+          if (fly.parentNode) fly.parentNode.removeChild(fly);
+          handTile.classList.add('is-up');
+          resolve();
+        }
+        fly.addEventListener('transitionend', finish);
+        setTimeout(finish, 360);
+      });
+    }
+
+    function handCount(seat) {
+      var host = el(HAND_HOST[seat]);
+      return host ? host.querySelectorAll('.hand-tile').length : 0;
+    }
+
+    /* 验收数：庄14 正面 / 其余13 立背；不够则补 */
+    function ensureStepACounts() {
+      var need = { bot: 14, right: 13, top: 13, left: 13 };
+      DEAL_SEATS.forEach(function (seat) {
+        var n = handCount(seat);
+        while (n < need[seat]) {
+          var fid = null;
+          if (seat === 'bot') {
+            fid = botFaceIds[n] || FACE_IDS[n % FACE_IDS.length];
+            if (!botFaceIds[n]) botFaceIds[n] = fid;
+          }
+          var t = appendHandTile(seat, fid);
+          if (t) t.classList.add('is-up');
+          n++;
+        }
+      });
+      return {
+        bot: handCount('bot'),
+        right: handCount('right'),
+        top: handCount('top'),
+        left: handCount('left')
+      };
+    }
+
+    async function dealHandsFly(br) {
+      clearHands();
+      botFaceIds = drawBotFaceIds();
+      var ring = el('handRing');
+      if (ring) ring.setAttribute('aria-hidden', 'false');
+      var breakInfo = br || (window.MahjongRound && window.MahjongRound.openBreak) || calcOpenBreak(lastDice);
+      /* 按张取：136 张队列；发 53 张后墙上应剩 83 */
+      var queue = buildTileQueue(breakInfo);
+      var qi = 0;
+      function takeTile() {
+        while (qi < queue.length) {
+          var e = queue[qi++];
+          if (!e || !e.stack) continue;
+          var rem = parseInt(e.stack.getAttribute('data-remain') || '0', 10);
+          if (rem > 0) return e;
+        }
+        return null;
+      }
+      /*
+       * 香港发牌：每轮每家 4 张 ×3 =12，再各补 1→13，庄再补 1→14
+       * 主位落地＝超大正面（随机 14）；三家＝立背
+       */
+      var seatCounts = { bot: 0, right: 0, top: 0, left: 0 };
+      var plan = [];
+      var r, si, t, seat, entry, faceId;
+      for (r = 0; r < 3; r++) {
+        for (si = 0; si < DEAL_SEATS.length; si++) {
+          seat = DEAL_SEATS[si];
+          for (t = 0; t < 4; t++) plan.push(seat);
+        }
+      }
+      for (si = 0; si < DEAL_SEATS.length; si++) plan.push(DEAL_SEATS[si]);
+      plan.push('bot');
+
+      var pending = [];
+      var dealtTiles = 0;
+      for (var p = 0; p < plan.length; p++) {
+        seat = plan[p];
+        entry = takeTile();
+        if (!entry) break;
+        faceId = null;
+        if (seat === 'bot') faceId = botFaceIds[seatCounts.bot] || null;
+        seatCounts[seat] = (seatCounts[seat] || 0) + 1;
+        dealtTiles += 1;
+        pending.push(flyOneTile(entry, seat, faceId));
+        var gap = ((p + 1) % 4 === 0) ? 90 : 36;
+        await sleep(gap);
+      }
+      try { await Promise.all(pending); } catch (_) {}
+      await sleep(80);
+      seatCounts = ensureStepACounts();
+      var wallLeft = wallTilesRemaining();
+      try {
+        window.MahjongRound = window.MahjongRound || {};
+        window.MahjongRound.dealt = true;
+        window.MahjongRound.handCounts = seatCounts;
+        window.MahjongRound.openBreak = breakInfo;
+        window.MahjongRound.dealtTiles = dealtTiles;
+        window.MahjongRound.wallLeft = wallLeft;
+        window.MahjongRound.botFaces = botFaceIds.slice();
+        window.MahjongRound.step = 'B';
+      } catch (_) {}
+      try {
+        console.info('[mahjong-m] deal', dealtTiles, 'wallLeft', wallLeft, 'botFaces', botFaceIds.join(','));
+      } catch (_) {}
     }
 
     function hideDice() {
@@ -612,6 +1087,8 @@
         await sleep(800);
       }
       await sleep(900);
+      lastDice = { a: a, b: b, sum: a + b };
+      return lastDice;
     }
 
     /* —— 中央 10 格计时器 —— */
@@ -785,10 +1262,17 @@
         await revealWall();
         return;
       }
-      await playDiceToss();
-      await revealWall();
+      /* 四墙趴 → 掷骰 → 算起牌口 → 飞牌到四家立排 */
+      await revealFlatWalls();
+      var dice = await playDiceToss();
+      var br = calcOpenBreak(dice);
+      try {
+        window.MahjongRound = window.MahjongRound || {};
+        window.MahjongRound.dice = dice;
+        window.MahjongRound.openBreak = br;
+      } catch (_) {}
+      await dealHandsFly(br);
       hideDice();
-      /* 本步：墙出齐后开始 10 秒出牌倒计时（演示）；真正出牌回合后接选手手牌 */
       startTurnTimer();
     }
 
