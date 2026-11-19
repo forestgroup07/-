@@ -129,6 +129,49 @@
       0%, 100% { box-shadow: 0 0 0 1px rgba(255, 220, 150, .45), 0 4px 14px rgba(212, 176, 106, .4); }
       50% { box-shadow: 0 0 0 3px rgba(240, 211, 146, .55), 0 6px 18px rgba(240, 211, 146, .55); }
     }
+    /* 推荐码下：加到主屏幕提示（闪 + 动画，点开步骤） */
+    .top-row3 {
+      padding: .28rem .55rem .4rem;
+      background: rgba(8, 10, 14, .55);
+      border-top: 1px solid rgba(212,176,106,.18);
+    }
+    .ahs-banner {
+      width: 100%;
+      border: 1px solid #ff2a2a;
+      border-radius: 8px;
+      padding: .42rem .55rem;
+      background: linear-gradient(180deg, #ff3b3b 0%, #c41010 55%, #8e0000 100%);
+      color: #fff;
+      font-size: .74rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+      line-height: 1.35;
+      text-align: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      text-shadow: 0 1px 0 rgba(0,0,0,.35);
+      animation: ahsBannerFlash .7s ease-in-out infinite;
+    }
+    .ahs-banner:active { transform: scale(0.985); }
+    @keyframes ahsBannerFlash {
+      0%, 100% {
+        opacity: 1;
+        color: #fff;
+        background: linear-gradient(180deg, #ff4d4d 0%, #e01212 55%, #a00000 100%);
+        border-color: #ff6666;
+        box-shadow: 0 0 0 1px rgba(255, 80, 80, .55), 0 0 16px rgba(255, 40, 40, .65);
+        transform: scale(1);
+      }
+      50% {
+        opacity: .35;
+        color: #ffe0e0;
+        background: linear-gradient(180deg, #ff7a7a 0%, #ff1a1a 50%, #b00000 100%);
+        border-color: #ffd0d0;
+        box-shadow: 0 0 0 3px rgba(255, 120, 120, .85), 0 0 22px rgba(255, 0, 0, .9);
+        transform: scale(1.02);
+      }
+    }
     .icon-btn {
       width: 32px; height: 32px;
       border: 0; border-radius: 6px;
@@ -314,13 +357,132 @@
     }
     .card.mahjong .thumb {
       background:
-        linear-gradient(180deg, transparent 35%, rgba(0,0,0,.8)),
-        url("assets/lobby-mahjong-thumb.webp?v=0.2.1") center 45% / cover no-repeat;
+        linear-gradient(180deg, transparent 42%, rgba(0,0,0,.82)),
+        url("assets/lobby-mahjong/hk.webp?v=1.0.1") center 28% / cover no-repeat;
+    }
+    /* 同类同封面、图上不写自编字：港/粤/川/另 各一张 */
+    .card.mahjong.mj-hk .thumb,
+    .card.mahjong.mj-hk2 .thumb,
+    .card.mahjong.mj-hk3 .thumb {
+      background-image:
+        linear-gradient(180deg, transparent 42%, rgba(0,0,0,.82)),
+        url("assets/lobby-mahjong/hk.webp?v=1.0.1");
+    }
+    .card.mahjong.mj-gd1 .thumb,
+    .card.mahjong.mj-gd2 .thumb,
+    .card.mahjong.mj-gd3 .thumb {
+      background-image:
+        linear-gradient(180deg, transparent 42%, rgba(0,0,0,.82)),
+        url("assets/lobby-mahjong/gd.webp?v=1.0.1");
+    }
+    .card.mahjong.mj-sc1 .thumb,
+    .card.mahjong.mj-sc2 .thumb,
+    .card.mahjong.mj-sc3 .thumb {
+      background-image:
+        linear-gradient(180deg, transparent 42%, rgba(0,0,0,.82)),
+        url("assets/lobby-mahjong/sc.webp?v=1.0.1");
+    }
+    .card.mahjong.mj-gb1 .thumb,
+    .card.mahjong.mj-wind .thumb {
+      background-image:
+        linear-gradient(180deg, transparent 42%, rgba(0,0,0,.82)),
+        url("assets/lobby-mahjong/other.webp?v=1.0.1");
     }
     .card .meta {
       flex: 0 0 auto;
       padding: .28rem .35rem .32rem;
       background: rgba(10, 12, 16, .92);
+    }
+    /* 麻将可进桌卡：加到主屏幕（全屏无网址栏） */
+    .card.mahjong.has-ahs {
+      position: relative;
+    }
+    .card .ahs-btn {
+      position: absolute;
+      top: .35rem;
+      right: .35rem;
+      z-index: 3;
+      border: 1px solid rgba(240, 211, 146, .55);
+      background: rgba(12, 14, 20, .82);
+      color: var(--gold2);
+      font-size: .58rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+      padding: .28rem .42rem;
+      border-radius: 999px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      box-shadow: 0 4px 12px rgba(0,0,0,.35);
+    }
+    .card .ahs-btn:active { transform: scale(.97); }
+    #ahsModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      background: rgba(0,0,0,.62);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    #ahsModal.show { display: flex; }
+    #ahsModal .ahs-panel {
+      width: min(94vw, 400px);
+      max-height: min(86vh, 640px);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      background: #151923;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: .9rem .95rem 1rem;
+      color: #ece7db;
+      box-shadow: 0 18px 40px rgba(0,0,0,.45);
+    }
+    #ahsModal h3 {
+      font-size: .95rem;
+      color: var(--gold2);
+      margin: 0 0 .45rem;
+    }
+    #ahsModal h4 {
+      font-size: .78rem;
+      color: #f0d392;
+      margin: .7rem 0 .35rem;
+      font-weight: 700;
+    }
+    #ahsModal p, #ahsModal ol {
+      font-size: .72rem;
+      color: #c8c2b4;
+      line-height: 1.5;
+      margin: 0 0 .45rem;
+    }
+    #ahsModal .ahs-note {
+      color: var(--muted);
+      font-size: .68rem;
+    }
+    #ahsModal ol { padding-left: 1.15rem; margin-bottom: .35rem; }
+    #ahsModal li { margin: .28rem 0; }
+    #ahsModal b { color: #f3e6c4; font-weight: 700; }
+    #ahsModal .ahs-actions {
+      display: flex;
+      gap: .45rem;
+      margin-top: .7rem;
+    }
+    #ahsModal .ahs-actions button {
+      flex: 1;
+      border: 1px solid var(--line);
+      background: #1c2230;
+      color: #ece7db;
+      border-radius: 8px;
+      padding: .55rem .4rem;
+      font-size: .72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #ahsModal .ahs-actions button.primary {
+      border-color: rgba(240,211,146,.5);
+      background: linear-gradient(180deg, #3a3224, #2a2418);
+      color: var(--gold2);
     }
     .card .name {
       font-size: .72rem;
@@ -392,6 +554,48 @@
       }
       .card { max-height: 140px; }
     }
+    /* 竖屏：整页可滚，入口卡片完整显现（不被 46vw 裁切） */
+    @media (orientation: portrait) {
+      html, body {
+        height: auto;
+        min-height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .app {
+        height: auto;
+        min-height: 100dvh;
+      }
+      .body {
+        height: auto;
+        min-height: calc(100dvh - 88px);
+        overflow: visible;
+      }
+      .main {
+        height: auto;
+        overflow: visible;
+      }
+      .grid {
+        flex: none;
+        overflow: visible;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .48rem;
+        padding: .4rem .38rem 1.6rem;
+      }
+      .card {
+        max-height: none;
+        aspect-ratio: 1 / 1;
+        width: 100%;
+      }
+      .card .meta { padding: .26rem .32rem .3rem; }
+      .card .name { font-size: .7rem; }
+      .card .sub { font-size: .56rem; }
+      .card.mahjong .thumb {
+        background-position: center 22%;
+        background-size: cover;
+      }
+    }
     /* 手机进桌：透明壳压住大厅（仍看得见大厅）→ 子页就绪再淡入，禁止黑屏 */
     #fgEmbedShell {
       position: fixed; inset: 0; z-index: 99999;
@@ -411,7 +615,7 @@
   </style>
   <!-- 轮盘首页首开：预取轮盘页+键面；禁止预取骰宝抢带宽 -->
   <link rel="prefetch" href="roulette-m.html?v=1.6.12" as="document">
-  <link rel="prefetch" href="mahjong-m.html?v=1.1.5" as="document">
+  <link rel="prefetch" href="mahjong-m.html?v=1.1.7" as="document">
   <link rel="preload" as="image" href="assets/roulette/m-kbd-face.webp?v=1.5.0" type="image/webp" fetchpriority="high">
 </head>
 <body>
@@ -429,6 +633,11 @@
       <div class="top-row2">
         <div class="ref-code" id="lobbyRef" title="我的推荐码">推荐码 —</div>
         <button type="button" class="invite-btn" id="lobbyInvite" title="一点复制邀请链接，发给 WhatsApp 朋友">邀请链接 · 一点复制</button>
+      </div>
+      <div class="top-row3">
+        <button type="button" class="ahs-banner" id="ahsBanner" title="加到主屏幕，全屏无网址栏">
+          为了给您最好的客户体验，请您将游戏加到主屏幕！
+        </button>
       </div>
     </header>
 
@@ -449,6 +658,14 @@
             <button class="nav-child" type="button" data-enter="mahjong">单人香港麻将</button>
             <button class="nav-child" type="button" data-enter="soon" data-label="多人香港麻将">多人香港麻将</button>
             <button class="nav-child" type="button" data-enter="soon" data-label="四人香港麻将">四人香港麻将</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="广东麻将·经典">广东麻将·经典</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="广东麻将·鸡平胡">广东麻将·鸡平胡</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="广东麻将·推倒胡">广东麻将·推倒胡</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="四川麻将·血战到底">四川麻将·血战到底</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="四川麻将·换三张">四川麻将·换三张</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="四川麻将·血流成河">四川麻将·血流成河</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="国标麻将">国标麻将</button>
+            <button class="nav-child" type="button" data-enter="soon" data-label="风位大战">风位大战</button>
           </div>
         </div>
         <div class="nav-group is-empty" data-group="elec">
@@ -465,6 +682,17 @@
     </div>
   </div>
 
+  <div id="ahsModal" aria-hidden="true">
+    <div class="ahs-panel" role="dialog" aria-labelledby="ahsTitle">
+      <h3 id="ahsTitle">加到主屏幕 · 全屏进麻将</h3>
+      <div id="ahsBody"></div>
+      <div class="ahs-actions">
+        <button type="button" id="ahsClose">关闭</button>
+        <button type="button" class="primary" id="ahsDo">打开麻将页</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       const GAME_PC = 'game.html?v=1.5.18';
@@ -473,7 +701,7 @@
       const ROULETTE_M = 'roulette-m.html?v=2.8.0';
       const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.8.0';
       const BACCARAT_M = 'baccarat-m.html?v=1.1.2';
-      const MAHJONG_M = 'mahjong-m.html?v=1.1.5';
+      const MAHJONG_M = 'mahjong-m.html?v=1.1.7';
       function isMobileClient() {
         try {
           if (/(Android|iPhone|iPod|iPad|Mobile|webOS|BlackBerry)/i.test(navigator.userAgent || '')) return true;
@@ -1187,24 +1415,23 @@
         });
       });
 
-      /* 中间始终展示全部，显得多；可进桌的保留进桌，其余演示 */
+      /* 入口到风位大战为止；可进桌的保留进桌，其余演示 */
       const tables = [
         { id: 'S601', name: '骰宝 S601', kind: 'sicbo', featured: true, enter: 'sicbo', sec: 22 },
         { id: 'R501', name: '轮盘 R501', kind: 'roulette', featured: true, enter: 'roulette', sec: 20 },
         { id: 'B601', name: '百家乐 B601', kind: 'baccarat', featured: true, enter: 'baccarat', sec: 20 },
         { id: 'BJ01', name: '21点 BJ01', kind: 'blackjack', featured: true, enter: '', sec: 18 },
-        { id: 'M701', name: '单人香港麻将', kind: 'mahjong', featured: true, enter: 'mahjong', sec: 20 },
-        { id: 'M702', name: '多人香港麻将', kind: 'mahjong', featured: true, enter: '', sec: 18 },
-        { id: 'M703', name: '四人香港麻将', kind: 'mahjong', featured: true, enter: '', sec: 18 },
-        { id: 'E101', name: '电子厅 E101', kind: 'elec', enter: '', sec: 14 },
-        { id: 'E102', name: '电子厅 E102', kind: 'elec', enter: '', sec: 14 },
-        { id: 'L201', name: '真人厅 L201', kind: 'live', enter: '', sec: 16 },
-        { id: 'L202', name: '真人厅 L202', kind: 'live', enter: '', sec: 16 },
-        { id: 'F701', name: '鱼虾蟹 F701', kind: 'other', enter: '', sec: 15 },
-        { id: 'BB701', name: '牛牛 BB701', kind: 'other', enter: '', sec: 16 },
-        { id: 'W701', name: '三公 W701', kind: 'other', enter: '', sec: 12 },
-        { id: 'D801', name: '龙虎 D801', kind: 'other', enter: '', sec: 14 },
-        { id: 'B501', name: '百家乐 B501', kind: 'baccarat', enter: '', sec: 11 },
+        { id: 'M701', name: '单人香港麻将', kind: 'mahjong', mj: 'hk', featured: true, enter: 'mahjong', sec: 20 },
+        { id: 'M702', name: '多人香港麻将', kind: 'mahjong', mj: 'hk2', featured: true, enter: '', sec: 18 },
+        { id: 'M703', name: '四人香港麻将', kind: 'mahjong', mj: 'hk3', featured: true, enter: '', sec: 18 },
+        { id: 'M711', name: '广东麻将·经典', kind: 'mahjong', mj: 'gd1', featured: true, enter: '', sec: 18 },
+        { id: 'M712', name: '广东麻将·鸡平胡', kind: 'mahjong', mj: 'gd2', featured: true, enter: '', sec: 18 },
+        { id: 'M713', name: '广东麻将·推倒胡', kind: 'mahjong', mj: 'gd3', featured: true, enter: '', sec: 18 },
+        { id: 'M721', name: '四川麻将·血战到底', kind: 'mahjong', mj: 'sc1', featured: true, enter: '', sec: 18 },
+        { id: 'M722', name: '四川麻将·换三张', kind: 'mahjong', mj: 'sc2', featured: true, enter: '', sec: 18 },
+        { id: 'M723', name: '四川麻将·血流成河', kind: 'mahjong', mj: 'sc3', featured: true, enter: '', sec: 18 },
+        { id: 'M731', name: '国标麻将', kind: 'mahjong', mj: 'gb1', featured: true, enter: '', sec: 18 },
+        { id: 'M732', name: '风位大战', kind: 'mahjong', mj: 'wind', featured: true, enter: '', sec: 18 },
       ];
 
       const grid = document.getElementById('grid');
@@ -1271,11 +1498,15 @@
             + (t.kind === 'sicbo' ? ' sicbo' : '')
             + (t.kind === 'roulette' ? ' roulette' : '')
             + (t.kind === 'baccarat' ? ' baccarat' : '')
-            + (t.kind === 'mahjong' ? ' mahjong' : '');
+            + (t.kind === 'mahjong' ? ' mahjong' : '')
+            + (t.mj ? (' mj-' + t.mj) : '');
           const open = !!t.enter;
           const sub = open ? ('点击进入 · ' + t.sec + 's') : '演示桌 · 暂未开放';
+          const showAhs = t.enter === 'mahjong';
+          if (showAhs) btn.classList.add('has-ahs');
           btn.innerHTML =
             '<div class="thumb"></div>' +
+            (showAhs ? '<button type="button" class="ahs-btn" data-ahs="1">加到主屏幕</button>' : '') +
             '<div class="meta"><div class="name">' + t.name + '</div>' +
             '<div class="sub">' + sub + '</div></div>';
           var lastGoAt = 0;
@@ -1287,20 +1518,124 @@
             else alert('演示桌暂未开放');
           }
           btn.addEventListener('click', function (e) {
-            try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+            try {
+              if (e.target && e.target.closest && e.target.closest('[data-ahs]')) return;
+              e.preventDefault(); e.stopPropagation();
+            } catch (_) {}
             goCard();
           });
+          if (showAhs) {
+            var ahsBtn = btn.querySelector('[data-ahs]');
+            if (ahsBtn) {
+              ahsBtn.addEventListener('click', function (e) {
+                try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+                openAhsModal();
+              });
+            }
+          }
           grid.appendChild(btn);
         });
       }
 
+      /* 加到主屏幕：Android 可走安装提示；iOS 只展示步骤（系统不允许网页强制添加） */
+      var deferredAhsPrompt = null;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        try { e.preventDefault(); } catch (_) {}
+        deferredAhsPrompt = e;
+      });
+      function isIosLike() {
+        try {
+          return /iPhone|iPad|iPod/i.test(navigator.userAgent || '') ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        } catch (_) { return false; }
+      }
+      function openAhsModal() {
+        var modal = document.getElementById('ahsModal');
+        var body = document.getElementById('ahsBody');
+        var doBtn = document.getElementById('ahsDo');
+        if (!modal || !body || !doBtn) return;
+        /* 条款同时写清 iPhone + 安卓：手机底栏没有「全屏」键，只能加到主屏幕后从图标进 */
+        body.innerHTML =
+          '<p><b>重要：</b>手机浏览器底栏<b>没有「全屏观看」按钮</b>。' +
+          '在 Safari/Chrome 里点进游戏，网址栏会一直在。' +
+          '只有把本站<b>加到主屏幕</b>，再从桌面图标进入，才是全屏（无网址栏）。仍是网页，不用下 App。</p>' +
+          '<p class="ahs-note">请先用系统浏览器打开本站；微信/QQ 内置浏览器通常没有「添加到主屏幕」。</p>' +
+
+          '<h4>一、iPhone（Safari）怎么全屏</h4>' +
+          '<ol>' +
+          '<li>用 <b>Safari</b> 打开本站（不要用微信打开）。</li>' +
+          '<li>看手机<b>最底下那一栏</b>：新版 Safari 中间常常<b>没有</b>旧的分享键 □↑。</li>' +
+          '<li>点底栏<b>最右边</b>的 <b>···</b>（三个点）。</li>' +
+          '<li>在菜单里点 <b>共享</b>。（也可先点中间地址栏 <b>forestgroup.ai</b>，再找共享。）</li>' +
+          '<li>弹出分享面板后，用手指<b>往上滑</b>（下面还有一截菜单）。</li>' +
+          '<li>找到 <b>添加到主屏幕</b> → 点 <b>添加</b>。</li>' +
+          '<li>按 Home 或上滑回到<b>手机桌面</b>，点新出现的 <b>麻将</b> 图标进入 → 此时才是全屏、没有网址栏。</li>' +
+          '</ol>' +
+
+          '<h4>二、安卓手机（Chrome）怎么全屏</h4>' +
+          '<ol>' +
+          '<li>用 <b>Chrome</b>（或系统浏览器）打开本站，不要用微信内置浏览器。</li>' +
+          '<li>点右上角 <b>⋮</b>（三个竖点菜单）。</li>' +
+          '<li>在菜单里找并点：<b>添加到主屏幕</b> / <b>安装应用</b> / <b>添加到主屏幕</b>（不同手机文案可能略有差别）。</li>' +
+          '<li>若本弹窗下方出现 <b>按系统安装</b>，也可直接点它，按系统提示确认安装。</li>' +
+          '<li>回到手机桌面，点 <b>麻将</b> 图标进入 → 全屏、没有网址栏。</li>' +
+          '</ol>' +
+
+          '<h4>三、怎样才算成功</h4>' +
+          '<ol>' +
+          '<li>必须从<b>桌面图标</b>点进，不是从 Safari/Chrome 书签或地址栏再开一次。</li>' +
+          '<li>进去后顶部/底部应看不到网址输入框；若还看得到，说明仍在浏览器标签页里，请回到桌面用图标进。</li>' +
+          '</ol>';
+
+        if (isIosLike()) {
+          doBtn.textContent = '打开麻将页再按上面步骤添加';
+          doBtn.onclick = function () { location.href = MAHJONG_M; };
+        } else if (deferredAhsPrompt) {
+          doBtn.textContent = '按系统安装（安卓）';
+          doBtn.onclick = function () {
+            var p = deferredAhsPrompt;
+            deferredAhsPrompt = null;
+            p.prompt();
+            try { p.userChoice.then(function () { closeAhsModal(); }); }
+            catch (_) { closeAhsModal(); }
+          };
+        } else {
+          doBtn.textContent = '打开麻将页';
+          doBtn.onclick = function () { location.href = MAHJONG_M; };
+        }
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+      }
+      function closeAhsModal() {
+        var modal = document.getElementById('ahsModal');
+        if (!modal) return;
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      (function bindAhsModal() {
+        var modal = document.getElementById('ahsModal');
+        var closeBtn = document.getElementById('ahsClose');
+        var banner = document.getElementById('ahsBanner');
+        if (closeBtn) closeBtn.addEventListener('click', closeAhsModal);
+        if (banner) {
+          banner.addEventListener('click', function (e) {
+            try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+            openAhsModal();
+          });
+        }
+        if (modal) {
+          modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeAhsModal();
+          });
+        }
+      })();
+
+      /* 分类可多开：点棋牌不收起桌面，显得项目多 */
       document.querySelectorAll('.nav-parent').forEach((el) => {
         el.addEventListener('click', () => {
           const group = el.closest('.nav-group');
           if (!group || group.classList.contains('is-empty')) return;
-          const willOpen = !group.classList.contains('is-open');
-          document.querySelectorAll('.nav-group').forEach((g) => g.classList.remove('is-open'));
-          if (willOpen) group.classList.add('is-open');
+          group.classList.toggle('is-open');
         });
       });
       document.querySelectorAll('.nav-child').forEach((el) => {

@@ -1,0 +1,35 @@
+mahjong-m v1.1.7 定版（2026-11-19）
+
+用户确认：「请把此版本存为1.1.7 并计入git」
+范围：麻将手机竖屏 + 大厅麻将入口/加到主屏幕引导（不含骰宝/轮盘玩法改动）。
+
+已验收清单（本包算数）：
+- 主位立体正脸试飞（沿用 1.1.5：s7/p9/s4/ww/s1；飞中 CUBOID→正脸）
+- 主位手牌：贴桌沿；间距/尺寸微调（高 +3mm、宽按比例、缝 -1mm 体感）
+- 中央出牌计时器数字 2×（28→56）
+- 摇骰时长恢复原 SHAKE_MS=3200（未再缩短）
+- 大厅棋牌入口齐全（单人/多人/四人香港 + 广东×3 + 四川×3 + 国标 + 风位）；风位后演示桌已去掉
+- 同类同封面：港/粤/川/另 各一张；图上不写自编标题字
+- 左侧分类可多开（点棋牌不收起桌面）
+- 竖屏入口卡片完整可滚
+- 大厅推荐码下红色闪烁「加到主屏幕」条 + 弹窗步骤（iPhone/安卓）；单人香港卡也可点加到主屏幕
+- mahjong-m.html / lobby MAHJONG_M ?v=1.1.7
+- assets/mahjong/VERSION-m.txt = 1.1.7
+- PWA manifest start_url → mahjong-m.html?v=1.1.7
+
+未验收、不得当作定版：
+- 其余花色立体正脸铺满
+- 三家立背/趴牌花色精修
+- 摇骰再缩短时长
+- 骰宝 / 轮盘 / 百家乐玩法与资源
+
+回滚：
+- mahjong-m.LOCKED-1.1.7.html
+- lobby.LOCKED-mahjong-m-1.1.7.html
+- assets/lobby-mahjong/LOCKED-{hk,gd,sc,other}-1.1.7.webp
+- assets/mahjong/LOCKED-mahjong-m-1.1.7.txt
+- assets/mahjong/VERSION-m.txt / HAND-FACE-3D-VERSION.txt = 1.1.7
+- tag mahjong-m-v1.1.7
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.1.7
+大厅：https://forestgroup.ai/lobby.html
