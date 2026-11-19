@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.2.3" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.2.4" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.2.3</title>
+  <title>单人香港麻将 · v1.2.4</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.2.3" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.2.4" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -42,7 +42,7 @@
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      background: url("assets/mahjong/table-empty-clean-v15.png?v=1.2.3") center center / cover no-repeat;
+      background: url("assets/mahjong/table-empty-clean-v15.png?v=1.2.4") center center / cover no-repeat;
     }
     /* contain：整桌进屏，不裁上下（主牌不被挡） */
     .table-stage {
@@ -469,7 +469,7 @@
       z-index: 12;
       left: 50%;
       top: 46%;
-      /* 滚动程序保持 LOCKED；仅画布 2× 便于看清，不改物理 */
+      /* 骰子视觉放大一倍：画布 84%（=42%×2）；滚动程序不动 DIE=0.36 */
       width: 84%;
       height: 84%;
       transform: translate(-50%, -50%);
@@ -574,7 +574,7 @@
           <div class="table-shadow" aria-hidden="true"></div>
           <div class="table-body">
             <!-- 原桌图只引用、不改像素 -->
-            <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.2.3" alt="" draggable="false" />
+            <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.2.4" alt="" draggable="false" />
             <div class="table-sheen" aria-hidden="true"></div>
             <div class="table-edge-front" aria-hidden="true"></div>
           </div>
@@ -609,23 +609,23 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.2.3"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.2.4"></script>
   <script>
   (function () {
-    const V = '1.2.3';
+    const V = '1.2.4';
     /* 1.1.5：主位试飞 5 张立体正脸成品（s7/p9/s4/ww/s1）；飞中立体壳→正脸；三家仍立背 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.2.3';
-    const WALL_LEFT_FLAT = 'assets/mahjong/tiles/wall-left-one.webp?v=1.2.3';
-    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.2.3';
-    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.2.3';
-    const HAND_BOT = 'assets/mahjong/tiles/hand-bot-stand-one.webp?v=1.2.3';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.2.4';
+    const WALL_LEFT_FLAT = 'assets/mahjong/tiles/wall-left-one.webp?v=1.2.4';
+    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.2.4';
+    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.2.4';
+    const HAND_BOT = 'assets/mahjong/tiles/hand-bot-stand-one.webp?v=1.2.4';
     /* 左/右形状与对面相同：共用对面立背图 */
-    const HAND_TOP = 'assets/mahjong/tiles/hand-top-stand-edge.webp?v=1.2.3';
-    const HAND_LEFT = 'assets/mahjong/tiles/hand-left-wood-stand.webp?v=1.2.3';
-    const HAND_RIGHT = 'assets/mahjong/tiles/hand-right-wood-stand.webp?v=1.2.3';
-    const FLY_TILE = 'assets/mahjong/tiles/hand-left-back-one-CUBOID-FLY.webp?v=1.2.3';
+    const HAND_TOP = 'assets/mahjong/tiles/hand-top-stand-edge.webp?v=1.2.4';
+    const HAND_LEFT = 'assets/mahjong/tiles/hand-left-wood-stand.webp?v=1.2.4';
+    const HAND_RIGHT = 'assets/mahjong/tiles/hand-right-wood-stand.webp?v=1.2.4';
+    const FLY_TILE = 'assets/mahjong/tiles/hand-left-back-one-CUBOID-FLY.webp?v=1.2.4';
     const FACE_DIR = 'assets/mahjong/tiles/hand-face/';
     const FACE_3D_DIR = 'assets/mahjong/tiles/hand-face-3d/';
     /* 试飞验收：先这 5 张立体正脸成品 */
@@ -1189,8 +1189,10 @@
     }
 
     async function playDiceToss() {
+      /* 两颗不许同点 */
       var a = 1 + Math.floor(Math.random() * 6);
       var b = 1 + Math.floor(Math.random() * 6);
+      while (b === a) b = 1 + Math.floor(Math.random() * 6);
       var ok = await waitMahjongDice3D(2500);
       if (ok) {
         try { await window.MahjongDice3D.play([a, b]); }
