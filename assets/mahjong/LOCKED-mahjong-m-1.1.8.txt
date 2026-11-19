@@ -1,0 +1,27 @@
+mahjong-m v1.1.8 定版（2026-11-19）
+
+用户确认：「好把这版定位1.1.8 计入git」
+范围：麻将手机竖屏（含三家立牌）；大厅沿用 1.1.7 入口/加到主屏幕能力。
+
+已验收清单（本包算数）：
+- 沿用 1.1.7：主位立体正脸试飞、手牌间距尺寸、计时器大数字、摇骰 SHAKE_MS=3200、大厅棋牌入口与加到主屏幕
+- 左/右/对面立背新图（stand-edge），贴各自桌沿
+- 对面立牌：位置/间距微调；白厚边立体；白边在上（颠倒后定稿）
+- mahjong-m.html / lobby MAHJONG_M ?v=1.1.8
+- assets/mahjong/VERSION-m.txt = 1.1.8
+
+未验收、不得当作定版：
+- 其余花色立体正脸铺满
+- 三家立背花色/再精修透视
+- 摇骰再缩短
+- 骰宝 / 轮盘 / 百家乐玩法
+
+回滚：
+- mahjong-m.LOCKED-1.1.8.html
+- lobby.LOCKED-mahjong-m-1.1.8.html
+- assets/mahjong/tiles/LOCKED-hand-{left,right,top}-stand-edge-1.1.8.webp
+- assets/mahjong/LOCKED-mahjong-m-1.1.8.txt
+- assets/mahjong/VERSION-m.txt = 1.1.8
+- tag mahjong-m-v1.1.8
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.1.8

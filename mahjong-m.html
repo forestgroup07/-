@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.7" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.8" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.1.7</title>
+  <title>单人香港麻将 · v1.1.8</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.7" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.8" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -234,32 +234,42 @@
       gap: max(0px, calc(0.35% - 1mm));
       z-index: 12;
     }
+    /* 三家立背：贴各自木沿（只换立牌图+定位，不动主位） */
     .hand-top {
-      left: 31%;
-      width: 38%;
-      top: 2.8%;
-      height: 7.6%;
+      left: 26%;
+      width: 48%;
+      top: calc(0.4% + 3mm); /* 对面：下移5mm后再上移2mm */
+      height: 9.4%;
       flex-direction: row;
-      align-items: flex-start;
+      align-items: flex-end;
+      justify-content: center;
       gap: 0.12%;
+      z-index: 11;
+    }
+    .hand-top .hand-tile + .hand-tile {
+      margin-left: -1mm; /* 对面间距：-2mm 后再加大 1mm */
     }
     .hand-left {
-      left: 5.2%;
-      top: 22%;
-      width: 5.6%;
-      height: 52%;
+      left: 2.4%;
+      top: 17%;
+      width: 7.6%;
+      height: 58%;
       flex-direction: column;
       justify-content: center;
-      gap: 0.35%;
+      align-items: flex-end;
+      gap: 0.18%;
+      z-index: 11;
     }
     .hand-right {
-      right: 5.2%;
-      top: 22%;
-      width: 5.6%;
-      height: 52%;
+      right: 2.4%;
+      top: 17%;
+      width: 7.6%;
+      height: 58%;
       flex-direction: column;
       justify-content: center;
-      gap: 0.35%;
+      align-items: flex-start;
+      gap: 0.18%;
+      z-index: 11;
     }
     .hand-tile {
       display: block;
@@ -274,8 +284,19 @@
       opacity: 1;
       transform: none;
     }
-    .hand-right .hand-tile { transform: scaleX(-1) translateY(6px) scale(.92); }
-    .hand-right .hand-tile.is-up { transform: scaleX(-1); }
+    .hand-left .hand-tile {
+      transform: translateX(-4px) scale(.92);
+      filter: drop-shadow(1px 3px 4px rgba(0,0,0,.45)) brightness(1.05);
+    }
+    .hand-left .hand-tile.is-up { transform: none; }
+    .hand-right .hand-tile {
+      transform: translateX(4px) scale(.92);
+      filter: drop-shadow(-1px 3px 4px rgba(0,0,0,.45)) brightness(1.05);
+    }
+    .hand-right .hand-tile.is-up { transform: none; }
+    .hand-top .hand-tile {
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.4)) brightness(1.05);
+    }
     .hand-bot .hand-tile {
       width: calc(100% / 14 + 2.24mm);
       height: 100%;
@@ -288,9 +309,19 @@
     .hand-bot .hand-tile + .hand-tile {
       margin-left: -1mm;
     }
-    .hand-top .hand-tile { width: calc(100% / 13); height: 100%; }
+    .hand-top .hand-tile {
+      width: calc(100% / 13);
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+    }
     .hand-left .hand-tile,
-    .hand-right .hand-tile { width: 100%; height: calc(100% / 13); }
+    .hand-right .hand-tile {
+      width: 100%;
+      height: calc(100% / 13);
+      object-fit: contain;
+      object-position: center bottom;
+    }
     .wall-stack.is-taken {
       opacity: 0 !important;
       visibility: hidden;
@@ -524,7 +555,7 @@
         <div class="table-shadow" aria-hidden="true"></div>
         <div class="table-body">
           <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.7" alt="" draggable="false" />
+          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.8" alt="" draggable="false" />
           <div class="table-sheen" aria-hidden="true"></div>
           <div class="table-edge-front" aria-hidden="true"></div>
         </div>
@@ -558,22 +589,22 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.7"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.8"></script>
   <script>
   (function () {
-    const V = '1.1.7';
+    const V = '1.1.8';
     /* 1.1.5：主位试飞 5 张立体正脸成品（s7/p9/s4/ww/s1）；飞中立体壳→正脸；三家仍立背 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.7';
-    const WALL_LEFT_FLAT = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.7';
-    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.7';
-    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.1.7';
-    const HAND_BOT = 'assets/mahjong/tiles/hand-bot-stand-one.webp?v=1.1.7';
-    const HAND_LEFT = 'assets/mahjong/tiles/hand-left-stand-one.webp?v=1.1.7';
-    const HAND_TOP = 'assets/mahjong/tiles/hand-top-back-one.webp?v=1.1.7';
-    const HAND_RIGHT = 'assets/mahjong/tiles/hand-left-stand-one.webp?v=1.1.7';
-    const FLY_TILE = 'assets/mahjong/tiles/hand-left-back-one-CUBOID-FLY.webp?v=1.1.7';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.8';
+    const WALL_LEFT_FLAT = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.8';
+    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.8';
+    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.1.8';
+    const HAND_BOT = 'assets/mahjong/tiles/hand-bot-stand-one.webp?v=1.1.8';
+    const HAND_LEFT = 'assets/mahjong/tiles/hand-left-stand-edge.webp?v=1.1.8';
+    const HAND_TOP = 'assets/mahjong/tiles/hand-top-stand-edge.webp?v=1.1.8';
+    const HAND_RIGHT = 'assets/mahjong/tiles/hand-right-stand-edge.webp?v=1.1.8';
+    const FLY_TILE = 'assets/mahjong/tiles/hand-left-back-one-CUBOID-FLY.webp?v=1.1.8';
     const FACE_DIR = 'assets/mahjong/tiles/hand-face/';
     const FACE_3D_DIR = 'assets/mahjong/tiles/hand-face-3d/';
     /* 试飞验收：先这 5 张立体正脸成品 */
