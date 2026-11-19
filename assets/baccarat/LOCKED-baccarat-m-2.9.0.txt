@@ -1,0 +1,25 @@
+baccarat-m v2.9.0 定版（2026-11-19）
+
+用户确认：「现在把骰宝轮盘百家乐 存为2.9版本 并计入git 存储在服务器中」
+范围：百家乐手机竖屏；横屏黑罩请竖屏。
+
+已验收清单（本包算数）：
+- 横屏：半透明黑罩「请竖屏游玩」+ 禁点（js/fg-force-portrait.js）；回竖屏罩消失
+- 不做 CSS 假转向强制竖版
+- 沿用 1.1.x：侧栏/规则/路单/八键/黄三键/停注/开牌/底栏/默认静音喇叭等
+- baccarat-m.html / lobby BACCARAT_M ?v=2.9.0
+- assets/baccarat/VERSION-m.txt = 2.9.0
+
+未验收、不得当作定版：
+- 麻将 / 大厅横屏
+- CSS 强制竖版旋转方案（已放弃）
+
+回滚：
+- baccarat-m.LOCKED-2.9.0.html
+- lobby.LOCKED-baccarat-m-2.9.0.html
+- js/fg-force-portrait.LOCKED-2.9.0.js
+- assets/baccarat/LOCKED-baccarat-m-2.9.0.txt
+- assets/baccarat/VERSION-m.txt = 2.9.0
+- tag baccarat-m-v2.9.0
+
+验收：https://forestgroup.ai/baccarat-m.html?v=2.9.0

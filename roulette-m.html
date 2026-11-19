@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="screen-orientation" content="portrait" />
+  <link rel="manifest" href="assets/fg-portrait.webmanifest?v=1.0.5" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0a1210" />
   <meta name="robots" content="noindex,nofollow" />
@@ -2249,6 +2251,8 @@
     .rec-sum .pnl-win { color: #3ddc84; font-weight: 700; }
     .rec-sum .pnl-lose { color: #f07178; font-weight: 700; }
   </style>
+
+  <script src="js/fg-force-portrait.js?v=1.2.0"></script>
 </head>
 <body>
   <div class="app" id="app">
@@ -2493,7 +2497,7 @@
         <button type="button" class="btn-gear is-locked" id="btnGear" aria-label="设置（暂不可用）" aria-disabled="true" disabled>⚙</button>
         <div class="chips-rail" id="chipsRail">
           <div class="chips" id="chips" aria-label="筹码，左右滑动切换">
-            <button type="button" class="chip" data-chip="10" aria-label="10" style="background-image:url('chips/chip-10.webp?v=1.2.1')"></button>
+            <button type="button" class="chip" data-chip="10" aria-label="10" style="background-image:url('chips/chip-10.webp?v=1.2.2f')"></button>
             <button type="button" class="chip" data-chip="20" aria-label="20" style="background-image:url('chips/chip-20.webp?v=1.2.1')"></button>
             <button type="button" class="chip sel" data-chip="50" aria-label="50" style="background-image:url('chips/chip-50.webp?v=1.2.1')"></button>
             <button type="button" class="chip" data-chip="100" aria-label="100" style="background-image:url('chips/chip-100.webp?v=1.2.1')"></button>
@@ -2880,7 +2884,7 @@
   <script src="js/fg-game-ledger.js?v=1.0.1"></script>
   <script>
     (function () {
-      const V = '2.8.0';
+      const V = '2.9.0';
       const IS_EMBED = (function () {
         try {
           return /(?:^|[?&])embed=1(?:&|$)/.test(location.search || '')
@@ -4086,7 +4090,8 @@
           try { window.parent.postMessage({ type: 'fg-embed-close' }, '*'); } catch (_) {}
           return;
         }
-        location.href = 'lobby.html?v=' + V;
+        try { location.replace('lobby.html?v=' + encodeURIComponent(V)); }
+        catch (_) { location.href = 'lobby.html?v=' + encodeURIComponent(V); }
       }
       window.addEventListener('pagehide', leavePage, true);
       window.addEventListener('beforeunload', leavePage, true);

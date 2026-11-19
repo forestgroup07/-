@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="screen-orientation" content="portrait" />
+  <link rel="manifest" href="assets/fg-portrait.webmanifest?v=1.0.5" />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#000000" />
   <title>Forest Group · 輪盤載入中</title>
@@ -14,7 +16,7 @@
           return;
         }
       } catch (_) {}
-      var V = '2.8.0';
+      var V = '2.8.1';
       var TARGET = 'roulette-m.html?v=' + V;
       var CORE = [
         'assets/roulette/m-kbd-face.webp?v=1.3.9',
@@ -66,6 +68,8 @@
       text-shadow: 0 2px 8px rgba(0,0,0,.85);
     }
   </style>
+
+  <script src="js/fg-force-portrait.js?v=1.2.0"></script>
 </head>
 <body>
   <div class="boot" id="boot">

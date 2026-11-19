@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="screen-orientation" content="portrait" />
+  <link rel="manifest" href="assets/fg-portrait.webmanifest?v=1.0.5" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0a1210" />
   <meta name="robots" content="noindex,nofollow" />
@@ -2062,6 +2064,8 @@
     .rec-sum .pnl-lose { color: #f07178; font-weight: 700; }
 
   </style>
+
+  <script src="js/fg-force-portrait.js?v=1.2.0"></script>
 </head>
 <body>
   <div class="app" id="app">
@@ -2702,7 +2706,7 @@
   <script>
   (function () {
     'use strict';
-    const V = '2.8.0';
+    const V = '2.9.0';
     const LEDGER = window.FgGameLedger;
     const START_BAL = 2000;
     const TABLE_MIN = 10;
@@ -3984,7 +3988,9 @@
         try { window.parent.postMessage({ type: 'fg-embed-close' }, '*'); } catch (_) {}
         return;
       }
-      location.href = 'lobby.html?v=' + V;
+      /* replace：回大厅，禁止 history.back 直接退出 */
+      try { location.replace('lobby.html?v=' + encodeURIComponent(V)); }
+      catch (_) { location.href = 'lobby.html?v=' + encodeURIComponent(V); }
     }
     /* —— 趋势图：公司同款 + 电脑版 roadHistory 程序 —— */
     const ROAD_MAX = 8;

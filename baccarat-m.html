@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="screen-orientation" content="portrait" />
+  <link rel="manifest" href="assets/fg-portrait.webmanifest?v=1.0.5" />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a120e" />
-  <title>百家樂 B601 · 豎屏殼 v1.1.0</title>
+  <title>百家樂 B601 · 豎屏殼 v1.1.1</title>
   <style>
     :root {
       --safe-b: env(safe-area-inset-bottom, 0px);
@@ -116,68 +118,35 @@
       min-width: 2.4rem;
       font-size: clamp(1.35rem, 6vw, 1.75rem);
     }
-    /* 标准扑克牌白面（圆角竖牌） */
+    /* 真扑克牌：52 张实体牌面图（花色点阵 + 人头画） */
     .poker-card {
       display: block;
       width: 100%;
       height: 100%;
-      border-radius: 6px;
+      border-radius: 7px;
       box-sizing: border-box;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0,0,0,.08);
       user-select: none;
       -webkit-user-drag: none;
     }
     .poker-card.is-back {
       background: #1a1a1a;
     }
-    .poker-card.is-back img {
+    .poker-card.is-back img,
+    .poker-card.is-face img {
       display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
       border-radius: 6px;
+      pointer-events: none;
+      -webkit-user-drag: none;
     }
     .poker-card.is-face {
       background: #fff;
-      border: 1.5px solid #1c1c1c;
     }
-    .poker-card .pc-corner {
-      position: absolute;
-      top: 4%;
-      left: 6%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      line-height: 1;
-      font-weight: 800;
-    }
-    .poker-card .pc-corner.is-br {
-      top: auto;
-      left: auto;
-      right: 6%;
-      bottom: 4%;
-      transform: rotate(180deg);
-    }
-    .poker-card .pc-rank {
-      font-size: calc(var(--card-w) * 0.28);
-      font-family: "Times New Roman", "Songti SC", serif;
-    }
-    .poker-card .pc-suit {
-      font-size: calc(var(--card-w) * 0.22);
-      margin-top: 0.05em;
-    }
-    .poker-card .pc-center {
-      position: absolute;
-      left: 50%;
-      top: 52%;
-      transform: translate(-50%, -50%);
-      font-size: calc(var(--card-w) * 0.42);
-      line-height: 1;
-    }
-    .poker-card.is-red { color: #d61f26; }
-    .poker-card.is-black { color: #141414; }
     /* 停注后绿台暗层：点注无效 */
     .green-stage.is-closed::after {
       content: "";
@@ -2061,6 +2030,8 @@
     .rec-sum .pnl-win { color: #3ddc84; font-weight: 700; }
     .rec-sum .pnl-lose { color: #f07178; font-weight: 700; }
   </style>
+
+  <script src="js/fg-force-portrait.js?v=1.2.0"></script>
 </head>
 <body>
   <div class="app" id="app">
@@ -2591,10 +2562,12 @@
   <script src="js/fg-game-ledger.js?v=1.0.2"></script>
   <script>
     (function () {
-      const V = '1.1.0';
+      const V = '2.9.0';
       const BET_SEC = 22;
       const PHASE_HOLD_MS = 5000;
       const STOP_BET_HOLD_MS = 3000;
+      /* 开牌结果后停留：原 3s + 再多 3s，方便看清 */
+      const RESULT_HOLD_MS = 6000;
       const SOUND_MUTE_KEY = 'fg_baccarat_m_sound_mute';
       const IS_EMBED = (function () {
         try {
@@ -2659,7 +2632,8 @@
           try { window.parent.postMessage({ type: 'fg-embed-close' }, '*'); } catch (_) {}
           return;
         }
-        location.href = 'lobby.html?v=' + encodeURIComponent(V);
+        try { location.replace('lobby.html?v=' + encodeURIComponent(V)); }
+        catch (_) { location.href = 'lobby.html?v=' + encodeURIComponent(V); }
       }
 
       const btnBack = document.getElementById('btnBack');
@@ -3217,26 +3191,18 @@
       }
       function makeFaceCard(card) {
         const wrap = document.createElement('div');
-        wrap.className = 'poker-card is-face ' + (card.red ? 'is-red' : 'is-black');
-        function corner(extra) {
-          const c = document.createElement('div');
-          c.className = 'pc-corner' + (extra ? ' ' + extra : '');
-          const rk = document.createElement('span');
-          rk.className = 'pc-rank';
-          rk.textContent = rankLabel(card.rank);
-          const su = document.createElement('span');
-          su.className = 'pc-suit';
-          su.textContent = card.mark;
-          c.appendChild(rk);
-          c.appendChild(su);
-          return c;
-        }
-        wrap.appendChild(corner(''));
-        wrap.appendChild(corner('is-br'));
-        const mid = document.createElement('div');
-        mid.className = 'pc-center';
-        mid.textContent = card.mark;
-        wrap.appendChild(mid);
+        wrap.className = 'poker-card is-face';
+        const suit = String(card.suit || 's');
+        const rank = Number(card.rank) || 1;
+        const base = 'assets/baccarat/cards/faces/' + suit + '-' + rank;
+        const img = document.createElement('img');
+        img.src = base + '.webp?v=' + V;
+        img.alt = (rankLabel(rank) || '') + (card.mark || '');
+        img.width = 68;
+        img.height = 96;
+        img.decoding = 'async';
+        img.draggable = false;
+        wrap.appendChild(img);
         return wrap;
       }
       function fillSlot(slotId, node) {
@@ -3483,7 +3449,7 @@
               }, 200);
             }
           }
-          await sleep(3000);
+          await sleep(RESULT_HOLD_MS);
           resetDealBoard();
           nextRound();
         } catch (err) {

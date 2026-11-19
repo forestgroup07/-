@@ -1,0 +1,27 @@
+roulette-m v2.9.0 定版（2026-11-19）
+
+用户确认：「现在把骰宝轮盘百家乐 存为2.9版本 并计入git 存储在服务器中」
+范围：轮盘手机竖屏；横屏黑罩请竖屏。
+
+已验收清单（本包算数）：
+- 横屏：半透明黑罩「请竖屏游玩」+ 禁点（js/fg-force-portrait.js）；回竖屏罩消失
+- 不做 CSS 假转向强制竖版
+- 沿用 2.8.x：合并流水/游戏列/小球 outer-cont fret/10k20k/侧栏/记录/喇叭三分叉等
+- roulette-m.html / roulette-m-boot.html / lobby ROULETTE_M ?v=2.9.0
+- assets/roulette/VERSION-m.txt = 2.9.0
+
+未验收、不得当作定版：
+- 麻将 / 大厅横屏
+- 电脑版轮盘
+- CSS 强制竖版旋转方案（已放弃）
+
+回滚：
+- roulette-m.LOCKED-2.9.0.html
+- roulette-m-boot.LOCKED-2.9.0.html
+- lobby.LOCKED-roulette-m-2.9.0.html
+- js/fg-force-portrait.LOCKED-2.9.0.js
+- assets/roulette/LOCKED-roulette-m-2.9.0.txt
+- assets/roulette/VERSION-m.txt = 2.9.0
+- tag roulette-m-v2.9.0
+
+验收：https://forestgroup.ai/roulette-m.html?v=2.9.0

@@ -2,8 +2,14 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Forest" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="robots" content="noindex,nofollow" />
+  <link rel="manifest" href="assets/fg-lobby.webmanifest?v=1.0.0" />
+  <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
   <title>Forest Group · 大廳</title>
   <style>
     :root {
@@ -696,11 +702,11 @@
   <script>
     (function () {
       const GAME_PC = 'game.html?v=1.5.18';
-      const GAME_M = 'game-m.html?v=2.8.0';
+      const GAME_M = 'game-m.html?v=2.9.0';
       const ROULETTE_PC = 'roulette.html?v=1.2.11';
-      const ROULETTE_M = 'roulette-m.html?v=2.8.0';
-      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.8.0';
-      const BACCARAT_M = 'baccarat-m.html?v=1.1.2';
+      const ROULETTE_M = 'roulette-m.html?v=2.9.0';
+      const ROULETTE_M_BOOT = 'roulette-m-boot.html?v=2.9.0';
+      const BACCARAT_M = 'baccarat-m.html?v=2.9.0';
       const MAHJONG_M = 'mahjong-m.html?v=1.2.0';
       function isMobileClient() {
         try {
@@ -1177,12 +1183,10 @@
         const wasMahjong = ShellSfx.embedKind === 'mahjong';
         if (shell) shell.classList.remove('show', 'is-ready');
         if (frame) frame.src = 'about:blank';
-        /* 麻将：点离开时吞掉进桌 push 的历史，避免再按一次退到登录 */
+        /* 麻将：吞掉进桌 push，禁止 history.back（会把桌面App/网页直接退出） */
         if (wasMahjong && mahjongEmbedHist && !fromPop) {
           mahjongEmbedHist = false;
-          mahjongEmbedClosing = true;
-          try { history.back(); } catch (_) {}
-          setTimeout(function () { mahjongEmbedClosing = false; }, 0);
+          try { history.replaceState({}, '', location.href); } catch (_) {}
         } else if (wasMahjong) {
           mahjongEmbedHist = false;
         }
@@ -1556,14 +1560,9 @@
         if (!modal || !body || !doBtn) return;
         /* 条款同时写清 iPhone + 安卓：手机底栏没有「全屏」键，只能加到主屏幕后从图标进 */
         body.innerHTML =
-          '<p><b>重要：</b>手机浏览器底栏<b>没有「全屏观看」按钮</b>。' +
-          '在 Safari/Chrome 里点进游戏，网址栏会一直在。' +
-          '只有把本站<b>加到主屏幕</b>，再从桌面图标进入，才是全屏（无网址栏）。仍是网页，不用下 App。</p>' +
-          '<p class="ahs-note">请先用系统浏览器打开本站；微信/QQ 内置浏览器通常没有「添加到主屏幕」。</p>' +
-
           '<h4>一、iPhone（Safari）怎么全屏</h4>' +
           '<ol>' +
-          '<li>用 <b>Safari</b> 打开本站（不要用微信打开）。</li>' +
+          '<li>用 <b>Safari</b> 打开本站。</li>' +
           '<li>看手机<b>最底下那一栏</b>：新版 Safari 中间常常<b>没有</b>旧的分享键 □↑。</li>' +
           '<li>点底栏<b>最右边</b>的 <b>···</b>（三个点）。</li>' +
           '<li>在菜单里点 <b>共享</b>。（也可先点中间地址栏 <b>forestgroup.ai</b>，再找共享。）</li>' +
@@ -1574,7 +1573,7 @@
 
           '<h4>二、安卓手机（Chrome）怎么全屏</h4>' +
           '<ol>' +
-          '<li>用 <b>Chrome</b>（或系统浏览器）打开本站，不要用微信内置浏览器。</li>' +
+          '<li>用 <b>Chrome</b>（或系统浏览器）打开本站。</li>' +
           '<li>点右上角 <b>⋮</b>（三个竖点菜单）。</li>' +
           '<li>在菜单里找并点：<b>添加到主屏幕</b> / <b>安装应用</b> / <b>添加到主屏幕</b>（不同手机文案可能略有差别）。</li>' +
           '<li>若本弹窗下方出现 <b>按系统安装</b>，也可直接点它，按系统提示确认安装。</li>' +
