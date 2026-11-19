@@ -1,0 +1,28 @@
+mahjong-m v1.2.1 定版（2026-11-19）
+
+用户确认：「请保存麻将1.2.1 存入git」
+范围：仅麻将手机竖屏；本包为左右专用立牌图 + 主位上移 5mm 试看后的存档号。
+
+已验收清单（本包算数）：
+- 左右手牌改接专用图：hand-left-stand-edge.webp / hand-right-stand-edge.webp（不再 HAND_LEFT=HAND_TOP）
+- 主手牌整排上移 5mm：.hand-bot bottom: calc(-1.8% + 5mm)
+- 禁止左右整列斜转（transform: none）
+- mahjong-m.html / lobby MAHJONG_M ?v=1.2.1
+- assets/mahjong/VERSION-m.txt = 1.2.1
+
+未验收、不得当作定版：
+- 左右贴木条精细校准（仅换图+主位上移）
+- 骰宝 / 轮盘 / 百家乐
+- 麻将其它玩法/发牌逻辑改动
+
+回滚：
+- mahjong-m.LOCKED-1.2.1.html
+- lobby.LOCKED-mahjong-m-1.2.1.html
+- assets/mahjong/LOCKED-hand-left-stand-edge-1.2.1.webp
+- assets/mahjong/LOCKED-hand-right-stand-edge-1.2.1.webp
+- assets/mahjong/LOCKED-mahjong-m-1.2.1.txt
+- assets/mahjong/LOCKED-VERSION-m-1.2.1.txt
+- assets/mahjong/VERSION-m.txt = 1.2.1
+- tag mahjong-m-v1.2.1
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.2.1

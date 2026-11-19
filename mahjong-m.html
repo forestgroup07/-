@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.2.0" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.2.1" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.2.0</title>
+  <title>单人香港麻将 · v1.2.1</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.2.0" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.2.1" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -42,7 +42,7 @@
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      background: url("assets/mahjong/table-empty-clean-v15.png?v=1.2.0") center center / cover no-repeat;
+      background: url("assets/mahjong/table-empty-clean-v15.png?v=1.2.1") center center / cover no-repeat;
     }
     /* contain：整桌进屏，不裁上下（主牌不被挡） */
     .table-stage {
@@ -243,7 +243,8 @@
     .hand-bot {
       left: 7%;
       width: 86%;
-      bottom: -1.8%;
+      /* 试看：整排相对原位上移 5mm */
+      bottom: calc(-1.8% + 5mm);
       height: calc(16.8% + 3mm);
       flex-direction: row;
       align-items: flex-end;
@@ -266,27 +267,30 @@
     .hand-top .hand-tile + .hand-tile {
       margin-left: -1mm; /* 对面间距：-2mm 后再加大 1mm */
     }
+    /* 左/右立牌：专用侧视 stand-edge；贴同侧木条，禁止整列斜转 */
     .hand-left {
-      left: 2.4%;
-      top: 17%;
-      width: 7.6%;
-      height: 58%;
+      left: 11.8%;
+      top: 18%;
+      width: 9.4%; /* = .hand-top 高 */
+      height: 52%;
       flex-direction: column;
       justify-content: center;
-      align-items: flex-end;
-      gap: 0.18%;
+      align-items: center;
+      gap: 0;
       z-index: 11;
+      transform: none;
     }
     .hand-right {
-      right: 2.4%;
-      top: 17%;
-      width: 7.6%;
-      height: 58%;
+      right: 11.8%;
+      top: 18%;
+      width: 9.4%;
+      height: 52%;
       flex-direction: column;
       justify-content: center;
-      align-items: flex-start;
-      gap: 0.18%;
+      align-items: center;
+      gap: 0;
       z-index: 11;
+      transform: none;
     }
     .hand-tile {
       display: block;
@@ -302,12 +306,12 @@
       transform: none;
     }
     .hand-left .hand-tile {
-      transform: translateX(-4px) scale(.92);
+      transform: translateY(4px) scale(.92);
       filter: drop-shadow(1px 3px 4px rgba(0,0,0,.45)) brightness(1.05);
     }
     .hand-left .hand-tile.is-up { transform: none; }
     .hand-right .hand-tile {
-      transform: translateX(4px) scale(.92);
+      transform: translateY(4px) scale(.92);
       filter: drop-shadow(-1px 3px 4px rgba(0,0,0,.45)) brightness(1.05);
     }
     .hand-right .hand-tile.is-up { transform: none; }
@@ -332,12 +336,23 @@
       object-fit: contain;
       object-position: center bottom;
     }
+    /* 左13 / 右14：单张比例与对面相同（宽满条=对面站立高，高均分木条） */
     .hand-left .hand-tile,
     .hand-right .hand-tile {
       width: 100%;
-      height: calc(100% / 13);
+      flex: 0 0 auto;
       object-fit: contain;
-      object-position: center bottom;
+      object-position: center center;
+    }
+    .hand-left .hand-tile {
+      height: calc(100% / 13);
+    }
+    .hand-right .hand-tile {
+      height: calc(100% / 14);
+    }
+    .hand-left .hand-tile + .hand-tile,
+    .hand-right .hand-tile + .hand-tile {
+      margin-top: -1mm; /* 同对面牌缝 */
     }
     .wall-stack.is-taken {
       opacity: 0 !important;
@@ -574,7 +589,7 @@
           <div class="table-shadow" aria-hidden="true"></div>
           <div class="table-body">
             <!-- 原桌图只引用、不改像素 -->
-            <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.2.0" alt="" draggable="false" />
+            <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.2.1" alt="" draggable="false" />
             <div class="table-sheen" aria-hidden="true"></div>
             <div class="table-edge-front" aria-hidden="true"></div>
           </div>
@@ -609,22 +624,23 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.2.0"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.2.1"></script>
   <script>
   (function () {
-    const V = '1.2.0';
+    const V = '1.2.1';
     /* 1.1.5：主位试飞 5 张立体正脸成品（s7/p9/s4/ww/s1）；飞中立体壳→正脸；三家仍立背 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.2.0';
-    const WALL_LEFT_FLAT = 'assets/mahjong/tiles/wall-left-one.webp?v=1.2.0';
-    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.2.0';
-    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.2.0';
-    const HAND_BOT = 'assets/mahjong/tiles/hand-bot-stand-one.webp?v=1.2.0';
-    const HAND_LEFT = 'assets/mahjong/tiles/hand-left-stand-edge.webp?v=1.2.0';
-    const HAND_TOP = 'assets/mahjong/tiles/hand-top-stand-edge.webp?v=1.2.0';
-    const HAND_RIGHT = 'assets/mahjong/tiles/hand-right-stand-edge.webp?v=1.2.0';
-    const FLY_TILE = 'assets/mahjong/tiles/hand-left-back-one-CUBOID-FLY.webp?v=1.2.0';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.2.1';
+    const WALL_LEFT_FLAT = 'assets/mahjong/tiles/wall-left-one.webp?v=1.2.1';
+    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.2.1';
+    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.2.1';
+    const HAND_BOT = 'assets/mahjong/tiles/hand-bot-stand-one.webp?v=1.2.1';
+    /* 左/右形状与对面相同：共用对面立背图 */
+    const HAND_TOP = 'assets/mahjong/tiles/hand-top-stand-edge.webp?v=1.2.1';
+    const HAND_LEFT = 'assets/mahjong/tiles/hand-left-stand-edge.webp?v=1.2.1';
+    const HAND_RIGHT = 'assets/mahjong/tiles/hand-right-stand-edge.webp?v=1.2.1';
+    const FLY_TILE = 'assets/mahjong/tiles/hand-left-back-one-CUBOID-FLY.webp?v=1.2.1';
     const FACE_DIR = 'assets/mahjong/tiles/hand-face/';
     const FACE_3D_DIR = 'assets/mahjong/tiles/hand-face-3d/';
     /* 试飞验收：先这 5 张立体正脸成品 */
@@ -1088,7 +1104,7 @@
 
     /* 验收数：庄14 正面 / 其余13 立背；不够则补 */
     function ensureStepACounts() {
-      var need = { bot: 14, right: 13, top: 13, left: 13 };
+      var need = { bot: 13, right: 14, top: 13, left: 13 };
       DEAL_SEATS.forEach(function (seat) {
         var n = handCount(seat);
         while (n < need[seat]) {
