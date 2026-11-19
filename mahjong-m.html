@@ -4,37 +4,54 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex,nofollow" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#1a2a22" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="麻将" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.1.8" />
+  <link rel="manifest" href="assets/mahjong/manifest.webmanifest?v=1.2.0" />
   <link rel="apple-touch-icon" href="assets/mahjong/pwa/apple-touch-icon-180.png" />
-  <title>单人香港麻将 · v1.1.8</title>
+  <title>单人香港麻将 · v1.2.0</title>
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.1.8" />
+  <link rel="modulepreload" href="js/mahjong-dice-3d.js?v=1.2.0" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%; height: 100%; overflow: hidden;
-      background: #000;
+      background: #1a2a22;
       -webkit-tap-highlight-color: transparent;
       touch-action: none; overscroll-behavior: none;
     }
     .app {
       position: fixed; inset: 0;
       overflow: hidden;
-      background: #000;
+      background: #1a2a22;
     }
-    /* 跟对标图一样大：整图完整放进屏幕，不放大裁切 */
+    /* 强制横屏根：竖持机时整页旋转成横桌，禁止竖屏窄条布局来回跳 */
+    .orient-root {
+      position: absolute;
+      left: 0; top: 0;
+      overflow: hidden;
+      background: #1a2a22;
+      transform-origin: top left;
+    }
+    /* 黑边新办法：舞台外地板 cover 填缝；舞台本身 contain 不裁主牌 */
+    .floor-bleed {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: url("assets/mahjong/table-empty-clean-v15.png?v=1.2.0") center center / cover no-repeat;
+    }
+    /* contain：整桌进屏，不裁上下（主牌不被挡） */
     .table-stage {
       position: absolute;
       left: 0; top: 0;
       width: 100px; height: 100px;
-      z-index: 0;
+      z-index: 1;
       pointer-events: none;
+      overflow: visible;
       perspective: 1400px;
       perspective-origin: 50% 42%;
     }
@@ -78,7 +95,7 @@
       filter: none;
       border-radius: 1px;
       transform: translateZ(0);
-      background: #000;
+      background: transparent;
     }
     /* 活光：扫过毡面，不改原图像素 */
     .table-sheen {
@@ -238,7 +255,7 @@
     .hand-top {
       left: 26%;
       width: 48%;
-      top: calc(0.4% + 3mm); /* 对面：下移5mm后再上移2mm */
+      top: calc(0.4% + 3mm);
       height: 9.4%;
       flex-direction: row;
       align-items: flex-end;
@@ -550,33 +567,36 @@
 </head>
 <body>
   <div class="app" id="app">
-    <div class="table-stage" id="tableStage">
-      <div class="table-live" id="tableLive">
-        <div class="table-shadow" aria-hidden="true"></div>
-        <div class="table-body">
-          <!-- 原桌图只引用、不改像素 -->
-          <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.1.8" alt="" draggable="false" />
-          <div class="table-sheen" aria-hidden="true"></div>
-          <div class="table-edge-front" aria-hidden="true"></div>
+    <div class="orient-root" id="orientRoot">
+      <div class="floor-bleed" id="floorBleed" aria-hidden="true"></div>
+      <div class="table-stage" id="tableStage">
+        <div class="table-live" id="tableLive">
+          <div class="table-shadow" aria-hidden="true"></div>
+          <div class="table-body">
+            <!-- 原桌图只引用、不改像素 -->
+            <img class="scene-bg" src="assets/mahjong/table-empty-clean-v15.png?v=1.2.0" alt="" draggable="false" />
+            <div class="table-sheen" aria-hidden="true"></div>
+            <div class="table-edge-front" aria-hidden="true"></div>
+          </div>
         </div>
-      </div>
-      <div class="wall-ring" id="wallRing">
-        <div class="wall wall-left" id="wallLeftVis"></div>
-        <div class="wall wall-top" id="wallTopVis"></div>
-        <div class="wall wall-right" id="wallRightVis"></div>
-        <div class="wall wall-bot" id="wallBot"></div>
-      </div>
-      <div class="hand-ring" id="handRing" aria-hidden="true">
-        <div class="hand hand-bot" id="handBot"></div>
-        <div class="hand hand-left" id="handLeft"></div>
-        <div class="hand hand-top" id="handTop"></div>
-        <div class="hand hand-right" id="handRight"></div>
-      </div>
-      <div class="deal-fly-layer" id="dealFlyLayer" aria-hidden="true"></div>
-      <div class="turn-timer" id="turnTimer" aria-hidden="true"></div>
-      <div class="turn-toast" id="turnToast" aria-hidden="true">系统自动出牌</div>
-      <div class="mj-dice3d-layer" id="mjDice3dLayer" aria-hidden="true">
-        <canvas id="mjDice3dCanvas" width="640" height="640" data-lite="1" aria-hidden="true"></canvas>
+        <div class="wall-ring" id="wallRing">
+          <div class="wall wall-left" id="wallLeftVis"></div>
+          <div class="wall wall-top" id="wallTopVis"></div>
+          <div class="wall wall-right" id="wallRightVis"></div>
+          <div class="wall wall-bot" id="wallBot"></div>
+        </div>
+        <div class="hand-ring" id="handRing" aria-hidden="true">
+          <div class="hand hand-bot" id="handBot"></div>
+          <div class="hand hand-left" id="handLeft"></div>
+          <div class="hand hand-top" id="handTop"></div>
+          <div class="hand hand-right" id="handRight"></div>
+        </div>
+        <div class="deal-fly-layer" id="dealFlyLayer" aria-hidden="true"></div>
+        <div class="turn-timer" id="turnTimer" aria-hidden="true"></div>
+        <div class="turn-toast" id="turnToast" aria-hidden="true">系统自动出牌</div>
+        <div class="mj-dice3d-layer" id="mjDice3dLayer" aria-hidden="true">
+          <canvas id="mjDice3dCanvas" width="640" height="640" data-lite="1" aria-hidden="true"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -589,22 +609,22 @@
     }
   }
   </script>
-  <script type="module" src="js/mahjong-dice-3d.js?v=1.1.8"></script>
+  <script type="module" src="js/mahjong-dice-3d.js?v=1.2.0"></script>
   <script>
   (function () {
-    const V = '1.1.8';
+    const V = '1.2.0';
     /* 1.1.5：主位试飞 5 张立体正脸成品（s7/p9/s4/ww/s1）；飞中立体壳→正脸；三家仍立背 */
     const STEP1_FLAT_TABLE_ONLY = false;
     const STEP2_SOLID_TILES = false;
-    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.1.8';
-    const WALL_LEFT_FLAT = 'assets/mahjong/tiles/wall-left-one.webp?v=1.1.8';
-    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.1.8';
-    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.1.8';
-    const HAND_BOT = 'assets/mahjong/tiles/hand-bot-stand-one.webp?v=1.1.8';
-    const HAND_LEFT = 'assets/mahjong/tiles/hand-left-stand-edge.webp?v=1.1.8';
-    const HAND_TOP = 'assets/mahjong/tiles/hand-top-stand-edge.webp?v=1.1.8';
-    const HAND_RIGHT = 'assets/mahjong/tiles/hand-right-stand-edge.webp?v=1.1.8';
-    const FLY_TILE = 'assets/mahjong/tiles/hand-left-back-one-CUBOID-FLY.webp?v=1.1.8';
+    const WALL_STACK = 'assets/mahjong/tiles/wall-bot-stack-101.webp?v=1.2.0';
+    const WALL_LEFT_FLAT = 'assets/mahjong/tiles/wall-left-one.webp?v=1.2.0';
+    const WALL_RIGHT_ONE = 'assets/mahjong/tiles/wall-right-one.webp?v=1.2.0';
+    const WALL_TOP_ONE = 'assets/mahjong/tiles/wall-top-one-flush.webp?v=1.2.0';
+    const HAND_BOT = 'assets/mahjong/tiles/hand-bot-stand-one.webp?v=1.2.0';
+    const HAND_LEFT = 'assets/mahjong/tiles/hand-left-stand-edge.webp?v=1.2.0';
+    const HAND_TOP = 'assets/mahjong/tiles/hand-top-stand-edge.webp?v=1.2.0';
+    const HAND_RIGHT = 'assets/mahjong/tiles/hand-right-stand-edge.webp?v=1.2.0';
+    const FLY_TILE = 'assets/mahjong/tiles/hand-left-back-one-CUBOID-FLY.webp?v=1.2.0';
     const FACE_DIR = 'assets/mahjong/tiles/hand-face/';
     const FACE_3D_DIR = 'assets/mahjong/tiles/hand-face-3d/';
     /* 试飞验收：先这 5 张立体正脸成品 */
@@ -644,7 +664,11 @@
     const WALL_LEFT_FLAT_STACKS = 17;
     const WALL_RIGHT_STACKS = 17;
     const WALL_TOP_STACKS = 17;
-    const TABLE_AR = 2048 / 944;
+    /* 设计分辨率（对标桌图）：2048×944 ≈ 2.169:1（近苹果 19.5:9）
+       若要更贴 19.5:9，可改为 DESIGN_W=2340; DESIGN_H=1080; 并重校百分比牌位 */
+    const DESIGN_W = 2048;
+    const DESIGN_H = 944;
+    const TABLE_AR = DESIGN_W / DESIGN_H;
     var lastDice = { a: 1, b: 1, sum: 2 };
     /* 庄起逆时针数家定墙：bot→left→top→right */
     var OPEN_SIDES = ['bot', 'left', 'top', 'right'];
@@ -683,13 +707,50 @@
     }
     function el(id) { return document.getElementById(id); }
 
-    /* contain：整图跟对标一样完整进屏，不放大裁边 */
+    /* 竖持机 → CSS 旋转成横屏逻辑尺寸；横持机 → 原样。禁止竖屏窄条。 */
+    function syncForceLandscapeRoot(sw, sh) {
+      var root = el('orientRoot');
+      var app = el('app');
+      if (!root || !app) return { W: sw, H: sh };
+      var portrait = sh > sw;
+      if (portrait) {
+        /* 逻辑横屏：宽=屏高，高=屏宽；绕左上角转 90° 铺满 */
+        var W = sh;
+        var H = sw;
+        root.style.width = W + 'px';
+        root.style.height = H + 'px';
+        root.style.top = '0px';
+        root.style.left = sw + 'px';
+        root.style.transform = 'rotate(90deg)';
+        root.style.transformOrigin = 'top left';
+        app.style.width = sw + 'px';
+        app.style.height = sh + 'px';
+        return { W: W, H: H };
+      }
+      root.style.width = sw + 'px';
+      root.style.height = sh + 'px';
+      root.style.top = '0px';
+      root.style.left = '0px';
+      root.style.transform = 'none';
+      root.style.transformOrigin = 'top left';
+      app.style.width = sw + 'px';
+      app.style.height = sh + 'px';
+      return { W: sw, H: sh };
+    }
+
+    /* contain：整桌可见不裁主牌；缝用 floor-bleed cover 填，不再 FIXED_WIDTH 裁边 */
     function layoutTable() {
       const app = el('app');
       const stage = el('tableStage');
       if (!app || !stage) return;
-      const W = app.clientWidth || window.innerWidth;
-      const H = app.clientHeight || window.innerHeight;
+      var vv = window.visualViewport;
+      var sw = Math.round((vv && vv.width) || window.innerWidth || 0);
+      var sh = Math.round((vv && vv.height) || window.innerHeight || 0);
+      if (sw < 1 || sh < 1) return;
+      app.style.overflow = 'hidden';
+      var box = syncForceLandscapeRoot(sw, sh);
+      var W = box.W;
+      var H = box.H;
       var w, h;
       if (W / H > TABLE_AR) {
         h = H;
@@ -702,6 +763,19 @@
       stage.style.height = Math.round(h) + 'px';
       stage.style.left = Math.round((W - w) / 2) + 'px';
       stage.style.top = Math.round((H - h) / 2) + 'px';
+      var bleed = el('floorBleed');
+      if (bleed) {
+        bleed.style.width = W + 'px';
+        bleed.style.height = H + 'px';
+      }
+    }
+
+    function tryLockLandscape() {
+      try {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(function () {});
+        }
+      } catch (_) {}
     }
 
     function makeStackEl(src) {
@@ -1313,15 +1387,18 @@
       startTurnTimer();
     }
 
-    try {
-      if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape').catch(function () {});
-      }
-    } catch (_) {}
+    tryLockLandscape();
+    document.addEventListener('pointerdown', tryLockLandscape, { passive: true });
+    document.addEventListener('touchstart', tryLockLandscape, { passive: true });
 
     window.addEventListener('resize', layoutTable);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', layoutTable);
+      window.visualViewport.addEventListener('scroll', layoutTable);
+    }
     window.addEventListener('orientationchange', function () {
-      setTimeout(layoutTable, 120);
+      setTimeout(function () { tryLockLandscape(); layoutTable(); }, 120);
+      setTimeout(layoutTable, 320);
     });
 
     layoutTable();

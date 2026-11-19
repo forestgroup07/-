@@ -1,0 +1,30 @@
+mahjong-m v1.2.0 定版（2026-11-19）
+
+用户确认：「现在黑边问题 解决了 请把这版麻将存为1.2.0 并存入git 全屏了」
+范围：麻将手机竖屏页全屏布局（contain + 地板填缝）与进桌强制横屏桌面；大厅入口仅改 MAHJONG_M 版本号。
+
+已验收清单（本包算数）：
+- 黑边/全屏：table-stage 用 contain 整桌可见不裁主牌；floor-bleed cover 填舞台外缝
+- 进桌即横屏桌面；竖持机用 #orientRoot CSS rotate(90deg) 假横屏（逻辑宽=屏高）
+- 真横持机去掉旋转，用原生横屏尺寸（无「请竖屏」遮罩）
+- 沿用 1.1.8：主位试飞/计时器/摇骰；三家立背 hand-*-stand-edge
+- mahjong-m.html / lobby MAHJONG_M ?v=1.2.0
+- assets/mahjong/VERSION-m.txt = 1.2.0
+- PWA manifest start_url → mahjong-m.html?v=1.2.0
+
+未验收、不得当作定版：
+- 大厅横屏布局 / fg-lobby.webmanifest / 加到主屏幕大厅包
+- 骰宝 / 轮盘 / 百家乐「请竖屏」遮罩与版本
+- 其余花色立体正脸铺满
+- 三家立背花色/再精修透视
+- 摇骰再缩短
+
+回滚：
+- mahjong-m.LOCKED-1.2.0.html
+- lobby.LOCKED-mahjong-m-1.2.0.html
+- assets/mahjong/LOCKED-manifest-m-1.2.0.webmanifest
+- assets/mahjong/LOCKED-mahjong-m-1.2.0.txt
+- assets/mahjong/VERSION-m.txt = 1.2.0
+- tag mahjong-m-v1.2.0
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.2.0
