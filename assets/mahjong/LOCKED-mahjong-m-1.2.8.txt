@@ -1,0 +1,36 @@
+mahjong-m v1.2.8 定版（2026-11-20）
+
+用户确认：「把这版存为1.2.8，并存入git。现在最重要」
+范围：仅麻将手机竖屏；在 1.2.7 基础上收左右缝、右列贴木内侧。
+
+已验收清单（本包算数）：
+- 沿用 1.2.7：左/对面/右 ×0.729；左整列 rotate(22.676deg)+rotateY(-38deg)+left:19.2%；对面同缩
+- 右侧：整列 rotate(-22.676deg)+rotateY(38deg)；right:13.2%（右木内侧、站绿毡贴木，非 8.1% 出界）
+- 左侧牌缝 margin-top:-5mm；右侧牌缝 margin-top:-4mm（缩短整列少挡主牌）
+- 对面牌缝 margin-left:-3mm；gap:0
+- hand-right-wood-stand 白边轻清
+- 主位手牌尺寸未改
+- 沿用骰子 84% / DIE=0.36 / 两颗不许同点
+- mahjong-m.html / lobby MAHJONG_M ?v=1.2.8
+- assets/mahjong/VERSION-m.txt = 1.2.8
+
+未验收、不得当作定版：
+- 对面整列跟木同斜 / 毫米级贴死
+- 底格蒙图重烘立牌
+- 骰宝 / 轮盘 / 百家乐
+- 麻将发牌/计时/其它玩法逻辑改动
+
+回滚：
+- mahjong-m.LOCKED-1.2.8.html
+- lobby.LOCKED-mahjong-m-1.2.8.html
+- assets/mahjong/LOCKED-hand-left-wood-stand-1.2.8.{webp,png}
+- assets/mahjong/LOCKED-hand-right-wood-stand-1.2.8.{webp,png}
+- assets/mahjong/LOCKED-hand-top-stand-edge-1.2.8.webp（若有）
+- js/mahjong-dice-3d.LOCKED-1.2.8.js
+- assets/mahjong/LOCKED-mahjong-m-1.2.8.txt
+- assets/mahjong/LOCKED-VERSION-m-1.2.8.txt
+- assets/mahjong/LOCKED-manifest-m-1.2.8.webmanifest
+- assets/mahjong/VERSION-m.txt = 1.2.8
+- tag mahjong-m-v1.2.8
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.2.8
