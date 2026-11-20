@@ -1,0 +1,32 @@
+mahjong-m v1.40 定版（2026-11-20）
+
+用户确认：保存为1.40 版本。计入git。
+
+已验收清单（本包算数）：
+- 左右单张 = 公司仰角抠图（左原图；右列水平镜像）；禁 rotateY
+- 左右大小 ×0.8748（= 定版1.30 的 0.729 × 1.2，比 1.30 大 20%）
+- 整列贴木：左 rotate(22.676deg)；右 rotate(-22.676deg)
+- 单张反旋同角：左 rotate(-22.676deg) / 右 rotate(22.676deg)
+- 左位置：left: calc(19.2% - 4mm)；右 right: 13.2%
+- 缝：左 margin-top -5mm；右 -4mm；对面仍 ×0.729（未随左右放大）
+- 沿用骰子 84% / DIE=0.36 / 两颗不许同点
+- mahjong-m.html / lobby MAHJONG_M ?v=1.40
+- assets/mahjong/VERSION-m.txt = 1.40
+
+未验收、不得当作定版：
+- ×2 放大实验（1.458，已回退）
+- 轴对齐摆正 / 单张 rotateY
+- 对面整列跟木同斜或随左右放大
+- 骰宝 / 轮盘 / 百家乐
+
+回滚：
+- mahjong-m.LOCKED-1.40.html
+- lobby.LOCKED-mahjong-m-1.40.html
+- assets/mahjong/LOCKED-hand-left-wood-stand-1.40.{webp,png}
+- assets/mahjong/LOCKED-hand-right-wood-stand-1.40.{webp,png}
+- assets/mahjong/LOCKED-hand-left-back-one-CUBOID-FLY-1.40.webp
+- js/mahjong-dice-3d.LOCKED-1.40.js
+- assets/mahjong/LOCKED-mahjong-m-1.40.txt
+- tag mahjong-m-v1.40
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.40

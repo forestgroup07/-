@@ -1,0 +1,24 @@
+# 麻将手机版 v1.40 不许再动
+
+用户硬规则（2026-11-20 书面「保存为1.40 版本。计入git」→ 本包 `1.40` 起生效）：
+
+1. **禁止**未经用户书面点名同意，修改、覆盖、还原、优化、部署本定版麻将**手机竖屏**任何一点，包括但不限于：
+   - `mahjong-m.html`、`lobby.html` 的 `MAHJONG_M` `?v=1.40`
+   - 左右 **公司仰角** 立牌（左原图、右镜像）；`×0.8748`（相对 1.30 的 0.729 大 20%）；禁 `rotateY`
+   - 整列贴木 ±22.676° + 单张反旋同角
+   - 左 `calc(19.2% - 4mm)` / 缝 `-5mm`；右 `13.2%` / 缝 `-4mm`；对面仍 ×0.729
+   - 骰子 `84%` / 两颗不许同点
+   - 本版 `LOCKED-*` 快照与线上 forestgroup.ai 对应资源
+2. 定版快照（回滚只能用这些）：
+   - `mahjong-m.LOCKED-1.40.html`
+   - `lobby.LOCKED-mahjong-m-1.40.html`
+   - `assets/mahjong/LOCKED-hand-left-wood-stand-1.40.{webp,png}`
+   - `assets/mahjong/LOCKED-hand-right-wood-stand-1.40.{webp,png}`
+   - `assets/mahjong/LOCKED-hand-left-back-one-CUBOID-FLY-1.40.webp`
+   - `js/mahjong-dice-3d.LOCKED-1.40.js`
+   - `assets/mahjong/LOCKED-mahjong-m-1.40.txt`
+   - `assets/mahjong/VERSION-m.txt` = `1.40`
+   - git commit / tag 标明 `mahjong-m-v1.40`
+3. 用户只描述问题 / 抱怨 / 对比截图 / 问「理解嘛」时：只解释或先问清，**不要动手改**。
+4. 只有用户明确说「改麻将 / 修某某 / 写入 / 部署」并点名范围后，才可改对应项；一次只做点名项。
+5. 本冻结仅麻将手机竖屏。与 `one-item-no-side-effect`、`one-task-only`、`version-lock-gate`、`save-to-git` 同时生效；冲突时取更严：默认不动。当前有效麻将冻结以**本版**为准（取代 `1.30`）。
