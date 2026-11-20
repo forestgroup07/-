@@ -1,0 +1,31 @@
+mahjong-m v1.2.5 定版（2026-11-20）
+
+用户确认：「把这个版本存为1.2.5」
+范围：仅麻将手机竖屏；在 1.2.4 基础上，左列跟左木条同斜。
+
+已验收清单（本包算数）：
+- 沿用 1.2.4：左右 hand-*-wood-stand 贴图；侧木 column；对面像素换轴尺寸；长边紧挨 -1mm；禁 stand-edge；禁单张四角乱旋
+- 左列整列跟木条同斜：.hand-left left:17.2%；transform-origin:left center；transform:rotate(22.676deg)（对标 table-masks/left rail_fit）
+- 沿用 1.2.4 骰子：画布 84%；DIE=0.36；两颗不许同点
+- mahjong-m.html / lobby MAHJONG_M ?v=1.2.5
+- assets/mahjong/VERSION-m.txt = 1.2.5
+
+未验收、不得当作定版：
+- 右列同斜 / 左右脚边毫米级贴死木条
+- 底格蒙图重烘立牌 / 单张透视 warp
+- 骰宝 / 轮盘 / 百家乐
+- 麻将发牌/计时/其它玩法逻辑改动
+
+回滚：
+- mahjong-m.LOCKED-1.2.5.html
+- lobby.LOCKED-mahjong-m-1.2.5.html
+- assets/mahjong/LOCKED-hand-left-wood-stand-1.2.5.{webp,png}
+- assets/mahjong/LOCKED-hand-right-wood-stand-1.2.5.{webp,png}
+- js/mahjong-dice-3d.LOCKED-1.2.5.js
+- assets/mahjong/LOCKED-mahjong-m-1.2.5.txt
+- assets/mahjong/LOCKED-VERSION-m-1.2.5.txt
+- assets/mahjong/LOCKED-manifest-m-1.2.5.webmanifest
+- assets/mahjong/VERSION-m.txt = 1.2.5
+- tag mahjong-m-v1.2.5
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.2.5
