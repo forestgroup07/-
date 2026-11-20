@@ -1,0 +1,34 @@
+mahjong-m v1.2.9 定版（2026-11-20）
+
+用户确认：「存为1.2.9并计入git 非常好 已经立起来了 角度对了 但是请排成一排 绿背面成一排 白面成一排 大小要跟上版一样」
+范围：仅麻将手机竖屏；仰角立姿 + 摆正成列；尺寸沿用 1.2.8 的 ×0.729。
+
+已验收清单（本包算数）：
+- 左右立牌改用仰角 CUBOID 相机（用户确认角度对、已立起来）
+- 单张图内摆正长边：成列后绿背面一排、白/奶油面一排（消除图内斜放造成的锯齿交错）
+- 大小同上版：×0.729；左缝 -5mm；右缝 -4mm；对面 ×0.729
+- 左 left:19.2% + 整列 rotate(22.676deg)；右 right:13.2% + rotate(-22.676deg)
+- 禁单张 rotateY；主位尺寸未改
+- 沿用骰子 84% / DIE=0.36 / 两颗不许同点
+- mahjong-m.html / lobby MAHJONG_M ?v=1.2.9
+- assets/mahjong/VERSION-m.txt = 1.2.9
+
+未验收、不得当作定版：
+- 对面整列跟木同斜
+- 底格蒙图重烘
+- 骰宝 / 轮盘 / 百家乐
+- 麻将发牌/计时/其它玩法逻辑改动
+
+回滚：
+- mahjong-m.LOCKED-1.2.9.html
+- lobby.LOCKED-mahjong-m-1.2.9.html
+- assets/mahjong/LOCKED-hand-left-wood-stand-1.2.9.{webp,png}
+- assets/mahjong/LOCKED-hand-right-wood-stand-1.2.9.{webp,png}
+- js/mahjong-dice-3d.LOCKED-1.2.9.js
+- assets/mahjong/LOCKED-mahjong-m-1.2.9.txt
+- assets/mahjong/LOCKED-VERSION-m-1.2.9.txt
+- assets/mahjong/LOCKED-manifest-m-1.2.9.webmanifest
+- assets/mahjong/VERSION-m.txt = 1.2.9
+- tag mahjong-m-v1.2.9
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.2.9
