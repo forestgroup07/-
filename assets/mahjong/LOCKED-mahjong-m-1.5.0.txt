@@ -1,0 +1,31 @@
+mahjong-m v1.5.0 定版（2026-11-20）
+
+用户确认：保存为1.5.0 并计入git。
+
+已验收清单（本包算数）：
+- 左右单张 = 公司仰角抠图（左原图；右列水平镜像）；禁 rotateY
+- 左右透视近大远小：远 HAND_SIDE_FAR_S=0.8748（=1.40 近处大小）；近 HAND_SIDE_NEAR_S=0.8748×1.2；列顶→列底线性 --hand-s
+- 整列贴木 ±22.676° + 单张反旋同角
+- 左位置：left: calc(19.2% - 4mm)；右 right: 13.2%
+- 缝：左 -5mm；右 -4mm；对面仍 ×0.729
+- 沿用骰子 84% / DIE=0.36 / 两颗不许同点
+- mahjong-m.html / lobby MAHJONG_M ?v=1.5.0
+- assets/mahjong/VERSION-m.txt = 1.5.0
+
+未验收、不得当作定版：
+- ×2 放大实验（已回退）
+- 轴对齐摆正 / 单张 rotateY
+- 对面整列跟木同斜或随左右放大/透视
+- 骰宝 / 轮盘 / 百家乐
+
+回滚：
+- mahjong-m.LOCKED-1.5.0.html
+- lobby.LOCKED-mahjong-m-1.5.0.html
+- assets/mahjong/LOCKED-hand-left-wood-stand-1.5.0.{webp,png}
+- assets/mahjong/LOCKED-hand-right-wood-stand-1.5.0.{webp,png}
+- assets/mahjong/LOCKED-hand-left-back-one-CUBOID-FLY-1.5.0.webp
+- js/mahjong-dice-3d.LOCKED-1.5.0.js
+- assets/mahjong/LOCKED-mahjong-m-1.5.0.txt
+- tag mahjong-m-v1.5.0
+
+验收：https://forestgroup.ai/mahjong-m.html?v=1.5.0
